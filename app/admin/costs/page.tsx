@@ -14,10 +14,12 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { format } from 'date-fns'
 import { tr } from 'date-fns/locale'
+import { toast } from 'sonner'
 import { CheckCircle2Icon, XCircleIcon, ExternalLinkIcon, Loader2 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { CostListSkeleton } from '@/components/skeletons/cost-list-skeleton'
 
 interface Cost {
     id: string
@@ -84,11 +86,11 @@ export default function CostsPage() {
                 setRejectDialog({ id: '', open: false })
                 setRejectionReason('')
             } else {
-                alert('İşlem başarısız')
+                toast.error('İşlem başarısız')
             }
         } catch (error) {
             console.error(error)
-            alert('Bir hata oluştu')
+            toast.error('Bir hata oluştu')
         } finally {
             setProcessing(null)
         }
@@ -110,7 +112,14 @@ export default function CostsPage() {
     }
 
     if (loading) {
-        return <div className="p-8">Yükleniyor...</div>
+        return (
+            <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <h2 className="text-3xl font-bold tracking-tight">Maliyet Yönetimi</h2>
+                </div>
+                <CostListSkeleton />
+            </div>
+        )
     }
 
     return (

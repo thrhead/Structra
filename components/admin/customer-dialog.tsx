@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { PlusIcon, Loader2Icon } from 'lucide-react'
+import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 
 const customerSchema = z.object({
@@ -64,7 +65,7 @@ export function CustomerDialog() {
       router.refresh()
     } catch (error) {
       console.error(error)
-      alert('Müşteri oluşturulurken bir hata oluştu')
+      toast.error('Müşteri oluşturulurken bir hata oluştu')
     } finally {
       setIsLoading(false)
     }
@@ -132,7 +133,7 @@ export function CustomerDialog() {
               <Label htmlFor="taxId">Vergi No</Label>
               <Input id="taxId" {...register('taxId')} placeholder="Opsiyonel" />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="address">Adres</Label>
               <Input id="address" {...register('address')} placeholder="Opsiyonel" />

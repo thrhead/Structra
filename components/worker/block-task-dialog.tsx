@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -33,7 +34,7 @@ export function BlockTaskDialog({ open, onOpenChange, onBlock, taskTitle, isSubS
 
     const handleSubmit = async () => {
         if (!reason) {
-            alert('Lütfen bir neden seçin')
+            toast.warning('Lütfen bir neden seçin')
             return
         }
 
@@ -45,7 +46,7 @@ export function BlockTaskDialog({ open, onOpenChange, onBlock, taskTitle, isSubS
             setNote('')
         } catch (error) {
             console.error(error)
-            alert('Bloklama işlemi başarısız oldu')
+            toast.error('Bloklama işlemi başarısız oldu')
         } finally {
             setLoading(false)
         }

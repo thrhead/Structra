@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/select'
 import { PlusIcon, Loader2Icon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 type FormData = z.infer<typeof registerSchema>
 
@@ -64,7 +65,7 @@ export function UserDialog() {
       router.refresh()
     } catch (error) {
       console.error(error)
-      alert('Kullanıcı oluşturulurken bir hata oluştu')
+      toast.error('Kullanıcı oluşturulurken bir hata oluştu')
     } finally {
       setIsLoading(false)
     }

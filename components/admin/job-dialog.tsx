@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { format } from 'date-fns'
+import { tr } from 'date-fns/locale'
+import { toast } from 'sonner'
 import {
   Dialog,
   DialogContent,
@@ -343,7 +346,7 @@ export function JobDialog() {
       router.refresh()
     } catch (error) {
       console.error(error)
-      alert('İş oluşturulurken bir hata oluştu')
+      toast.error('İş oluşturulurken bir hata oluştu')
     } finally {
       setIsLoading(false)
     }

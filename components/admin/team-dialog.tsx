@@ -7,8 +7,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { PlusIcon, Edit, Loader2 } from 'lucide-react'
+import { Loader2Icon, CheckIcon, PlusIcon, Edit } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { tr } from 'date-fns/locale'
 
@@ -111,11 +112,11 @@ export function TeamDialog({ team, trigger }: TeamDialogProps) {
         router.refresh()
       } else {
         const data = await res.json()
-        alert(data.error || 'İşlem başarısız')
+        toast.error(data.error || 'İşlem başarısız')
       }
     } catch (error) {
       console.error(error)
-      alert('Bir hata oluştu')
+      toast.error('Bir hata oluştu')
     } finally {
       setLoading(false)
     }
@@ -243,7 +244,7 @@ export function TeamDialog({ team, trigger }: TeamDialogProps) {
               İptal
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {loading && <Loader2Icon className="h-4 w-4 mr-2 animate-spin" />}
               {loading ? 'Kaydediliyor...' : team ? 'Güncelle' : 'Ekle'}
             </Button>
           </div>

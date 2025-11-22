@@ -18,6 +18,7 @@ import { tr } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 import { BlockTaskDialog } from '@/components/worker/block-task-dialog'
 import { CostDialog } from '@/components/worker/cost-dialog'
+import { toast } from 'sonner'
 
 interface JobDetail {
   id: string
@@ -97,13 +98,13 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
       if (step.order > 1) {
         const prevStep = job?.steps.find(s => s.order === step.order - 1)
         if (prevStep && !prevStep.isCompleted) {
-          alert('Önceki adımı tamamlamadan bu adıma geçemezsiniz.')
+          toast.warning('Önceki adımı tamamlamadan bu adıma geçemezsiniz.')
           return
         }
       }
       // Check substeps
       if (step.subSteps.some(s => !s.isCompleted)) {
-        alert('Tüm alt görevleri tamamlamadan bu adımı tamamlayamazsınız.')
+        toast.warning('Tüm alt görevleri tamamlamadan bu adımı tamamlayamazsınız.')
         // Auto-expand to show incomplete substeps
         setExpandedSteps(prev => ({ ...prev, [stepId]: true }))
         return
@@ -117,14 +118,14 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
 
       if (!res.ok) {
         const data = await res.json()
-        alert(data.error || 'İşlem başarısız')
+        toast.error(data.error || 'İşlem başarısız')
         return
       }
 
       fetchJob()
     } catch (error) {
       console.error(error)
-      alert('Bir hata oluştu')
+      toast.error('Bir hata oluştu')
     }
   }
 
@@ -158,14 +159,14 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
 
       if (!res.ok) {
         const data = await res.json()
-        alert(data.error || 'İşlem başarısız')
+        toast.error(data.error || 'İşlem başarısız')
         return
       }
 
       fetchJob()
     } catch (error) {
       console.error(error)
-      alert('Bir hata oluştu')
+      toast.error('Bir hata oluştu')
     }
   }
 
@@ -204,7 +205,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
       if (res.ok) {
         fetchJob()
       } else {
-        alert('Fotoğraf yüklenemedi')
+        toast.error('Fotoğraf yüklenemedi')
       }
     } catch (error) {
       console.error(error)
@@ -224,11 +225,11 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
       })
 
       if (res.ok) {
-        alert('İş başarıyla tamamlandı ve onay için gönderildi!')
+        toast.success('İş başarıyla tamamlandı ve onay için gönderildi!')
         router.push('/worker')
       } else {
         const data = await res.json()
-        alert(data.error || 'İş tamamlanamadı')
+        toast.error(data.error || 'İş tamamlanamadı')
       }
     } catch (error) {
       console.error(error)
@@ -587,7 +588,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
         onOpenChange={setShowCostDialog}
         jobId={job.id}
         onSuccess={() => {
-          alert('Masraf başarıyla kaydedildi')
+          toast.success('Masraf başarıyla kaydedildi')
           // Optional: fetchJob() if we want to show costs
         }}
       />

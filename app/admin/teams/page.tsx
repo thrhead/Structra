@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import { TeamDialog } from '@/components/admin/team-dialog'
 import {
   Table,
@@ -51,7 +52,7 @@ export default function TeamsPage() {
       if (res.ok) {
         fetchTeams()
       } else {
-        alert('Ekip silinemedi')
+        toast.error('Ekip silinemedi')
       }
     }
   }

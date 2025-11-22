@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { JobDetailsView } from '@/components/job-details-view'
 import { JobTimeline } from '@/components/charts/job-timeline'
@@ -36,7 +37,7 @@ export function AdminJobDetailsTabs({ job }: AdminJobDetailsTabsProps) {
         const lng = parseFloat(longitude)
 
         if (isNaN(lat) || isNaN(lng)) {
-            alert('Lütfen geçerli koordinatlar girin')
+            toast.warning('Lütfen geçerli koordinatlar girin')
             return
         }
 
@@ -49,14 +50,14 @@ export function AdminJobDetailsTabs({ job }: AdminJobDetailsTabsProps) {
             })
 
             if (res.ok) {
-                alert('Koordinatlar kaydedildi! Sayfa yenileniyor...')
+                toast.success('Koordinatlar kaydedildi! Sayfa yenileniyor...')
                 window.location.reload()
             } else {
-                alert('Koordinatlar kaydedilemedi')
+                toast.error('Koordinatlar kaydedilemedi')
             }
         } catch (error) {
             console.error(error)
-            alert('Bir hata oluştu')
+            toast.error('Bir hata oluştu')
         } finally {
             setSaving(false)
         }

@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { CameraIcon, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface CostDialogProps {
     open: boolean
@@ -62,7 +63,7 @@ export function CostDialog({ open, onOpenChange, jobId, onSuccess }: CostDialogP
             setReceiptUrl('')
         } catch (error) {
             console.error(error)
-            alert('Masraf kaydedilemedi')
+            toast.error('Masraf kaydedilemedi')
         } finally {
             setLoading(false)
         }

@@ -13,7 +13,8 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
-import { CheckIcon, XIcon, Loader2Icon } from 'lucide-react'
+import { Loader2Icon, CheckCircle2Icon, XCircleIcon } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface ApprovalDialogProps {
   approval: any
@@ -45,10 +46,10 @@ export function ApprovalDialog({ approval }: ApprovalDialogProps) {
         router.refresh()
       } else {
         const data = await response.json()
-        alert(data.error || 'İşlem başarısız oldu')
+        toast.error(data.error || 'İşlem başarısız oldu')
       }
     } catch (error) {
-      alert('Bir hata oluştu')
+      toast.error('Bir hata oluştu')
     } finally {
       setLoading(false)
     }

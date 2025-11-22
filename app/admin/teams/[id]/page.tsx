@@ -5,6 +5,8 @@ import { useParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Users } from 'lucide-react'
 import { TeamStats } from '@/components/admin/team-stats'
+import { TeamStatsSkeleton } from '@/components/skeletons/team-stats-skeleton'
+import { ErrorBoundary } from '@/components/error-boundary'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { format } from 'date-fns'
@@ -75,7 +77,11 @@ export default function TeamDetailPage() {
     }, [params.id])
 
     if (loading) {
-        return <div className="p-8">Yükleniyor...</div>
+        return (
+            <div className="space-y-6 p-8">
+                <TeamStatsSkeleton />
+            </div>
+        )
     }
 
     if (!team) {
@@ -96,7 +102,9 @@ export default function TeamDetailPage() {
             </div>
 
             {/* Stats Section */}
-            {stats && <TeamStats stats={stats} />}
+            <ErrorBoundary>
+                {stats && <TeamStats stats={stats} />}
+            </ErrorBoundary>
 
             {/* Members Section */}
             <Card>
