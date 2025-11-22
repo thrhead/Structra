@@ -6,12 +6,16 @@ Fabrika dışında çalışan montaj ve servis ekiplerinin takip edilmesi, maliy
 
 - ✅ **Kullanıcı Authentication** - NextAuth.js ile güvenli giriş sistemi
 - ✅ **Rol Tabanlı Yetkilendirme** - Admin, Manager, Team Lead, Worker, Customer
-- 📋 **İş Takip Sistemi** - Montaj süreçlerini adım adım takip
-- 👥 **Ekip Yönetimi** - Ekipleri yönetin, görevleri atayın
-- 📊 **Raporlama ve Grafikler** - Detaylı raporlar ve görselleştirme
-- 🔔 **Bildirim Sistemi** - Gerçek zamanlı bildirimler
+- ✅ **İş Takip Sistemi** - Montaj süreçlerini adım adım takip
+- ✅ **Alt Görevler** - Checklist adımlarının altında detaylı alt görevler
+- ✅ **Zaman Planlama** - İş başlangıç ve bitiş tarih/saat belirleme
+- ✅ **Ekip Yönetimi** - Ekipleri yönetin, görevleri atayın
+- ✅ **Ekip Performans Grafikleri** - Detaylı ekip istatistikleri ve görselleştirmeler
+- ✅ **Raporlama ve Grafikler** - Detaylı raporlar ve görselleştirme
+- ✅ **Bildirim Sistemi** - Gerçek zamanlı bildirimler
 - ✅ **Onay Mekanizması** - İş onay akışları
-- 💰 **Maliyet Takibi** - Çalışma saati ve maliyet kontrolü
+- ✅ **Maliyet Takibi** - Masraf girişi, onay ve raporlama sistemi
+- ✅ **Görev Bloklama** - Sorunlu adımları işaretleme ve açıklama ekleme
 
 ## 📦 Teknoloji Stack
 
@@ -191,11 +195,16 @@ npm run db:studio    # Prisma Studio GUI
 
 ## 📝 Yapılacaklar
 
-- [ ] Dashboard grafikleri
-- [ ] Job CRUD işlemleri
-- [ ] Checklist fonksiyonalitesi
-- [ ] Real-time notifications
-- [ ] File upload (fotoğraflar)
+- [x] Dashboard grafikleri
+- [x] Ekip performans grafikleri
+- [x] Job CRUD işlemleri
+- [x] Checklist fonksiyonalitesi
+- [x] Alt görevler (Sub-steps)
+- [x] Zaman planlama
+- [x] Maliyet takibi modülü
+- [x] Görev bloklama sistemi
+- [ ] Real-time notifications (WebSocket)
+- [ ] File upload (fotoğraflar - S3/Cloudinary)
 - [ ] PDF rapor oluşturma
 - [ ] Email notifications
 - [ ] Advanced filtering

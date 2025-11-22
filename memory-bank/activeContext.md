@@ -10,12 +10,25 @@
 - Müşteri paneli ve yönetici raporları sayfası oluşturuldu.
 - Teknik stack: Next.js + PostgreSQL (SQLite dev) + Prisma + NextAuth.js
 
-### Son Değişiklikler
+### Son Değişiklikler (Kasım 2025)
 
-- `progress.md` güncellendi ve mevcut durum yansıtıldı.
-- Worker checklist sayfasına görev bloklama özelliği eklendi.
-- Yönetici raporları sayfası (`app/manager/reports/page.tsx`) gerçek verilerle güncellendi.
-- Bildirim sistemi ve müşteri paneli kontrol edildi.
+1. **Ekip Performans Grafikleri Tamamlandı**:
+   - Ekip detay sayfası oluşturuldu (`/admin/teams/[id]`)
+   - İş dağılımı, durum grafikleri ve üye performansı eklendi
+   - Recharts ile görselleştirme
+
+2. **Maliyet Takibi Modülü Tamamlandı**:
+   - Schema güncellendi (`receiptUrl`, `status`, `createdById`, `approvedById`, `rejectionReason`)
+   - Worker API: Masraf girişi (`POST /api/worker/costs`)
+   - Admin API: Listeleme ve onay (`GET/PATCH /api/admin/costs`)
+   - Worker UI: `CostDialog` komponenti ile masraf girişi
+   - Admin UI: Masraf yönetim sayfası (`/admin/costs`)
+
+3. **Alt Görevler ve Zaman Takibi**:
+   - İş şemasına `scheduledEndDate` eklendi
+   - JobDialog güncellendi: Alt görev oluşturma desteği
+   - Başlangıç-bitiş tarih/saat seçimi
+   - Şablonlara otomatik alt görevler eklendi (Klima, Silo)
 
 ## Sonraki Adımlar
 

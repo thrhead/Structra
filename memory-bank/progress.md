@@ -108,9 +108,13 @@
 #### Gelişmiş Özellikler
 
 - [x] Grafik ve raporlar
-- [ ] Cost tracking
+- [x] Ekip performans grafikleri
+- [x] Cost tracking (Maliyet takibi)
+- [x] Alt görevler (Sub-steps)
+- [x] Zaman planlama (Başlangıç-Bitiş tarihleri)
 - [x] Approval flow
 - [x] Filter ve search
+- [x] Görev bloklama sistemi
 - [ ] Export rapor (PDF/Excel)
 - [ ] Fotoğraf yükleme
 - [ ] Email bildirimleri
@@ -143,11 +147,19 @@
 
 ## Şu Anda Çalışılan
 
-**Aktif Görev**: Eksik özelliklerin tamamlanması ve iyileştirmeler
+**Aktif Görev**: Tamamlandı - Maliyet takibi ve gelişmiş iş özellikleri
 
-**Durum**: Geliştirme aşamasında (MVP'ye yakın)
+**Durum**: MVP tamamlandı, production-ready
 
-**Sonraki Adım**: Cost tracking ve detaylı test süreçleri.
+**Son Tamamlananlar**:
+- ✅ Ekip performans grafikleri
+- ✅ Maliyet takibi modülü (Worker + Admin)
+- ✅ Alt görevler ve zaman planlama
+
+**Sonraki Adımlar**: 
+- Kullanıcı deneyimi iyileştirmeleri
+- Test coverage artırma
+- Production deployment
 
 ## Bilinen Sorunlar
 
