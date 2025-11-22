@@ -11,7 +11,8 @@ import {
   CheckCircle2Icon,
   LogOutIcon,
   MenuIcon,
-  XIcon
+  XIcon,
+  TrendingUpIcon
 } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -46,6 +47,11 @@ const sidebarItems = [
     title: 'Onaylar',
     href: '/admin/approvals',
     icon: CheckCircle2Icon
+  },
+  {
+    title: 'Maliyetler',
+    href: '/admin/costs',
+    icon: TrendingUpIcon
   }
 ]
 

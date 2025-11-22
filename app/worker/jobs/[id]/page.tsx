@@ -11,11 +11,13 @@ import { Input } from '@/components/ui/input'
 import {
   ArrowLeftIcon, MapPinIcon, CalendarIcon, PhoneIcon, Building2Icon,
   CheckCircle2Icon, CircleIcon, ClockIcon, AlertCircleIcon, CameraIcon,
-  ChevronDownIcon, ChevronUpIcon, ImageIcon
+  ChevronDownIcon, ChevronUpIcon, ImageIcon, AlertTriangleIcon
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { tr } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
+import { BlockTaskDialog } from '@/components/worker/block-task-dialog'
+import { CostDialog } from '@/components/worker/cost-dialog'
 
 interface JobDetail {
   id: string
@@ -39,10 +41,14 @@ interface JobDetail {
     title: string
     isCompleted: boolean
     order: number
+    blockedReason?: string
+    blockedNote?: string
     subSteps: {
       id: string
       title: string
       isCompleted: boolean
+      blockedReason?: string
+      blockedNote?: string
       order: number
     }[]
     photos: {
@@ -59,6 +65,8 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
   const [loading, setLoading] = useState(true)
   const [expandedSteps, setExpandedSteps] = useState<Record<string, boolean>>({})
   const [uploadingPhoto, setUploadingPhoto] = useState<string | null>(null)
+  const [blockingTask, setBlockingTask] = useState<{ id: string, type: 'step' | 'substep', parentId?: string, title: string } | null>(null)
+  const [showCostDialog, setShowCostDialog] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -131,6 +139,33 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
       }
     } catch (error) {
       console.error(error)
+    }
+  }
+
+  const handleBlockTask = async (reason: string, note: string) => {
+    if (!blockingTask) return
+
+    try {
+      const url = blockingTask.type === 'step'
+        ? `/api/worker/jobs/${params.id}/steps/${blockingTask.id}/block`
+        : `/api/worker/jobs/${params.id}/steps/${blockingTask.parentId}/substeps/${blockingTask.id}/block`
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason, note })
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        alert(data.error || 'İşlem başarısız')
+        return
+      }
+
+      fetchJob()
+    } catch (error) {
+      console.error(error)
+      alert('Bir hata oluştu')
     }
   }
 
@@ -312,11 +347,13 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
             const isLocked = index > 0 && !job.steps[index - 1].isCompleted
             const hasSubSteps = step.subSteps && step.subSteps.length > 0
             const isExpanded = expandedSteps[step.id] || false
+            const isBlocked = !!step.blockedReason
 
             return (
               <div key={step.id} className={cn(
                 "border rounded-lg overflow-hidden transition-all",
-                step.isCompleted ? "bg-green-50 border-green-200" : "bg-white border-gray-200",
+                step.isCompleted ? "bg-green-50 border-green-200" :
+                  isBlocked ? "bg-red-50 border-red-200" : "bg-white border-gray-200",
                 isLocked && "opacity-50 bg-gray-50"
               )}>
                 {/* Main Step Header */}
@@ -326,14 +363,17 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
                       "mt-0.5 h-6 w-6 rounded border flex items-center justify-center transition-colors cursor-pointer",
                       step.isCompleted
                         ? "bg-green-500 border-green-500 text-white"
-                        : isLocked
-                          ? "bg-gray-100 border-gray-300 cursor-not-allowed"
-                          : "border-gray-300 bg-white hover:border-indigo-500"
+                        : isBlocked
+                          ? "bg-red-100 border-red-300 text-red-600"
+                          : isLocked
+                            ? "bg-gray-100 border-gray-300 cursor-not-allowed"
+                            : "border-gray-300 bg-white hover:border-indigo-500"
                     )}
-                    onClick={() => !isLocked && toggleStep(step.id, step.isCompleted)}
+                    onClick={() => !isLocked && !isBlocked && toggleStep(step.id, step.isCompleted)}
                   >
                     {step.isCompleted && <CheckCircle2Icon className="h-4 w-4" />}
-                    {isLocked && <AlertCircleIcon className="h-4 w-4 text-gray-400" />}
+                    {isBlocked && <AlertTriangleIcon className="h-3 w-3" />}
+                    {isLocked && !isBlocked && <AlertCircleIcon className="h-4 w-4 text-gray-400" />}
                   </div>
 
                   <div className="flex-1">
@@ -344,25 +384,48 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
                       >
                         <p className={cn(
                           "font-medium transition-colors",
-                          step.isCompleted ? "text-green-900" : "text-gray-900"
+                          step.isCompleted ? "text-green-900" :
+                            isBlocked ? "text-red-900" : "text-gray-900"
                         )}>
                           {step.title}
                         </p>
-                        {isLocked && (
+                        {isLocked && !isBlocked && (
                           <p className="text-xs text-red-500 mt-1">
                             Önceki adımı tamamlayın
                           </p>
                         )}
+                        {isBlocked && (
+                          <div className="text-xs text-red-600 mt-1">
+                            <span className="font-semibold">Bloklandı:</span> {step.blockedReason}
+                            {step.blockedNote && <span className="block text-red-500">{step.blockedNote}</span>}
+                          </div>
+                        )}
                       </div>
 
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0 ml-2"
-                        onClick={() => setExpandedSteps(prev => ({ ...prev, [step.id]: !prev[step.id] }))}
-                      >
-                        {isExpanded ? <ChevronUpIcon className="h-4 w-4" /> : <ChevronDownIcon className="h-4 w-4" />}
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        {!step.isCompleted && !isLocked && !isBlocked && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setBlockingTask({ id: step.id, type: 'step', title: step.title })
+                            }}
+                            title="Sorun Bildir / Blokla"
+                          >
+                            <AlertTriangleIcon className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 ml-2"
+                          onClick={() => setExpandedSteps(prev => ({ ...prev, [step.id]: !prev[step.id] }))}
+                        >
+                          {isExpanded ? <ChevronUpIcon className="h-4 w-4" /> : <ChevronDownIcon className="h-4 w-4" />}
+                        </Button>
+                      </div>
                     </div>
 
                     {/* Photos Preview */}
@@ -385,26 +448,58 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
                     {hasSubSteps && (
                       <div className="space-y-2">
                         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Alt Görevler</p>
-                        {step.subSteps.map(subStep => (
-                          <div
-                            key={subStep.id}
-                            className="flex items-center gap-3 bg-white p-2 rounded border border-gray-200 cursor-pointer hover:border-indigo-300"
-                            onClick={() => !step.isCompleted && toggleSubStep(step.id, subStep.id)}
-                          >
-                            <div className={cn(
-                              "h-4 w-4 rounded border flex items-center justify-center",
-                              subStep.isCompleted ? "bg-indigo-500 border-indigo-500 text-white" : "border-gray-300"
-                            )}>
-                              {subStep.isCompleted && <CheckCircle2Icon className="h-3 w-3" />}
+                        {step.subSteps.map(subStep => {
+                          const isSubBlocked = !!subStep.blockedReason
+                          return (
+                            <div
+                              key={subStep.id}
+                              className={cn(
+                                "flex items-center gap-3 p-2 rounded border cursor-pointer transition-colors",
+                                isSubBlocked ? "bg-red-50 border-red-200" : "bg-white border-gray-200 hover:border-indigo-300"
+                              )}
+                              onClick={() => !step.isCompleted && !isSubBlocked && toggleSubStep(step.id, subStep.id)}
+                            >
+                              <div className={cn(
+                                "h-4 w-4 rounded border flex items-center justify-center",
+                                subStep.isCompleted
+                                  ? "bg-indigo-500 border-indigo-500 text-white"
+                                  : isSubBlocked
+                                    ? "bg-red-100 border-red-300 text-red-600"
+                                    : "border-gray-300"
+                              )}>
+                                {subStep.isCompleted && <CheckCircle2Icon className="h-3 w-3" />}
+                                {isSubBlocked && <AlertTriangleIcon className="h-2.5 w-2.5" />}
+                              </div>
+                              <div className="flex-1">
+                                <span className={cn(
+                                  "text-sm block",
+                                  subStep.isCompleted ? "text-gray-500 line-through" :
+                                    isSubBlocked ? "text-red-700" : "text-gray-700"
+                                )}>
+                                  {subStep.title}
+                                </span>
+                                {isSubBlocked && (
+                                  <span className="text-xs text-red-500 block mt-0.5">
+                                    {subStep.blockedReason}
+                                  </span>
+                                )}
+                              </div>
+                              {!subStep.isCompleted && !step.isCompleted && !isSubBlocked && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setBlockingTask({ id: subStep.id, type: 'substep', parentId: step.id, title: subStep.title })
+                                  }}
+                                >
+                                  <AlertTriangleIcon className="h-3 w-3" />
+                                </Button>
+                              )}
                             </div>
-                            <span className={cn(
-                              "text-sm",
-                              subStep.isCompleted ? "text-gray-500 line-through" : "text-gray-700"
-                            )}>
-                              {subStep.title}
-                            </span>
-                          </div>
-                        ))}
+                          )
+                        })}
                       </div>
                     )}
 
@@ -442,7 +537,15 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
 
       {/* Actions */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t lg:static lg:border-0 lg:bg-transparent lg:p-0">
-        <div className="max-w-3xl mx-auto flex gap-3">
+        <div className="max-w-3xl mx-auto flex flex-col gap-3">
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => setShowCostDialog(true)}
+          >
+            💰 Masraf Ekle
+          </Button>
+
           {job.status === 'PENDING' && (
             <Button
               className="w-full"
@@ -472,6 +575,22 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
           )}
         </div>
       </div>
+      <BlockTaskDialog
+        open={!!blockingTask}
+        onOpenChange={(open) => !open && setBlockingTask(null)}
+        onBlock={handleBlockTask}
+        taskTitle={blockingTask?.title || ''}
+        isSubStep={blockingTask?.type === 'substep'}
+      />
+      <CostDialog
+        open={showCostDialog}
+        onOpenChange={setShowCostDialog}
+        jobId={job.id}
+        onSuccess={() => {
+          alert('Masraf başarıyla kaydedildi')
+          // Optional: fetchJob() if we want to show costs
+        }}
+      />
     </div>
   )
 }

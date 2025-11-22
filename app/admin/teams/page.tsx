@@ -1,7 +1,9 @@
-import { auth } from "@/lib/auth"
-import { redirect } from "next/navigation"
-import { prisma } from "@/lib/db"
-import { TeamDialog } from "@/components/admin/team-dialog"
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { TeamDialog } from '@/components/admin/team-dialog'
 import {
   Table,
   TableBody,
@@ -9,160 +11,174 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { SearchIcon, BriefcaseIcon, UsersIcon, Edit } from "lucide-react"
-import { format } from "date-fns"
-import { tr } from "date-fns/locale"
+} from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { SearchIcon, BriefcaseIcon, UsersIcon, Edit, Trash2 } from 'lucide-react'
+import { format } from 'date-fns'
+import { tr } from 'date-fns/locale'
 
-async function getTeams(search?: string) {
-  const where: any = {}
-  if (search) {
-    where.name = { contains: search }
+export default function TeamsPage() {
+  const router = useRouter()
+  const [teams, setTeams] = useState<any[]>([])
+  const [search, setSearch] = useState('')
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchTeams()
+  }, [])
+
+  const fetchTeams = async () => {
+    try {
+      const res = await fetch('/api/admin/teams/list')
+      if (res.ok) {
+        const data = await res.json()
+        setTeams(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch teams:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  return await prisma.team.findMany({
-    where,
-    orderBy: { createdAt: 'desc' },
-    include: {
-      lead: {
-        select: {
-          id: true,
-          name: true,
-          email: true
-        }
-      },
-      _count: {
-        select: {
-          members: true,
-          assignments: true
-        }
+  const handleDelete = async (teamId: string, teamName: string) => {
+    if (confirm(`"${teamName}" ekibini silmek istediğinizden emin misiniz?`)) {
+      const res = await fetch(`/api/admin/teams/${teamId}`, {
+        method: 'DELETE'
+      })
+      if (res.ok) {
+        fetchTeams()
+      } else {
+        alert('Ekip silinemedi')
       }
     }
-  })
-}
-
-export default async function TeamsPage(props: {
-  searchParams: Promise<{ search?: string }>
-}) {
-  const searchParams = await props.searchParams
-  const session = await auth()
-  if (!session || session.user.role !== "ADMIN") {
-    redirect("/login")
   }
 
-  const teams = await getTeams(searchParams.search)
+  const filteredTeams = search
+    ? teams.filter(team => team.name.toLowerCase().includes(search.toLowerCase()))
+    : teams
+
+  const stats = {
+    total: teams.length,
+    active: teams.filter(t => t.isActive).length,
+    members: teams.reduce((sum, t) => sum + (t._count?.members || 0), 0)
+  }
+
+  if (loading) {
+    return <div className="p-8">Yükleniyor...</div>
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Ekipler</h1>
-          <p className="text-gray-500 mt-2">Montaj ve servis ekiplerini yönetin.</p>
-        </div>
+    <div className="flex-1 space-y-4 p-8 pt-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold tracking-tight">Ekipler</h2>
         <TeamDialog />
       </div>
 
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-4 border-b">
-          <div className="relative max-w-sm">
-            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <form>
-              <Input
-                name="search"
-                placeholder="Ekip adı ara..."
-                className="pl-10"
-                defaultValue={searchParams.search}
-              />
-            </form>
+      <div className="grid gap-4 md:grid-cols-3">
+        <div className="rounded-lg border p-4">
+          <div className="flex items-center gap-2">
+            <UsersIcon className="h-5 w-5 text-muted-foreground" />
+            <h3 className="text-sm font-medium">Toplam Ekip</h3>
           </div>
+          <p className="mt-2 text-3xl font-bold">{stats.total}</p>
         </div>
+        <div className="rounded-lg border p-4">
+          <div className="flex items-center gap-2">
+            <BriefcaseIcon className="h-5 w-5 text-muted-foreground" />
+            <h3 className="text-sm font-medium">Aktif Ekip</h3>
+          </div>
+          <p className="mt-2 text-3xl font-bold">{stats.active}</p>
+        </div>
+        <div className="rounded-lg border p-4">
+          <div className="flex items-center gap-2">
+            <UsersIcon className="h-5 w-5 text-muted-foreground" />
+            <h3 className="text-sm font-medium">Toplam Üye</h3>
+          </div>
+          <p className="mt-2 text-3xl font-bold">{stats.members}</p>
+        </div>
+      </div>
 
+      <div className="flex items-center gap-4">
+        <div className="relative flex-1">
+          <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Ekip ara..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+      </div>
+
+      <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Ekip Adı</TableHead>
               <TableHead>Lider</TableHead>
               <TableHead>Üye Sayısı</TableHead>
-              <TableHead>Aktif İşler</TableHead>
               <TableHead>Durum</TableHead>
-              <TableHead>Oluşturulma</TableHead>
+              <TableHead>Oluşturma Tarihi</TableHead>
               <TableHead className="text-right">İşlemler</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {teams.map((team) => (
-              <TableRow key={team.id}>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <div className="p-2 bg-blue-50 rounded text-blue-600">
-                      <BriefcaseIcon className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">{team.name}</p>
-                      {team.description && (
-                        <p className="text-xs text-gray-500 truncate max-w-[200px]">{team.description}</p>
-                      )}
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  {team.lead ? (
-                    <div className="flex items-center gap-2">
-                      <div className="h-6 w-6 rounded-full bg-indigo-100 flex items-center justify-center text-xs text-indigo-600 font-bold">
-                        {team.lead.name?.charAt(0) || 'U'}
-                      </div>
-                      <span className="text-sm font-medium">{team.lead.name}</span>
-                    </div>
-                  ) : (
-                    <span className="text-sm text-gray-400 italic">Atanmamış</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1 text-sm text-gray-600">
-                    <UsersIcon className="h-3 w-3" />
-                    {team._count.members} Üye
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="secondary">
-                    {team._count.assignments} İş
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge variant={team.isActive ? "default" : "destructive"}>
-                    {team.isActive ? 'Aktif' : 'Pasif'}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {format(new Date(team.createdAt), 'd MMM yyyy', { locale: tr })}
-                </TableCell>
-                <TableCell className="text-right">
-                  <TeamDialog
-                    team={{
-                      id: team.id,
-                      name: team.name,
-                      description: team.description,
-                      leadId: team.leadId,
-                      isActive: team.isActive
-                    }}
-                    trigger={
-                      <Button variant="ghost" size="sm">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    }
-                  />
-                </TableCell>
-              </TableRow>
-            ))}
-            {teams.length === 0 && (
+            {filteredTeams.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                  Ekip bulunamadı.
+                <TableCell colSpan={6} className="text-center text-muted-foreground">
+                  Ekip bulunamadı
                 </TableCell>
               </TableRow>
+            ) : (
+              filteredTeams.map((team) => (
+                <TableRow key={team.id}>
+                  <TableCell className="font-medium">
+                    <Link href={`/admin/teams/${team.id}`} className="hover:underline text-blue-600">
+                      {team.name}
+                    </Link>
+                  </TableCell>
+                  <TableCell>
+                    {team.lead?.name || <span className="text-muted-foreground">Atanmamış</span>}
+                  </TableCell>
+                  <TableCell>{team._count.members}</TableCell>
+                  <TableCell>
+                    <Badge variant={team.isActive ? 'default' : 'secondary'}>
+                      {team.isActive ? 'Aktif' : 'Pasif'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {format(new Date(team.createdAt), 'd MMM yyyy', { locale: tr })}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <TeamDialog
+                        team={{
+                          id: team.id,
+                          name: team.name,
+                          description: team.description,
+                          leadId: team.leadId,
+                          isActive: team.isActive
+                        }}
+                        trigger={
+                          <Button variant="ghost" size="sm">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        }
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(team.id, team.name)}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-600" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
             )}
           </TableBody>
         </Table>

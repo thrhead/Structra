@@ -36,6 +36,8 @@ model User {
   requestedApprovals Approval[] @relation("Requester")
   completedSteps  JobStep[]     @relation("StepCompleter")
   uploadedPhotos  StepPhoto[]
+  createdCosts    CostTracking[] @relation("CostCreator")
+  approvedCosts   CostTracking[] @relation("CostApprover")
 
   @@map("users")
 }
@@ -97,6 +99,7 @@ model Job {
   latitude       Float?
   longitude      Float?
   scheduledDate  DateTime?
+  scheduledEndDate DateTime?
   completedDate  DateTime?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
@@ -223,9 +226,21 @@ model CostTracking {
   amount      Float
   currency    String   @default("TRY")
   date        DateTime @default(now())
-  category    String?  // MATERIAL, LABOR, TRANSPORT, OTHER
+  category    String?  // MATERIAL, LABOR, TRANSPORT, FOOD, ACCOMMODATION, OTHER
+  
+  // New fields
+  receiptUrl      String?
+  status          String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  rejectionReason String?
+  
+  createdById     String
+  approvedById    String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
   
   job         Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  createdBy   User     @relation("CostCreator", fields: [createdById], references: [id])
+  approvedBy  User?    @relation("CostApprover", fields: [approvedById], references: [id])
 
   @@map("cost_tracking")
 }

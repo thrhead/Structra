@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { PlusIcon, Loader2Icon, XIcon, ChevronUpIcon, ChevronDownIcon } from 'lucide-react'
+import { PlusIcon, Loader2Icon, XIcon, ChevronUpIcon, ChevronDownIcon, CornerDownRightIcon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 const jobSchema = z.object({
@@ -33,6 +33,7 @@ const jobSchema = z.object({
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
   location: z.string().optional(),
   scheduledDate: z.string().optional(),
+  scheduledEndDate: z.string().optional(),
 })
 
 type FormData = z.infer<typeof jobSchema>
@@ -51,35 +52,176 @@ interface Team {
 interface ChecklistStep {
   title: string
   description?: string
+  subSteps?: { title: string }[]
 }
 
 const CHECKLIST_TEMPLATES = {
   'klima': {
     label: 'Klima Montajı',
     steps: [
-      { title: 'Dış ünite yer tespiti ve montajı', description: 'Duvar veya zemin konsolu ile sabitleme' },
-      { title: 'İç ünite yer tespiti ve montajı', description: 'Terazi kontrolü ve montaj plakası sabitleme' },
-      { title: 'Bakır boru hattı çekilmesi', description: 'İzolasyon ve boru bükümü' },
-      { title: 'Drenaj hattı çekilmesi', description: 'Eğim kontrolü ve su testi' },
-      { title: 'Elektrik bağlantılarının yapılması', description: 'İç ve dış ünite arası sinyal kablosu' },
-      { title: 'Vakumlama işlemi', description: 'Sistemdeki nem ve havanın alınması' },
-      { title: 'Gaz açımı ve kaçak kontrolü', description: 'Köpük veya dedektör ile kontrol' },
-      { title: 'Performans testi', description: 'Isıtma ve soğutma modlarında test' },
-      { title: 'Müşteri bilgilendirme ve teslim', description: 'Kumanda kullanımı ve garanti bilgisi' }
+      {
+        title: 'Dış ünite yer tespiti ve montajı',
+        description: 'Duvar veya zemin konsolu ile sabitleme',
+        subSteps: [
+          { title: 'Montaj yerinin belirlenmesi' },
+          { title: 'Konsol sabitlenmesi' },
+          { title: 'Ünitenin konsolda dengelenmesi' }
+        ]
+      },
+      {
+        title: 'İç ünite yer tespiti ve montajı',
+        description: 'Terazi kontrolü ve montaj plakası sabitleme',
+        subSteps: [
+          { title: 'Montaj plakası seviye kontrolü' },
+          { title: 'Plakanın duvara sabitlenmesi' },
+          { title: 'İç ünitenin plakaya takılması' }
+        ]
+      },
+      {
+        title: 'Bakır boru hattı çekilmesi',
+        description: 'İzolasyon ve boru bükümü',
+        subSteps: [
+          { title: 'Boru uzunluğunun ölçülmesi' },
+          { title: 'Boruların bükülmesi' },
+          { title: 'İzolasyon montajı' }
+        ]
+      },
+      {
+        title: 'Drenaj hattı çekilmesi',
+        description: 'Eğim kontrolü ve su testi',
+        subSteps: [
+          { title: 'Drenaj borusunun eğim kontrolü' },
+          { title: 'Su testi yapılması' }
+        ]
+      },
+      {
+        title: 'Elektrik bağlantılarının yapılması',
+        description: 'İç ve dış ünite arası sinyal kablosu',
+        subSteps: [
+          { title: 'Kablo çekilmesi' },
+          { title: 'Bağlantıların yapılması' },
+          { title: 'İzolasyon kontrolü' }
+        ]
+      },
+      {
+        title: 'Vakumlama işlemi',
+        description: 'Sistemdeki nem ve havanın alınması',
+        subSteps: [
+          { title: 'Vakum pompası bağlantısı' },
+          { title: '15-20 dk vakum çekilmesi' },
+          { title: 'Basınç kontrolü' }
+        ]
+      },
+      {
+        title: 'Gaz açımı ve kaçak kontrolü',
+        description: 'Köpük veya dedektör ile kontrol',
+        subSteps: [
+          { title: 'Gaz vanalarının açılması' },
+          { title: 'Bağlantılarda kaçak kontrolü' }
+        ]
+      },
+      {
+        title: 'Performans testi',
+        description: 'Isıtma ve soğutma modlarında test',
+        subSteps: [
+          { title: 'Soğutma modu testi' },
+          { title: 'Isıtma modu testi' },
+          { title: 'Basınç değerlerinin kontrolü' }
+        ]
+      },
+      {
+        title: 'Müşteri bilgilendirme ve teslim',
+        description: 'Kumanda kullanımı ve garanti bilgisi',
+        subSteps: [
+          { title: 'Kumanda kullanım eğitimi' },
+          { title: 'Garanti belgelerinin teslimi' },
+          { title: 'Bakım tavsiyelerinin verilmesi' }
+        ]
+      }
     ]
   },
   'silo': {
     label: 'Silo Montajı',
     steps: [
-      { title: 'Zemin beton kontrolü', description: 'Terazi, mukavemet ve ankraj yerleşimi kontrolü' },
-      { title: 'Silo gövde panellerinin montajı', description: 'İlk ring montajı ve yükseltme' },
-      { title: 'Cıvata tork kontrolleri', description: 'Tüm birleşim noktalarının torklanması' },
-      { title: 'Sızdırmazlık kontrolü', description: 'Panel birleşim yerlerine mastik uygulaması' },
-      { title: 'Çatı panellerinin montajı', description: 'Çatı konstrüksiyonu ve kaplama' },
-      { title: 'Havalandırma bacalarının montajı', description: 'Fan ve baca montajı' },
-      { title: 'Merdiven ve platform montajı', description: 'Güvenlik kafesi ve korkuluklar' },
-      { title: 'Alt konik montajı', description: 'Varsa alt konik ve boşaltma ağzı' },
-      { title: 'Yükleme/Boşaltma sistemi testi', description: 'Helezon ve elevatör kontrolleri' }
+      {
+        title: 'Zemin beton kontrolü',
+        description: 'Terazi, mukavemet ve ankraj yerleşimi kontrolü',
+        subSteps: [
+          { title: 'Zemin düzlük kontrolü' },
+          { title: 'Beton mukavemet testi' },
+          { title: 'Ankraj noktalarının işaretlenmesi' }
+        ]
+      },
+      {
+        title: 'Silo gövde panellerinin montajı',
+        description: 'İlk ring montajı ve yükseltme',
+        subSteps: [
+          { title: 'İlk ring panellerinin yerleştirilmesi' },
+          { title: 'Dikey seviye kontrolü' },
+          { title: 'Üst ringlerin sırayla montajı' }
+        ]
+      },
+      {
+        title: 'Cıvata tork kontrolleri',
+        description: 'Tüm birleşim noktalarının torklanması',
+        subSteps: [
+          { title: 'Tork değerlerinin belirlenmesi' },
+          { title: 'Cıvataların sıkılması' },
+          { title: 'Kontrol sıkımı' }
+        ]
+      },
+      {
+        title: 'Sızdırmazlık kontrolü',
+        description: 'Panel birleşim yerlerine mastik uygulaması',
+        subSteps: [
+          { title: 'Birleşim yerlerinin temizlenmesi' },
+          { title: 'Mastik uygulaması' }
+        ]
+      },
+      {
+        title: 'Çatı panellerinin montajı',
+        description: 'Çatı konstrüksiyonu ve kaplama',
+        subSteps: [
+          { title: 'Çatı demirlerin montajı' },
+          { title: 'Çatı panellerinin yerleştirilmesi' },
+          { title: 'Su yalıtımı kontrolü' }
+        ]
+      },
+      {
+        title: 'Havalandırma bacalarının montajı',
+        description: 'Fan ve baca montajı',
+        subSteps: [
+          { title: 'Baca deliklerinin açılması' },
+          { title: 'Fan montajı' },
+          { title: 'Elektrik bağlantıları' }
+        ]
+      },
+      {
+        title: 'Merdiven ve platform montajı',
+        description: 'Güvenlik kafesi ve korkuluklar',
+        subSteps: [
+          { title: 'Merdiven montajı' },
+          { title: 'Platform döşenmesi' },
+          { title: 'Güvenlik korkuluklarının takılması' }
+        ]
+      },
+      {
+        title: 'Alt konik montajı',
+        description: 'Varsa alt konik ve boşaltma ağzı',
+        subSteps: [
+          { title: 'Konik panellerinin montajı' },
+          { title: 'Boşaltma kapağı takılması' }
+        ]
+      },
+      {
+        title: 'Yükleme/Boşaltma sistemi testi',
+        description: 'Helezon ve elevatör kontrolleri',
+        subSteps: [
+          { title: 'Helezon dönüş testi' },
+          { title: 'Elevatör çalışma testi' },
+          { title: 'Emniyet sistemleri kontrolü' }
+        ]
+      }
     ]
   }
 }
@@ -105,7 +247,6 @@ export function JobDialog() {
     }
   })
 
-  // Müşteri ve ekipleri getir
   useEffect(() => {
     if (open) {
       Promise.all([
@@ -118,9 +259,8 @@ export function JobDialog() {
     }
   }, [open])
 
-  // Checklist functions
   const addStep = () => {
-    setSteps([...steps, { title: '', description: '' }])
+    setSteps([...steps, { title: '', description: '', subSteps: [] }])
   }
 
   const removeStep = (index: number) => {
@@ -133,35 +273,62 @@ export function JobDialog() {
     setSteps(newSteps)
   }
 
+  const addSubStep = (stepIndex: number) => {
+    const newSteps = [...steps]
+    if (!newSteps[stepIndex].subSteps) newSteps[stepIndex].subSteps = []
+    newSteps[stepIndex].subSteps!.push({ title: '' })
+    setSteps(newSteps)
+  }
+
+  const removeSubStep = (stepIndex: number, subStepIndex: number) => {
+    const newSteps = [...steps]
+    if (newSteps[stepIndex].subSteps) {
+      newSteps[stepIndex].subSteps = newSteps[stepIndex].subSteps!.filter((_, i) => i !== subStepIndex)
+      setSteps(newSteps)
+    }
+  }
+
+  const updateSubStep = (stepIndex: number, subStepIndex: number, value: string) => {
+    const newSteps = [...steps]
+    if (newSteps[stepIndex].subSteps) {
+      newSteps[stepIndex].subSteps![subStepIndex].title = value
+      setSteps(newSteps)
+    }
+  }
+
   const moveStep = (index: number, direction: 'up' | 'down') => {
     if (direction === 'up' && index === 0) return
     if (direction === 'down' && index === steps.length - 1) return
 
     const newSteps = [...steps]
     const targetIndex = direction === 'up' ? index - 1 : index + 1
-    ;[newSteps[index], newSteps[targetIndex]] = [newSteps[targetIndex], newSteps[index]]
+      ;[newSteps[index], newSteps[targetIndex]] = [newSteps[targetIndex], newSteps[index]]
     setSteps(newSteps)
   }
 
   const loadTemplate = (templateKey: string) => {
     const template = CHECKLIST_TEMPLATES[templateKey as keyof typeof CHECKLIST_TEMPLATES]
     if (template) {
-      setSteps(template.steps)
+      // Deep copy to avoid reference issues
+      setSteps(JSON.parse(JSON.stringify(template.steps)))
     }
   }
 
   const onSubmit = async (data: FormData) => {
     setIsLoading(true)
     try {
-      // Filter out empty steps
       const validSteps = steps.filter(step => step.title.trim() !== '')
+        .map(step => ({
+          ...step,
+          subSteps: step.subSteps?.filter(sub => sub.title.trim() !== '')
+        }))
 
-      const res = await fetch('/api/jobs', {
+      const res = await fetch('/api/admin/jobs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...data,
-          steps: validSteps.length > 0 ? validSteps : undefined
+          steps: validSteps.length > 0 ? validSteps : null
         }),
       })
 
@@ -257,9 +424,15 @@ export function JobDialog() {
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="scheduledDate">Planlanan Tarih</Label>
-              <Input id="scheduledDate" type="date" {...register('scheduledDate')} />
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-2">
+                <Label htmlFor="scheduledDate">Başlangıç Tarihi</Label>
+                <Input id="scheduledDate" type="datetime-local" {...register('scheduledDate')} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="scheduledEndDate">Bitiş Tarihi</Label>
+                <Input id="scheduledEndDate" type="datetime-local" {...register('scheduledEndDate')} />
+              </div>
             </div>
           </div>
 
@@ -319,6 +492,41 @@ export function JobDialog() {
                           onChange={(e) => updateStep(index, 'description', e.target.value)}
                           rows={2}
                         />
+
+                        {/* Sub-steps */}
+                        <div className="pl-4 border-l-2 border-gray-200 space-y-2 mt-2">
+                          {step.subSteps?.map((subStep, subIndex) => (
+                            <div key={subIndex} className="flex items-center gap-2">
+                              <CornerDownRightIcon className="h-4 w-4 text-gray-400" />
+                              <Input
+                                size={1}
+                                className="h-8 text-sm"
+                                placeholder="Alt görev..."
+                                value={subStep.title}
+                                onChange={(e) => updateSubStep(index, subIndex, e.target.value)}
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-red-400 hover:text-red-600"
+                                onClick={() => removeSubStep(index, subIndex)}
+                              >
+                                <XIcon className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ))}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs text-indigo-600 h-6 px-2"
+                            onClick={() => addSubStep(index)}
+                          >
+                            <PlusIcon className="h-3 w-3 mr-1" />
+                            Alt Görev Ekle
+                          </Button>
+                        </div>
                       </div>
                       <div className="flex flex-col gap-1">
                         <Button
