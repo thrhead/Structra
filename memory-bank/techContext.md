@@ -36,8 +36,14 @@
 - **Alternatif**: DigitalOcean, Railway, Netlify
 - **Database Hosting**: Supabase, Neon, Railway
 
-### DevOps
+### Mobile
+- **Framework**: React Native
+- **Platform**: Expo
+- **Navigation**: React Navigation
+- **Storage**: AsyncStorage
+- **HTTP Client**: Fetch API
 
+### DevOps
 - **Version Control**: Git
 - **Package Manager**: npm veya pnpm
 - **Linting**: ESLint + Prettier
@@ -60,8 +66,15 @@ assembly_tracker/
 │   │   ├── auth/
 │   │   ├── jobs/
 │   │   ├── notifications/
+│   │   ├── notifications/
 │   │   └── reports/
 │   └── layout.tsx           # Root layout
+├── mobile/                  # React Native App
+│   ├── src/
+│   │   ├── screens/
+│   │   ├── components/
+│   │   └── services/
+│   └── App.js
 ├── components/              # React komponentleri
 │   ├── ui/                  # shadcn/ui komponentleri
 │   ├── forms/               # Form komponentleri

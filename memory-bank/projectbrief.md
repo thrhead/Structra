@@ -1,79 +1,38 @@
-# Proje Özeti
+# Assembly Tracker Project Brief
 
-## Genel Bakış
+## Project Overview
+Assembly Tracker is a web application for tracking field assembly and service teams. The system enables management of assembly processes, cost control, and team coordination for factory external operations.
 
-Fabrika dışında çalışan montaj ve servis ekiplerinin takip edilmesi, maliyet kontrolü ve yönetim süreçlerinin kolaylaştırılması için mobil uyumlu bir web uygulaması.
+## Core Requirements
+- User authentication with role-based access (Admin, Manager, Team Lead, Worker, Customer)
+- Job tracking system with step-by-step progress monitoring
+- Team management and assignment capabilities
+- Cost tracking and approval workflows
+- Real-time notifications and status updates
+- Mobile-responsive interface with Turkish language support
 
-## Hedef Kullanıcılar
+## Key Features
+- Job creation with detailed steps and sub-steps
+- Time tracking for sub-tasks with start/end times
+- Automatic parent task completion when all sub-tasks are done
+- Team performance metrics and visualizations
+- Photo upload for work documentation
+- Reporting system for job status and costs
 
-1. **Fabrikalar**: Genel sistem kullanıcıları
-2. **Yöneticiler**: Tüm ekipleri ve montajları görebilen, onay ve kontrol yetkisine sahip kullanıcılar
-3. **Ekip ve Montaj Şefleri**: Günlük işleri takip eden, bildirim alan ve onay veren kullanıcılar
-4. **Montaj Ekipleri**: Sahada çalışan, işleri güncelleyen kullanıcılar
-5. **Müşteriler**: Montaj/bakım durumunu takip eden kullanıcılar
+## Technical Stack
+- Next.js 16 with App Router
+- TypeScript
+- PostgreSQL with Prisma ORM
+- NextAuth.js v4 for authentication
+- TailwindCSS for styling
+- Dark mode support
 
-## Ana İhtiyaçlar
+## Current Status
+The application is in MVP state with core job creation functionality working. Focus is on completing photo upload, notifications, and reporting features.
 
-### 1. Kullanıcı Yönetimi
-
-- Kullanıcı ve yönetici için ayrı giriş panelleri
-- Rol tabanlı yetkilendirme sistemi
-
-### 2. Montaj Takip Sistemi
-
-- Her montaj için ayrı takip kaydı
-- Basit checklist sistemi
-- Her aşama için açıklama ekleme imkanı
-- Montaj durumu (hangi aşamada olduğu)
-- Database'de her montaj için ayrı kayıt tutulması
-
-### 3. Bildirim ve Onay Mekanizması
-
-- Montaj şeflerine günlük yapılan işler için bildirim
-- Yapılacak işler için onay sistemi
-- Gerçek zamanlı bildirim sistemi
-
-### 4. Müşteri Durum Paneli
-
-- Müşteriye özel panel
-- Montaj/bakım durumu görüntüleme
-- Grafik ve görsel raporlar
-- İş durumu takibi
-
-### 5. Maliyet Kontrolü
-
-- İş süresi takibi
-- Ekip maliyetlerinin hesaplanması
-- Raporlama sistemi
-
-## Teknik Gereksinimler
-
-- Mobil uyumlu (responsive design)
-- Gerçek zamanlı veri güncelleme
-- Güvenli authentication sistemi
-- Grafiksel raporlama
-- Veritabanı entegrasyonu
-
-## Proje Kapsamı
-
-### Faz 1 - MVP (Minimum Viable Product)
-
-- Kullanıcı authentication
-- Temel montaj takip sistemi
-- Basit bildirim mekanizması
-- Temel müşteri paneli
-
-### Faz 2 - Gelişmiş Özellikler
-
-- Detaylı raporlama
-- Maliyet analizi
-- Gelişmiş grafikler
-- Mobil uygulama (React Native)
-
-## Başarı Kriterleri
-
-- Ekiplerin günlük işlerini kolayca güncelleyebilmesi
-- Yöneticilerin tüm montajları tek bir yerden takip edebilmesi
-- Müşterilerin işlerinin durumunu görebilmesi
-- Maliyet takibinin yapılabilmesi
-- Mobile cihazlarda sorunsuz çalışması
+## Next Steps
+1. Examine the memory bank files to understand the project context
+2. Analyze the job creation error in the debug log
+3. Identify the root cause of the foreign key constraint error
+4. Fix the authentication configuration to properly handle the user ID
+5. Update the memory bank with the current status and next steps

@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils'
 import { BlockTaskDialog } from '@/components/worker/block-task-dialog'
 import { CostDialog } from '@/components/worker/cost-dialog'
 import { toast } from 'sonner'
+import { PhotoUploadDialog } from '@/components/worker/photo-upload-dialog'
 
 interface JobDetail {
   id: string
@@ -361,7 +362,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
                 <div className="p-4 flex items-start gap-3">
                   <div
                     className={cn(
-                      "mt-0.5 h-6 w-6 rounded border flex items-center justify-center transition-colors cursor-pointer",
+                      "mt-0.5 h-8 w-8 rounded border flex items-center justify-center transition-colors cursor-pointer shrink-0",
                       step.isCompleted
                         ? "bg-green-500 border-green-500 text-white"
                         : isBlocked
@@ -372,9 +373,9 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
                     )}
                     onClick={() => !isLocked && !isBlocked && toggleStep(step.id, step.isCompleted)}
                   >
-                    {step.isCompleted && <CheckCircle2Icon className="h-4 w-4" />}
-                    {isBlocked && <AlertTriangleIcon className="h-3 w-3" />}
-                    {isLocked && !isBlocked && <AlertCircleIcon className="h-4 w-4 text-gray-400" />}
+                    {step.isCompleted && <CheckCircle2Icon className="h-5 w-5" />}
+                    {isBlocked && <AlertTriangleIcon className="h-4 w-4" />}
+                    {isLocked && !isBlocked && <AlertCircleIcon className="h-5 w-5 text-gray-400" />}
                   </div>
 
                   <div className="flex-1">
@@ -537,11 +538,11 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
       </Card>
 
       {/* Actions */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t lg:static lg:border-0 lg:bg-transparent lg:p-0">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t lg:static lg:border-0 lg:bg-transparent lg:p-0 pb-safe z-10">
         <div className="max-w-3xl mx-auto flex flex-col gap-3">
           <Button
             variant="outline"
-            className="w-full"
+            className="w-full h-12 text-base"
             onClick={() => setShowCostDialog(true)}
           >
             💰 Masraf Ekle
@@ -549,7 +550,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
 
           {job.status === 'PENDING' && (
             <Button
-              className="w-full"
+              className="w-full h-12 text-base"
               size="lg"
               onClick={() => updateStatus('IN_PROGRESS')}
             >
@@ -559,7 +560,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
 
           {job.status === 'IN_PROGRESS' && (
             <Button
-              className="w-full bg-green-600 hover:bg-green-700"
+              className="w-full bg-green-600 hover:bg-green-700 h-12 text-base"
               size="lg"
               onClick={completeJob}
               disabled={progress < 100}
@@ -569,7 +570,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
           )}
 
           {job.status === 'COMPLETED' && (
-            <div className="w-full p-3 bg-green-100 text-green-800 rounded-lg text-center font-medium flex items-center justify-center gap-2">
+            <div className="w-full p-3 bg-green-100 text-green-800 rounded-lg text-center font-medium flex items-center justify-center gap-2 h-12">
               <CheckCircle2Icon className="h-5 w-5" />
               İş Tamamlandı
             </div>

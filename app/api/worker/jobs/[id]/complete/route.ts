@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth'
+import { emitToUser, broadcast } from '@/lib/socket'
+import { JobCompletedPayload } from '@/lib/socket-events'
+import { sendJobCompletedEmail } from '@/lib/email'
 
 export async function POST(
   req: Request,
@@ -29,7 +32,15 @@ export async function POST(
         }
       },
       include: {
-        steps: true
+        steps: true,
+        creator: true,
+        customer: true,
+        assignments: {
+          include: {
+            team: true
+          },
+          take: 1
+        }
       }
     })
 
@@ -40,22 +51,21 @@ export async function POST(
     // Check if all steps are completed
     const allStepsCompleted = job.steps.every(step => step.isCompleted)
     if (!allStepsCompleted) {
-      return NextResponse.json({ 
-        error: 'Tüm adımlar tamamlanmadan iş tamamlanamaz' 
+      return NextResponse.json({
+        error: 'Tüm adımlar tamamlanmadan iş tamamlanamaz'
       }, { status: 400 })
     }
 
     // Update job status to COMPLETED
-    await prisma.job.update({
+    const updatedJob = await prisma.job.update({
       where: { id: jobId },
-      data: { 
+      data: {
         status: 'COMPLETED',
         completedDate: new Date()
       }
     })
 
     // Get team lead or admin as approver
-    // For now, we'll get the first admin user
     const approver = await prisma.user.findFirst({
       where: {
         role: { in: ['ADMIN', 'MANAGER'] },
@@ -64,8 +74,8 @@ export async function POST(
     })
 
     if (!approver) {
-      return NextResponse.json({ 
-        error: 'No approver found' 
+      return NextResponse.json({
+        error: 'No approver found'
       }, { status: 500 })
     }
 
@@ -80,14 +90,41 @@ export async function POST(
       }
     })
 
-    // Send notification to approver
-    const { notifyJobCompletion } = await import('@/lib/notifications')
-    await notifyJobCompletion(jobId, approver.id)
+    // Emit Socket.IO event for real-time notification
+    const socketPayload: JobCompletedPayload = {
+      jobId: updatedJob.id,
+      title: updatedJob.title,
+      completedBy: session.user.name || session.user.email || 'Unknown',
+      completedAt: updatedJob.completedDate || new Date()
+    }
 
-    return NextResponse.json({ 
-      success: true, 
+    // Notify job creator
+    if (job.creator?.id) {
+      emitToUser(job.creator.id, 'job:completed', socketPayload)
+    }
+
+    // Notify approver
+    emitToUser(approver.id, 'job:completed', socketPayload)
+
+    // Broadcast to all admins
+    broadcast('job:completed', socketPayload)
+
+    // Send email notification (async, don't block)
+    if (approver.email) {
+      sendJobCompletedEmail(approver.email, {
+        id: updatedJob.id,
+        title: updatedJob.title,
+        customerName: job.customer.company,
+        completedDate: updatedJob.completedDate || new Date(),
+        teamName: job.assignments[0]?.team?.name || 'Unknown Team',
+        completedBy: session.user.name || session.user.email || 'Unknown'
+      }).catch(err => console.error('Email send failed:', err))
+    }
+
+    return NextResponse.json({
+      success: true,
       message: 'İş tamamlandı ve onay için gönderildi',
-      approval 
+      approval
     })
   } catch (error) {
     console.error('Complete job error:', error)

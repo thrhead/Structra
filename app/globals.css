@@ -118,5 +118,20 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Better mobile text readability */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Mobile Safe Area Utilities */
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Mobile Font Size Adjustment */
+@media (max-width: 640px) {
+  html {
+    font-size: 14px;
   }
 }

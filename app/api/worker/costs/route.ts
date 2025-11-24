@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import { z } from 'zod'
+import { broadcast, emitToUser } from '@/lib/socket'
+import { CostSubmittedPayload } from '@/lib/socket-events'
+import { sendCostApprovalEmail } from '@/lib/email'
 
 const createCostSchema = z.object({
     jobId: z.string().min(1),
@@ -25,7 +28,10 @@ export async function POST(req: Request) {
 
         // Verify job exists
         const job = await prisma.job.findUnique({
-            where: { id: data.jobId }
+            where: { id: data.jobId },
+            include: {
+                creator: true
+            }
         })
 
         if (!job) {
@@ -44,8 +50,49 @@ export async function POST(req: Request) {
                 date: data.date,
                 createdById: session.user.id,
                 status: 'PENDING'
+            },
+            include: {
+                createdBy: true
             }
         })
+
+        // Emit Socket.IO event for real-time notification
+        const socketPayload: CostSubmittedPayload = {
+            costId: cost.id,
+            jobId: data.jobId,
+            amount: data.amount,
+            category: data.category,
+            submittedBy: session.user.name || session.user.email || 'Unknown'
+        }
+
+        // Notify job creator
+        if (job.creator?.id) {
+            emitToUser(job.creator.id, 'cost:submitted', socketPayload)
+        }
+
+        // Broadcast to all admins/managers
+        broadcast('cost:submitted', socketPayload)
+
+        // Send email notification to admins (async, don't block)
+        const admins = await prisma.user.findMany({
+            where: {
+                role: { in: ['ADMIN', 'MANAGER'] },
+                isActive: true
+            },
+            take: 1 // Just notify one admin
+        })
+
+        if (admins[0]?.email) {
+            sendCostApprovalEmail(admins[0].email, {
+                id: cost.id,
+                amount: data.amount,
+                category: data.category,
+                description: data.description,
+                jobTitle: job.title,
+                submittedBy: session.user.name || session.user.email || 'Unknown',
+                date: data.date
+            }).catch(err => console.error('Email send failed:', err))
+        }
 
         return NextResponse.json(cost, { status: 201 })
     } catch (error) {

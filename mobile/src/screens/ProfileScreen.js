@@ -1,0 +1,331 @@
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Switch, Alert } from 'react-native';
+import { useAuth } from '../context/AuthContext';
+
+export default function ProfileScreen({ navigation }) {
+    const { user, logout } = useAuth();
+    const [oldPassword, setOldPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+
+    const getRoleBadgeColor = (role) => {
+        switch (role) {
+            case 'admin': return '#EF4444';
+            case 'manager': return '#F59E0B';
+            case 'worker': return '#3B82F6';
+            default: return '#6B7280';
+        }
+    };
+
+    const getRoleText = (role) => {
+        switch (role) {
+            case 'admin': return 'Admin';
+            case 'manager': return 'Manager';
+            case 'worker': return 'Worker';
+            default: return role;
+        }
+    };
+
+    const handlePasswordChange = () => {
+        if (!oldPassword || !newPassword || !confirmPassword) {
+            Alert.alert('Hata', 'Lütfen tüm alanları doldurun.');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            Alert.alert('Hata', 'Yeni şifreler eşleşmiyor.');
+            return;
+        }
+
+        if (newPassword.length < 6) {
+            Alert.alert('Hata', 'Yeni şifre en az 6 karakter olmalıdır.');
+            return;
+        }
+
+        // Mock password change
+        Alert.alert('Başarılı', 'Şifreniz başarıyla değiştirildi.');
+        setOldPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+    };
+
+    const handleLogout = async () => {
+        Alert.alert(
+            'Çıkış Yap',
+            'Çıkmak istediğinize emin misiniz?',
+            [
+                { text: 'İptal', style: 'cancel' },
+                {
+                    text: 'Çıkış Yap',
+                    style: 'destructive',
+                    onPress: async () => await logout()
+                }
+            ]
+        );
+    };
+
+    return (
+        <ScrollView style={styles.container}>
+            {/* User Info Section */}
+            <View style={styles.section}>
+                <View style={styles.profileHeader}>
+                    <View style={styles.avatar}>
+                        <Text style={styles.avatarText}>
+                            {user?.name?.charAt(0).toUpperCase() || 'U'}
+                        </Text>
+                    </View>
+                    <View style={styles.userInfo}>
+                        <Text style={styles.userName}>{user?.name || 'Kullanıcı'}</Text>
+                        <Text style={styles.userEmail}>{user?.email}</Text>
+                        <View style={[styles.roleBadge, { backgroundColor: getRoleBadgeColor(user?.role) }]}>
+                            <Text style={styles.roleText}>{getRoleText(user?.role)}</Text>
+                        </View>
+                    </View>
+                </View>
+            </View>
+
+            {/* Password Change Section */}
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Şifre Değiştir</Text>
+                <View style={styles.card}>
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.inputLabel}>Mevcut Şifre</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Mevcut şifrenizi girin"
+                            secureTextEntry
+                            value={oldPassword}
+                            onChangeText={setOldPassword}
+                        />
+                    </View>
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.inputLabel}>Yeni Şifre</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Yeni şifrenizi girin"
+                            secureTextEntry
+                            value={newPassword}
+                            onChangeText={setNewPassword}
+                        />
+                    </View>
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.inputLabel}>Yeni Şifre (Tekrar)</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Yeni şifrenizi tekrar girin"
+                            secureTextEntry
+                            value={confirmPassword}
+                            onChangeText={setConfirmPassword}
+                        />
+                    </View>
+                    <TouchableOpacity style={styles.changePasswordButton} onPress={handlePasswordChange}>
+                        <Text style={styles.changePasswordButtonText}>Şifreyi Değiştir</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+
+            {/* App Settings Section */}
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Uygulama Ayarları</Text>
+                <View style={styles.card}>
+                    <View style={styles.settingRow}>
+                        <View style={styles.settingInfo}>
+                            <Text style={styles.settingTitle}>Bildirimler</Text>
+                            <Text style={styles.settingDescription}>Yakında aktif olacak</Text>
+                        </View>
+                        <Switch
+                            value={notificationsEnabled}
+                            onValueChange={setNotificationsEnabled}
+                            disabled
+                            trackColor={{ false: '#D1D5DB', true: '#86EFAC' }}
+                            thumbColor={notificationsEnabled ? '#16A34A' : '#9CA3AF'}
+                        />
+                    </View>
+                </View>
+            </View>
+
+            {/* About Section */}
+            <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Hakkında</Text>
+                <View style={styles.card}>
+                    <View style={styles.aboutRow}>
+                        <Text style={styles.aboutLabel}>Versiyon</Text>
+                        <Text style={styles.aboutValue}>1.0.0</Text>
+                    </View>
+                    <View style={styles.aboutRow}>
+                        <Text style={styles.aboutLabel}>Build</Text>
+                        <Text style={styles.aboutValue}>100</Text>
+                    </View>
+                </View>
+            </View>
+
+            {/* Logout Button */}
+            <View style={styles.section}>
+                <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                    <Text style={styles.logoutButtonText}>🚪 Çıkış Yap</Text>
+                </TouchableOpacity>
+            </View>
+
+            <View style={{ height: 40 }} />
+        </ScrollView>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#F3F4F6',
+    },
+    section: {
+        padding: 16,
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#111827',
+        marginBottom: 12,
+    },
+    profileHeader: {
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        padding: 20,
+        flexDirection: 'row',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    avatar: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: '#3B82F6',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 16,
+    },
+    avatarText: {
+        fontSize: 32,
+        fontWeight: 'bold',
+        color: '#fff',
+    },
+    userInfo: {
+        flex: 1,
+    },
+    userName: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#111827',
+        marginBottom: 4,
+    },
+    userEmail: {
+        fontSize: 14,
+        color: '#6B7280',
+        marginBottom: 8,
+    },
+    roleBadge: {
+        alignSelf: 'flex-start',
+        paddingHorizontal: 12,
+        paddingVertical: 4,
+        borderRadius: 12,
+    },
+    roleText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    card: {
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        padding: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    inputGroup: {
+        marginBottom: 16,
+    },
+    inputLabel: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#374151',
+        marginBottom: 8,
+    },
+    input: {
+        backgroundColor: '#F9FAFB',
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        borderRadius: 8,
+        padding: 12,
+        fontSize: 14,
+        color: '#111827',
+    },
+    changePasswordButton: {
+        backgroundColor: '#3B82F6',
+        borderRadius: 8,
+        padding: 14,
+        alignItems: 'center',
+        marginTop: 8,
+    },
+    changePasswordButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    settingRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    settingInfo: {
+        flex: 1,
+    },
+    settingTitle: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#111827',
+        marginBottom: 4,
+    },
+    settingDescription: {
+        fontSize: 12,
+        color: '#6B7280',
+    },
+    aboutRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 8,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F3F4F6',
+    },
+    aboutLabel: {
+        fontSize: 14,
+        color: '#6B7280',
+    },
+    aboutValue: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#111827',
+    },
+    logoutButton: {
+        backgroundColor: '#EF4444',
+        borderRadius: 12,
+        padding: 16,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    logoutButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+});

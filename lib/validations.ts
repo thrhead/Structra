@@ -89,6 +89,27 @@ export const createCostTrackingSchema = z.object({
   notes: z.string().optional(),
 })
 
+// Job Creation Schema
+export const jobCreationSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  description: z.string().optional(),
+  customerId: z.string().min(1, 'Customer is required'),
+  teamId: z.string().min(1, 'Team is required'),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
+  location: z.string().min(1, 'Location is required'),
+  scheduledDate: z.string().min(1, 'Scheduled date is required'),
+  steps: z.array(z.object({
+    title: z.string().min(1, 'Step title is required'),
+    description: z.string().optional(),
+    order: z.number().optional(),
+    subSteps: z.array(z.object({
+      title: z.string().min(1, 'Sub-step title is required'),
+      description: z.string().optional(),
+      order: z.number().optional()
+    })).optional()
+  })).min(1, 'At least one step is required')
+})
+
 // Type exports
 export type LoginInput = z.infer<typeof loginSchema>
 export type RegisterInput = z.infer<typeof registerSchema>

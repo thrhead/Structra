@@ -1,30 +1,21 @@
+<<<<<<< Updated upstream
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import { z } from 'zod'
+=======
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/db';
+import { jobCreationSchema } from '@/lib/validations';
+>>>>>>> Stashed changes
 
-const createJobSchema = z.object({
-    title: z.string().min(1, 'İş başlığı en az 1 karakter olmalı'),
-    description: z.string().optional(),
-    customerId: z.string(),
-    teamId: z.string().optional(),
-    priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).default('MEDIUM'),
-    location: z.string().optional(),
-    scheduledDate: z.string().optional().transform(val => (val ? new Date(val) : null)),
-    scheduledEndDate: z.string().optional().transform(val => (val ? new Date(val) : null)),
-    steps: z.array(
-        z.object({
-            title: z.string().min(1),
-            description: z.string().optional(),
-            subSteps: z.array(
-                z.object({
-                    title: z.string().min(1)
-                })
-            ).optional()
-        })
-    ).optional()
-})
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
 
+<<<<<<< Updated upstream
 export async function POST(req: Request) {
     try {
         const session = await auth()
@@ -105,5 +96,162 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Invalid data', details: error.issues }, { status: 400 })
         }
         return NextResponse.json({ error: 'Internal Server Error', details: String(error) }, { status: 500 })
+=======
+    if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+>>>>>>> Stashed changes
     }
+
+    const { searchParams } = new URL(request.url);
+    const where: any = {};
+
+    const status = searchParams.get('status');
+    if (status && status !== 'all') where.status = status;
+
+    const priority = searchParams.get('priority');
+    if (priority && priority !== 'all') where.priority = priority;
+
+    const teamId = searchParams.get('teamId');
+    if (teamId && teamId !== 'all') {
+      where.assignments = { some: { teamId } };
+    }
+
+    const customerId = searchParams.get('customerId');
+    if (customerId && customerId !== 'all') where.customerId = customerId;
+
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
+    if (startDate || endDate) {
+      where.scheduledDate = {};
+      if (startDate) where.scheduledDate.gte = new Date(startDate);
+      if (endDate) where.scheduledDate.lte = new Date(endDate);
+    }
+
+    const jobs = await prisma.job.findMany({
+      where,
+      include: {
+        customer: { include: { user: true } },
+        steps: { include: { subSteps: true } },
+        assignments: { include: { team: true } },
+        creator: true
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    return NextResponse.json(jobs);
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to fetch jobs' }, { status: 500 });
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session || !session.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    console.log('[Job Creation] Request body:', body);
+
+    // Validate request body
+    const validatedData = jobCreationSchema.parse(body);
+    console.log('[Job Creation] Parsed data:', JSON.stringify(validatedData, null, 2));
+
+    // Check if customer exists
+    const customer = await prisma.customer.findUnique({
+      where: { id: validatedData.customerId }
+    });
+
+    if (!customer) {
+      return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
+    }
+
+    console.log('[Job Creation] Customer exists:', !!customer);
+
+    // Check if creator (user) exists
+    const creator = await prisma.user.findUnique({
+      where: { id: session.user.id }
+    });
+
+    console.log('[Job Creation] Creator exists:', !!creator);
+
+    if (!creator) {
+      console.log('[Job Creation] Creator NOT FOUND:', session.user.id);
+      return NextResponse.json({ error: 'Creator not found' }, { status: 404 });
+    }
+
+    // Check if team exists
+    const team = await prisma.team.findUnique({
+      where: { id: validatedData.teamId }
+    });
+
+    if (!team) {
+      return NextResponse.json({ error: 'Team not found' }, { status: 404 });
+    }
+
+    console.log('[Job Creation] Team exists:', !!team);
+
+    // Create the job with steps and sub-steps
+    const jobData = {
+      title: validatedData.title,
+      description: validatedData.description,
+      location: validatedData.location,
+      priority: validatedData.priority,
+      scheduledDate: new Date(validatedData.scheduledDate),
+      customerId: validatedData.customerId,
+      createdById: session.user.id,
+      status: 'PLANNED',
+      steps: {
+        create: validatedData.steps.map(step => ({
+          title: step.title,
+          description: step.description,
+          order: step.order || 0,
+          subSteps: {
+            create: step.subSteps?.map(subStep => ({
+              title: subStep.title,
+              description: subStep.description,
+              order: subStep.order || 0
+            })) || []
+          }
+        }))
+      }
+    };
+
+    console.log('[Job Creation] Creating job in database...');
+
+    const job = await prisma.job.create({
+      data: jobData,
+      include: {
+        steps: {
+          include: {
+            subSteps: true
+          }
+        }
+      }
+    });
+
+    console.log('[Job Creation] Job created:', job.id);
+
+    // Assign the team to the job
+    await prisma.jobAssignment.create({
+      data: {
+        jobId: job.id,
+        teamId: validatedData.teamId,
+        assignedById: session.user.id,
+        assignedAt: new Date()
+      }
+    });
+
+    console.log('[Job Creation] Assigning team:', validatedData.teamId);
+
+    return NextResponse.json(job, { status: 201 });
+  } catch (error) {
+    console.error('[Job Creation] FULL JOB CREATION ERROR:', error);
+    return NextResponse.json(
+      { error: 'Failed to create job', details: error instanceof Error ? error.message : String(error) },
+      { status: 500 }
+    );
+  }
 }
