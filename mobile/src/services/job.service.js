@@ -37,7 +37,7 @@ const jobService = {
      */
     toggleStep: async (jobId, stepId, isCompleted) => {
         try {
-            const response = await api.put(
+            const response = await api.post(
                 `/api/worker/jobs/${jobId}/steps/${stepId}/toggle`,
                 { isCompleted }
             );
@@ -57,7 +57,7 @@ const jobService = {
      */
     toggleSubstep: async (jobId, stepId, substepId, isCompleted) => {
         try {
-            const response = await api.put(
+            const response = await api.post(
                 `/api/worker/jobs/${jobId}/steps/${stepId}/substeps/${substepId}/toggle`,
                 { isCompleted }
             );
@@ -99,6 +99,40 @@ const jobService = {
     completeJob: async (jobId) => {
         try {
             const response = await api.put(`/api/worker/jobs/${jobId}/complete`);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    /**
+     * Get all jobs (Manager/Admin)
+     * @param {Object} filters
+     * @returns {Promise<Array>}
+     */
+    getAllJobs: async (filters = {}) => {
+        try {
+            const params = new URLSearchParams();
+            if (filters.search) params.append('search', filters.search);
+            if (filters.status && filters.status !== 'ALL') params.append('status', filters.status);
+            if (filters.priority) params.append('priority', filters.priority);
+
+            const response = await api.get(`/api/admin/jobs?${params.toString()}`);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    /**
+     * Assign job to worker
+     * @param {string} jobId
+     * @param {string} workerId
+     * @returns {Promise<Object>}
+     */
+    assignJob: async (jobId, workerId) => {
+        try {
+            const response = await api.post(`/api/admin/jobs/${jobId}/assign`, { workerId });
             return response.data;
         } catch (error) {
             throw error;

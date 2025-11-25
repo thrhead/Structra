@@ -7,7 +7,7 @@ const teamService = {
      */
     getAll: async () => {
         try {
-            const response = await api.get('/api/admin/teams/list');
+            const response = await api.get('/api/teams');
             return response.data;
         } catch (error) {
             throw error;
@@ -35,8 +35,12 @@ const teamService = {
      */
     getMembers: async (teamId) => {
         try {
-            const response = await api.get(`/api/admin/teams/${teamId}/members`);
-            return response.data;
+            // Since /api/admin/teams/${teamId}/members is ADMIN only,
+            // we use getAll which returns teams with members for Managers too.
+            const response = await api.get('/api/teams');
+            const teams = response.data;
+            const team = teams.find(t => t.id === teamId);
+            return team ? team.members : [];
         } catch (error) {
             throw error;
         }

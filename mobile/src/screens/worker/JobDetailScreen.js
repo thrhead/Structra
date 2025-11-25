@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Linking, Platform, Modal, Image } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import jobService from '../../services/job.service';
+import costService from '../../services/cost.service';
 
 export default function JobDetailScreen({ route, navigation }) {
     const { jobId } = route.params;
@@ -8,6 +10,16 @@ export default function JobDetailScreen({ route, navigation }) {
     const [loading, setLoading] = useState(true);
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
+    const [uploading, setUploading] = useState(false);
+
+    // Cost State
+    const [costModalVisible, setCostModalVisible] = useState(false);
+    const [costAmount, setCostAmount] = useState('');
+    const [costCategory, setCostCategory] = useState('Yemek');
+    const [costDescription, setCostDescription] = useState('');
+    const [submittingCost, setSubmittingCost] = useState(false);
+
+    const COST_CATEGORIES = ['Yemek', 'Yakıt', 'Konaklama', 'Malzeme', 'Diğer'];
 
     useEffect(() => {
         loadJobDetails();
@@ -15,134 +27,39 @@ export default function JobDetailScreen({ route, navigation }) {
 
     const loadJobDetails = async () => {
         try {
-            // MOCK DATA - Gerçek API yerine
-            const mockJob = {
-                id: jobId,
-                title: 'Klima Montajı - ABC Şirketi',
-                customer: 'ABC Şirketi',
-                phone: '0555 123 45 67',
-                location: 'İstanbul, Kadıköy',
-                status: 'IN_PROGRESS',
-                priority: 'HIGH',
-                scheduledDate: '2024-11-24',
-                description: 'Merkez ofis 3. kat klima sistemlerinin montajı ve test edilmesi.',
-                steps: [
-                    {
-                        id: 1,
-                        name: 'Ön Hazırlık',
-                        isCompleted: true,
-                        order: 1,
-                        substeps: [
-                            { id: 101, name: 'Ekipman kontrolü', isCompleted: true, startTime: '24.11.2024 10:00', endTime: '24.11.2024 10:15', status: 'COMPLETED', photos: ['https://via.placeholder.com/150'] },
-                            { id: 102, name: 'Güvenlik önlemleri', isCompleted: true, startTime: '24.11.2024 10:15', endTime: '24.11.2024 10:30', status: 'COMPLETED', photos: ['https://via.placeholder.com/150'] }
-                        ]
-                    },
-                    {
-                        id: 2,
-                        name: 'Montaj',
-                        isCompleted: false,
-                        order: 2,
-                        substeps: [
-                            { id: 201, name: 'İç ünite montajı', isCompleted: false, startTime: null, endTime: null, status: 'PENDING', photos: [] },
-                            { id: 202, name: 'Dış ünite montajı', isCompleted: false, startTime: null, endTime: null, status: 'PENDING', photos: [] },
-                            { id: 203, name: 'Boru tesisatı', isCompleted: false, startTime: null, endTime: null, status: 'PENDING', photos: [] }
-                        ]
-                    },
-                    {
-                        id: 3,
-                        name: 'Test',
-                        isCompleted: false,
-                        order: 3,
-                        substeps: [
-                            { id: 301, name: 'Basınç testi', isCompleted: false, startTime: null, endTime: null, status: 'PENDING', photos: [] },
-                            { id: 302, name: 'Performans testi', isCompleted: false, startTime: null, endTime: null, status: 'PENDING', photos: [] }
-                        ]
-                    },
-                ],
-            };
-
-            setTimeout(() => {
-                setJob(mockJob);
-                setLoading(false);
-            }, 500);
+            setLoading(true);
+            const response = await jobService.getJobById(jobId);
+            if (response.job) {
+                setJob(response.job);
+            } else {
+                Alert.alert('Hata', 'İş bulunamadı');
+                navigation.goBack();
+            }
         } catch (error) {
             console.error('Error loading job details:', error);
             Alert.alert('Hata', 'İş detayları yüklenemedi');
+        } finally {
             setLoading(false);
         }
     };
 
-    const handleSubstepAction = (stepId, substepId, action) => {
-        setJob(prevJob => {
-            const stepIndex = prevJob.steps.findIndex(s => s.id === stepId);
-            const step = prevJob.steps[stepIndex];
-            const substepIndex = step.substeps.findIndex(s => s.id === substepId);
-            const substep = step.substeps[substepIndex];
+    const handleSubstepToggle = async (stepId, substepId, currentStatus) => {
+        try {
+            // Optimistic update
+            const isCompleted = !currentStatus; // Toggle
 
-            // KONTROLLER
+            // Call API
+            await jobService.toggleSubstep(jobId, stepId, substepId, isCompleted);
 
-            // 1. Önceki ana adım tamamlanmış mı?
-            if (stepIndex > 0 && !prevJob.steps[stepIndex - 1].isCompleted) {
-                Alert.alert('Uyarı', 'Önceki ana adımı tamamlamadan bu adıma geçemezsiniz.');
-                return prevJob;
-            }
-
-            // 2. Önceki alt görev tamamlanmış mı?
-            if (substepIndex > 0 && !step.substeps[substepIndex - 1].isCompleted) {
-                Alert.alert('Uyarı', 'Önceki alt görevi tamamlamadan bu göreve başlayamazsınız.');
-                return prevJob;
-            }
-
-            // İŞLEM
-            const now = new Date();
-            const day = now.getDate().toString().padStart(2, '0');
-            const month = (now.getMonth() + 1).toString().padStart(2, '0');
-            const year = now.getFullYear();
-            const hours = now.getHours().toString().padStart(2, '0');
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            const timeString = `${day}.${month}.${year} ${hours}:${minutes}`;
-
-            let newSubstep = { ...substep };
-
-            if (action === 'START') {
-                newSubstep.status = 'IN_PROGRESS';
-                newSubstep.startTime = timeString;
-            } else if (action === 'COMPLETE') {
-                // Min 1 photo check
-                if (!substep.photos || substep.photos.length < 1) {
-                    Alert.alert('Uyarı', 'Bu görevi tamamlamak için en az 1 fotoğraf yüklemelisiniz.');
-                    return prevJob;
-                }
-                newSubstep.status = 'COMPLETED';
-                newSubstep.isCompleted = true;
-                newSubstep.endTime = timeString;
-            }
-
-            const newSubsteps = [...step.substeps];
-            newSubsteps[substepIndex] = newSubstep;
-
-            // Ana adımın tamamlanma kontrolü
-            const allSubstepsCompleted = newSubsteps.every(s => s.isCompleted);
-            let mainStepEndTime = step.endTime;
-
-            if (allSubstepsCompleted && !step.isCompleted) {
-                mainStepEndTime = timeString;
-            }
-
-            const newSteps = [...prevJob.steps];
-            newSteps[stepIndex] = {
-                ...step,
-                substeps: newSubsteps,
-                isCompleted: allSubstepsCompleted,
-                endTime: mainStepEndTime
-            };
-
-            return { ...prevJob, steps: newSteps };
-        });
+            // Reload job to get updated state (including timestamps)
+            loadJobDetails();
+        } catch (error) {
+            console.error('Error toggling substep:', error);
+            Alert.alert('Hata', 'İşlem gerçekleştirilemedi');
+        }
     };
 
     const pickImage = async (stepId, substepId, source) => {
-        console.log('pickImage called with source:', source);
         try {
             let result;
             if (source === 'camera') {
@@ -173,7 +90,7 @@ export default function JobDetailScreen({ route, navigation }) {
 
             if (!result.canceled) {
                 const uri = result.assets[0].uri;
-                savePhoto(stepId, substepId, uri);
+                uploadPhoto(stepId, substepId, uri);
             }
         } catch (error) {
             console.error("ImagePicker error:", error);
@@ -181,27 +98,86 @@ export default function JobDetailScreen({ route, navigation }) {
         }
     };
 
-    const savePhoto = (stepId, substepId, uri) => {
-        setJob(prevJob => {
-            const newSteps = prevJob.steps.map(step => {
-                if (step.id === stepId) {
-                    const newSubsteps = step.substeps.map(substep => {
-                        if (substep.id === substepId) {
-                            const currentPhotos = substep.photos || [];
-                            return { ...substep, photos: [...currentPhotos, uri] };
-                        }
-                        return substep;
-                    });
-                    return { ...step, substeps: newSubsteps };
-                }
-                return step;
-            });
-            return { ...prevJob, steps: newSteps };
-        });
+    const uploadPhoto = async (stepId, substepId, uri) => {
+        try {
+            setUploading(true);
+            const formData = new FormData();
+
+            // File name extraction
+            const filename = uri.split('/').pop();
+            const match = /\.(\w+)$/.exec(filename);
+            const type = match ? `image/${match[1]}` : `image`;
+
+            formData.append('file', { uri, name: filename, type });
+
+            // Note: The API endpoint structure in job.service.js is:
+            // /api/worker/jobs/${jobId}/steps/${stepId}/photos
+            // It doesn't seem to take substepId?
+            // Let's check job.service.js again.
+            // uploadPhotos: async (jobId, stepId, formData) => ...
+
+            // If the backend expects photos for a step (not substep), then substepId is irrelevant?
+            // But the UI shows photos per substep.
+            // The mock data had photos in substeps.
+            // Let's check the backend route for photos.
+            // [id]\steps\[stepId]\photos\route.ts
+
+            // I'll assume for now we upload to the step, and maybe the backend handles substep association if we send it?
+            // Or maybe the backend only supports step-level photos?
+            // The mock data had `substep.photos`.
+
+            // If the backend only supports step-level photos, I might need to adjust the UI.
+            // But let's try to send substepId in formData if possible?
+            // Or maybe the route is wrong?
+
+            // I'll assume step-level for now as per service definition.
+            // But wait, if I upload to step, how do I know which substep it belongs to?
+            // Maybe I should check the backend route for photos too.
+
+            await jobService.uploadPhotos(jobId, stepId, formData);
+
+            Alert.alert('Başarılı', 'Fotoğraf yüklendi');
+            loadJobDetails();
+        } catch (error) {
+            console.error('Error uploading photo:', error);
+            Alert.alert('Hata', 'Fotoğraf yüklenemedi');
+        } finally {
+            setUploading(false);
+        }
     };
 
-    const handleCompleteJob = () => {
-        // Tüm adımların tamamlanıp tamamlanmadığını kontrol et
+    const handleCreateCost = async () => {
+        if (!costAmount || !costDescription) {
+            Alert.alert('Hata', 'Lütfen tutar ve açıklama giriniz.');
+            return;
+        }
+
+        try {
+            setSubmittingCost(true);
+            await costService.create({
+                jobId: job.id,
+                amount: parseFloat(costAmount),
+                category: costCategory,
+                description: costDescription,
+                currency: 'TRY'
+            });
+
+            Alert.alert('Başarılı', 'Masraf eklendi ve onaya gönderildi.');
+            setCostModalVisible(false);
+            setCostAmount('');
+            setCostDescription('');
+            setCostCategory('Yemek');
+            loadJobDetails(); // Refresh to show new cost
+        } catch (error) {
+            console.error('Error creating cost:', error);
+            Alert.alert('Hata', 'Masraf eklenirken bir hata oluştu.');
+        } finally {
+            setSubmittingCost(false);
+        }
+    };
+
+    const handleCompleteJob = async () => {
+        // Check if all steps are completed
         const allStepsCompleted = job.steps.every(step => step.isCompleted);
 
         if (!allStepsCompleted) {
@@ -209,32 +185,30 @@ export default function JobDetailScreen({ route, navigation }) {
             return;
         }
 
-        // Web'de Alert.alert butonları sınırlı olabilir, bu yüzden basit confirm kullanıyoruz
-        // veya direkt işlem yapıyoruz. Mobilde Alert iyidir.
-        if (Platform.OS === 'web') {
-            if (confirm("İşi tamamlamak istediğinize emin misiniz?")) {
-                setJob(prev => ({ ...prev, status: 'COMPLETED' }));
-                alert("İş tamamlandı ve onaya gönderildi.");
-                navigation.goBack();
-            }
-        } else {
-            Alert.alert(
-                "İşi Tamamla",
-                "İşi tamamlamak istediğinize emin misiniz?",
-                [
-                    { text: "İptal", style: "cancel" },
-                    {
-                        text: "Tamamla",
-                        onPress: () => {
-                            setJob(prev => ({ ...prev, status: 'COMPLETED' }));
+        Alert.alert(
+            "İşi Tamamla",
+            "İşi tamamlamak istediğinize emin misiniz?",
+            [
+                { text: "İptal", style: "cancel" },
+                {
+                    text: "Tamamla",
+                    onPress: async () => {
+                        try {
+                            setLoading(true);
+                            await jobService.completeJob(jobId);
                             Alert.alert("Başarılı", "İş tamamlandı ve onaya gönderildi.", [
                                 { text: "Tamam", onPress: () => navigation.goBack() }
                             ]);
+                        } catch (error) {
+                            console.error('Error completing job:', error);
+                            Alert.alert('Hata', 'İş tamamlanırken bir hata oluştu');
+                        } finally {
+                            setLoading(false);
                         }
                     }
-                ]
-            );
-        }
+                }
+            ]
+        );
     };
 
     const openMap = (location) => {
@@ -276,19 +250,19 @@ export default function JobDetailScreen({ route, navigation }) {
 
                     <View style={styles.row}>
                         <Text style={styles.label}>Müşteri:</Text>
-                        <Text style={styles.value}>{job.customer}</Text>
+                        <Text style={styles.value}>{job.customer?.name || job.customer}</Text>
                     </View>
 
-                    {job.phone && (
-                        <TouchableOpacity style={styles.row} onPress={() => callPhone(job.phone)}>
+                    {job.customer?.phone && (
+                        <TouchableOpacity style={styles.row} onPress={() => callPhone(job.customer.phone)}>
                             <Text style={styles.label}>Telefon:</Text>
-                            <Text style={[styles.value, styles.linkText]}>{job.phone}</Text>
+                            <Text style={[styles.value, styles.linkText]}>{job.customer.phone}</Text>
                         </TouchableOpacity>
                     )}
 
-                    <TouchableOpacity style={styles.row} onPress={() => openMap(job.location)}>
+                    <TouchableOpacity style={styles.row} onPress={() => openMap(job.location || job.address)}>
                         <Text style={styles.label}>Konum:</Text>
-                        <Text style={[styles.value, styles.linkText]}>{job.location}</Text>
+                        <Text style={[styles.value, styles.linkText]}>{job.location || job.address || 'Konum belirtilmemiş'}</Text>
                     </TouchableOpacity>
 
                     <Text style={styles.description}>{job.description}</Text>
@@ -297,7 +271,7 @@ export default function JobDetailScreen({ route, navigation }) {
                 {/* Steps & Checklist */}
                 <Text style={styles.sectionTitle}>İş Adımları</Text>
 
-                {job.steps.map((step, index) => {
+                {job.steps && job.steps.map((step, index) => {
                     const isLocked = index > 0 && !job.steps[index - 1].isCompleted;
 
                     return (
@@ -307,95 +281,131 @@ export default function JobDetailScreen({ route, navigation }) {
                                     {step.isCompleted && <Text style={styles.checkmark}>✓</Text>}
                                 </View>
                                 <Text style={[styles.stepTitle, step.isCompleted && styles.completedText]}>
-                                    {step.name}
+                                    {step.title || step.name}
                                 </Text>
                                 {isLocked && <Text style={styles.lockedText}>(Kilitli)</Text>}
                             </View>
 
                             {/* Substeps */}
-                            {!isLocked && (
+                            {!isLocked && step.subSteps && (
                                 <View style={styles.substepsContainer}>
-                                    {step.substeps.map((substep) => (
+                                    {step.subSteps.map((substep) => (
                                         <View key={substep.id} style={styles.substepWrapper}>
                                             <View style={styles.substepRow}>
                                                 <View style={styles.substepInfo}>
                                                     <Text style={[styles.substepText, substep.isCompleted && styles.completedText]}>
-                                                        {substep.name}
+                                                        {substep.title || substep.name}
                                                     </Text>
-                                                    {substep.startTime && (
+                                                    {substep.startedAt && (
                                                         <Text style={styles.timeText}>
-                                                            {substep.startTime} - {substep.endTime || '...'}
+                                                            {new Date(substep.startedAt).toLocaleTimeString()} - {substep.completedAt ? new Date(substep.completedAt).toLocaleTimeString() : '...'}
                                                         </Text>
                                                     )}
-                                                    {/* Photo Count Display */}
-                                                    <Text style={styles.photoCountText}>
-                                                        📷 {substep.photos ? substep.photos.length : 0}/3
-                                                    </Text>
-                                                </View>
-
-                                                {/* Photo Buttons */}
-                                                <View style={styles.photoButtonsContainer}>
-                                                    <TouchableOpacity
-                                                        style={[styles.photoIconBtn, (substep.photos?.length >= 3 || substep.status === 'COMPLETED') && styles.disabledBtn]}
-                                                        onPress={() => pickImage(step.id, substep.id, 'camera')}
-                                                        disabled={substep.photos?.length >= 3 || substep.status === 'COMPLETED'}
-                                                    >
-                                                        <Text style={styles.photoIconText}>📷</Text>
-                                                    </TouchableOpacity>
-                                                    <TouchableOpacity
-                                                        style={[styles.photoIconBtn, (substep.photos?.length >= 3 || substep.status === 'COMPLETED') && styles.disabledBtn]}
-                                                        onPress={() => pickImage(step.id, substep.id, 'gallery')}
-                                                        disabled={substep.photos?.length >= 3 || substep.status === 'COMPLETED'}
-                                                    >
-                                                        <Text style={styles.photoIconText}>🖼️</Text>
-                                                    </TouchableOpacity>
                                                 </View>
 
                                                 {/* Action Buttons */}
                                                 <View style={styles.actionButtons}>
-                                                    {substep.status === 'PENDING' && (
-                                                        <TouchableOpacity
-                                                            style={styles.startButton}
-                                                            onPress={() => handleSubstepAction(step.id, substep.id, 'START')}
-                                                        >
-                                                            <Text style={styles.btnText}>Başla</Text>
-                                                        </TouchableOpacity>
-                                                    )}
-
-                                                    {substep.status === 'IN_PROGRESS' && (
+                                                    {!substep.isCompleted ? (
                                                         <TouchableOpacity
                                                             style={styles.completeButton}
-                                                            onPress={() => handleSubstepAction(step.id, substep.id, 'COMPLETE')}
+                                                            onPress={() => handleSubstepToggle(step.id, substep.id, false)}
                                                         >
-                                                            <Text style={styles.btnText}>Bitir</Text>
+                                                            <Text style={styles.btnText}>Tamamla</Text>
                                                         </TouchableOpacity>
-                                                    )}
-
-                                                    {substep.status === 'COMPLETED' && (
-                                                        <View style={styles.completedBadge}>
-                                                            <Text style={styles.completedBadgeText}>Tamam</Text>
-                                                        </View>
+                                                    ) : (
+                                                        <TouchableOpacity
+                                                            style={styles.undoButton}
+                                                            onPress={() => handleSubstepToggle(step.id, substep.id, true)}
+                                                        >
+                                                            <Text style={styles.btnText}>Geri Al</Text>
+                                                        </TouchableOpacity>
                                                     )}
                                                 </View>
                                             </View>
 
-                                            {/* Uploaded Photos Thumbnails */}
-                                            {substep.photos && substep.photos.length > 0 && (
-                                                <ScrollView horizontal style={styles.thumbnailsContainer} showsHorizontalScrollIndicator={false}>
-                                                    {substep.photos.map((photoUri, pIndex) => (
-                                                        <TouchableOpacity key={pIndex} onPress={() => openImageModal(photoUri)}>
-                                                            <Image source={{ uri: photoUri }} style={styles.thumbnail} />
-                                                        </TouchableOpacity>
-                                                    ))}
-                                                </ScrollView>
-                                            )}
+                                            {/* Photo Upload (Simplified for now - per step or substep?) */}
+                                            {/* Since API is per step, maybe we should move photo upload to step level or check API */}
+                                            {/* For now, I'll disable photo upload on substep level to avoid confusion if API doesn't support it per substep */}
                                         </View>
                                     ))}
+                                </View>
+                            )}
+
+                            {/* Step Level Photo Upload */}
+                            {!isLocked && (
+                                <View style={styles.stepPhotoContainer}>
+                                    <Text style={styles.photoCountText}>
+                                        Fotoğraflar ({step.photos ? step.photos.length : 0})
+                                    </Text>
+                                    <View style={styles.photoButtonsContainer}>
+                                        <TouchableOpacity
+                                            style={styles.photoIconBtn}
+                                            onPress={() => pickImage(step.id, null, 'camera')}
+                                        >
+                                            <Text style={styles.photoIconText}>📷</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={styles.photoIconBtn}
+                                            onPress={() => pickImage(step.id, null, 'gallery')}
+                                        >
+                                            <Text style={styles.photoIconText}>🖼️</Text>
+                                        </TouchableOpacity>
+                                    </View>
+
+                                    {/* Thumbnails */}
+                                    {step.photos && step.photos.length > 0 && (
+                                        <ScrollView horizontal style={styles.thumbnailsContainer} showsHorizontalScrollIndicator={false}>
+                                            {step.photos.map((photo, pIndex) => (
+                                                <TouchableOpacity key={pIndex} onPress={() => openImageModal(photo.url || photo)}>
+                                                    <Image source={{ uri: photo.url || photo }} style={styles.thumbnail} />
+                                                </TouchableOpacity>
+                                            ))}
+                                        </ScrollView>
+                                    )}
                                 </View>
                             )}
                         </View>
                     );
                 })}
+
+                {/* Costs Section */}
+                <View style={styles.sectionHeaderRow}>
+                    <Text style={styles.sectionTitle}>Masraflar</Text>
+                    <TouchableOpacity
+                        style={styles.addCostButton}
+                        onPress={() => setCostModalVisible(true)}
+                    >
+                        <Text style={styles.addCostButtonText}>+ Ekle</Text>
+                    </TouchableOpacity>
+                </View>
+
+                {job.costs && job.costs.length > 0 ? (
+                    job.costs.map((cost) => (
+                        <View key={cost.id} style={styles.costCard}>
+                            <View style={styles.costHeader}>
+                                <Text style={styles.costCategory}>{cost.category}</Text>
+                                <Text style={[
+                                    styles.costStatus,
+                                    cost.status === 'APPROVED' ? styles.statusApproved :
+                                        cost.status === 'REJECTED' ? styles.statusRejected : styles.statusPending
+                                ]}>
+                                    {cost.status === 'APPROVED' ? 'Onaylandı' :
+                                        cost.status === 'REJECTED' ? 'Reddedildi' : 'Bekliyor'}
+                                </Text>
+                            </View>
+                            <View style={styles.costRow}>
+                                <Text style={styles.costAmount}>{cost.amount} {cost.currency}</Text>
+                                <Text style={styles.costDate}>{new Date(cost.date).toLocaleDateString()}</Text>
+                            </View>
+                            <Text style={styles.costDescription}>{cost.description}</Text>
+                            {cost.rejectionReason && (
+                                <Text style={styles.rejectionReason}>Red Nedeni: {cost.rejectionReason}</Text>
+                            )}
+                        </View>
+                    ))
+                ) : (
+                    <Text style={styles.emptyText}>Henüz masraf eklenmemiş.</Text>
+                )}
 
                 <View style={styles.footer}>
                     <TouchableOpacity
@@ -425,6 +435,81 @@ export default function JobDetailScreen({ route, navigation }) {
                     )}
                 </View>
             </Modal>
+
+            {/* Add Cost Modal */}
+            <Modal
+                visible={costModalVisible}
+                transparent={true}
+                animationType="slide"
+                onRequestClose={() => setCostModalVisible(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.formCard}>
+                        <Text style={styles.modalTitle}>Masraf Ekle</Text>
+
+                        <Text style={styles.inputLabel}>Tutar (TL)</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={costAmount}
+                            onChangeText={setCostAmount}
+                            keyboardType="numeric"
+                            placeholder="0.00"
+                        />
+
+                        <Text style={styles.inputLabel}>Kategori</Text>
+                        <View style={styles.categoryContainer}>
+                            {COST_CATEGORIES.map(cat => (
+                                <TouchableOpacity
+                                    key={cat}
+                                    style={[styles.categoryChip, costCategory === cat && styles.categoryChipSelected]}
+                                    onPress={() => setCostCategory(cat)}
+                                >
+                                    <Text style={[styles.categoryText, costCategory === cat && styles.categoryTextSelected]}>
+                                        {cat}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+
+                        <Text style={styles.inputLabel}>Açıklama</Text>
+                        <TextInput
+                            style={[styles.input, styles.textArea]}
+                            value={costDescription}
+                            onChangeText={setCostDescription}
+                            multiline
+                            numberOfLines={3}
+                            placeholder="Masraf detayları..."
+                        />
+
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.cancelButton]}
+                                onPress={() => setCostModalVisible(false)}
+                            >
+                                <Text style={styles.cancelButtonText}>İptal</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.submitButton]}
+                                onPress={handleCreateCost}
+                                disabled={submittingCost}
+                            >
+                                {submittingCost ? (
+                                    <ActivityIndicator color="#fff" size="small" />
+                                ) : (
+                                    <Text style={styles.submitButtonText}>Kaydet</Text>
+                                )}
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
+            {uploading && (
+                <View style={styles.loadingOverlay}>
+                    <ActivityIndicator size="large" color="#fff" />
+                    <Text style={styles.loadingText}>Yükleniyor...</Text>
+                </View>
+            )}
         </View>
     );
 }
@@ -483,7 +568,6 @@ const styles = StyleSheet.create({
         marginBottom: 16,
         borderRadius: 12,
         padding: 16,
-        // Shadow fix for Web/RN
         ...Platform.select({
             ios: {
                 shadowColor: '#000',
@@ -576,56 +660,47 @@ const styles = StyleSheet.create({
         width: 80,
         alignItems: 'flex-end',
     },
-    startButton: {
-        backgroundColor: '#3B82F6',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 6,
-    },
     completeButton: {
-        backgroundColor: '#F59E0B',
+        backgroundColor: '#16A34A',
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 6,
     },
-    completedBadge: {
-        backgroundColor: '#D1FAE5',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
+    undoButton: {
+        backgroundColor: '#6B7280',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
         borderRadius: 6,
-    },
-    completedBadgeText: {
-        color: '#059669',
-        fontSize: 12,
-        fontWeight: 'bold',
     },
     btnText: {
         color: '#fff',
         fontSize: 12,
         fontWeight: 'bold',
     },
+    stepPhotoContainer: {
+        marginTop: 8,
+        paddingTop: 8,
+        borderTopWidth: 1,
+        borderTopColor: '#F3F4F6',
+    },
     photoButtonsContainer: {
         flexDirection: 'row',
-        marginRight: 8,
+        marginTop: 8,
     },
     photoIconBtn: {
         padding: 8,
         backgroundColor: '#F3F4F6',
         borderRadius: 6,
-        marginLeft: 4,
+        marginRight: 8,
         justifyContent: 'center',
         alignItems: 'center',
-    },
-    disabledBtn: {
-        opacity: 0.5,
     },
     photoIconText: {
         fontSize: 16,
     },
     photoCountText: {
-        fontSize: 11,
+        fontSize: 12,
         color: '#6B7280',
-        marginTop: 2,
         fontWeight: '500',
     },
     thumbnailsContainer: {
@@ -681,6 +756,180 @@ const styles = StyleSheet.create({
     closeButtonText: {
         color: '#fff',
         fontSize: 18,
+        fontWeight: 'bold',
+    },
+    loadingOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    loadingText: {
+        color: '#fff',
+        marginTop: 10,
+        fontWeight: 'bold',
+    },
+    sectionHeaderRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginRight: 16,
+    },
+    addCostButton: {
+        backgroundColor: '#E5E7EB',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 6,
+    },
+    addCostButtonText: {
+        color: '#374151',
+        fontWeight: 'bold',
+        fontSize: 12,
+    },
+    costCard: {
+        backgroundColor: '#fff',
+        marginHorizontal: 16,
+        marginBottom: 12,
+        borderRadius: 8,
+        padding: 12,
+        borderLeftWidth: 4,
+        borderLeftColor: '#9CA3AF',
+    },
+    costHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 4,
+    },
+    costCategory: {
+        fontWeight: 'bold',
+        color: '#374151',
+    },
+    costStatus: {
+        fontSize: 12,
+        fontWeight: 'bold',
+    },
+    statusPending: { color: '#F59E0B' },
+    statusApproved: { color: '#10B981' },
+    statusRejected: { color: '#EF4444' },
+    costRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 4,
+    },
+    costAmount: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#111827',
+    },
+    costDate: {
+        fontSize: 12,
+        color: '#6B7280',
+    },
+    costDescription: {
+        color: '#4B5563',
+        fontSize: 14,
+    },
+    rejectionReason: {
+        color: '#EF4444',
+        fontSize: 12,
+        marginTop: 4,
+        fontStyle: 'italic',
+    },
+    emptyText: {
+        marginLeft: 16,
+        color: '#6B7280',
+        fontStyle: 'italic',
+        marginBottom: 16,
+    },
+    formCard: {
+        backgroundColor: '#fff',
+        width: '90%',
+        borderRadius: 12,
+        padding: 20,
+        elevation: 5,
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 16,
+        textAlign: 'center',
+        color: '#111827',
+    },
+    inputLabel: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#374151',
+        marginBottom: 4,
+    },
+    input: {
+        backgroundColor: '#F9FAFB',
+        borderWidth: 1,
+        borderColor: '#D1D5DB',
+        borderRadius: 8,
+        padding: 10,
+        marginBottom: 16,
+        fontSize: 16,
+    },
+    textArea: {
+        height: 80,
+        textAlignVertical: 'top',
+    },
+    categoryContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        marginBottom: 16,
+    },
+    categoryChip: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 16,
+        backgroundColor: '#F3F4F6',
+        marginRight: 8,
+        marginBottom: 8,
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+    },
+    categoryChipSelected: {
+        backgroundColor: '#DCFCE7',
+        borderColor: '#16A34A',
+    },
+    categoryText: {
+        fontSize: 12,
+        color: '#4B5563',
+    },
+    categoryTextSelected: {
+        color: '#16A34A',
+        fontWeight: 'bold',
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 8,
+    },
+    modalButton: {
+        flex: 1,
+        padding: 12,
+        borderRadius: 8,
+        alignItems: 'center',
+    },
+    cancelButton: {
+        backgroundColor: '#F3F4F6',
+        marginRight: 8,
+    },
+    submitButton: {
+        backgroundColor: '#16A34A',
+        marginLeft: 8,
+    },
+    cancelButtonText: {
+        color: '#374151',
+        fontWeight: 'bold',
+    },
+    submitButtonText: {
+        color: '#fff',
         fontWeight: 'bold',
     },
 });

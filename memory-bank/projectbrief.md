@@ -1,7 +1,7 @@
 # Assembly Tracker Project Brief
 
 ## Project Overview
-Assembly Tracker is a web application for tracking field assembly and service teams. The system enables management of assembly processes, cost control, and team coordination for factory external operations.
+Assembly Tracker is a comprehensive platform for tracking field assembly and service teams. The system enables management of assembly processes, cost control, and team coordination for factory external operations through both a web dashboard and a native mobile application.
 
 ## Core Requirements
 - User authentication with role-based access (Admin, Manager, Team Lead, Worker, Customer)
@@ -9,7 +9,8 @@ Assembly Tracker is a web application for tracking field assembly and service te
 - Team management and assignment capabilities
 - Cost tracking and approval workflows
 - Real-time notifications and status updates
-- Mobile-responsive interface with Turkish language support
+- **Native Mobile Application (iOS/Android) for field workers**
+- Mobile-responsive web interface with Turkish language support
 
 ## Key Features
 - Job creation with detailed steps and sub-steps
@@ -18,21 +19,26 @@ Assembly Tracker is a web application for tracking field assembly and service te
 - Team performance metrics and visualizations
 - Photo upload for work documentation
 - Reporting system for job status and costs
+- **Mobile Features**:
+  - Offline-capable job list
+  - Native map integration
+  - Camera integration for photo uploads
+  - Push notifications
 
 ## Technical Stack
-- Next.js 16 with App Router
-- TypeScript
-- PostgreSQL with Prisma ORM
-- NextAuth.js v4 for authentication
-- TailwindCSS for styling
-- Dark mode support
+- **Web**: Next.js 16 with App Router
+- **Mobile**: React Native with Expo
+- **Language**: TypeScript
+- **Database**: PostgreSQL with Prisma ORM
+- **Auth**: NextAuth.js v4 (Web & API)
+- **Styling**: TailwindCSS (Web), Native Styles (Mobile)
+- **Real-time**: Socket.IO
 
 ## Current Status
-The application is in MVP state with core job creation functionality working. Focus is on completing photo upload, notifications, and reporting features.
+The application is in a Production-ready state for the Web platform (v2.0) and Beta state for the Mobile platform (v2.5). All core features including User/Customer management, Job tracking, and Cost management are implemented across both platforms.
 
 ## Next Steps
-1. Examine the memory bank files to understand the project context
-2. Analyze the job creation error in the debug log
-3. Identify the root cause of the foreign key constraint error
-4. Fix the authentication configuration to properly handle the user ID
-5. Update the memory bank with the current status and next steps
+1. Conduct extensive field testing for the mobile app
+2. Implement offline mode and push notifications for mobile
+3. Optimize performance and polish UI/UX
+4. Prepare for production deployment

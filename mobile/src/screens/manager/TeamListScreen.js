@@ -1,18 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, TextInput, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, TextInput, RefreshControl, Alert } from 'react-native';
+import teamService from '../../services/team.service';
+import { useAuth } from '../../context/AuthContext';
 
 export default function TeamListScreen({ navigation }) {
-    const [team, setTeam] = useState([]);
-    const [filteredTeam, setFilteredTeam] = useState([]);
+    const { user } = useAuth();
+    const [members, setMembers] = useState([]);
+    const [filteredMembers, setFilteredMembers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedFilter, setSelectedFilter] = useState('ALL');
+    const [myTeam, setMyTeam] = useState(null);
 
     const statusFilters = [
         { key: 'ALL', label: 'Tümü' },
         { key: 'active', label: 'Aktif' },
-        { key: 'offline', label: 'Çevrimdışı' },
+        { key: 'inactive', label: 'Pasif' },
     ];
 
     useEffect(() => {
@@ -20,66 +24,40 @@ export default function TeamListScreen({ navigation }) {
     }, []);
 
     useEffect(() => {
-        filterTeam();
-    }, [searchQuery, selectedFilter, team]);
+        filterMembers();
+    }, [searchQuery, selectedFilter, members]);
 
     const loadTeam = async () => {
         try {
-            // MOCK DATA
-            const mockTeam = [
-                {
-                    id: 1,
-                    name: 'Ali Yılmaz',
-                    email: 'worker1@montaj.com',
-                    role: 'worker',
-                    status: 'active',
-                    activeJobs: 2,
-                    completedJobs: 15,
-                    completionRate: 94,
-                    avatar: 'A',
-                },
-                {
-                    id: 2,
-                    name: 'Mehmet Kaya',
-                    email: 'worker2@montaj.com',
-                    role: 'worker',
-                    status: 'active',
-                    activeJobs: 1,
-                    completedJobs: 22,
-                    completionRate: 88,
-                    avatar: 'M',
-                },
-                {
-                    id: 3,
-                    name: 'Ayşe Demir',
-                    email: 'worker3@montaj.com',
-                    role: 'worker',
-                    status: 'offline',
-                    activeJobs: 0,
-                    completedJobs: 18,
-                    completionRate: 91,
-                    avatar: 'A',
-                },
-                {
-                    id: 4,
-                    name: 'Fatma Şahin',
-                    email: 'worker4@montaj.com',
-                    role: 'worker',
-                    status: 'active',
-                    activeJobs: 3,
-                    completedJobs: 12,
-                    completionRate: 85,
-                    avatar: 'F',
-                },
-            ];
+            const teams = await teamService.getAll();
 
-            setTimeout(() => {
-                setTeam(mockTeam);
-                setLoading(false);
-                setRefreshing(false);
-            }, 500);
+            // Find the team where the current user is a manager (lead) or a member
+            // Ideally, the backend should filter this, but for now we filter here.
+            // If user is ADMIN, they see all? But this screen is for Manager.
+            // We'll assume Manager sees the team they lead.
+
+            let targetTeam = teams.find(t => t.leadId === user.id);
+
+            // If not leading any, maybe just a member?
+            if (!targetTeam) {
+                targetTeam = teams.find(t => t.members.some(m => m.userId === user.id));
+            }
+
+            // If still not found and there are teams, maybe just show the first one (fallback)
+            if (!targetTeam && teams.length > 0) {
+                // targetTeam = teams[0]; // Uncomment if fallback needed
+            }
+
+            if (targetTeam) {
+                setMyTeam(targetTeam);
+                setMembers(targetTeam.members || []);
+            } else {
+                setMembers([]);
+            }
         } catch (error) {
             console.error('Error loading team:', error);
+            Alert.alert('Hata', 'Ekip bilgileri yüklenemedi.');
+        } finally {
             setLoading(false);
             setRefreshing(false);
         }
@@ -90,24 +68,25 @@ export default function TeamListScreen({ navigation }) {
         loadTeam();
     };
 
-    const filterTeam = () => {
-        let filtered = team;
+    const filterMembers = () => {
+        let filtered = members;
 
         // Status filter
         if (selectedFilter !== 'ALL') {
-            filtered = filtered.filter(member => member.status === selectedFilter);
+            const isActive = selectedFilter === 'active';
+            filtered = filtered.filter(m => m.user.isActive === isActive);
         }
 
         // Search filter
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase();
-            filtered = filtered.filter(member =>
-                member.name.toLowerCase().includes(query) ||
-                member.email.toLowerCase().includes(query)
+            filtered = filtered.filter(m =>
+                m.user.name.toLowerCase().includes(query) ||
+                m.user.email.toLowerCase().includes(query)
             );
         }
 
-        setFilteredTeam(filtered);
+        setFilteredMembers(filtered);
     };
 
     const renderMember = ({ item }) => (
@@ -115,43 +94,45 @@ export default function TeamListScreen({ navigation }) {
             <View style={styles.memberHeader}>
                 <View style={[
                     styles.avatar,
-                    { backgroundColor: item.status === 'active' ? '#3B82F6' : '#9CA3AF' }
+                    { backgroundColor: item.user.isActive ? '#3B82F6' : '#9CA3AF' }
                 ]}>
-                    <Text style={styles.avatarText}>{item.avatar}</Text>
+                    <Text style={styles.avatarText}>
+                        {item.user.name ? item.user.name.charAt(0).toUpperCase() : 'U'}
+                    </Text>
                 </View>
                 <View style={styles.memberInfo}>
                     <View style={styles.memberNameRow}>
-                        <Text style={styles.memberName}>{item.name}</Text>
+                        <Text style={styles.memberName}>{item.user.name}</Text>
                         <View style={[
                             styles.statusBadge,
-                            { backgroundColor: item.status === 'active' ? '#D1FAE5' : '#F3F4F6' }
+                            { backgroundColor: item.user.isActive ? '#D1FAE5' : '#F3F4F6' }
                         ]}>
                             <Text style={[
                                 styles.statusText,
-                                { color: item.status === 'active' ? '#059669' : '#6B7280' }
+                                { color: item.user.isActive ? '#059669' : '#6B7280' }
                             ]}>
-                                {item.status === 'active' ? 'Aktif' : 'Çevrimdışı'}
+                                {item.user.isActive ? 'Aktif' : 'Pasif'}
                             </Text>
                         </View>
                     </View>
-                    <Text style={styles.memberEmail}>{item.email}</Text>
+                    <Text style={styles.memberEmail}>{item.user.email}</Text>
+                    <Text style={styles.memberRole}>{item.user.role}</Text>
                 </View>
             </View>
 
+            {/* Stats are not available in this endpoint yet */}
+            {/* 
             <View style={styles.statsContainer}>
                 <View style={styles.stat}>
-                    <Text style={styles.statValue}>{item.activeJobs}</Text>
+                    <Text style={styles.statValue}>-</Text>
                     <Text style={styles.statLabel}>Aktif İş</Text>
                 </View>
                 <View style={styles.stat}>
-                    <Text style={styles.statValue}>{item.completedJobs}</Text>
+                    <Text style={styles.statValue}>-</Text>
                     <Text style={styles.statLabel}>Tamamlanan</Text>
                 </View>
-                <View style={styles.stat}>
-                    <Text style={[styles.statValue, { color: '#16A34A' }]}>{item.completionRate}%</Text>
-                    <Text style={styles.statLabel}>Başarı Oranı</Text>
-                </View>
             </View>
+            */}
         </TouchableOpacity>
     );
 
@@ -216,7 +197,7 @@ export default function TeamListScreen({ navigation }) {
             </View>
 
             <FlatList
-                data={filteredTeam}
+                data={filteredMembers}
                 renderItem={renderMember}
                 keyExtractor={item => item.id.toString()}
                 contentContainerStyle={styles.listContainer}

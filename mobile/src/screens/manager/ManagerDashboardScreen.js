@@ -82,6 +82,20 @@ export default function ManagerDashboardScreen({ navigation }) {
                         <Text style={styles.actionText}>İş Atama</Text>
                     </TouchableOpacity>
                 </View>
+                <View style={[styles.quickActions, { marginTop: 12 }]}>
+                    <TouchableOpacity
+                        style={styles.actionButtonActive}
+                        onPress={() => navigation.navigate('CostManagement')}
+                    >
+                        <Text style={styles.actionIcon}>💰</Text>
+                        <Text style={styles.actionText}>Masraflar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.actionButton} disabled>
+                        <Text style={styles.actionIcon}>📊</Text>
+                        <Text style={styles.actionText}>Raporlar</Text>
+                        <Text style={styles.comingSoonBadge}>Yakında</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
         </ScrollView>
     );

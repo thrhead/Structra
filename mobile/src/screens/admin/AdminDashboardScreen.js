@@ -84,6 +84,13 @@ export default function AdminDashboardScreen({ navigation }) {
                     </TouchableOpacity>
                 </View>
                 <View style={[styles.quickActions, { marginTop: 12 }]}>
+                    <TouchableOpacity
+                        style={styles.actionButtonActive}
+                        onPress={() => navigation.navigate('CostManagement')}
+                    >
+                        <Text style={styles.actionIcon}>💰</Text>
+                        <Text style={styles.actionText}>Masraflar</Text>
+                    </TouchableOpacity>
                     <TouchableOpacity style={styles.actionButton} disabled>
                         <Text style={styles.actionIcon}>📋</Text>
                         <Text style={styles.actionText}>Şablonlar</Text>

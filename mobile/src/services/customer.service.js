@@ -2,12 +2,16 @@ import api from './api';
 
 const customerService = {
     /**
-     * Get all customers
-     * @returns {Promise<{customers}>}
+     * Get all customers (Admin only)
+     * @param {string} search - Optional search query
+     * @returns {Promise<Array>}
      */
-    getAll: async () => {
+    getAll: async (search = '') => {
         try {
-            const response = await api.get('/api/customers');
+            const params = new URLSearchParams();
+            if (search) params.append('search', search);
+
+            const response = await api.get(`/api/admin/customers?${params.toString()}`);
             return response.data;
         } catch (error) {
             throw error;
@@ -15,13 +19,13 @@ const customerService = {
     },
 
     /**
-     * Create new customer
-     * @param {object} customerData - {companyName, contactPerson, email, phone, address}
-     * @returns {Promise<{customer}>}
+     * Create a new customer
+     * @param {Object} customerData
+     * @returns {Promise<Object>}
      */
     create: async (customerData) => {
         try {
-            const response = await api.post('/api/customers', customerData);
+            const response = await api.post('/api/admin/customers', customerData);
             return response.data;
         } catch (error) {
             throw error;
@@ -29,14 +33,14 @@ const customerService = {
     },
 
     /**
-     * Update customer
-     * @param {string} customerId
-     * @param {object} customerData
-     * @returns {Promise<{customer}>}
+     * Update an existing customer
+     * @param {string} id
+     * @param {Object} customerData
+     * @returns {Promise<Object>}
      */
-    update: async (customerId, customerData) => {
+    update: async (id, customerData) => {
         try {
-            const response = await api.put(`/api/customers/${customerId}`, customerData);
+            const response = await api.put(`/api/admin/customers/${id}`, customerData);
             return response.data;
         } catch (error) {
             throw error;
@@ -44,18 +48,18 @@ const customerService = {
     },
 
     /**
-     * Delete customer
-     * @param {string} customerId
-     * @returns {Promise<{success}>}
+     * Delete a customer
+     * @param {string} id
+     * @returns {Promise<Object>}
      */
-    delete: async (customerId) => {
+    delete: async (id) => {
         try {
-            const response = await api.delete(`/api/customers/${customerId}`);
+            const response = await api.delete(`/api/admin/customers/${id}`);
             return response.data;
         } catch (error) {
             throw error;
         }
-    },
+    }
 };
 
 export default customerService;

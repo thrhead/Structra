@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, TextInput, RefreshControl, Modal, Alert, ScrollView } from 'react-native';
+import userService from '../../services/user.service';
 
 export default function UserManagementScreen({ navigation }) {
     const [users, setUsers] = useState([]);
@@ -10,13 +11,13 @@ export default function UserManagementScreen({ navigation }) {
     const [selectedFilter, setSelectedFilter] = useState('ALL');
     const [modalVisible, setModalVisible] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
-    const [formData, setFormData] = useState({ name: '', email: '', role: 'worker' });
+    const [formData, setFormData] = useState({ name: '', email: '', role: 'WORKER', password: '' });
 
     const roleFilters = [
         { key: 'ALL', label: 'Tümü' },
-        { key: 'admin', label: 'Admin' },
-        { key: 'manager', label: 'Manager' },
-        { key: 'worker', label: 'Worker' },
+        { key: 'ADMIN', label: 'Admin' },
+        { key: 'MANAGER', label: 'Manager' },
+        { key: 'WORKER', label: 'Worker' },
     ];
 
     useEffect(() => {
@@ -29,23 +30,13 @@ export default function UserManagementScreen({ navigation }) {
 
     const loadUsers = async () => {
         try {
-            // MOCK DATA
-            const mockUsers = [
-                { id: 1, name: 'Admin User', email: 'admin@montaj.com', role: 'admin' },
-                { id: 2, name: 'Manager User', email: 'manager@montaj.com', role: 'manager' },
-                { id: 3, name: 'Ali Yılmaz', email: 'worker1@montaj.com', role: 'worker' },
-                { id: 4, name: 'Mehmet Kaya', email: 'worker2@montaj.com', role: 'worker' },
-                { id: 5, name: 'Ayşe Demir', email: 'worker3@montaj.com', role: 'worker' },
-                { id: 6, name: 'Fatma Şahin', email: 'worker4@montaj.com', role: 'worker' },
-            ];
-
-            setTimeout(() => {
-                setUsers(mockUsers);
-                setLoading(false);
-                setRefreshing(false);
-            }, 500);
+            const data = await userService.getAll();
+            setUsers(data);
+            setLoading(false);
+            setRefreshing(false);
         } catch (error) {
             console.error('Error loading users:', error);
+            Alert.alert('Hata', 'Kullanıcılar yüklenemedi.');
             setLoading(false);
             setRefreshing(false);
         }
@@ -78,13 +69,13 @@ export default function UserManagementScreen({ navigation }) {
 
     const handleAddUser = () => {
         setEditingUser(null);
-        setFormData({ name: '', email: '', role: 'worker' });
+        setFormData({ name: '', email: '', role: 'WORKER', password: '' });
         setModalVisible(true);
     };
 
     const handleEditUser = (user) => {
         setEditingUser(user);
-        setFormData({ name: user.name, email: user.email, role: user.role });
+        setFormData({ name: user.name, email: user.email, role: user.role, password: '' });
         setModalVisible(true);
     };
 
@@ -97,17 +88,22 @@ export default function UserManagementScreen({ navigation }) {
                 {
                     text: 'Sil',
                     style: 'destructive',
-                    onPress: () => {
-                        const updatedUsers = users.filter(u => u.id !== user.id);
-                        setUsers(updatedUsers);
-                        Alert.alert('Başarılı', 'Kullanıcı silindi.');
+                    onPress: async () => {
+                        try {
+                            await userService.delete(user.id);
+                            Alert.alert('Başarılı', 'Kullanıcı silindi.');
+                            loadUsers();
+                        } catch (error) {
+                            console.error('Delete user error:', error);
+                            Alert.alert('Hata', 'Kullanıcı silinemedi.');
+                        }
                     }
                 }
             ]
         );
     };
 
-    const handleSaveUser = () => {
+    const handleSaveUser = async () => {
         if (!formData.name || !formData.email) {
             Alert.alert('Hata', 'Lütfen tüm alanları doldurun.');
             return;
@@ -118,38 +114,36 @@ export default function UserManagementScreen({ navigation }) {
             return;
         }
 
-        if (editingUser) {
-            // Update existing user
-            const updatedUsers = users.map(u =>
-                u.id === editingUser.id
-                    ? { ...u, name: formData.name, email: formData.email, role: formData.role }
-                    : u
-            );
-            setUsers(updatedUsers);
-            Alert.alert('Başarılı', 'Kullanıcı güncellendi.');
-        } else {
-            // Add new user
-            const newUser = {
-                id: Math.max(...users.map(u => u.id)) + 1,
-                name: formData.name,
-                email: formData.email,
-                role: formData.role,
-            };
-            setUsers([...users, newUser]);
-            Alert.alert('Başarılı', 'Yeni kullanıcı eklendi.');
+        try {
+            if (editingUser) {
+                // Update existing user
+                await userService.update(editingUser.id, {
+                    name: formData.name,
+                    email: formData.email,
+                    role: formData.role,
+                    ...(formData.password ? { password: formData.password } : {})
+                });
+                Alert.alert('Başarılı', 'Kullanıcı güncellendi.');
+            } else {
+                // Add new user
+                await userService.create(formData);
+                Alert.alert('Başarılı', 'Yeni kullanıcı eklendi.');
+            }
+            setModalVisible(false);
+            loadUsers();
+        } catch (error) {
+            console.error('Save user error:', error);
+            Alert.alert('Hata', error.response?.data?.error || 'İşlem başarısız.');
         }
-
-        setModalVisible(false);
-        setFormData({ name: '', email: '', role: 'worker' });
     };
 
     const getRoleBadge = (role) => {
         switch (role) {
-            case 'admin':
+            case 'ADMIN':
                 return { color: '#EF4444', text: 'Admin' };
-            case 'manager':
+            case 'MANAGER':
                 return { color: '#F59E0B', text: 'Manager' };
-            case 'worker':
+            case 'WORKER':
                 return { color: '#3B82F6', text: 'Worker' };
             default:
                 return { color: '#6B7280', text: role };
@@ -309,9 +303,20 @@ export default function UserManagementScreen({ navigation }) {
                             </View>
 
                             <View style={styles.formGroup}>
+                                <Text style={styles.label}>Şifre {editingUser ? '(Boş bırakılırsa değişmez)' : '*'}</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder={editingUser ? "Yeni şifre" : "Şifre"}
+                                    value={formData.password}
+                                    onChangeText={(text) => setFormData({ ...formData, password: text })}
+                                    secureTextEntry
+                                />
+                            </View>
+
+                            <View style={styles.formGroup}>
                                 <Text style={styles.label}>Rol *</Text>
                                 <View style={styles.roleButtons}>
-                                    {['worker', 'manager', 'admin'].map((role) => (
+                                    {['WORKER', 'MANAGER', 'ADMIN'].map((role) => (
                                         <TouchableOpacity
                                             key={role}
                                             style={[
@@ -324,7 +329,7 @@ export default function UserManagementScreen({ navigation }) {
                                                 styles.roleButtonText,
                                                 formData.role === role && styles.roleButtonTextActive
                                             ]}>
-                                                {role === 'worker' ? 'Worker' : role === 'manager' ? 'Manager' : 'Admin'}
+                                                {role === 'WORKER' ? 'Worker' : role === 'MANAGER' ? 'Manager' : 'Admin'}
                                             </Text>
                                         </TouchableOpacity>
                                     ))}

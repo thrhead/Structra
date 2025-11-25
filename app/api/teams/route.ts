@@ -87,7 +87,11 @@ export async function POST(req: Request) {
             user: {
               select: {
                 id: true,
-                name: true
+                name: true,
+                email: true,
+                role: true,
+                phone: true,
+                avatar: true
               }
             }
           }

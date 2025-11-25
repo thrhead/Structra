@@ -9,7 +9,7 @@ const authService = {
      */
     login: async (email, password) => {
         try {
-            const response = await api.post('/api/auth/signin', {
+            const response = await api.post('/api/mobile/login', {
                 email,
                 password,
             });

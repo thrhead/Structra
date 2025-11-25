@@ -1,11 +1,12 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 
 // TODO: Update with your local IP address
 // For development: Find your IP with ipconfig (Windows) or ifconfig (Mac/Linux)
 // Current local IP: 192.168.1.173
 const API_BASE_URL = __DEV__
-    ? 'http://192.168.1.173:3000'  // Local development
+    ? (Platform.OS === 'web' ? 'http://localhost:3000' : 'http://192.168.1.173:3000')
     : 'https://your-production-url.com';
 
 // Create axios instance

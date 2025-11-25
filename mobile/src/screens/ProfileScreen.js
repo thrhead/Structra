@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Switch, Alert } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import authService from '../services/auth.service';
 
 export default function ProfileScreen({ navigation }) {
     const { user, logout } = useAuth();
@@ -21,18 +22,13 @@ export default function ProfileScreen({ navigation }) {
     const getRoleText = (role) => {
         switch (role) {
             case 'admin': return 'Admin';
-            case 'manager': return 'Manager';
-            case 'worker': return 'Worker';
-            default: return role;
+            case 'manager': return 'Yönetici';
+            case 'worker': return 'Çalışan';
+            default: return 'Kullanıcı';
         }
     };
 
-    const handlePasswordChange = () => {
-        if (!oldPassword || !newPassword || !confirmPassword) {
-            Alert.alert('Hata', 'Lütfen tüm alanları doldurun.');
-            return;
-        }
-
+    const handlePasswordChange = async () => {
         if (newPassword !== confirmPassword) {
             Alert.alert('Hata', 'Yeni şifreler eşleşmiyor.');
             return;
@@ -43,11 +39,16 @@ export default function ProfileScreen({ navigation }) {
             return;
         }
 
-        // Mock password change
-        Alert.alert('Başarılı', 'Şifreniz başarıyla değiştirildi.');
-        setOldPassword('');
-        setNewPassword('');
-        setConfirmPassword('');
+        try {
+            await authService.changePassword(oldPassword, newPassword);
+            Alert.alert('Başarılı', 'Şifreniz başarıyla değiştirildi.');
+            setOldPassword('');
+            setNewPassword('');
+            setConfirmPassword('');
+        } catch (error) {
+            console.error('Password change error:', error);
+            Alert.alert('Hata', error.message || 'Şifre değiştirilemedi.');
+        }
     };
 
     const handleLogout = async () => {

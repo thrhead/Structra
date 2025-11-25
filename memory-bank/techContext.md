@@ -7,84 +7,59 @@
 - **Framework**: Next.js 14+ (App Router)
 - **UI Kütüphanesi**: React 18+
 - **Stil**: TailwindCSS + shadcn/ui komponentleri
-- **Grafik**: Recharts veya Chart.js
+- **Grafik**: Recharts
 - **Form Yönetimi**: React Hook Form + Zod validation
-- **Durum Yönetimi**: Zustand veya React Context
-- **HTTP Client**: Axios veya Fetch API
+- **Durum Yönetimi**: Zustand (Web) / Context API (Mobile)
+- **HTTP Client**: Axios
 
 ### Backend
 
 - **Runtime**: Node.js 18+
-- **Framework**: Next.js API Routes (başlangıç)
-- **Alternatif**: Express.js (ileride gerekirse)
-
-### Veritabanı
-
-- **Ana Veritabanı**: PostgreSQL
+- **Framework**: Next.js API Routes
+- **Veritabanı**: PostgreSQL
 - **ORM**: Prisma
-- **Alternatif**: Supabase (hızlı başlangıç için)
+- **Authentication**: NextAuth.js (JWT Strategy)
+- **Real-time**: Socket.IO
 
-### Authentication
-
-- **Kütüphane**: NextAuth.js veya Supabase Auth
-- **Strateji**: JWT token based
-- **Roller**: Admin, Manager, Team Lead, Worker, Customer
-
-### Deployment
-
-- **Platform**: Vercel (Next.js için optimize)
-- **Alternatif**: DigitalOcean, Railway, Netlify
-- **Database Hosting**: Supabase, Neon, Railway
-
-### Mobile (v2.5 - Implemented)
+### Mobile (v2.5 - Beta)
 - **Framework**: React Native 0.74+
 - **Platform**: Expo SDK 51
-- **Navigation**: React Navigation 6
+- **Navigation**: React Navigation 6 (Stack & Bottom Tabs)
 - **Storage**: AsyncStorage
 - **HTTP Client**: Axios
-- **State Management**: React Context API
-- **UI**: Custom components with Native base elements
-- **Backend Integration**: RESTful API (Next.js API Routes)
-- **Authentication**: JWT token-based with NextAuth
-- **Features Implemented**:
-  - Worker Dashboard & Job Management
-  - Manager Team Management & Job Assignment
-  - Admin User & Customer CRUD
-  - Role-based routing
-  - Profile & Settings
+- **Maps**: react-native-maps
+- **UI**: StyleSheet API + Custom Components
+- **Features**:
+  - **Worker**: Job List, Detail, Checklist, Photo Upload, Map
+  - **Manager**: Team List, Job Assignment, Dashboard
+  - **Admin**: User CRUD, Customer CRUD, Dashboard
+  - **Shared**: Auth, Profile, Settings
 
 ### DevOps
 - **Version Control**: Git
-- **Package Manager**: npm veya pnpm
+- **Package Manager**: npm
 - **Linting**: ESLint + Prettier
-- **TypeScript**: Tip güvenliği için
+- **TypeScript**: Strict Mode enabled
 
 ## Proje Yapısı
 
 ```
 assembly_tracker/
-├── app/                      # Next.js App Router
+├── app/                      # Next.js App Router (Web & API)
 │   ├── (auth)/              # Auth layouts
-│   │   ├── login/
-│   │   └── register/
 │   ├── (dashboard)/         # Dashboard layouts
-│   │   ├── admin/           # Admin panel
-│   │   ├── manager/         # Manager panel
-│   │   ├── team/            # Team panel
-│   │   └── customer/        # Customer panel
 │   ├── api/                 # API routes
 │   │   ├── auth/
-│   │   ├── jobs/
-│   │   ├── notifications/
-│   │   ├── notifications/
-│   │   └── reports/
+│   │   ├── admin/           # Admin endpoints
+│   │   ├── worker/          # Worker endpoints
+│   │   └── ...
 │   └── layout.tsx           # Root layout
 ├── mobile/                  # React Native App (Expo)
 │   ├── src/
 │   │   ├── screens/        # Screen components
-│   │   │   ├── worker/     # Worker screens
-│   │   │   ├── manager/   # Manager screens
-│   │   │   └── admin/      # Admin screens
+│   │   │   ├── worker/
+│   │   │   ├── manager/
+│   │   │   └── admin/
 │   │   ├── components/     # Shared components
 │   │   ├── context/        # React Context (Auth)
 │   │   └── services/       # API services
@@ -95,90 +70,45 @@ assembly_tracker/
 │   │       ├── customer.service.js
 │   │       └── team.service.js
 │   ├── App.js
-│   ├── app.json
-│   └── package.json
-├── components/              # React komponentleri
-│   ├── ui/                  # shadcn/ui komponentleri
-│   ├── forms/               # Form komponentleri
-│   ├── charts/              # Grafik komponentleri
-│   └── layout/              # Layout komponentleri
-├── lib/                     # Utility fonksiyonlar
-│   ├── db.ts                # Database client
-│   ├── auth.ts              # Auth utilities
-│   └── validations.ts       # Zod schemas
-├── prisma/                  # Prisma schema
-│   └── schema.prisma
-├── public/                  # Statik dosyalar
-├── styles/                  # Global stiller
-└── types/                   # TypeScript tipleri
+│   └── app.json
+├── components/              # Shared React components (Web)
+├── lib/                     # Utility functions
+├── prisma/                  # Database schema
+└── public/                  # Static assets
 ```
 
-## Veritabanı Şeması (Taslak)
+## Veritabanı Şeması (Özet)
 
-### Tablolar
-
-1. **users**
-
-   - id, email, password_hash, name, role, created_at, updated_at
-
-2. **jobs** (montaj işleri)
-
-   - id, title, description, customer_id, status, assigned_team_id, created_by, created_at, updated_at
-
-3. **job_steps** (montaj aşamaları)
-
-   - id, job_id, step_order, title, description, is_completed, completed_at, notes
-
-4. **teams**
-
-   - id, name, team_lead_id, created_at
-
-5. **team_members**
-
-   - id, team_id, user_id, joined_at
-
-6. **notifications**
-
-   - id, user_id, title, message, is_read, created_at
-
-7. **approvals**
-
-   - id, job_id, requested_by, approver_id, status, notes, created_at, approved_at
-
-8. **customers**
-
-   - id, name, email, phone, company, created_at
-
-9. **cost_tracking**
-   - id, job_id, team_id, hours_worked, cost, date
+1. **User**: Kullanıcılar ve roller (Admin, Manager, Worker, Customer)
+2. **Job**: İş kayıtları, durum, öncelik
+3. **JobStep**: İş adımları ve kontrol listesi
+4. **JobSubStep**: Alt adımlar ve zaman takibi
+5. **Team**: Ekipler ve üyeler
+6. **Customer**: Müşteri firmalar
+7. **CostTracking**: Maliyet takibi ve onay süreci
+8. **Notification**: Sistem bildirimleri
+9. **StepPhoto**: İş adımlarına yüklenen fotoğraflar
 
 ## Development Setup
 
 ### Gereksinimler
 
 - Node.js 18+
-- npm veya pnpm
-- PostgreSQL veya Supabase hesabı
+- PostgreSQL veritabanı
+- Expo Go (Mobil test için)
 
-### Kurulum Adımları
+### Kurulum
 
 ```bash
-# Proje klonlama veya oluşturma
-npx create-next-app@latest assembly_tracker --typescript --tailwind --app
+# Web & API
+npm install
+npx prisma generate
+npm run dev
 
-# Bağımlılıklar
-npm install prisma @prisma/client
-npm install next-auth
-npm install react-hook-form zod @hookform/resolvers
-npm install recharts
-npm install zustand
-npm install lucide-react # ikonlar için
-
-# shadcn/ui kurulumu
-npx shadcn-ui@latest init
-
-# Prisma kurulumu
-npx prisma init
+# Mobile
+cd mobile
+npm install
+npx expo start
 ```
 
 ### Environment Variables
@@ -191,58 +121,18 @@ NEXTAUTH_URL="http://localhost:3000"
 
 ## Mobil Uyumluluk
 
-### Responsive Design
+### Web
+- Responsive Design (Mobile-first Tailwind)
+- Touch-friendly UI elements
 
-- Mobile-first approach
-- Tailwind breakpoints kullanımı
-- Touch-friendly UI elementleri
-- Minimum dokunma alanı: 44x44px
-
-### PWA (İleride)
-
-- Service worker
-- Offline capability
-- App-like experience
-- Push notifications
+### Native App
+- iOS ve Android desteği (Expo)
+- Native navigasyon deneyimi
+- Cihaz özelliklerine erişim (Kamera, Galeri, Konum)
 
 ## Güvenlik
 
-### Best Practices
-
-- Password hashing (bcrypt)
-- JWT token güvenliği
-- CSRF protection
-- XSS prevention
-- SQL injection prevention (Prisma ORM)
-- Rate limiting
-- Input validation (Zod)
-
-## Performans
-
-### Optimizasyon
-
-- Server Components kullanımı
-- Image optimization (Next.js Image)
-- Code splitting
-- Lazy loading
-- Caching stratejileri
-- Database indexing
-
-## Testing (İleride)
-
-### Test Araçları
-
-- Unit tests: Jest + React Testing Library
-- E2E tests: Playwright veya Cypress
-- API tests: Supertest
-
-## İleride Eklenebilecekler
-
-- React Native mobil uygulama
-- Real-time updates (WebSocket veya Supabase Realtime)
-- File upload (fotoğraf ekleme)
-- Advanced reporting
-- Export to PDF/Excel
-- Email notifications
-- SMS notifications
-- Multi-language support
+- **Auth**: JWT tabanlı kimlik doğrulama
+- **API**: Role-based middleware koruması
+- **Input**: Zod validasyonu (Client & Server)
+- **DB**: SQL injection koruması (Prisma)

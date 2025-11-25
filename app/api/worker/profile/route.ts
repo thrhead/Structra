@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/auth'
+import { verifyAuth } from '@/lib/auth-helper'
 import { z } from 'zod'
 
 const profileSchema = z.object({
@@ -8,10 +8,35 @@ const profileSchema = z.object({
   phone: z.string().optional().nullable()
 })
 
+export async function GET(req: Request) {
+  try {
+    const session = await verifyAuth(req)
+    if (!session) {
+      return new NextResponse("Unauthorized", { status: 401 })
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        phone: true
+      }
+    })
+
+    return NextResponse.json(user)
+  } catch (error) {
+    console.error('Profile fetch error:', error)
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+  }
+}
+
 export async function PATCH(req: Request) {
   try {
-    const session = await auth()
-    if (!session || (session.user.role !== 'WORKER' && session.user.role !== 'TEAM_LEAD')) {
+    const session = await verifyAuth(req)
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

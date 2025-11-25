@@ -4,14 +4,14 @@ import type { NextRequest } from "next/server"
 
 export async function middleware(request: NextRequest) {
   const session = await auth()
-  
-  const isAuthPage = request.nextUrl.pathname.startsWith("/login") || 
-                     request.nextUrl.pathname.startsWith("/register")
-  
+
+  const isAuthPage = request.nextUrl.pathname.startsWith("/login") ||
+    request.nextUrl.pathname.startsWith("/register")
+
   const isDashboardPage = request.nextUrl.pathname.startsWith("/admin") ||
-                          request.nextUrl.pathname.startsWith("/manager") ||
-                          request.nextUrl.pathname.startsWith("/worker") ||
-                          request.nextUrl.pathname.startsWith("/customer")
+    request.nextUrl.pathname.startsWith("/manager") ||
+    request.nextUrl.pathname.startsWith("/worker") ||
+    request.nextUrl.pathname.startsWith("/customer")
 
   // Eğer kullanıcı giriş yapmışsa ve auth sayfasındaysa, dashboard'a yönlendir
   if (session && isAuthPage) {
@@ -22,6 +22,22 @@ export async function middleware(request: NextRequest) {
   // Eğer kullanıcı giriş yapmamışsa ve protected sayfadaysa, login'e yönlendir  
   if (!session && isDashboardPage) {
     return NextResponse.redirect(new URL("/login", request.url))
+  }
+
+  // CORS Handling
+  const origin = request.headers.get("origin")
+
+  // Handle preflight requests
+  if (request.method === "OPTIONS") {
+    return new NextResponse(null, {
+      status: 200,
+      headers: {
+        "Access-Control-Allow-Origin": origin || "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version",
+        "Access-Control-Allow-Credentials": "true",
+      },
+    })
   }
 
   // Role-based access control
@@ -35,7 +51,17 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  return NextResponse.next()
+  const response = NextResponse.next()
+
+  // Add CORS headers to response
+  if (origin) {
+    response.headers.set("Access-Control-Allow-Origin", origin)
+    response.headers.set("Access-Control-Allow-Credentials", "true")
+    response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+    response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version")
+  }
+
+  return response
 }
 
 export const config = {
@@ -46,5 +72,6 @@ export const config = {
     "/customer/:path*",
     "/login",
     "/register",
+    "/api/:path*",
   ],
 }

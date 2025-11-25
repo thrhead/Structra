@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/auth'
+import { verifyAuth } from '@/lib/auth-helper'
 
 export async function GET(
   req: Request,
@@ -8,7 +8,7 @@ export async function GET(
 ) {
   const params = await props.params
   try {
-    const session = await auth()
+    const session = await verifyAuth(req)
     if (!session || (session.user.role !== 'WORKER' && session.user.role !== 'TEAM_LEAD')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -47,6 +47,9 @@ export async function GET(
               select: { name: true }
             }
           }
+        },
+        costs: {
+          orderBy: { date: 'desc' }
         }
       }
     })
@@ -79,7 +82,7 @@ export async function PATCH(
 ) {
   const params = await props.params
   try {
-    const session = await auth()
+    const session = await verifyAuth(req)
     if (!session || (session.user.role !== 'WORKER' && session.user.role !== 'TEAM_LEAD')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

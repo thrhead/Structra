@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, TextInput, RefreshControl, Modal, Alert, ScrollView } from 'react-native';
+import customerService from '../../services/customer.service';
 
 export default function CustomerManagementScreen({ navigation }) {
     const [customers, setCustomers] = useState([]);
@@ -27,53 +28,13 @@ export default function CustomerManagementScreen({ navigation }) {
 
     const loadCustomers = async () => {
         try {
-            // MOCK DATA
-            const mockCustomers = [
-                {
-                    id: 1,
-                    companyName: 'ABC Şirketi',
-                    contactPerson: 'Ahmet Yılmaz',
-                    email: 'ahmet@abc.com',
-                    phone: '+90 555 123 4567',
-                    address: 'İstanbul, Kadıköy',
-                    activeJobs: 3,
-                },
-                {
-                    id: 2,
-                    companyName: 'XYZ Ltd',
-                    contactPerson: 'Mehmet Kaya',
-                    email: 'mehmet@xyz.com',
-                    phone: '+90 555 234 5678',
-                    address: 'Ankara, Çankaya',
-                    activeJobs: 1,
-                },
-                {
-                    id: 3,
-                    companyName: 'DEF A.Ş.',
-                    contactPerson: 'Ayşe Demir',
-                    email: 'ayse@def.com',
-                    phone: '+90 555 345 6789',
-                    address: 'İzmir, Konak',
-                    activeJobs: 2,
-                },
-                {
-                    id: 4,
-                    companyName: 'GHI Ticaret',
-                    contactPerson: 'Fatma Şahin',
-                    email: 'fatma@ghi.com',
-                    phone: '+90 555 456 7890',
-                    address: 'Bursa, Nilüfer',
-                    activeJobs: 0,
-                },
-            ];
-
-            setTimeout(() => {
-                setCustomers(mockCustomers);
-                setLoading(false);
-                setRefreshing(false);
-            }, 500);
+            const data = await customerService.getAll();
+            setCustomers(data);
+            setLoading(false);
+            setRefreshing(false);
         } catch (error) {
             console.error('Error loading customers:', error);
+            Alert.alert('Hata', 'Müşteriler yüklenemedi.');
             setLoading(false);
             setRefreshing(false);
         }
@@ -133,17 +94,22 @@ export default function CustomerManagementScreen({ navigation }) {
                 {
                     text: 'Sil',
                     style: 'destructive',
-                    onPress: () => {
-                        const updatedCustomers = customers.filter(c => c.id !== customer.id);
-                        setCustomers(updatedCustomers);
-                        Alert.alert('Başarılı', 'Müşteri silindi.');
+                    onPress: async () => {
+                        try {
+                            await customerService.delete(customer.id);
+                            Alert.alert('Başarılı', 'Müşteri silindi.');
+                            loadCustomers();
+                        } catch (error) {
+                            console.error('Delete customer error:', error);
+                            Alert.alert('Hata', 'Müşteri silinemedi.');
+                        }
                     }
                 }
             ]
         );
     };
 
-    const handleSaveCustomer = () => {
+    const handleSaveCustomer = async () => {
         if (!formData.companyName || !formData.contactPerson || !formData.email) {
             Alert.alert('Hata', 'Lütfen zorunlu alanları doldurun.');
             return;
@@ -154,45 +120,41 @@ export default function CustomerManagementScreen({ navigation }) {
             return;
         }
 
-        if (editingCustomer) {
-            // Update existing customer
-            const updatedCustomers = customers.map(c =>
-                c.id === editingCustomer.id
-                    ? {
-                        ...c,
-                        companyName: formData.companyName,
-                        contactPerson: formData.contactPerson,
-                        email: formData.email,
-                        phone: formData.phone,
-                        address: formData.address,
-                    }
-                    : c
-            );
-            setCustomers(updatedCustomers);
-            Alert.alert('Başarılı', 'Müşteri güncellendi.');
-        } else {
-            // Add new customer
-            const newCustomer = {
-                id: Math.max(...customers.map(c => c.id)) + 1,
-                companyName: formData.companyName,
-                contactPerson: formData.contactPerson,
-                email: formData.email,
-                phone: formData.phone,
-                address: formData.address,
-                activeJobs: 0,
-            };
-            setCustomers([...customers, newCustomer]);
-            Alert.alert('Başarılı', 'Yeni müşteri eklendi.');
+        try {
+            if (editingCustomer) {
+                // Update existing customer
+                await customerService.update(editingCustomer.id, {
+                    companyName: formData.companyName,
+                    contactPerson: formData.contactPerson,
+                    email: formData.email,
+                    phone: formData.phone,
+                    address: formData.address,
+                });
+                Alert.alert('Başarılı', 'Müşteri güncellendi.');
+            } else {
+                // Add new customer
+                await customerService.create({
+                    companyName: formData.companyName,
+                    contactPerson: formData.contactPerson,
+                    email: formData.email,
+                    phone: formData.phone,
+                    address: formData.address,
+                });
+                Alert.alert('Başarılı', 'Yeni müşteri eklendi.');
+            }
+            setModalVisible(false);
+            setFormData({
+                companyName: '',
+                contactPerson: '',
+                email: '',
+                phone: '',
+                address: '',
+            });
+            loadCustomers();
+        } catch (error) {
+            console.error('Save customer error:', error);
+            Alert.alert('Hata', error.response?.data?.error || 'İşlem başarısız.');
         }
-
-        setModalVisible(false);
-        setFormData({
-            companyName: '',
-            contactPerson: '',
-            email: '',
-            phone: '',
-            address: '',
-        });
     };
 
     const renderCustomer = ({ item }) => (

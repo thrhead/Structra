@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/auth'
+import { verifyAuth } from '@/lib/auth-helper'
 import { z } from 'zod'
 import { broadcast, emitToUser } from '@/lib/socket'
 import { CostSubmittedPayload } from '@/lib/socket-events'
@@ -18,7 +18,7 @@ const createCostSchema = z.object({
 
 export async function POST(req: Request) {
     try {
-        const session = await auth()
+        const session = await verifyAuth(req)
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }

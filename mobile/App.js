@@ -14,6 +14,7 @@ import JobAssignmentScreen from './src/screens/manager/JobAssignmentScreen';
 import AdminDashboardScreen from './src/screens/admin/AdminDashboardScreen';
 import UserManagementScreen from './src/screens/admin/UserManagementScreen';
 import CustomerManagementScreen from './src/screens/admin/CustomerManagementScreen';
+import CostManagementScreen from './src/screens/manager/CostManagementScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -78,6 +79,11 @@ function AppNavigator() {
               name="JobAssignment"
               component={JobAssignmentScreen}
               options={{ title: 'İş Atama' }}
+            />
+            <Stack.Screen
+              name="CostManagement"
+              component={CostManagementScreen}
+              options={{ title: 'Masraf Yönetimi' }}
             />
             {/* Admin Screens */}
             <Stack.Screen

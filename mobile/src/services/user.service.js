@@ -3,11 +3,16 @@ import api from './api';
 const userService = {
     /**
      * Get all users (Admin only)
-     * @returns {Promise<{users}>}
+     * @param {Object} filters - { role, search }
+     * @returns {Promise<Array>}
      */
-    getAll: async () => {
+    getAll: async (filters = {}) => {
         try {
-            const response = await api.get('/api/users');
+            const params = new URLSearchParams();
+            if (filters.role && filters.role !== 'ALL') params.append('role', filters.role);
+            if (filters.search) params.append('search', filters.search);
+
+            const response = await api.get(`/api/admin/users?${params.toString()}`);
             return response.data;
         } catch (error) {
             throw error;
@@ -15,13 +20,13 @@ const userService = {
     },
 
     /**
-     * Create new user
-     * @param {object} userData - {name, email, role, password}
-     * @returns {Promise<{user}>}
+     * Create a new user
+     * @param {Object} userData
+     * @returns {Promise<Object>}
      */
     create: async (userData) => {
         try {
-            const response = await api.post('/api/users', userData);
+            const response = await api.post('/api/admin/users', userData);
             return response.data;
         } catch (error) {
             throw error;
@@ -29,14 +34,14 @@ const userService = {
     },
 
     /**
-     * Update user
-     * @param {string} userId
-     * @param {object} userData - {name, email, role}
-     * @returns {Promise<{user}>}
+     * Update an existing user
+     * @param {string} id
+     * @param {Object} userData
+     * @returns {Promise<Object>}
      */
-    update: async (userId, userData) => {
+    update: async (id, userData) => {
         try {
-            const response = await api.put(`/api/users/${userId}`, userData);
+            const response = await api.put(`/api/admin/users/${id}`, userData);
             return response.data;
         } catch (error) {
             throw error;
@@ -44,18 +49,18 @@ const userService = {
     },
 
     /**
-     * Delete user
-     * @param {string} userId
-     * @returns {Promise<{success}>}
+     * Delete a user
+     * @param {string} id
+     * @returns {Promise<Object>}
      */
-    delete: async (userId) => {
+    delete: async (id) => {
         try {
-            const response = await api.delete(`/api/users/${userId}`);
+            const response = await api.delete(`/api/admin/users/${id}`);
             return response.data;
         } catch (error) {
             throw error;
         }
-    },
+    }
 };
 
 export default userService;

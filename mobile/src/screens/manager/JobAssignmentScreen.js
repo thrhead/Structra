@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, TextInput, RefreshControl, Modal, Alert } from 'react-native';
+import jobService from '../../services/job.service';
+import teamService from '../../services/team.service';
+import { useAuth } from '../../context/AuthContext';
 
 export default function JobAssignmentScreen({ navigation }) {
+    const { user } = useAuth();
     const [jobs, setJobs] = useState([]);
     const [filteredJobs, setFilteredJobs] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -30,86 +34,40 @@ export default function JobAssignmentScreen({ navigation }) {
 
     const loadJobs = async () => {
         try {
-            // MOCK DATA
-            const mockJobs = [
-                {
-                    id: 1,
-                    title: 'Klima Montajı',
-                    customer: 'ABC Şirketi',
-                    location: 'İstanbul, Kadıköy',
-                    status: 'IN_PROGRESS',
-                    assignedTo: 'Ali Yılmaz',
-                    assignedWorkerId: 1,
-                    priority: 'high',
-                    scheduledDate: '2024-11-24',
-                },
-                {
-                    id: 2,
-                    title: 'Silo Kurulumu',
-                    customer: 'XYZ Ltd',
-                    location: 'Ankara, Çankaya',
-                    status: 'PENDING',
-                    assignedTo: null,
-                    assignedWorkerId: null,
-                    priority: 'medium',
-                    scheduledDate: '2024-11-25',
-                },
-                {
-                    id: 3,
-                    title: 'Bakım',
-                    customer: 'DEF A.Ş.',
-                    location: 'İzmir, Konak',
-                    status: 'IN_PROGRESS',
-                    assignedTo: 'Mehmet Kaya',
-                    assignedWorkerId: 2,
-                    priority: 'low',
-                    scheduledDate: '2024-11-23',
-                },
-                {
-                    id: 4,
-                    title: 'Yeni Sistem Kurulumu',
-                    customer: 'GHI Ticaret',
-                    location: 'Bursa, Nilüfer',
-                    status: 'PENDING',
-                    assignedTo: null,
-                    assignedWorkerId: null,
-                    priority: 'high',
-                    scheduledDate: '2024-11-26',
-                },
-                {
-                    id: 5,
-                    title: 'Kontrol ve Test',
-                    customer: 'JKL Sanayi',
-                    location: 'Antalya, Muratpaşa',
-                    status: 'COMPLETED',
-                    assignedTo: 'Fatma Şahin',
-                    assignedWorkerId: 4,
-                    priority: 'medium',
-                    scheduledDate: '2024-11-20',
-                },
-            ];
-
-            setTimeout(() => {
-                setJobs(mockJobs);
-                setLoading(false);
-                setRefreshing(false);
-            }, 500);
+            const data = await jobService.getAllJobs();
+            setJobs(data);
+            setLoading(false);
+            setRefreshing(false);
         } catch (error) {
             console.error('Error loading jobs:', error);
+            Alert.alert('Hata', 'İşler yüklenemedi.');
             setLoading(false);
             setRefreshing(false);
         }
     };
 
     const loadWorkers = async () => {
-        // MOCK DATA - Same as TeamListScreen
-        const mockWorkers = [
-            { id: 1, name: 'Ali Yılmaz', status: 'active' },
-            { id: 2, name: 'Mehmet Kaya', status: 'active' },
-            { id: 3, name: 'Ayşe Demir', status: 'offline' },
-            { id: 4, name: 'Fatma Şahin', status: 'active' },
-        ];
-        setWorkers(mockWorkers);
+        try {
+            const teams = await teamService.getAll();
+            // Get all members from all teams (or filter by manager's team)
+            // For now, we collect all members from all teams accessible to the manager
+            let allMembers = [];
+            teams.forEach(team => {
+                if (team.members) {
+                    allMembers = [...allMembers, ...team.members];
+                }
+            });
+
+            // Remove duplicates if any (though userId should be unique in team_members usually)
+            // But a user can be in multiple teams? Schema says @@unique([teamId, userId]).
+            // So same user can be in multiple teams.
+            // We want unique users.
+            const uniqueWorkers = Array.from(new Map(allMembers.map(m => [m.userId, m])).values());
+
+            setWorkers(uniqueWorkers);
+        } catch (error) {
+            console.error('Error loading workers:', error);
+        }
     };
 
     const onRefresh = () => {
@@ -130,8 +88,8 @@ export default function JobAssignmentScreen({ navigation }) {
             const query = searchQuery.toLowerCase();
             filtered = filtered.filter(job =>
                 job.title.toLowerCase().includes(query) ||
-                job.customer.toLowerCase().includes(query) ||
-                job.location.toLowerCase().includes(query)
+                (job.customer?.company || '').toLowerCase().includes(query) ||
+                (job.location || '').toLowerCase().includes(query)
             );
         }
 
@@ -143,24 +101,15 @@ export default function JobAssignmentScreen({ navigation }) {
         setAssignModalVisible(true);
     };
 
-    const assignWorkerToJob = (workerId) => {
-        const worker = workers.find(w => w.id === workerId);
-        if (worker) {
-            // Update job with new assignment
-            const updatedJobs = jobs.map(job => {
-                if (job.id === selectedJob.id) {
-                    return {
-                        ...job,
-                        assignedTo: worker.name,
-                        assignedWorkerId: workerId,
-                        status: 'IN_PROGRESS',
-                    };
-                }
-                return job;
-            });
-            setJobs(updatedJobs);
+    const assignWorkerToJob = async (workerId) => {
+        try {
+            await jobService.assignJob(selectedJob.id, workerId);
+            Alert.alert('Başarılı', 'İş başarıyla atandı.');
             setAssignModalVisible(false);
-            Alert.alert('Başarılı', `İş "${selectedJob.title}" başarıyla ${worker.name}'e atandı.`);
+            loadJobs(); // Reload to update list
+        } catch (error) {
+            console.error('Assign job error:', error);
+            Alert.alert('Hata', 'İş atanamadı.');
         }
     };
 
@@ -183,24 +132,27 @@ export default function JobAssignmentScreen({ navigation }) {
     };
 
     const getPriorityColor = (priority) => {
-        switch (priority) {
+        switch (priority?.toLowerCase()) {
             case 'high': return '#EF4444';
             case 'medium': return '#F59E0B';
             case 'low': return '#10B981';
+            case 'urgent': return '#DC2626';
             default: return '#6B7280';
         }
     };
 
     const getPriorityText = (priority) => {
-        switch (priority) {
+        switch (priority?.toLowerCase()) {
             case 'high': return 'Yüksek';
             case 'medium': return 'Orta';
             case 'low': return 'Düşük';
+            case 'urgent': return 'Acil';
             default: return priority;
         }
     };
 
     const formatDate = (dateString) => {
+        if (!dateString) return '-';
         const date = new Date(dateString);
         const day = date.getDate().toString().padStart(2, '0');
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -208,49 +160,54 @@ export default function JobAssignmentScreen({ navigation }) {
         return `${day}.${month}.${year}`;
     };
 
-    const renderJob = ({ item }) => (
-        <View style={styles.jobCard}>
-            <View style={styles.jobHeader}>
-                <View style={styles.jobTitleRow}>
-                    <Text style={styles.jobTitle}>{item.title}</Text>
-                    <View style={[styles.priorityBadge, { backgroundColor: getPriorityColor(item.priority) }]}>
-                        <Text style={styles.priorityText}>⚡ {getPriorityText(item.priority)}</Text>
-                    </View>
-                </View>
-                <Text style={styles.jobCustomer}>🏢 {item.customer}</Text>
-                <Text style={styles.jobLocation}>📍 {item.location}</Text>
-                <Text style={styles.jobDate}>📅 {formatDate(item.scheduledDate)}</Text>
-            </View>
+    const renderJob = ({ item }) => {
+        const assignedWorker = item.assignments?.[0]?.worker?.name;
+        const customerName = item.customer?.company || item.customer?.user?.name || 'Müşteri';
 
-            <View style={styles.jobFooter}>
-                <View style={styles.assignmentInfo}>
-                    {item.assignedTo ? (
-                        <>
-                            <Text style={styles.assignedLabel}>Atanan:</Text>
-                            <Text style={styles.assignedWorker}>{item.assignedTo}</Text>
-                        </>
-                    ) : (
-                        <Text style={styles.unassignedText}>Atanmamış</Text>
-                    )}
-                </View>
-                <View style={styles.jobActions}>
-                    <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-                        <Text style={styles.statusText}>{getStatusText(item.status)}</Text>
+        return (
+            <View style={styles.jobCard}>
+                <View style={styles.jobHeader}>
+                    <View style={styles.jobTitleRow}>
+                        <Text style={styles.jobTitle}>{item.title}</Text>
+                        <View style={[styles.priorityBadge, { backgroundColor: getPriorityColor(item.priority) }]}>
+                            <Text style={styles.priorityText}>⚡ {getPriorityText(item.priority)}</Text>
+                        </View>
                     </View>
-                    {item.status !== 'COMPLETED' && (
-                        <TouchableOpacity
-                            style={styles.assignButton}
-                            onPress={() => handleAssignJob(item)}
-                        >
-                            <Text style={styles.assignButtonText}>
-                                {item.assignedTo ? 'Yeniden Ata' : 'Ata'}
-                            </Text>
-                        </TouchableOpacity>
-                    )}
+                    <Text style={styles.jobCustomer}>🏢 {customerName}</Text>
+                    <Text style={styles.jobLocation}>📍 {item.location || 'Konum belirtilmemiş'}</Text>
+                    <Text style={styles.jobDate}>📅 {formatDate(item.scheduledDate)}</Text>
+                </View>
+
+                <View style={styles.jobFooter}>
+                    <View style={styles.assignmentInfo}>
+                        {assignedWorker ? (
+                            <>
+                                <Text style={styles.assignedLabel}>Atanan:</Text>
+                                <Text style={styles.assignedWorker}>{assignedWorker}</Text>
+                            </>
+                        ) : (
+                            <Text style={styles.unassignedText}>Atanmamış</Text>
+                        )}
+                    </View>
+                    <View style={styles.jobActions}>
+                        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
+                            <Text style={styles.statusText}>{getStatusText(item.status)}</Text>
+                        </View>
+                        {item.status !== 'COMPLETED' && (
+                            <TouchableOpacity
+                                style={styles.assignButton}
+                                onPress={() => handleAssignJob(item)}
+                            >
+                                <Text style={styles.assignButtonText}>
+                                    {assignedWorker ? 'Yeniden Ata' : 'Ata'}
+                                </Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
                 </View>
             </View>
-        </View>
-    );
+        );
+    };
 
     const renderEmptyState = () => (
         <View style={styles.emptyContainer}>
@@ -343,15 +300,17 @@ export default function JobAssignmentScreen({ navigation }) {
                         </Text>
 
                         <FlatList
-                            data={workers.filter(w => w.status === 'active')}
+                            data={workers.filter(w => w.user.isActive)}
                             keyExtractor={item => item.id.toString()}
                             renderItem={({ item }) => (
                                 <TouchableOpacity
                                     style={styles.workerOption}
-                                    onPress={() => assignWorkerToJob(item.id)}
+                                    onPress={() => assignWorkerToJob(item.user.id)}
                                 >
-                                    <Text style={styles.workerName}>{item.name}</Text>
-                                    <Text style={styles.workerStatus}>✓ Aktif</Text>
+                                    <Text style={styles.workerName}>{item.user.name}</Text>
+                                    <Text style={styles.workerStatus}>
+                                        {item.user.isActive ? '✓ Aktif' : 'Pasif'}
+                                    </Text>
                                 </TouchableOpacity>
                             )}
                         />
