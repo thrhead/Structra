@@ -438,6 +438,77 @@
 - ✅ Cost tracking
 - ✅ Photo upload
 
+### v2.5 - Mobile App (Kasım 2024) ✅
+#### Foundation
+- ✅ React Native + Expo setup
+- ✅ React Navigation configuration
+- ✅ Role-based routing (Worker, Manager, Admin)
+- ✅ Profile & Settings screen
+- ✅ AsyncStorage integration
+
+#### Worker Features (100%)
+- ✅ Worker Dashboard with stats
+- ✅ Job List Screen (filter, search, pull-to-refresh)
+- ✅ Job Detail Screen
+  - ✅ Customer information display
+  - ✅ Interactive checklist (steps & substeps)
+  - ✅ Photo upload functionality
+  - ✅ Map integration
+  - ✅ Call/Email/Navigate actions
+- ✅ Mock data implementation
+
+#### Manager Features (100%)
+- ✅ Manager Dashboard with team stats
+- ✅ Team List Screen
+  - ✅ Worker statistics display
+  - ✅ Active/Offline status
+  - ✅ Search & filter functionality
+  - ✅ Performance metrics
+- ✅ Job Assignment Screen
+  - ✅ Job list with priorities
+  - ✅ Worker selection modal
+  - ✅ Assign/Reassign functionality
+  - ✅ Status filtering
+
+#### Admin Features (100%)
+- ✅ Admin Dashboard with system stats
+- ✅ User Management Screen
+  - ✅ CRUD operations (Create, Read, Update, Delete)
+  - ✅ Role-based filtering
+  - ✅ Search functionality
+  - ✅ Form validation
+- ✅ Customer Management Screen
+  - ✅ CRUD operations
+  - ✅ Company information management
+  - ✅ Active jobs tracking
+
+#### Backend Integration (40% - In Progress)
+- ✅ Phase 1: API Infrastructure
+  - ✅ Axios configuration
+  - ✅ Request/Response interceptors
+  - ✅ Token management
+  - ✅ Error handling
+  - ✅ Service layer creation:
+    - ✅ auth.service.js
+    - ✅ job.service.js
+    - ✅ user.service.js
+    - ✅ customer.service.js
+    - ✅ team.service.js
+- [ ] Phase 2: Worker Features Integration
+- [ ] Phase 3: Manager Features Integration
+- [ ] Phase 4: Admin Features Integration
+- [ ] Phase 5: Error Handling & UX
+
+#### UI/UX
+- ✅ Modern card-based design
+- ✅ Turkish localization
+- ✅ Status badges & indicators
+- ✅ Loading states
+- ✅ Pull-to-refresh
+- ✅ Modal interactions
+- ✅ Form validation
+- ✅ Empty states
+
 ### v2.0 (Tamamlandı - Kasım 2024)
 - ✅ Real-time notifications
 - ✅ PDF reports

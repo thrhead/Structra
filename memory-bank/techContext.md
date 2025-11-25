@@ -36,12 +36,22 @@
 - **Alternatif**: DigitalOcean, Railway, Netlify
 - **Database Hosting**: Supabase, Neon, Railway
 
-### Mobile
-- **Framework**: React Native
-- **Platform**: Expo
-- **Navigation**: React Navigation
+### Mobile (v2.5 - Implemented)
+- **Framework**: React Native 0.74+
+- **Platform**: Expo SDK 51
+- **Navigation**: React Navigation 6
 - **Storage**: AsyncStorage
-- **HTTP Client**: Fetch API
+- **HTTP Client**: Axios
+- **State Management**: React Context API
+- **UI**: Custom components with Native base elements
+- **Backend Integration**: RESTful API (Next.js API Routes)
+- **Authentication**: JWT token-based with NextAuth
+- **Features Implemented**:
+  - Worker Dashboard & Job Management
+  - Manager Team Management & Job Assignment
+  - Admin User & Customer CRUD
+  - Role-based routing
+  - Profile & Settings
 
 ### DevOps
 - **Version Control**: Git
@@ -69,12 +79,24 @@ assembly_tracker/
 │   │   ├── notifications/
 │   │   └── reports/
 │   └── layout.tsx           # Root layout
-├── mobile/                  # React Native App
+├── mobile/                  # React Native App (Expo)
 │   ├── src/
-│   │   ├── screens/
-│   │   ├── components/
-│   │   └── services/
-│   └── App.js
+│   │   ├── screens/        # Screen components
+│   │   │   ├── worker/     # Worker screens
+│   │   │   ├── manager/   # Manager screens
+│   │   │   └── admin/      # Admin screens
+│   │   ├── components/     # Shared components
+│   │   ├── context/        # React Context (Auth)
+│   │   └── services/       # API services
+│   │       ├── api.js
+│   │       ├── auth.service.js
+│   │       ├── job.service.js
+│   │       ├── user.service.js
+│   │       ├── customer.service.js
+│   │       └── team.service.js
+│   ├── App.js
+│   ├── app.json
+│   └── package.json
 ├── components/              # React komponentleri
 │   ├── ui/                  # shadcn/ui komponentleri
 │   ├── forms/               # Form komponentleri

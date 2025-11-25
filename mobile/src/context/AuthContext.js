@@ -1,5 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { storage } from '../services/storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import authService from '../services/auth.service';
+import { setAuthToken, clearAuthToken } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -7,16 +9,18 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Uygulama başladığında kullanıcıyı kontrol et
+    // Check for saved user on app start
     useEffect(() => {
         checkUser();
     }, []);
 
     const checkUser = async () => {
         try {
-            const savedUser = await storage.getUser();
-            if (savedUser) {
-                setUser(savedUser);
+            const savedUser = await AsyncStorage.getItem('user');
+            const token = await AsyncStorage.getItem('authToken');
+
+            if (savedUser && token) {
+                setUser(JSON.parse(savedUser));
             }
         } catch (error) {
             console.error('Error checking user:', error);
@@ -27,33 +31,55 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (email, password) => {
         try {
-            // GEÇICI: Mock login - CORS sorunu olduğu için
-            const mockUsers = {
-                'worker1@montaj.com': { email: 'worker1@montaj.com', role: 'worker', name: 'Ali Yılmaz' },
-                'admin@montaj.com': { email: 'admin@montaj.com', role: 'admin', name: 'Admin User' },
-                'manager@montaj.com': { email: 'manager@montaj.com', role: 'manager', name: 'Manager User' },
-            };
+            setLoading(true);
 
-            if (mockUsers[email] && password === 'worker123') {
-                const user = mockUsers[email];
-                await storage.saveUser(user);
-                setUser(user);
+            // Call real API
+            const response = await authService.login(email, password);
+
+            if (response.user) {
+                // Save user data
+                await AsyncStorage.setItem('user', JSON.stringify(response.user));
+                setUser(response.user);
+
                 return { success: true };
             } else {
-                return { success: false, error: 'Geçersiz e-posta veya şifre' };
+                return { success: false, error: 'Login failed' };
             }
         } catch (error) {
-            return { success: false, error: error.message };
+            console.error('Login error:', error);
+            return {
+                success: false,
+                error: error.message || 'Giriş yapılamadı. Lütfen bilgilerinizi kontrol edin.'
+            };
+        } finally {
+            setLoading(false);
         }
     };
 
     const logout = async () => {
-        await storage.clearAll();
-        setUser(null);
+        try {
+            // Call logout API
+            await authService.logout();
+        } catch (error) {
+            console.error('Logout error:', error);
+        } finally {
+            // Clear local data regardless of API call result
+            await AsyncStorage.removeItem('user');
+            await clearAuthToken();
+            setUser(null);
+        }
+    };
+
+    const value = {
+        user,
+        login,
+        logout,
+        loading,
+        isAuthenticated: !!user,
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, loading }}>
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );

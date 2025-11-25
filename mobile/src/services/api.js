@@ -1,96 +1,119 @@
-// API Base URL - değiştirilebilir
-const API_BASE_URL = 'http://localhost:3000';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// API helper fonksiyonu
-async function apiRequest(endpoint, options = {}) {
-    const url = `${API_BASE_URL}${endpoint}`;
+// TODO: Update with your local IP address
+// For development: Find your IP with ipconfig (Windows) or ifconfig (Mac/Linux)
+// Current local IP: 192.168.1.173
+const API_BASE_URL = __DEV__
+    ? 'http://192.168.1.173:3000'  // Local development
+    : 'https://your-production-url.com';
 
-    const config = {
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            ...options.headers,
-        },
-    };
+// Create axios instance
+const api = axios.create({
+    baseURL: API_BASE_URL,
+    timeout: 10000,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
 
-    try {
-        const response = await fetch(url, config);
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.error || 'Bir hata oluştu');
+// Request interceptor - Add auth token to requests
+api.interceptors.request.use(
+    async (config) => {
+        try {
+            const token = await AsyncStorage.getItem('authToken');
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
+        } catch (error) {
+            console.error('Error getting auth token:', error);
         }
-
-        return data;
-    } catch (error) {
-        console.error('API Error:', error);
-        throw error;
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
     }
-}
+);
 
-// Auth API
-export const authAPI = {
-    login: async (email, password) => {
-        return apiRequest('/api/auth/signin', {
-            method: 'POST',
-            body: JSON.stringify({ email, password }),
-        });
+// Response interceptor - Handle errors globally
+api.interceptors.response.use(
+    (response) => {
+        return response;
     },
+    async (error) => {
+        if (error.response) {
+            // Server responded with error status
+            const { status, data } = error.response;
 
-    logout: async () => {
-        return apiRequest('/api/auth/signout', {
-            method: 'POST',
-        });
-    },
+            // Handle specific status codes
+            switch (status) {
+                case 401:
+                    // Unauthorized - clear token and redirect to login
+                    await AsyncStorage.removeItem('authToken');
+                    await AsyncStorage.removeItem('user');
+                    break;
+                case 403:
+                    console.error('Forbidden:', data.message);
+                    break;
+                case 404:
+                    console.error('Not found:', data.message);
+                    break;
+                case 500:
+                    console.error('Server error:', data.message);
+                    break;
+                default:
+                    console.error('API error:', data.message || 'Unknown error');
+            }
 
-    getSession: async () => {
-        return apiRequest('/api/auth/session');
-    },
+            return Promise.reject({
+                status,
+                message: data.message || 'An error occurred',
+                data: data,
+            });
+        } else if (error.request) {
+            // Request made but no response
+            console.error('Network error:', error.message);
+            return Promise.reject({
+                status: 0,
+                message: 'Network error. Please check your connection.',
+            });
+        } else {
+            // Something else happened
+            console.error('Error:', error.message);
+            return Promise.reject({
+                status: -1,
+                message: error.message || 'An unexpected error occurred',
+            });
+        }
+    }
+);
+
+// Helper functions
+export const setAuthToken = async (token) => {
+    try {
+        await AsyncStorage.setItem('authToken', token);
+    } catch (error) {
+        console.error('Error saving auth token:', error);
+    }
 };
 
-// Jobs API
-export const jobsAPI = {
-    getWorkerJobs: async () => {
-        return apiRequest('/api/worker/jobs');
-    },
-
-    getJobDetails: async (jobId) => {
-        return apiRequest(`/api/worker/jobs/${jobId}`);
-    },
-
-    toggleSubstep: async (substepId, data) => {
-        return apiRequest(`/api/worker/substeps/${substepId}/toggle`, {
-            method: 'POST',
-            body: JSON.stringify(data),
-        });
-    },
+export const clearAuthToken = async () => {
+    try {
+        await AsyncStorage.removeItem('authToken');
+        await AsyncStorage.removeItem('user');
+    } catch (error) {
+        console.error('Error clearing auth token:', error);
+    }
 };
 
-// Admin API
-export const adminAPI = {
-    getDashboard: async () => {
-        return apiRequest('/api/admin/dashboard');
-    },
-
-    getJobs: async (filters = {}) => {
-        const params = new URLSearchParams(filters);
-        return apiRequest(`/api/admin/jobs?${params}`);
-    },
-
-    getTeams: async () => {
-        return apiRequest('/api/admin/teams');
-    },
-};
-
-// Manager API
-export const managerAPI = {
-    getDashboard: async () => {
-        return apiRequest('/api/manager/dashboard');
-    },
-
-    getJobs: async () => {
-        return apiRequest('/api/manager/jobs');
-    },
+export const getAuthToken = async () => {
+    try {
+        return await AsyncStorage.getItem('authToken');
+    } catch (error) {
+        console.error('Error getting auth token:', error);
+        return null;
+    }
 };
 
 export { API_BASE_URL };
+export default api;

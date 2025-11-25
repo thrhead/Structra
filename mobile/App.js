@@ -13,6 +13,7 @@ import TeamListScreen from './src/screens/manager/TeamListScreen';
 import JobAssignmentScreen from './src/screens/manager/JobAssignmentScreen';
 import AdminDashboardScreen from './src/screens/admin/AdminDashboardScreen';
 import UserManagementScreen from './src/screens/admin/UserManagementScreen';
+import CustomerManagementScreen from './src/screens/admin/CustomerManagementScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -88,6 +89,11 @@ function AppNavigator() {
               name="UserManagement"
               component={UserManagementScreen}
               options={{ title: 'Kullanıcı Yönetimi' }}
+            />
+            <Stack.Screen
+              name="CustomerManagement"
+              component={CustomerManagementScreen}
+              options={{ title: 'Müşteri Yönetimi' }}
             />
             {/* Profile Screen */}
             <Stack.Screen

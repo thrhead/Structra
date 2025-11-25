@@ -11,18 +11,47 @@
 
 ### Son Değişiklikler (Kasım 2024)
 
-1.  **Mobil Uygulama Başlangıcı (v2.2.0)**:
-    - Expo projesi oluşturuldu (`/mobile`).
-    - React Navigation ile temel navigasyon yapısı kuruldu.
-    - AuthContext ile kimlik doğrulama altyapısı hazırlandı.
-    - **Worker Ekranları**:
-        - `WorkerJobsScreen`: Atanan işlerin listelenmesi.
-        - `JobDetailScreen`: İş detayları, checklist ve alt görevler.
-    - **İş Detay Özellikleri**:
-        - Sıralı görev tamamlama mantığı.
-        - Alt görev zaman takibi (Başla/Bitir).
-        - Fotoğraf yükleme simülasyonu.
-        - Harita ve telefon entegrasyonu.
+1.  **Mobil Uygulama - Tam MVP Tamamlandı (v2.5)**:
+    - **Foundation (100%)**:
+        - Expo + React Native projesi oluşturuldu (`/mobile`)
+        - React Navigation ile rol bazlı yönlendirme (Worker, Manager, Admin)
+        - AuthContext ile kimlik doğrulama altyapısı
+        - Profile & Settings ekranı (şifre değiştirme, logout)
+    
+    - **Worker Features (100%)**:
+        - `WorkerDashboardScreen`: İstatistikler ve hızlı erişim
+        -`WorkerJobsScreen`: İş listesi (filter, search, pull-to-refresh)
+        - `JobDetailScreen`: Detaylı iş görünümü
+          - İnteraktif checklist (adımlar & alt adımlar)
+          - Fotoğraf yükleme
+          - Harita entegrasyonu
+          - Arama/Telefon/Email entegrasyonu
+    
+    - **Manager Features (100%)**:
+        - `ManagerDashboardScreen`: Ekip istatistikleri
+        - `TeamListScreen`: Worker listesi ve performans metrikleri
+        - `JobAssignmentScreen`: İş atama ve yeniden atama
+          - Worker seçim modal
+          - Durum ve öncelik filtreleri
+    
+    - **Admin Features (100%)**:
+        - `AdminDashboardScreen`: Sistem istatistikleri
+        - `UserManagementScreen`: Kullanıcı CRUD işlemleri
+          - Rol bazlı filtreleme
+          - Form validasyonu
+        - `CustomerManagementScreen`: Müşteri yönetimi
+          - Firma bilgileri
+          - Aktif iş sayısı
+    
+    - **Backend Integration (Phase 1 Complete - 40%)**:
+        - ✅ Axios tabanlı API servisi
+        - ✅ Request/Response interceptors
+        - ✅ Token yönetimi
+        - ✅ `auth.service.js` - Kimlik doğrulama
+        - ✅ `job.service.js` - İş yönetimi
+        - ✅ `user.service.js` - Kullanıcı CRUD
+        - ✅ `customer.service.js` - Müşteri CRUD
+        - ✅ `team.service.js` - Ekip yönetimi
 
 2.  **Ekip Performans Grafikleri Tamamlandı (v2.0)**:
     - Ekip detay sayfası oluşturuldu (`/admin/teams/[id]`)
@@ -43,19 +72,23 @@
 
 ### Hemen Yapılacaklar
 
-1.  **Mobil Uygulama - Backend Entegrasyonu**:
-    - Mock verilerin gerçek API çağrıları ile değiştirilmesi.
-    - CORS ayarlarının Next.js tarafında yapılandırılması.
-2.  **Mobil Uygulama - Diğer Roller**:
-    - Manager ve Admin için mobil ekranların tasarlanması.
+1.  **Mobil Uygulama - Backend Entegrasyonu (Devam Ediyor)**:
+    - Phase 2: Worker features API integration
+    - Phase 3: Manager features API integration
+    - Phase 4: Admin features API integration
+    - Phase 5: Error handling & offline support
+2.  **Mobil Uygulama - IP Configuration**:
+    - Local IP adresinin api.js dosyasında güncellenmesi
+    - CORS ayarlarının Next.js tarafında yapılandırılması
 3.  **Test**:
-    - Mobil uygulamanın fiziksel cihazlarda test edilmesi.
+    - Mobil uygulamanın fiziksel cihazlarda test edilmesi
+    - Backend entegrasyonu testleri
 
 ### Kısa Vadeli (Bu Sprint)
 
-1.  Mobil uygulama API entegrasyonunu tamamla.
-2.  Mobil uygulama için offline mod desteğini araştır.
-3.  Web tarafında email bildirimlerini tamamla.
+1.  Mobil uygulama Phase 2-5 entegrasyonunu tamamla
+2.  Mobil uygulama için offline mod desteğini araştır
+3.  Web tarafında email bildirimlerini tamamla (tamamlandı)
 
 ## Aktif Kararlar ve Düşünceler
 

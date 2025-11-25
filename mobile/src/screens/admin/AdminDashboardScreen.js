@@ -50,15 +50,15 @@ export default function AdminDashboardScreen({ navigation }) {
             {/* Coming Soon Section */}
             <View style={styles.comingSoonContainer}>
                 <Text style={styles.comingSoonIcon}>🚀</Text>
-                <Text style={styles.comingSoonTitle}>Çok Yakında!</Text>
+                <Text style={styles.comingSoonTitle}>Daha Fazla Özellik Yakında!</Text>
                 <Text style={styles.comingSoonText}>
-                    Admin özellikleri yakında eklenecek:
+                    Şu anda kullanılabilir özellikler:
                 </Text>
                 <View style={styles.featureList}>
-                    <Text style={styles.featureItem}>• Kullanıcı yönetimi (CRUD)</Text>
+                    <Text style={styles.featureItemActive}>✓ Kullanıcı yönetimi (CRUD)</Text>
+                    <Text style={styles.featureItemActive}>✓ Müşteri şirket yönetimi</Text>
                     <Text style={styles.featureItem}>• Rol ve yetki yönetimi</Text>
                     <Text style={styles.featureItem}>• Sistem ayarları</Text>
-                    <Text style={styles.featureItem}>• Müşteri şirket yönetimi</Text>
                     <Text style={styles.featureItem}>• İş şablonları oluşturma</Text>
                     <Text style={styles.featureItem}>• Detaylı log ve raporlar</Text>
                 </View>
@@ -75,10 +75,12 @@ export default function AdminDashboardScreen({ navigation }) {
                         <Text style={styles.actionIcon}>👤</Text>
                         <Text style={styles.actionText}>Kullanıcılar</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.actionButton} disabled>
+                    <TouchableOpacity
+                        style={styles.actionButtonActive}
+                        onPress={() => navigation.navigate('CustomerManagement')}
+                    >
                         <Text style={styles.actionIcon}>🏢</Text>
                         <Text style={styles.actionText}>Müşteriler</Text>
-                        <Text style={styles.comingSoonBadge}>Yakında</Text>
                     </TouchableOpacity>
                 </View>
                 <View style={[styles.quickActions, { marginTop: 12 }]}>
@@ -143,7 +145,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         flexWrap: 'wrap',
         padding: 16,
-        gap: 12,
     },
     statCard: {
         flex: 1,
@@ -152,6 +153,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         padding: 16,
         alignItems: 'center',
+        margin: 6,
     },
     statNumber: {
         fontSize: 32,
@@ -200,6 +202,12 @@ const styles = StyleSheet.create({
         color: '#6B7280',
         marginBottom: 8,
     },
+    featureItemActive: {
+        fontSize: 14,
+        color: '#16A34A',
+        marginBottom: 8,
+        fontWeight: '600',
+    },
     section: {
         padding: 16,
     },
@@ -211,7 +219,6 @@ const styles = StyleSheet.create({
     },
     quickActions: {
         flexDirection: 'row',
-        gap: 12,
     },
     actionButton: {
         flex: 1,
@@ -225,6 +232,7 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 3,
         opacity: 0.6,
+        marginRight: 8,
     },
     actionButtonActive: {
         flex: 1,
@@ -237,6 +245,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 4,
         elevation: 3,
+        marginRight: 8,
     },
     actionIcon: {
         fontSize: 32,

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, TextInput, RefreshControl, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, TextInput, RefreshControl, ScrollView, Alert } from 'react-native';
+import jobService from '../../services/job.service';
 
 export default function WorkerJobsScreen({ navigation }) {
     const [jobs, setJobs] = useState([]);
@@ -8,6 +9,7 @@ export default function WorkerJobsScreen({ navigation }) {
     const [refreshing, setRefreshing] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('ALL');
+    const [error, setError] = useState(null);
 
     const statusFilters = [
         { key: 'ALL', label: 'Tümü' },
@@ -26,63 +28,24 @@ export default function WorkerJobsScreen({ navigation }) {
 
     const loadJobs = async () => {
         try {
-            // MOCK DATA - Gerçek API yerine
-            const mockJobs = [
-                {
-                    id: 1,
-                    title: 'Klima Montajı - ABC Şirketi',
-                    customer: 'ABC Şirketi',
-                    location: 'İstanbul, Kadıköy',
-                    status: 'IN_PROGRESS',
-                    priority: 'HIGH',
-                    scheduledDate: '2024-11-24',
-                    steps: [
-                        { id: 1, name: 'Ön Hazırlık', isCompleted: true },
-                        { id: 2, name: 'Montaj', isCompleted: false },
-                        { id: 3, name: 'Test', isCompleted: false },
-                    ],
-                },
-                {
-                    id: 2,
-                    title: 'Silo Kurulumu - XYZ Ltd',
-                    customer: 'XYZ Ltd',
-                    location: 'Ankara, Çankaya',
-                    status: 'PENDING',
-                    priority: 'MEDIUM',
-                    scheduledDate: '2024-11-25',
-                    steps: [
-                        { id: 4, name: 'Zemin Hazırlığı', isCompleted: false },
-                        { id: 5, name: 'Kurulum', isCompleted: false },
-                    ],
-                },
-                {
-                    id: 3,
-                    title: 'Bakım - DEF A.Ş.',
-                    customer: 'DEF A.Ş.',
-                    location: 'İzmir, Konak',
-                    status: 'IN_PROGRESS',
-                    priority: 'LOW',
-                    scheduledDate: '2024-11-23',
-                    steps: [
-                        { id: 6, name: 'Kontrol', isCompleted: true },
-                        { id: 7, name: 'Temizlik', isCompleted: true },
-                        { id: 8, name: 'Rapor', isCompleted: false },
-                    ],
-                },
-            ];
+            setError(null);
+            const response = await jobService.getMyJobs();
 
-            // Simüle edilen gecikme
-            setTimeout(() => {
-                setJobs(mockJobs);
-                setLoading(false);
-                setRefreshing(false);
-            }, 500);
+            if (response.jobs) {
+                setJobs(response.jobs);
+            } else {
+                setJobs([]);
+            }
         } catch (error) {
             console.error('Error loading jobs:', error);
+            setError(error.message || 'İşler yüklenirken hata oluştu');
+            Alert.alert('Hata', 'İşler yüklenirken bir hata oluştu. Lütfen tekrar deneyin.');
+        } finally {
             setLoading(false);
             setRefreshing(false);
         }
     };
+
 
     const onRefresh = () => {
         setRefreshing(true);
