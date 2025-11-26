@@ -82,12 +82,12 @@ assembly_tracker/
 1. **User**: Kullanıcılar ve roller (Admin, Manager, Worker, Customer)
 2. **Job**: İş kayıtları, durum, öncelik
 3. **JobStep**: İş adımları ve kontrol listesi
-4. **JobSubStep**: Alt adımlar ve zaman takibi
+4. **JobSubStep**: Alt adımlar, zaman takibi ve fotoğraflar
 5. **Team**: Ekipler ve üyeler
 6. **Customer**: Müşteri firmalar
 7. **CostTracking**: Maliyet takibi ve onay süreci
 8. **Notification**: Sistem bildirimleri
-9. **StepPhoto**: İş adımlarına yüklenen fotoğraflar
+9. **StepPhoto**: İş adımlarına ve alt adımlara yüklenen fotoğraflar (subStepId ile)
 
 ## Development Setup
 

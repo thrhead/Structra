@@ -106,6 +106,19 @@ Manager Creates Job → API validates → Save to DB
                         Manager/Customer see update
 ```
 
+### 3. Photo Upload Flow
+```
+Worker Selects Photo → Mobile App creates FormData
+                              ↓
+                    POST /api/.../photos (Multipart)
+                              ↓
+                    Save to Local FS (public/uploads)
+                              ↓
+                    Create DB Record (StepPhoto linked to SubStep)
+                              ↓
+                    Return URL to Mobile
+```
+
 ### 3. Mobile Architecture Patterns
 
 #### Navigation Structure
@@ -133,6 +146,14 @@ api.interceptors.request.use(async config => {
 - **Local Storage**: AsyncStorage for caching critical data
 - **Sync Queue**: Store mutations locally when offline, replay when online
 - **Optimistic Updates**: Update UI immediately, revert on error
+
+#### Local File Upload Strategy (Implemented)
+- **Storage**: Local filesystem (`public/uploads`) instead of Cloudinary (for local dev/on-prem).
+- **Process**:
+  1. Mobile sends `FormData` with file.
+  2. API saves file to `public/uploads/jobs/[id]`.
+  3. API saves metadata to DB (`StepPhoto` table).
+  4. URL stored as relative path (`/uploads/...`).
 
 ## Component Yapısı
 

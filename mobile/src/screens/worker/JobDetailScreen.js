@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Linking, Platform, Modal, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Linking, Platform, Modal, Image, TextInput } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import jobService from '../../services/job.service';
 import costService from '../../services/cost.service';
@@ -28,9 +28,12 @@ export default function JobDetailScreen({ route, navigation }) {
     const loadJobDetails = async () => {
         try {
             setLoading(true);
-            const response = await jobService.getJobById(jobId);
-            if (response.job) {
-                setJob(response.job);
+            const data = await jobService.getJobById(jobId);
+
+            if (data.id) {
+                setJob(data);
+            } else if (data.job) {
+                setJob(data.job);
             } else {
                 Alert.alert('Hata', 'İş bulunamadı');
                 navigation.goBack();
@@ -108,33 +111,9 @@ export default function JobDetailScreen({ route, navigation }) {
             const match = /\.(\w+)$/.exec(filename);
             const type = match ? `image/${match[1]}` : `image`;
 
-            formData.append('file', { uri, name: filename, type });
+            formData.append('photo', { uri, name: filename, type });
 
-            // Note: The API endpoint structure in job.service.js is:
-            // /api/worker/jobs/${jobId}/steps/${stepId}/photos
-            // It doesn't seem to take substepId?
-            // Let's check job.service.js again.
-            // uploadPhotos: async (jobId, stepId, formData) => ...
-
-            // If the backend expects photos for a step (not substep), then substepId is irrelevant?
-            // But the UI shows photos per substep.
-            // The mock data had photos in substeps.
-            // Let's check the backend route for photos.
-            // [id]\steps\[stepId]\photos\route.ts
-
-            // I'll assume for now we upload to the step, and maybe the backend handles substep association if we send it?
-            // Or maybe the backend only supports step-level photos?
-            // The mock data had `substep.photos`.
-
-            // If the backend only supports step-level photos, I might need to adjust the UI.
-            // But let's try to send substepId in formData if possible?
-            // Or maybe the route is wrong?
-
-            // I'll assume step-level for now as per service definition.
-            // But wait, if I upload to step, how do I know which substep it belongs to?
-            // Maybe I should check the backend route for photos too.
-
-            await jobService.uploadPhotos(jobId, stepId, formData);
+            await jobService.uploadPhotos(jobId, stepId, formData, substepId);
 
             Alert.alert('Başarılı', 'Fotoğraf yüklendi');
             loadJobDetails();
@@ -248,22 +227,7 @@ export default function JobDetailScreen({ route, navigation }) {
                 <View style={styles.headerCard}>
                     <Text style={styles.title}>{job.title}</Text>
 
-                    <View style={styles.row}>
-                        <Text style={styles.label}>Müşteri:</Text>
-                        <Text style={styles.value}>{job.customer?.name || job.customer}</Text>
-                    </View>
-
-                    {job.customer?.phone && (
-                        <TouchableOpacity style={styles.row} onPress={() => callPhone(job.customer.phone)}>
-                            <Text style={styles.label}>Telefon:</Text>
-                            <Text style={[styles.value, styles.linkText]}>{job.customer.phone}</Text>
-                        </TouchableOpacity>
-                    )}
-
-                    <TouchableOpacity style={styles.row} onPress={() => openMap(job.location || job.address)}>
-                        <Text style={styles.label}>Konum:</Text>
-                        <Text style={[styles.value, styles.linkText]}>{job.location || job.address || 'Konum belirtilmemiş'}</Text>
-                    </TouchableOpacity>
+                    <Text style={styles.label}>Müşteri:</Text>
 
                     <Text style={styles.description}>{job.description}</Text>
                 </View>
@@ -271,102 +235,120 @@ export default function JobDetailScreen({ route, navigation }) {
                 {/* Steps & Checklist */}
                 <Text style={styles.sectionTitle}>İş Adımları</Text>
 
-                {job.steps && job.steps.map((step, index) => {
-                    const isLocked = index > 0 && !job.steps[index - 1].isCompleted;
+                {
+                    job.steps && job.steps.map((step, index) => {
+                        const isLocked = index > 0 && !job.steps[index - 1].isCompleted;
 
-                    return (
-                        <View key={step.id} style={[styles.stepCard, isLocked && styles.lockedCard]}>
-                            <View style={styles.stepHeader}>
-                                <View style={[styles.checkbox, step.isCompleted && styles.checkedBox]}>
-                                    {step.isCompleted && <Text style={styles.checkmark}>✓</Text>}
-                                </View>
-                                <Text style={[styles.stepTitle, step.isCompleted && styles.completedText]}>
-                                    {step.title || step.name}
-                                </Text>
-                                {isLocked && <Text style={styles.lockedText}>(Kilitli)</Text>}
-                            </View>
-
-                            {/* Substeps */}
-                            {!isLocked && step.subSteps && (
-                                <View style={styles.substepsContainer}>
-                                    {step.subSteps.map((substep) => (
-                                        <View key={substep.id} style={styles.substepWrapper}>
-                                            <View style={styles.substepRow}>
-                                                <View style={styles.substepInfo}>
-                                                    <Text style={[styles.substepText, substep.isCompleted && styles.completedText]}>
-                                                        {substep.title || substep.name}
-                                                    </Text>
-                                                    {substep.startedAt && (
-                                                        <Text style={styles.timeText}>
-                                                            {new Date(substep.startedAt).toLocaleTimeString()} - {substep.completedAt ? new Date(substep.completedAt).toLocaleTimeString() : '...'}
-                                                        </Text>
-                                                    )}
-                                                </View>
-
-                                                {/* Action Buttons */}
-                                                <View style={styles.actionButtons}>
-                                                    {!substep.isCompleted ? (
-                                                        <TouchableOpacity
-                                                            style={styles.completeButton}
-                                                            onPress={() => handleSubstepToggle(step.id, substep.id, false)}
-                                                        >
-                                                            <Text style={styles.btnText}>Tamamla</Text>
-                                                        </TouchableOpacity>
-                                                    ) : (
-                                                        <TouchableOpacity
-                                                            style={styles.undoButton}
-                                                            onPress={() => handleSubstepToggle(step.id, substep.id, true)}
-                                                        >
-                                                            <Text style={styles.btnText}>Geri Al</Text>
-                                                        </TouchableOpacity>
-                                                    )}
-                                                </View>
-                                            </View>
-
-                                            {/* Photo Upload (Simplified for now - per step or substep?) */}
-                                            {/* Since API is per step, maybe we should move photo upload to step level or check API */}
-                                            {/* For now, I'll disable photo upload on substep level to avoid confusion if API doesn't support it per substep */}
-                                        </View>
-                                    ))}
-                                </View>
-                            )}
-
-                            {/* Step Level Photo Upload */}
-                            {!isLocked && (
-                                <View style={styles.stepPhotoContainer}>
-                                    <Text style={styles.photoCountText}>
-                                        Fotoğraflar ({step.photos ? step.photos.length : 0})
-                                    </Text>
-                                    <View style={styles.photoButtonsContainer}>
-                                        <TouchableOpacity
-                                            style={styles.photoIconBtn}
-                                            onPress={() => pickImage(step.id, null, 'camera')}
-                                        >
-                                            <Text style={styles.photoIconText}>📷</Text>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity
-                                            style={styles.photoIconBtn}
-                                            onPress={() => pickImage(step.id, null, 'gallery')}
-                                        >
-                                            <Text style={styles.photoIconText}>🖼️</Text>
-                                        </TouchableOpacity>
+                        return (
+                            <View key={step.id} style={[styles.stepCard, isLocked && styles.lockedCard]}>
+                                <View style={styles.stepHeader}>
+                                    <View style={[styles.checkbox, step.isCompleted && styles.checkedBox]}>
+                                        {step.isCompleted && <Text style={styles.checkmark}>✓</Text>}
                                     </View>
-
-                                    {/* Thumbnails */}
-                                    {step.photos && step.photos.length > 0 && (
-                                        <ScrollView horizontal style={styles.thumbnailsContainer} showsHorizontalScrollIndicator={false}>
-                                            {step.photos.map((photo, pIndex) => (
-                                                <TouchableOpacity key={pIndex} onPress={() => openImageModal(photo.url || photo)}>
-                                                    <Image source={{ uri: photo.url || photo }} style={styles.thumbnail} />
-                                                </TouchableOpacity>
-                                            ))}
-                                        </ScrollView>
-                                    )}
+                                    <Text style={[styles.stepTitle, step.isCompleted && styles.completedText]}>
+                                        {step.title || step.name}
+                                    </Text>
+                                    {isLocked && <Text style={styles.lockedText}>(Kilitli)</Text>}
                                 </View>
-                            )}
-                        </View>
-                    );
-                })}
+
+                                {/* Substeps */}
+                                {!isLocked && step.subSteps && (
+                                    <View style={styles.substepsContainer}>
+                                        {step.subSteps.map((substep, subIndex) => {
+                                            const substepPhotos = substep.photos || [];
+                                            const photoCount = substepPhotos.length;
+                                            const isSubstepLocked = subIndex > 0 && !step.subSteps[subIndex - 1].isCompleted;
+                                            const canComplete = photoCount >= 1;
+                                            const canUpload = photoCount < 3;
+
+                                            return (
+                                                <View key={substep.id} style={[styles.substepWrapper, isSubstepLocked && styles.lockedCard]}>
+                                                    <View style={styles.substepRow}>
+                                                        <View style={styles.substepInfo}>
+                                                            <Text style={[styles.substepText, substep.isCompleted && styles.completedText]}>
+                                                                {substep.title || substep.name}
+                                                            </Text>
+                                                            {isSubstepLocked && <Text style={styles.lockedText}>(Önceki adımı tamamlayın)</Text>}
+                                                            {substep.startedAt && (
+                                                                <Text style={styles.timeText}>
+                                                                    {new Date(substep.startedAt).toLocaleTimeString()} - {substep.completedAt ? new Date(substep.completedAt).toLocaleTimeString() : '...'}
+                                                                </Text>
+                                                            )}
+                                                        </View>
+
+                                                        {/* Action Buttons */}
+                                                        <View style={styles.actionButtons}>
+                                                            {!substep.isCompleted ? (
+                                                                <TouchableOpacity
+                                                                    style={[styles.completeButton, (!canComplete || isSubstepLocked) && styles.disabledButton]}
+                                                                    onPress={() => {
+                                                                        if (!canComplete) {
+                                                                            Alert.alert('Uyarı', 'Tamamlamak için en az 1 fotoğraf yüklemelisiniz.');
+                                                                            return;
+                                                                        }
+                                                                        handleSubstepToggle(step.id, substep.id, false);
+                                                                    }}
+                                                                    disabled={!canComplete || isSubstepLocked}
+                                                                >
+                                                                    <Text style={styles.btnText}>Tamamla</Text>
+                                                                </TouchableOpacity>
+                                                            ) : (
+                                                                <TouchableOpacity
+                                                                    style={styles.undoButton}
+                                                                    onPress={() => handleSubstepToggle(step.id, substep.id, true)}
+                                                                >
+                                                                    <Text style={styles.btnText}>Geri Al</Text>
+                                                                </TouchableOpacity>
+                                                            )}
+                                                        </View>
+                                                    </View>
+
+                                                    {/* Substep Photo Upload */}
+                                                    {!isSubstepLocked && !substep.isCompleted && (
+                                                        <View style={styles.stepPhotoContainer}>
+                                                            <Text style={styles.photoCountText}>
+                                                                Fotoğraflar ({photoCount}/3)
+                                                            </Text>
+                                                            {canUpload && (
+                                                                <View style={styles.photoButtonsContainer}>
+                                                                    <TouchableOpacity
+                                                                        style={styles.photoIconBtn}
+                                                                        onPress={() => pickImage(step.id, substep.id, 'camera')}
+                                                                    >
+                                                                        <Text style={styles.photoIconText}>📷</Text>
+                                                                    </TouchableOpacity>
+                                                                    <TouchableOpacity
+                                                                        style={styles.photoIconBtn}
+                                                                        onPress={() => pickImage(step.id, substep.id, 'gallery')}
+                                                                    >
+                                                                        <Text style={styles.photoIconText}>🖼️</Text>
+                                                                    </TouchableOpacity>
+                                                                </View>
+                                                            )}
+                                                        </View>
+                                                    )}
+
+                                                    {/* Substep Thumbnails */}
+                                                    {substepPhotos.length > 0 && (
+                                                        <ScrollView horizontal style={styles.thumbnailsContainer} showsHorizontalScrollIndicator={false}>
+                                                            {substepPhotos.map((photo, pIndex) => (
+                                                                <TouchableOpacity key={pIndex} onPress={() => openImageModal(photo.url || photo)}>
+                                                                    <Image source={{ uri: photo.url || photo }} style={styles.thumbnail} />
+                                                                </TouchableOpacity>
+                                                            ))}
+                                                        </ScrollView>
+                                                    )}
+                                                </View>
+                                            );
+                                        })}
+                                    </View>
+                                )}
+
+
+                            </View>
+                        );
+                    })
+                }
 
                 {/* Costs Section */}
                 <View style={styles.sectionHeaderRow}>
@@ -379,33 +361,35 @@ export default function JobDetailScreen({ route, navigation }) {
                     </TouchableOpacity>
                 </View>
 
-                {job.costs && job.costs.length > 0 ? (
-                    job.costs.map((cost) => (
-                        <View key={cost.id} style={styles.costCard}>
-                            <View style={styles.costHeader}>
-                                <Text style={styles.costCategory}>{cost.category}</Text>
-                                <Text style={[
-                                    styles.costStatus,
-                                    cost.status === 'APPROVED' ? styles.statusApproved :
-                                        cost.status === 'REJECTED' ? styles.statusRejected : styles.statusPending
-                                ]}>
-                                    {cost.status === 'APPROVED' ? 'Onaylandı' :
-                                        cost.status === 'REJECTED' ? 'Reddedildi' : 'Bekliyor'}
-                                </Text>
+                {
+                    job.costs && job.costs.length > 0 ? (
+                        job.costs.map((cost) => (
+                            <View key={cost.id} style={styles.costCard}>
+                                <View style={styles.costHeader}>
+                                    <Text style={styles.costCategory}>{cost.category}</Text>
+                                    <Text style={[
+                                        styles.costStatus,
+                                        cost.status === 'APPROVED' ? styles.statusApproved :
+                                            cost.status === 'REJECTED' ? styles.statusRejected : styles.statusPending
+                                    ]}>
+                                        {cost.status === 'APPROVED' ? 'Onaylandı' :
+                                            cost.status === 'REJECTED' ? 'Reddedildi' : 'Bekliyor'}
+                                    </Text>
+                                </View>
+                                <View style={styles.costRow}>
+                                    <Text style={styles.costAmount}>{cost.amount} {cost.currency}</Text>
+                                    <Text style={styles.costDate}>{new Date(cost.date).toLocaleDateString()}</Text>
+                                </View>
+                                <Text style={styles.costDescription}>{cost.description}</Text>
+                                {cost.rejectionReason && (
+                                    <Text style={styles.rejectionReason}>Red Nedeni: {cost.rejectionReason}</Text>
+                                )}
                             </View>
-                            <View style={styles.costRow}>
-                                <Text style={styles.costAmount}>{cost.amount} {cost.currency}</Text>
-                                <Text style={styles.costDate}>{new Date(cost.date).toLocaleDateString()}</Text>
-                            </View>
-                            <Text style={styles.costDescription}>{cost.description}</Text>
-                            {cost.rejectionReason && (
-                                <Text style={styles.rejectionReason}>Red Nedeni: {cost.rejectionReason}</Text>
-                            )}
-                        </View>
-                    ))
-                ) : (
-                    <Text style={styles.emptyText}>Henüz masraf eklenmemiş.</Text>
-                )}
+                        ))
+                    ) : (
+                        <Text style={styles.emptyText}>Henüz masraf eklenmemiş.</Text>
+                    )
+                }
 
                 <View style={styles.footer}>
                     <TouchableOpacity
@@ -418,13 +402,14 @@ export default function JobDetailScreen({ route, navigation }) {
                         </Text>
                     </TouchableOpacity>
                 </View>
-            </ScrollView>
+            </ScrollView >
 
             {/* Image Viewer Modal */}
-            <Modal
+            < Modal
                 visible={modalVisible}
                 transparent={true}
-                onRequestClose={() => setModalVisible(false)}
+                onRequestClose={() => setModalVisible(false)
+                }
             >
                 <View style={styles.modalContainer}>
                     <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
@@ -434,10 +419,10 @@ export default function JobDetailScreen({ route, navigation }) {
                         <Image source={{ uri: selectedImage }} style={styles.fullImage} resizeMode="contain" />
                     )}
                 </View>
-            </Modal>
+            </Modal >
 
             {/* Add Cost Modal */}
-            <Modal
+            < Modal
                 visible={costModalVisible}
                 transparent={true}
                 animationType="slide"
@@ -502,7 +487,7 @@ export default function JobDetailScreen({ route, navigation }) {
                         </View>
                     </View>
                 </View>
-            </Modal>
+            </Modal >
 
             {uploading && (
                 <View style={styles.loadingOverlay}>
@@ -510,7 +495,7 @@ export default function JobDetailScreen({ route, navigation }) {
                     <Text style={styles.loadingText}>Yükleniyor...</Text>
                 </View>
             )}
-        </View>
+        </View >
     );
 }
 

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
 export async function middleware(request: NextRequest) {
+  console.log(`[Middleware] ${request.method} ${request.nextUrl.pathname} - Auth: ${request.headers.get("authorization") ? "Present" : "Missing"}`)
   const session = await auth()
 
   const isAuthPage = request.nextUrl.pathname.startsWith("/login") ||

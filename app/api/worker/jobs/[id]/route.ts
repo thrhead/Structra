@@ -29,7 +29,10 @@ export async function GET(
           orderBy: { order: 'asc' },
           include: {
             subSteps: {
-              orderBy: { order: 'asc' }
+              orderBy: { order: 'asc' },
+              include: {
+                photos: true
+              }
             },
             photos: {
               orderBy: { uploadedAt: 'desc' }

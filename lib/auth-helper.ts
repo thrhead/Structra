@@ -8,6 +8,8 @@ export async function verifyAuth(req: Request) {
 
     // 2. Check Authorization header (Mobile)
     const authHeader = req.headers.get("Authorization")
+    console.log("verifyAuth: Auth header:", authHeader)
+
     if (authHeader?.startsWith("Bearer ")) {
         const token = authHeader.split(" ")[1]
         try {
@@ -26,9 +28,12 @@ export async function verifyAuth(req: Request) {
                 expires: new Date(payload.exp! * 1000).toISOString()
             }
         } catch (err) {
+            console.error("verifyAuth: Token verification failed:", err)
             // Token invalid or expired
             return null
         }
+    } else {
+        console.log("verifyAuth: No Bearer token found in header")
     }
 
     return null

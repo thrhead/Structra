@@ -74,8 +74,11 @@ const jobService = {
      * @param {FormData} formData
      * @returns {Promise<{photos}>}
      */
-    uploadPhotos: async (jobId, stepId, formData) => {
+    uploadPhotos: async (jobId, stepId, formData, subStepId = null) => {
         try {
+            if (subStepId) {
+                formData.append('subStepId', subStepId);
+            }
             const response = await api.post(
                 `/api/worker/jobs/${jobId}/steps/${stepId}/photos`,
                 formData,

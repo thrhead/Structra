@@ -78,6 +78,62 @@ async function main() {
   })
   console.log('✅ Customer Profile:', customer.company)
 
+  // Create Sample Job
+  const job = await prisma.job.create({
+    data: {
+      title: 'Ofis Mobilyası Montajı',
+      description: '10 adet çalışma masası ve 5 adet ofis sandalyesi montajı yapılacak.',
+      // customerName and customerPhone are not in Job model, they come from Customer relation
+      location: customer.address || 'İstanbul', // Map address to location
+      status: 'PENDING',
+      scheduledDate: new Date(), // Add scheduled date
+      customerId: customer.id,
+      creatorId: manager.id, // Required field
+      assignments: {
+        create: {
+          workerId: worker.id,
+        }
+      },
+      steps: {
+        create: [
+          {
+            title: 'Hazırlık',
+            order: 1,
+            subSteps: {
+              create: [
+                { title: 'Paketlerin kontrolü', order: 1 },
+                { title: 'Montaj alanının hazırlanması', order: 2 }
+              ]
+            }
+          },
+          {
+            title: 'Masa Montajı',
+            order: 2,
+            subSteps: {
+              create: [
+                { title: 'Ayakların montajı', order: 1 },
+                { title: 'Tabla montajı', order: 2 },
+                { title: 'Kablo kanallarının takılması', order: 3 }
+              ]
+            }
+          },
+          {
+            title: 'Sandalye Montajı',
+            order: 3,
+            subSteps: {
+              create: [
+                { title: 'Tekerleklerin takılması', order: 1 },
+                { title: 'Amortisör montajı', order: 2 },
+                { title: 'Oturma grubu montajı', order: 3 }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  })
+  console.log('✅ Sample Job Created:', job.title)
+
   console.log('\n🎉 Seed tamamlandı!')
   console.log('\n📝 Test Kullanıcıları:')
   console.log('Admin: admin@montaj.com / admin123')

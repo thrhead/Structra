@@ -57,7 +57,10 @@ CREATE TABLE "jobs" (
     "status" TEXT NOT NULL DEFAULT 'PENDING',
     "priority" TEXT NOT NULL DEFAULT 'MEDIUM',
     "location" TEXT,
+    "latitude" REAL,
+    "longitude" REAL,
     "scheduledDate" DATETIME,
+    "scheduledEndDate" DATETIME,
     "completedDate" DATETIME,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
@@ -73,10 +76,42 @@ CREATE TABLE "job_steps" (
     "description" TEXT,
     "isCompleted" BOOLEAN NOT NULL DEFAULT false,
     "completedAt" DATETIME,
+    "startedAt" DATETIME,
+    "blockedAt" DATETIME,
+    "blockedReason" TEXT,
+    "blockedNote" TEXT,
     "order" INTEGER NOT NULL,
     "notes" TEXT,
     "photoUrl" TEXT,
+    "completedById" TEXT,
+    CONSTRAINT "job_steps_completedById_fkey" FOREIGN KEY ("completedById") REFERENCES "users" ("id") ON DELETE SET NULL ON UPDATE CASCADE,
     CONSTRAINT "job_steps_jobId_fkey" FOREIGN KEY ("jobId") REFERENCES "jobs" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "job_sub_steps" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "stepId" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "isCompleted" BOOLEAN NOT NULL DEFAULT false,
+    "completedAt" DATETIME,
+    "startedAt" DATETIME,
+    "blockedAt" DATETIME,
+    "blockedReason" TEXT,
+    "blockedNote" TEXT,
+    "order" INTEGER NOT NULL,
+    CONSTRAINT "job_sub_steps_stepId_fkey" FOREIGN KEY ("stepId") REFERENCES "job_steps" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "step_photos" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "stepId" TEXT NOT NULL,
+    "url" TEXT NOT NULL,
+    "uploadedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "uploadedById" TEXT NOT NULL,
+    CONSTRAINT "step_photos_stepId_fkey" FOREIGN KEY ("stepId") REFERENCES "job_steps" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "step_photos_uploadedById_fkey" FOREIGN KEY ("uploadedById") REFERENCES "users" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -129,7 +164,16 @@ CREATE TABLE "cost_tracking" (
     "currency" TEXT NOT NULL DEFAULT 'TRY',
     "date" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "category" TEXT,
-    CONSTRAINT "cost_tracking_jobId_fkey" FOREIGN KEY ("jobId") REFERENCES "jobs" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    "receiptUrl" TEXT,
+    "status" TEXT NOT NULL DEFAULT 'PENDING',
+    "rejectionReason" TEXT,
+    "createdById" TEXT NOT NULL,
+    "approvedById" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "cost_tracking_jobId_fkey" FOREIGN KEY ("jobId") REFERENCES "jobs" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "cost_tracking_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "users" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "cost_tracking_approvedById_fkey" FOREIGN KEY ("approvedById") REFERENCES "users" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 -- CreateIndex

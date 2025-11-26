@@ -16,7 +16,7 @@ export async function GET(req: Request) {
       assignments: {
         some: {
           OR: [
-            { userId: session.user.id }, // Doğrudan atananlar
+            { workerId: session.user.id }, // Doğrudan atananlar
             { team: { members: { some: { userId: session.user.id } } } } // Ekibine atananlar
           ]
         }
@@ -26,6 +26,12 @@ export async function GET(req: Request) {
     if (status) {
       where.status = status
     }
+
+    console.log('Worker Jobs Debug:', {
+      userId: session.user.id,
+      role: session.user.role,
+      where: JSON.stringify(where, null, 2)
+    })
 
     const jobs = await prisma.job.findMany({
       where,
@@ -43,12 +49,18 @@ export async function GET(req: Request) {
             }
           }
         },
-        _count: {
+        steps: {
           select: {
-            steps: true
+            id: true,
+            isCompleted: true
           }
         }
       }
+    })
+
+    console.log('🚀 Worker Jobs API Response:', {
+      count: jobs.length,
+      jobs: jobs.map(j => ({ id: j.id, title: j.title, status: j.status }))
     })
 
     return NextResponse.json(jobs)

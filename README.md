@@ -203,5 +203,29 @@ Projenin detaylı teknik dokümantasyonu `memory-bank/` klasöründe yer almakta
 
 Bu proje özel kullanım içindir. Ticari kullanım ve dağıtım hakları saklıdır. Detaylar için proje sahibi ile iletişime geçin.
 
-**Son Güncelleme:** 24 Kasım 2025
-**Versiyon:** 2.2.0
+**Son Güncelleme:** 26 Kasım 2025
+**Versiyon:** 2.3.0 (Mobil Entegrasyon & API Güncellemeleri)
+
+## 🚀 Son Güncellemeler (v2.3.0)
+
+### 📱 Mobil Uygulama (React Native / Expo)
+*   **Worker Paneli:** İş listesi ve detay ekranları tamamlandı.
+*   **İş Detayları:**
+    *   Adım ve alt adım (checklist) takibi.
+    *   **Fotoğraf Yükleme:** Alt görev bazlı fotoğraf yükleme (Min 1, Max 3 kuralı).
+    *   **Sıralı İlerleme:** Adımların sırayla tamamlanması zorunluluğu.
+    *   **Yerel Depolama:** Fotoğraflar sunucu üzerinde `public/uploads` klasöründe saklanır.
+*   **Masraf Yönetimi:** Mobil üzerinden masraf ekleme ve durum takibi.
+*   **Profil:** Şifre değiştirme ve profil görüntüleme.
+
+### 🔧 Backend & API
+*   **Mobil API:** `/api/mobile/login` ile CSRF korumasını aşan özel login endpoint'i.
+*   **Yetkilendirme:** Mobil istekleri için `Authorization: Bearer` token desteği (`verifyAuth`).
+*   **CORS:** Mobil uygulamanın sunucuya erişimi için CORS yapılandırması (`middleware.ts`, `next.config.ts`).
+*   **Veritabanı:** SQLite (`dev.db`) kullanımı ve Prisma şema güncellemeleri (`subStepId` desteği).
+*   **Network:** Sunucu `0.0.0.0` üzerinden yayın yaparak yerel ağ erişimine açıldı.
+
+### ⚠️ Önemli Notlar
+*   **E-posta Bildirimleri:** Yerel geliştirme ortamında timeout sorununu önlemek için geçici olarak devre dışı bırakıldı.
+*   **Fotoğraf Yükleme:** Cloudinary yerine yerel dosya sistemi kullanılıyor.
+

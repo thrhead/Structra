@@ -151,19 +151,6 @@
 
 **Aktif Görev**: Mobil Uygulama Entegrasyonu (Phase 4 Tamamlandı)
 
-**Durum**: Production-ready (Web), Beta (Mobile)
-
-**Son Tamamlananlar**:
-- ✅ **Mobile Phase 1**: Foundation & UI (Tamamlandı)
-- ✅ **Mobile Phase 2**: Worker Features Integration (Tamamlandı)
-- ✅ **Mobile Phase 3**: Manager Features Integration (Tamamlandı)
-- ✅ **Mobile Phase 4**: Admin Features Integration (Tamamlandı)
-- ✅ Backend API endpoints for Mobile App (Users, Customers, Jobs, Teams)
-
-**Sonraki Öneriler**: 
-- Mobile App Testing & Polish
-- Push Notifications (Expo)
-- Offline Mode (Mobile)
 
 ## Bilinen Sorunlar
 
@@ -499,6 +486,9 @@
 - ✅ Manager Features (Complete)
 - ✅ Admin Features (Complete)
 - ✅ Full Backend Integration
+- ✅ **Substep Photo Constraints (Min 1, Max 3)**
+- ✅ **Local File Upload Strategy**
+- ✅ **Sequential Substep Locking**
 
 ### v3.0 (Gelecek - 2025 Q1)
 - [ ] Offline support

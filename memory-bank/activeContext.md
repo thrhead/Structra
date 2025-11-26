@@ -1,7 +1,7 @@
 # Aktif Bağlam
 
-**Son Güncelleme:** 25 Kasım 2024  
-**Versiyon:** 2.5.0 (Mobile Beta)
+**Son Güncelleme:** 26 Kasım 2024  
+**Versiyon:** 2.3.0 (Mobile Beta & Photo Constraints)
 
 ### Mevcut Durum
 
@@ -64,6 +64,12 @@
     - İş şemasına `scheduledEndDate` eklendi
     - JobDialog güncellendi: Alt görev oluşturma desteği
     - Başlangıç-bitiş tarih/saat seçimi
+
+5.  **Gelişmiş Fotoğraf Yönetimi (v2.3)**:
+    - **Alt Görev Bazlı Fotoğraflar**: Her checklist maddesi için ayrı fotoğraf yükleme.
+    - **Kısıtlamalar**: Min 1 (tamamlamak için), Max 3 (sınır) fotoğraf kuralı.
+    - **Yerel Depolama**: Cloudinary yerine `public/uploads` klasörüne yerel kayıt desteği.
+    - **Sıralı İlerleme**: Alt görevlerin sırayla tamamlanması zorunluluğu.
 
 ## Sonraki Adımlar
 

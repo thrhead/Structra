@@ -155,6 +155,7 @@ model JobSubStep {
   order       Int
 
   step        JobStep  @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  photos      StepPhoto[]
 
   @@map("job_sub_steps")
 }
@@ -167,6 +168,10 @@ model StepPhoto {
   uploadedById String
   
   step        JobStep  @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  
+  subStepId   String?
+  subStep     JobSubStep? @relation(fields: [subStepId], references: [id])
+  
   uploadedBy  User     @relation(fields: [uploadedById], references: [id])
 
   @@map("step_photos")

@@ -29,10 +29,12 @@ export default function WorkerJobsScreen({ navigation }) {
     const loadJobs = async () => {
         try {
             setError(null);
-            const response = await jobService.getMyJobs();
+            const data = await jobService.getMyJobs();
 
-            if (response.jobs) {
-                setJobs(response.jobs);
+            if (Array.isArray(data)) {
+                setJobs(data);
+            } else if (data.jobs) {
+                setJobs(data.jobs);
             } else {
                 setJobs([]);
             }

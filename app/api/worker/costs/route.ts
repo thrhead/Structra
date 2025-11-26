@@ -74,6 +74,8 @@ export async function POST(req: Request) {
         broadcast('cost:submitted', socketPayload)
 
         // Send email notification to admins (async, don't block)
+        // Send email notification to admins (async, don't block)
+        /*
         const admins = await prisma.user.findMany({
             where: {
                 role: { in: ['ADMIN', 'MANAGER'] },
@@ -93,6 +95,7 @@ export async function POST(req: Request) {
                 date: data.date
             }).catch(err => console.error('Email send failed:', err))
         }
+        */
 
         return NextResponse.json(cost, { status: 201 })
     } catch (error) {
