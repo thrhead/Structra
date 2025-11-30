@@ -20,6 +20,8 @@ import CustomInput from '../components/CustomInput';
 const { width } = Dimensions.get('window');
 
 export default function LoginScreen({ navigation }) {
+  console.log('LoginScreen rendering...');
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -53,6 +55,7 @@ export default function LoginScreen({ navigation }) {
           source={{ uri: "https://lh3.googleusercontent.com/aida-public/AB6AXuAYxW6oDVJGfIJeF5jX477eaJ2dYcFaUvsB_tCZ57FFMUaGU88sv5Rcjnhe-_JqzamcGQImX6ioR7wjwzv8dBJDXuAGkzYdPHbxuXyhmUGHjT6BzESRUmUqvfTo2h_PweT8EILApUYE7r7kDtfo7p241tS8XI25jbk1t477S_gG9N9E0OeCYWKluCba_rjixZGoKS6cz0KPfJMgBwWZmnQY-CISAhiiwdfw7in5SrQXZXLM9evwrH6PfbbTpcFSJLWt7W2Mr7hW9wa2" }}
           style={styles.topImage}
           imageStyle={{ borderRadius: 8 }}
+          onError={(e) => console.error('Image load error:', e.nativeEvent.error)}
         />
       </View>
 

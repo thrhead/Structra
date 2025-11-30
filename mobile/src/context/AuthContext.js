@@ -22,13 +22,24 @@ export const AuthProvider = ({ children }) => {
 
     const checkUser = async () => {
         try {
-            const savedUser = await AsyncStorage.getItem('user');
-            // getAuthToken will also set the api header if token exists
-            const token = await getAuthToken();
+            // Create a timeout promise
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Auth check timeout')), 5000)
+            );
 
-            if (savedUser && token) {
-                setUser(JSON.parse(savedUser));
-            }
+            // Race between auth check and timeout
+            await Promise.race([
+                (async () => {
+                    const savedUser = await AsyncStorage.getItem('user');
+                    // getAuthToken will also set the api header if token exists
+                    const token = await getAuthToken();
+
+                    if (savedUser && token) {
+                        setUser(JSON.parse(savedUser));
+                    }
+                })(),
+                timeoutPromise
+            ]);
         } catch (error) {
             console.error('Error checking user:', error);
         } finally {

@@ -1,7 +1,9 @@
 import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
+import { COLORS } from './src/constants/theme';
 import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
@@ -31,7 +33,11 @@ function AppNavigator() {
   console.log('AppNavigator - user:', user, 'loading:', loading, 'CreateJobScreen registered');
 
   if (loading) {
-    return null; // Veya bir loading screen
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
   }
 
   // Determine initial route based on user role
@@ -160,14 +166,53 @@ function AppNavigator() {
 import { SocketProvider } from './src/context/SocketContext';
 import ToastNotification from './src/components/ToastNotification';
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20, backgroundColor: COLORS.backgroundDark }}>
+          <Text style={{ color: 'white', fontSize: 18, marginBottom: 10 }}>Bir hata oluştu</Text>
+          <Text style={{ color: 'red', textAlign: 'center' }}>{this.state.error?.toString()}</Text>
+        </View>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 export default function App() {
   console.log('App component mounted. Wrapping with Providers...');
   return (
-    <AuthProvider>
-      <SocketProvider>
-        <AppNavigator />
-        <ToastNotification />
-      </SocketProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <SocketProvider>
+          <AppNavigator />
+          <ToastNotification />
+        </SocketProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.backgroundDark,
+  },
+});

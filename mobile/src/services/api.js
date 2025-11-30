@@ -9,7 +9,9 @@ const NGROK_URL = 'NGROK_URL_BURAYA';  // ngrok URL'inizi buraya yapıştırın
 
 // Determine the correct base URL based on platform
 const getBaseUrl = () => {
-    if (NGROK_URL !== 'NGROK_URL_BURAYA') {
+    // If NGROK_URL is set to a valid URL (not the placeholder), use it
+    if (NGROK_URL && NGROK_URL !== 'NGROK_URL_BURAYA' && NGROK_URL.startsWith('http')) {
+        console.log('[API] Using Ngrok URL:', NGROK_URL);
         return NGROK_URL;
     }
 
@@ -23,7 +25,8 @@ const getBaseUrl = () => {
         return 'http://10.0.2.2:3000';
     }
 
-    // For iOS simulator or physical devices, use local IP
+    // For iOS simulator or physical devices
+    // You might want to make this configurable or dynamic
     return 'http://192.168.1.173:3000';
 };
 
