@@ -471,21 +471,21 @@
 
 ## 🎯 Milestone Timeline
 
-### v1.0 (Tamamlandı - Kasım 2024)
+### v1.0 (Tamamlandı - Kasım 2025)
 - ✅ Core authentication
 - ✅ Basic job management
 - ✅ Team system
 - ✅ Cost tracking
 - ✅ Photo upload
 
-### v2.0 (Tamamlandı - Kasım 2024)
+### v2.0 (Tamamlandı - Kasım 2025)
 - ✅ Real-time notifications
 - ✅ PDF reports
 - ✅ Advanced filtering
 - ✅ Substep time tracking
 - ✅ Modern UI redesign
 
-### v2.5 - Mobile App (Tamamlandı - Aralık 2024) ✅
+### v2.5 - Mobile App (Tamamlandı - Aralık 2025) ✅
 - ✅ React Native + Expo Foundation
 - ✅ Worker Features (Complete)
 - ✅ Manager Features (Complete)
