@@ -14,7 +14,7 @@ export default async function AdminReportsPage() {
     }
 
     const [stats, allJobs] = await Promise.all([
-        getReportStats(),
+        getReportStats(new Date(0), new Date()),
         getJobsForReport()
     ])
 
@@ -134,7 +134,7 @@ export default async function AdminReportsPage() {
                                                     {job.title}
                                                 </Link>
                                                 <div className="flex items-center gap-3 mt-2 text-sm text-slate-500 dark:text-slate-400">
-                                                    <span>Müşteri: {job.customer.name}</span>
+                                                    <span>Müşteri: {job.customer.company}</span>
                                                     <span>•</span>
                                                     <span>Ekip: {teamName}</span>
                                                 </div>
