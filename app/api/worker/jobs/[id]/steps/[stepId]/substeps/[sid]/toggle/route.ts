@@ -6,7 +6,7 @@ import { broadcast } from '@/lib/socket'
 
 export async function POST(
     req: Request,
-    props: { params: Promise<{ id: string; stepId: string; substepId: string }> }
+    props: { params: Promise<{ id: string; stepId: string; sid: string }> }
 ) {
     const params = await props.params
     try {
@@ -16,7 +16,7 @@ export async function POST(
         }
 
         const subStep = await prisma.jobSubStep.findUnique({
-            where: { id: params.substepId },
+            where: { id: params.sid },
             include: {
                 step: {
                     include: { job: { select: { title: true } } }
@@ -29,7 +29,7 @@ export async function POST(
         }
 
         const updatedSubStep = await prisma.jobSubStep.update({
-            where: { id: params.substepId },
+            where: { id: params.sid },
             data: {
                 isCompleted: !subStep.isCompleted,
                 completedAt: !subStep.isCompleted ? new Date() : null,
@@ -41,7 +41,7 @@ export async function POST(
         })
 
         console.log('Toggle Substep:', {
-            id: params.substepId,
+            id: params.sid,
             oldStatus: subStep.approvalStatus,
             oldCompleted: subStep.isCompleted,
             newStatus: updatedSubStep.approvalStatus,
@@ -52,7 +52,7 @@ export async function POST(
         if (updatedSubStep.isCompleted && !subStep.isCompleted) {
             // Socket.IO broadcast for real-time web notifications
             broadcast('substep:completed', {
-                substepId: params.substepId,
+                substepId: params.sid,
                 jobId: params.id,
                 jobTitle: subStep.step.job.title,
                 substepTitle: subStep.title,

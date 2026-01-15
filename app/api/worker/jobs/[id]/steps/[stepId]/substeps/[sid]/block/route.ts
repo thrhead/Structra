@@ -10,7 +10,7 @@ const blockSchema = z.object({
 
 export async function POST(
     req: Request,
-    props: { params: Promise<{ id: string; stepId: string; substepId: string }> }
+    props: { params: Promise<{ id: string; stepId: string; sid: string }> }
 ) {
     const params = await props.params
     try {
@@ -23,7 +23,7 @@ export async function POST(
         const { reason, note } = blockSchema.parse(body)
 
         const subStep = await prisma.jobSubStep.findUnique({
-            where: { id: params.substepId }
+            where: { id: params.sid }
         })
 
         if (!subStep) {
@@ -31,7 +31,7 @@ export async function POST(
         }
 
         const updatedSubStep = await prisma.jobSubStep.update({
-            where: { id: params.substepId },
+            where: { id: params.sid },
             data: {
                 blockedAt: new Date(),
                 blockedReason: reason,
@@ -51,7 +51,7 @@ export async function POST(
 
 export async function DELETE(
     req: Request,
-    props: { params: Promise<{ id: string; stepId: string; substepId: string }> }
+    props: { params: Promise<{ id: string; stepId: string; sid: string }> }
 ) {
     const params = await props.params
     try {
@@ -61,7 +61,7 @@ export async function DELETE(
         }
 
         const updatedSubStep = await prisma.jobSubStep.update({
-            where: { id: params.substepId },
+            where: { id: params.sid },
             data: {
                 blockedAt: null,
                 blockedReason: null,
