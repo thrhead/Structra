@@ -1,274 +1,157 @@
 import api from './api';
 
 const jobService = {
-    /**
-     * Get all jobs (Admin/Manager)
-     * @returns {Promise<Array>}
-     */
-    getAll: async () => {
-        try {
-            const response = await api.get('/api/admin/jobs');
-            return response.data;
-        } catch (error) {
-            console.error('Get all jobs error:', error);
-            throw error;
-        }
+    // Queries
+    getAdminJobs: async () => {
+        const response = await api.get('/api/admin/jobs');
+        return response.data;
     },
 
-    /**
-     * Get all jobs assigned to the current worker
-     * @returns {Promise<{jobs}>}
-     */
+    // Alias for getAdminJobs (Legacy support)
+    getAll: async () => jobService.getAdminJobs(),
+
     getMyJobs: async () => {
-        try {
-            const response = await api.get('/api/worker/jobs');
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
+        const response = await api.get('/api/worker/jobs');
+        return response.data;
     },
 
-    /**
-     * Get job details by ID
-     * @param {string} jobId
-     * @returns {Promise<{job}>}
-     */
     getJobById: async (jobId) => {
-        try {
-            const response = await api.get(`/api/worker/jobs/${jobId}`);
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
+        const response = await api.get(`/api/worker/jobs/${jobId}`);
+        return response.data;
     },
 
-    /**
-     * Toggle job step completion
-     * @param {string} jobId
-     * @param {string} stepId
-     * @param {boolean} isCompleted
-     * @returns {Promise<{success}>}
-     */
-    toggleStep: async (jobId, stepId, isCompleted) => {
-        try {
-            const response = await api.post(
-                `/api/worker/jobs/${jobId}/steps/${stepId}/toggle`,
-                { isCompleted }
-            );
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
+    searchJobs: async (filters = {}) => {
+        const params = new URLSearchParams();
+        if (filters.search) params.append('search', filters.search);
+        if (filters.status && filters.status !== 'ALL') params.append('status', filters.status);
+        if (filters.priority) params.append('priority', filters.priority);
+
+        const response = await api.get(`/api/admin/jobs?${params.toString()}`);
+        return response.data;
     },
 
-    /**
-     * Toggle substep completion
-     * @param {string} jobId
-     * @param {string} stepId
-     * @param {string} substepId
-     * @param {boolean} isCompleted
-     * @returns {Promise<{success}>}
-     */
-    toggleSubstep: async (jobId, stepId, substepId, isCompleted) => {
-        try {
-            const response = await api.post(
-                `/api/worker/jobs/${jobId}/steps/${stepId}/substeps/${substepId}/toggle`,
-                { isCompleted }
-            );
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
+    // Alias for searchJobs (Legacy support)
+    getAllJobs: async (filters) => jobService.searchJobs(filters),
+
+    getPendingApprovals: async () => {
+        const response = await api.get('/api/admin/jobs?status=PENDING_APPROVAL');
+        return response.data;
     },
 
-    /**
-     * Upload photos for a job step
-     * @param {string} jobId
-     * @param{string} stepId
-     * @param {FormData} formData
-     * @returns {Promise<{photos}>}
-     */
-    uploadPhotos: async (jobId, stepId, formData, subStepId = null) => {
-        try {
-            if (subStepId) {
-                formData.append('subStepId', subStepId);
-            }
-            const response = await api.post(
-                `/api/worker/jobs/${jobId}/steps/${stepId}/photos`,
-                formData,
-                {
-                    transformRequest: (data, headers) => {
-                        // Do not stringify FormData
-                        return data;
-                    },
-                }
-            );
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
+    getTemplates: async () => {
+        const response = await api.get('/api/admin/templates');
+        return response.data;
     },
 
-    /**
-     * Complete a job
-     * @param {string} jobId
-     * @returns {Promise<{success}>}
-     */
+    // Mutations - Job Status & Flow
+    startJob: async (jobId) => {
+        const response = await api.post(`/api/worker/jobs/${jobId}/start`);
+        return response.data;
+    },
+
     completeJob: async (jobId) => {
-        try {
-            const response = await api.post(`/api/worker/jobs/${jobId}/complete`);
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    /**
-     * Get all jobs (Manager/Admin)
-     * @param {Object} filters
-     * @returns {Promise<Array>}
-     */
-    getAllJobs: async (filters = {}) => {
-        try {
-            const params = new URLSearchParams();
-            if (filters.search) params.append('search', filters.search);
-            if (filters.status && filters.status !== 'ALL') params.append('status', filters.status);
-            if (filters.priority) params.append('priority', filters.priority);
-
-            const response = await api.get(`/api/admin/jobs?${params.toString()}`);
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    /**
-     * Assign job to worker
-     * @param {string} jobId
-     * @param {string} workerId
-     * @returns {Promise<Object>}
-     */
-    assignJob: async (jobId, workerId) => {
-        try {
-            const response = await api.post(`/api/admin/jobs/${jobId}/assign`, { workerId });
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    approveStep: async (stepId) => {
-        try {
-            const response = await api.post(`/api/manager/steps/${stepId}/approve`);
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    rejectStep: async (stepId, reason) => {
-        try {
-            const response = await api.post(`/api/manager/steps/${stepId}/reject`, { reason });
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    approveSubstep: async (substepId) => {
-        try {
-            const response = await api.post(`/api/manager/substeps/${substepId}/approve`);
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    rejectSubstep: async (substepId, reason) => {
-        try {
-            const response = await api.post(`/api/manager/substeps/${substepId}/reject`, { reason });
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
+        const response = await api.post(`/api/worker/jobs/${jobId}/complete`);
+        return response.data;
     },
 
     acceptJob: async (jobId) => {
-        try {
-            const response = await api.post(`/api/manager/jobs/${jobId}/accept`);
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
+        const response = await api.post(`/api/manager/jobs/${jobId}/accept`);
+        return response.data;
     },
 
-
-    /**
-     * Create a new job
-     * @param {Object} jobData
-     * @returns {Promise<{job}>}
-     */
-    create: async (jobData) => {
-        try {
-            const response = await api.post('/api/admin/jobs', jobData);
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
+    rejectJob: async (jobId, reason) => {
+        const response = await api.post(`/api/manager/jobs/${jobId}/reject`, { reason });
+        return response.data;
     },
 
-    /**
-     * Update a job
-     * @param {string} jobId
-     * @param {Object} jobData
-     * @returns {Promise<{job}>}
-     */
-    update: async (jobId, jobData) => {
-        try {
-            const response = await api.put(`/api/admin/jobs/${jobId}`, jobData);
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
+    assignJob: async (jobId, workerId) => {
+        const response = await api.post(`/api/admin/jobs/${jobId}/assign`, { workerId });
+        return response.data;
     },
 
-    getPendingApprovals: async () => {
-        try {
-            // This endpoint needs to exist on backend, or we filter getAllJobs
-            const response = await api.get('/api/admin/jobs?status=PENDING_APPROVAL');
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    startJob: async (jobId) => {
-        try {
-            const response = await api.post(`/api/worker/jobs/${jobId}/start`);
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
+    // Mutations - Steps
+    toggleStep: async (jobId, stepId, isCompleted) => {
+        const response = await api.post(`/api/worker/jobs/${jobId}/steps/${stepId}/toggle`, { isCompleted });
+        return response.data;
     },
 
     startStep: async (jobId, stepId) => {
-        try {
-            const response = await api.post(`/api/worker/jobs/${jobId}/steps/${stepId}/start`);
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
+        const response = await api.post(`/api/worker/jobs/${jobId}/steps/${stepId}/start`);
+        return response.data;
+    },
+
+    approveStep: async (stepId) => {
+        const response = await api.post(`/api/manager/steps/${stepId}/approve`);
+        return response.data;
+    },
+
+    rejectStep: async (stepId, reason) => {
+        const response = await api.post(`/api/manager/steps/${stepId}/reject`, { reason });
+        return response.data;
+    },
+
+    // Mutations - Substeps
+    toggleSubstep: async (jobId, stepId, substepId, isCompleted) => {
+        const response = await api.post(`/api/worker/jobs/${jobId}/steps/${stepId}/substeps/${substepId}/toggle`, { isCompleted });
+        return response.data;
     },
 
     startSubstep: async (jobId, stepId, substepId) => {
-        try {
-            // Using flattened route to avoid deep nesting issues
-            const response = await api.post(`/api/worker/substeps/${substepId}/start`);
-            return response.data;
-        } catch (error) {
-            throw error;
+        const response = await api.post(`/api/worker/substeps/${substepId}/start`);
+        return response.data;
+    },
+
+    approveSubstep: async (substepId) => {
+        const response = await api.post(`/api/manager/substeps/${substepId}/approve`);
+        return response.data;
+    },
+
+    rejectSubstep: async (substepId, reason) => {
+        const response = await api.post(`/api/manager/substeps/${substepId}/reject`, { reason });
+        return response.data;
+    },
+
+    // Mutations - Photos & Files
+    uploadPhotos: async (jobId, stepId, formData, subStepId = null) => {
+        if (subStepId) {
+            formData.append('subStepId', subStepId);
         }
-    }
+        const response = await api.post(`/api/worker/jobs/${jobId}/steps/${stepId}/photos`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    },
+
+    bulkImportJobs: async (formData) => {
+        const response = await api.post('/api/admin/jobs/bulk-import', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    },
+
+    importTemplate: async (formData) => {
+        const response = await api.post('/api/admin/templates/import', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    },
+
+    // Admin CRUD
+    create: async (jobData) => {
+        const response = await api.post('/api/admin/jobs', jobData);
+        return response.data;
+    },
+
+    update: async (jobId, jobData) => {
+        const response = await api.put(`/api/admin/jobs/${jobId}`, jobData);
+        return response.data;
+    },
 };
 
 export default jobService;

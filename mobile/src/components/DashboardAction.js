@@ -12,6 +12,7 @@ const DashboardAction = ({ icon, label, onPress, isActive = true, disabled = fal
             ]}
             onPress={onPress}
             disabled={disabled}
+            activeOpacity={0.7}
         >
             {typeof icon === 'string' ? <Text style={styles.icon}>{icon}</Text> : icon}
             <Text style={styles.label}>{label}</Text>
@@ -25,7 +26,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: COLORS.cardDark,
         borderRadius: 12,
-        padding: 20,
+        padding: 16,
         alignItems: 'center',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },

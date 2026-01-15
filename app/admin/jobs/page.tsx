@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/db"
 import { JobDialog } from "@/components/admin/job-dialog"
+import { BulkUploadDialog } from "@/components/admin/bulk-upload-dialog"
 import {
   Table,
   TableBody,
@@ -15,55 +16,7 @@ import { Input } from "@/components/ui/input"
 import { SearchIcon, CalendarIcon, MapPinIcon, BriefcaseIcon } from "lucide-react"
 import { format } from "date-fns"
 import { tr } from "date-fns/locale"
-
-async function getJobs(search?: string) {
-  const where: any = {}
-  if (search) {
-    where.OR = [
-      { title: { contains: search } },
-      { customer: { company: { contains: search } } },
-      { customer: { user: { name: { contains: search } } } }
-    ]
-  }
-
-  return await prisma.job.findMany({
-    where,
-    orderBy: { createdAt: 'desc' },
-    include: {
-      customer: {
-        include: {
-          user: {
-            select: { name: true }
-          }
-        }
-      },
-      assignments: {
-        include: {
-          team: true
-        }
-      },
-      steps: {
-        where: {
-          subSteps: {
-            some: {
-              approvalStatus: 'PENDING'
-            }
-          }
-        },
-        select: { id: true }
-      },
-      costs: {
-        where: { status: 'PENDING' },
-        select: { id: true }
-      },
-      _count: {
-        select: {
-          steps: true
-        }
-      }
-    }
-  })
-}
+import { getJobs } from "@/lib/data/jobs"
 
 const priorityColors: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   LOW: "secondary",
@@ -92,11 +45,46 @@ export default async function JobsPage(props: {
 }) {
   const searchParams = await props.searchParams
   const session = await auth()
+
   if (!session || session.user.role !== "ADMIN") {
     redirect("/login")
   }
 
-  const jobs = await getJobs(searchParams.search)
+  // Parallel data fetching for jobs list and dialog dependencies
+  const [jobsData, customers, teams, templates] = await Promise.all([
+    getJobs({
+      filter: { search: searchParams.search },
+      limit: 50
+    }),
+    prisma.customer.findMany({
+      include: { user: { select: { name: true } } }
+    }),
+    prisma.team.findMany({
+      where: { isActive: true }
+    }),
+    prisma.jobTemplate.findMany({
+      include: { steps: { include: { subSteps: true } } }
+    })
+  ])
+
+  const { jobs } = jobsData
+
+  // Map templates to the expected interface in JobDialog
+  const mappedTemplates = templates.map(t => ({
+    id: t.id,
+    name: t.name,
+    steps: t.steps.map(s => ({
+      title: s.title,
+      description: '', // TemplateStep doesn't have description in prisma schema provided? If it does, add it.
+      subSteps: s.subSteps.map(ss => ({ title: ss.title }))
+    }))
+  }))
+
+  const mappedCustomers = customers.map(c => ({
+    id: c.id,
+    company: c.company,
+    user: { name: c.user.name || '' } // Handle null name
+  }))
 
   return (
     <div className="space-y-6">
@@ -105,7 +93,14 @@ export default async function JobsPage(props: {
           <h1 className="text-3xl font-bold text-gray-900">İşler</h1>
           <p className="text-gray-500 mt-2">Montaj ve servis işlerini yönetin.</p>
         </div>
-        <JobDialog />
+        <div className="flex items-center gap-2">
+          <BulkUploadDialog />
+          <JobDialog
+            customers={mappedCustomers}
+            teams={teams}
+            templates={mappedTemplates}
+          />
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow">
@@ -158,6 +153,11 @@ export default async function JobsPage(props: {
                 <TableCell>
                   <div className="font-medium">{job.customer.company}</div>
                   <div className="text-sm text-gray-500">{job.customer.user.name}</div>
+                  {job._count.steps === 0 && job.status === 'PENDING' && (
+                    <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                      🚫 İşe Başlanmadı
+                    </div>
+                  )}
                   {(job.steps.length > 0 || job.costs.length > 0) && (
                     <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
                       ⚠️ Onay Bekliyor
@@ -166,20 +166,39 @@ export default async function JobsPage(props: {
                 </TableCell>
                 <TableCell>
                   {job.assignments.length > 0 && job.assignments[0].team ? (
-                    <Badge variant="outline" className="font-normal">
-                      {job.assignments[0].team.name}
-                    </Badge>
+                    <div className="space-y-1">
+                      <Badge variant="outline" className="font-normal">
+                        {job.assignments[0].team.name}
+                      </Badge>
+                      {job.assignments[0].team.lead && (
+                        <div className="text-xs text-gray-500">
+                          👤 Lider: {job.assignments[0].team.lead.name}
+                        </div>
+                      )}
+                      {job.assignments[0].team.members && job.assignments[0].team.members.length > 0 && (
+                        <div className="text-xs text-gray-400">
+                          👥 {job.assignments[0].team.members.map((m: any) => m.user.name).join(', ')}
+                        </div>
+                      )}
+                    </div>
+                  ) : job.assignments.length > 0 && job.assignments[0].worker ? (
+                    <div className="space-y-1">
+                      <Badge variant="outline" className="font-normal bg-blue-50">
+                        {job.assignments[0].worker.name}
+                      </Badge>
+                      <div className="text-xs text-gray-400">Bireysel Atama</div>
+                    </div>
                   ) : (
                     <span className="text-sm text-gray-400 italic">Atanmamış</span>
                   )}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={priorityColors[job.priority]}>
+                  <Badge variant={priorityColors[job.priority] || "default"}>
                     {job.priority}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Badge variant={statusColors[job.status]}>
+                  <Badge variant={statusColors[job.status] || "default"}>
                     {statusLabels[job.status] || job.status}
                   </Badge>
                 </TableCell>

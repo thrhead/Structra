@@ -3,10 +3,10 @@
     "name": "mobile",
     "slug": "mobile",
     "version": "1.0.0",
+    "sdkVersion": "54.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -25,12 +25,20 @@
       "googleServicesFile": "./google-services.json"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single",
+      "name": "Assembly Tracker",
+      "shortName": "AssemblyTracker",
+      "description": "İş takip ve yönetim uygulaması",
+      "themeColor": "#1a365d",
+      "backgroundColor": "#ffffff"
     },
     "extra": {
       "eas": {
-        "projectId": "395621ea-54bf-4ba6-b540-e654f1c129e"
+        "projectId": "7494834e-65b0-43bf-b568-1f47f73ada6a"
       }
-    }
+    },
+    "owner": "thead"
   }
 }

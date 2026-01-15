@@ -1,8 +1,12 @@
 import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createStackNavigator } from '@react-navigation/stack';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
+import { NetworkProvider } from './src/context/NetworkContext';
+import { OfflineBanner } from './src/components/OfflineBanner';
 import { COLORS } from './src/constants/theme';
 import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
@@ -19,18 +23,48 @@ import UserManagementScreen from './src/screens/admin/UserManagementScreen';
 import CustomerManagementScreen from './src/screens/admin/CustomerManagementScreen';
 import ApprovalsScreen from './src/screens/admin/ApprovalsScreen';
 import CreateJobScreen from './src/screens/admin/CreateJobScreen';
-
-// ...
-
+import CalendarScreen from './src/screens/admin/CalendarScreen';
 import CostManagementScreen from './src/screens/manager/CostManagementScreen';
 import NotificationsScreen from './src/screens/worker/NotificationsScreen';
+import notificationService from './src/services/notification.service';
+import * as Notifications from 'expo-notifications';
+import { SocketProvider } from './src/context/SocketContext';
+import ToastNotification from './src/components/ToastNotification';
+import { QueueService } from './src/services/QueueService';
+import { SyncManager } from './src/services/SyncManager';
 
-const Stack = createNativeStackNavigator();
+const Stack = createStackNavigator();
 
 function AppNavigator() {
   const { user, loading } = useAuth();
 
-  console.log('AppNavigator - user:', user, 'loading:', loading, 'CreateJobScreen registered');
+  // Determine initial route based on user role
+  React.useEffect(() => {
+    if (user?.id) {
+      notificationService.registerForPushNotificationsAsync().then(token => {
+        if (token) {
+          notificationService.sendPushTokenToBackend(token, user.id);
+        }
+      });
+    }
+  }, [user]);
+
+  // Handle incoming notifications
+  React.useEffect(() => {
+    const subscription = Notifications.addNotificationReceivedListener(notification => {
+      console.log("Notification received:", notification);
+    });
+
+    const responseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
+      console.log("Notification response received:", response);
+      // Future: extract jobId and navigate
+    });
+
+    return () => {
+      subscription.remove();
+      responseSubscription.remove();
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -39,8 +73,6 @@ function AppNavigator() {
       </View>
     );
   }
-
-  // Determine initial route based on user role
   const getInitialRoute = () => {
     if (!user) return "Login";
 
@@ -130,7 +162,12 @@ function AppNavigator() {
             <Stack.Screen
               name="CreateJob"
               component={CreateJobScreen}
-              options={{ title: 'Yeni İş Oluştur', headerShown: false }}
+              options={{ title: 'Yeni İş Oluştur' }}
+            />
+            <Stack.Screen
+              name="Calendar"
+              component={CalendarScreen}
+              options={{ headerShown: false }}
             />
             {/* Profile Screen */}
             <Stack.Screen
@@ -163,9 +200,6 @@ function AppNavigator() {
   );
 }
 
-import { SocketProvider } from './src/context/SocketContext';
-import ToastNotification from './src/components/ToastNotification';
-
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -195,16 +229,29 @@ class ErrorBoundary extends React.Component {
 }
 
 export default function App() {
-  console.log('App component mounted. Wrapping with Providers...');
+  React.useEffect(() => {
+    // Initialize Offline Queue
+    QueueService.initialize();
+    // Initialize Sync Manager
+    SyncManager.init();
+  }, []);
+
   return (
-    <ErrorBoundary>
-      <AuthProvider>
-        <SocketProvider>
-          <AppNavigator />
-          <ToastNotification />
-        </SocketProvider>
-      </AuthProvider>
-    </ErrorBoundary>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ErrorBoundary>
+        <SafeAreaProvider>
+          <NetworkProvider>
+            <AuthProvider>
+              <SocketProvider>
+                <OfflineBanner />
+                <AppNavigator />
+                <ToastNotification />
+              </SocketProvider>
+            </AuthProvider>
+          </NetworkProvider>
+        </SafeAreaProvider>
+      </ErrorBoundary>
+    </GestureHandlerRootView>
   );
 }
 

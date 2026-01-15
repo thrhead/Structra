@@ -45,18 +45,19 @@ export const updateUserSchema = z.object({
 // Team Schemas
 export const createTeamSchema = z.object({
   name: z.string().min(2, 'Takım adı en az 2 karakter olmalıdır'),
-  leadId: z.string().cuid('Geçerli bir takım lideri seçiniz'),
-  description: z.string().optional(),
+  leadId: z.string().cuid('Geçerli bir takım lideri seçiniz').optional().nullable(),
+  description: z.string().optional().nullable(),
+  isActive: z.boolean().optional(),
+  memberIds: z.array(z.string()).optional()
 })
 
 // Customer Schemas
 export const createCustomerSchema = z.object({
-  name: z.string().min(2, 'Müşteri adı en az 2 karakter olmalıdır'),
+  companyName: z.string().min(2, 'Şirket adı en az 2 karakter olmalıdır'),
+  contactPerson: z.string().min(2, 'Kişi adı en az 2 karakter olmalıdır'),
   email: z.string().email('Geçerli bir e-posta adresi giriniz'),
-  password: z.string().min(6, 'Şifre en az 6 karakter olmalıdır'),
-  company: z.string().optional(),
-  address: z.string().optional(),
   phone: z.string().optional(),
+  address: z.string().optional(),
 })
 
 // Notification Schema
@@ -95,6 +96,7 @@ export const jobCreationSchema = z.object({
   description: z.string().optional(),
   customerId: z.string().min(1, 'Customer is required'),
   teamId: z.string().optional(),
+  workerId: z.string().optional(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
   location: z.string().optional(),
   scheduledDate: z.string().min(1, 'Scheduled date is required'),
@@ -118,3 +120,12 @@ export type JobStepInput = z.infer<typeof jobStepSchema>
 export type UpdateJobStepInput = z.infer<typeof updateJobStepSchema>
 export type CreateCustomerInput = z.infer<typeof createCustomerSchema>
 export type CreateTeamInput = z.infer<typeof createTeamSchema>
+
+export const createUserAdminSchema = z.object({
+  name: z.string().min(2, 'İsim en az 2 karakter olmalıdır'),
+  email: z.string().email('Geçerli bir e-posta adresi giriniz'),
+  role: z.enum(['ADMIN', 'MANAGER', 'TEAM_LEAD', 'WORKER', 'CUSTOMER']),
+  password: z.string().optional().transform(val => val || undefined),
+})
+
+export type CreateUserAdminInput = z.infer<typeof createUserAdminSchema>

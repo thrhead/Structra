@@ -8,42 +8,19 @@ import {
   ScrollView,
   Dimensions,
   StatusBar,
-  SafeAreaView,
-  TouchableOpacity
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useAuth } from '../context/AuthContext';
 import { COLORS } from '../constants/theme';
 import CustomButton from '../components/CustomButton';
-import CustomInput from '../components/CustomInput';
+import LoginForm from '../components/LoginForm';
 
 const { width } = Dimensions.get('window');
 
 export default function LoginScreen({ navigation }) {
-  console.log('LoginScreen rendering...');
-
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
   const [showLoginForm, setShowLoginForm] = useState(false);
-  const { login } = useAuth();
-
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Hata', 'Lütfen e-posta ve şifre giriniz.');
-      return;
-    }
-
-    setLoading(true);
-    const result = await login(email, password);
-    setLoading(false);
-
-    if (result.success) {
-      // AuthContext handles navigation
-    } else {
-      Alert.alert('Giriş Hatası', result.error || 'Bir hata oluştu');
-    }
-  };
 
   const renderLanding = () => (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
@@ -55,7 +32,6 @@ export default function LoginScreen({ navigation }) {
           source={{ uri: "https://lh3.googleusercontent.com/aida-public/AB6AXuAYxW6oDVJGfIJeF5jX477eaJ2dYcFaUvsB_tCZ57FFMUaGU88sv5Rcjnhe-_JqzamcGQImX6ioR7wjwzv8dBJDXuAGkzYdPHbxuXyhmUGHjT6BzESRUmUqvfTo2h_PweT8EILApUYE7r7kDtfo7p241tS8XI25jbk1t477S_gG9N9E0OeCYWKluCba_rjixZGoKS6cz0KPfJMgBwWZmnQY-CISAhiiwdfw7in5SrQXZXLM9evwrH6PfbbTpcFSJLWt7W2Mr7hW9wa2" }}
           style={styles.topImage}
           imageStyle={{ borderRadius: 8 }}
-          onError={(e) => console.error('Image load error:', e.nativeEvent.error)}
         />
       </View>
 
@@ -115,52 +91,19 @@ export default function LoginScreen({ navigation }) {
     </ScrollView>
   );
 
-  const renderLoginForm = () => (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.backgroundDark} />
-      <View style={styles.loginFormContainer}>
-        <TouchableOpacity onPress={() => setShowLoginForm(false)} style={styles.backButton}>
-          <MaterialIcons name="arrow-back" size={24} color={COLORS.primary} />
-          <Text style={{ color: COLORS.primary, marginLeft: 5 }}>Geri</Text>
-        </TouchableOpacity>
-
-        <Text style={styles.loginTitle}>Giriş Yap</Text>
-
-        <CustomInput
-          placeholder="E-posta"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          editable={!loading}
-        />
-
-        <CustomInput
-          placeholder="Şifre"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          editable={!loading}
-        />
-
-        <CustomButton
-          title="Giriş Yap"
-          onPress={handleLogin}
-          loading={loading}
-          style={{ marginTop: 10 }}
-        />
-
-        <Text style={styles.hint}>
-          Admin: admin@montaj.com / admin123{'\n'}
-          Worker: worker@montaj.com / worker123
-        </Text>
-      </View>
-    </View>
-  );
-
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.backgroundDark }}>
-      {showLoginForm ? renderLoginForm() : renderLanding()}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        {showLoginForm ? (
+          <LoginForm
+            onBack={() => setShowLoginForm(false)}
+            onLoginSuccess={() => { /* Navigation handled by AuthContext */ }}
+          />
+        ) : renderLanding()}
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -208,7 +151,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(204, 255, 4, 0.1)', // primary with opacity
+    backgroundColor: 'rgba(204, 255, 4, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -249,32 +192,5 @@ const styles = StyleSheet.create({
   linkText: {
     color: COLORS.primary,
     fontWeight: '600',
-  },
-  // Login Form Styles
-  loginFormContainer: {
-    flex: 1,
-    padding: 20,
-    justifyContent: 'center',
-  },
-  backButton: {
-    position: 'absolute',
-    top: 20,
-    left: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    zIndex: 10,
-  },
-  loginTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: COLORS.white,
-    marginBottom: 30,
-    textAlign: 'center',
-  },
-  hint: {
-    marginTop: 20,
-    textAlign: 'center',
-    color: COLORS.slate500,
-    fontSize: 12,
   },
 });

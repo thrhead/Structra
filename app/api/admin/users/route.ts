@@ -1,24 +1,16 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { verifyAuth } from '@/lib/auth-helper'
+import { verifyAdmin } from '@/lib/auth-helper'
 import { z } from 'zod'
 import { hash } from 'bcryptjs'
-
-const createUserSchema = z.object({
-    name: z.string().min(2, 'İsim en az 2 karakter olmalıdır'),
-    email: z.string().email('Geçerli bir e-posta adresi giriniz'),
-    role: z.enum(['ADMIN', 'MANAGER', 'TEAM_LEAD', 'WORKER', 'CUSTOMER']),
-    password: z.string().optional().transform(val => val || undefined), // Convert empty string to undefined
-})
+import { createUserAdminSchema } from '@/lib/validations'
 
 export async function GET(req: Request) {
-    console.log("Users API: Request received")
     try {
-        const session = await verifyAuth(req)
-        console.log("Users API: Session:", session ? "Found" : "Null", "Role:", session?.user?.role)
+        const session = await verifyAdmin(req)
 
-        if (!session || session.user.role !== 'ADMIN') {
-            console.log("Users API: Unauthorized access attempt")
+        if (!session) {
+            console.warn(`Users API: Unauthorized access attempt`)
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
@@ -34,8 +26,8 @@ export async function GET(req: Request) {
 
         if (search) {
             where.OR = [
-                { name: { contains: search } },
-                { email: { contains: search } }
+                { name: { contains: search, mode: 'insensitive' } },
+                { email: { contains: search, mode: 'insensitive' } }
             ]
         }
 
@@ -49,7 +41,6 @@ export async function GET(req: Request) {
                 role: true,
                 isActive: true,
                 createdAt: true,
-                // Exclude passwordHash
             }
         })
 
@@ -62,13 +53,13 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
     try {
-        const session = await verifyAuth(req)
-        if (!session || session.user.role !== 'ADMIN') {
+        const session = await verifyAdmin(req)
+        if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
         const body = await req.json()
-        const data = createUserSchema.parse(body)
+        const data = createUserAdminSchema.parse(body)
 
         // Check if email exists
         const existingUser = await prisma.user.findUnique({
@@ -103,7 +94,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json(newUser, { status: 201 })
     } catch (error) {
-        console.error('User create error:', error)
+        console.error('User creation error:', error)
         if (error instanceof z.ZodError) {
             const errorMessage = error.issues.map(issue => issue.message).join(', ')
             return NextResponse.json({ error: errorMessage, details: error.issues }, { status: 400 })

@@ -1,9 +1,6 @@
-'use client'
-
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { auth } from "@/lib/auth"
+import { redirect } from "next/navigation"
 import Link from 'next/link'
-import { toast } from 'sonner'
 import { TeamDialog } from '@/components/admin/team-dialog'
 import {
   Table,
@@ -19,63 +16,60 @@ import { Input } from '@/components/ui/input'
 import { SearchIcon, BriefcaseIcon, UsersIcon, Edit, Trash2 } from 'lucide-react'
 import { format } from 'date-fns'
 import { tr } from 'date-fns/locale'
+import { getTeams, getTeamStats } from "@/lib/data/teams"
+import { DeleteTeamButton } from "@/components/admin/delete-team-button"
+import { prisma } from "@/lib/db"
 
-export default function TeamsPage() {
-  const router = useRouter()
-  const [teams, setTeams] = useState<any[]>([])
-  const [search, setSearch] = useState('')
-  const [loading, setLoading] = useState(true)
+export default async function TeamsPage(props: {
+  searchParams: Promise<{ search?: string }>
+}) {
+  const searchParams = await props.searchParams
+  const session = await auth()
 
-  useEffect(() => {
-    fetchTeams()
-  }, [])
+  if (!session || session.user.role !== "ADMIN") {
+    redirect("/login")
+  }
 
-  const fetchTeams = async () => {
-    try {
-      const res = await fetch('/api/admin/teams/list')
-      if (res.ok) {
-        const data = await res.json()
-        setTeams(data)
+  // Fetch teams, stats, and users for the dialog
+  const [teams, stats, users] = await Promise.all([
+    getTeams({ search: searchParams.search }),
+    getTeamStats(),
+    prisma.user.findMany({
+        where: {
+            role: { in: ['TEAM_LEAD', 'WORKER'] },
+            isActive: true
+        },
+        select: { id: true, name: true, role: true }
+    })
+  ])
+
+  // Helper to fetch members for a specific team (since we can't easily fetch nested relation IDs in the main query efficiently for all rows without overfetching, but actually we included members count. For the dialog we need member IDs.
+  // Ideally, we should fetch member IDs when opening the dialog, but since we are doing SSG/SSR, we can pass them if the list is small, or better: Fetch them on demand?
+  // Wait, the Dialog is rendered for EACH row. If we fetch all data for all rows it might be heavy.
+  // But wait, the `TeamDialog` is used in two places:
+  // 1. "New Team" button at top -> needs `users` list.
+  // 2. "Edit" button in row -> needs `users` list AND `currentMembers`.
+
+  // To optimize, let's fetch members for all displayed teams.
+  const teamsWithMembers = await prisma.team.findMany({
+      where: {
+          id: { in: teams.map(t => t.id) }
+      },
+      select: {
+          id: true,
+          members: {
+              select: { userId: true }
+          }
       }
-    } catch (error) {
-      console.error('Failed to fetch teams:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  })
 
-  const handleDelete = async (teamId: string, teamName: string) => {
-    if (confirm(`"${teamName}" ekibini silmek istediğinizden emin misiniz?`)) {
-      const res = await fetch(`/api/admin/teams/${teamId}`, {
-        method: 'DELETE'
-      })
-      if (res.ok) {
-        fetchTeams()
-      } else {
-        toast.error('Ekip silinemedi')
-      }
-    }
-  }
-
-  const filteredTeams = search
-    ? teams.filter(team => team.name.toLowerCase().includes(search.toLowerCase()))
-    : teams
-
-  const stats = {
-    total: teams.length,
-    active: teams.filter(t => t.isActive).length,
-    members: teams.reduce((sum, t) => sum + (t._count?.members || 0), 0)
-  }
-
-  if (loading) {
-    return <div className="p-8">Yükleniyor...</div>
-  }
+  const membersMap = new Map(teamsWithMembers.map(t => [t.id, t.members.map(m => m.userId)]))
 
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Ekipler</h2>
-        <TeamDialog />
+        <TeamDialog users={users} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -105,12 +99,14 @@ export default function TeamsPage() {
       <div className="flex items-center gap-4">
         <div className="relative flex-1">
           <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Ekip ara..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
+          <form>
+             <Input
+                name="search"
+                placeholder="Ekip ara..."
+                defaultValue={searchParams.search}
+                className="pl-9"
+            />
+          </form>
         </div>
       </div>
 
@@ -127,14 +123,14 @@ export default function TeamsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredTeams.length === 0 ? (
+            {teams.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center text-muted-foreground">
                   Ekip bulunamadı
                 </TableCell>
               </TableRow>
             ) : (
-              filteredTeams.map((team) => (
+              teams.map((team) => (
                 <TableRow key={team.id}>
                   <TableCell className="font-medium">
                     <Link href={`/admin/teams/${team.id}`} className="hover:underline text-blue-600">
@@ -163,19 +159,15 @@ export default function TeamsPage() {
                           leadId: team.leadId,
                           isActive: team.isActive
                         }}
+                        users={users}
+                        currentMembers={membersMap.get(team.id)}
                         trigger={
                           <Button variant="ghost" size="sm">
                             <Edit className="h-4 w-4" />
                           </Button>
                         }
                       />
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(team.id, team.name)}
-                      >
-                        <Trash2 className="h-4 w-4 text-red-600" />
-                      </Button>
+                      <DeleteTeamButton teamId={team.id} teamName={team.name} />
                     </div>
                   </TableCell>
                 </TableRow>

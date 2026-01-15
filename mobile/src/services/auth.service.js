@@ -1,4 +1,4 @@
-import api, { setAuthToken, clearAuthToken } from './api';
+import api, { clearAuthToken } from './api';
 
 const authService = {
     /**
@@ -9,21 +9,10 @@ const authService = {
      */
     login: async (email, password) => {
         try {
-            const response = await api.post('/api/mobile/login', {
-                email,
-                password,
-            });
-
-            console.log('Login response:', response.data);
-            if (response.data.token) {
-                console.log('Calling setAuthToken with:', response.data.token);
-                await setAuthToken(response.data.token);
-            } else {
-                console.error('No token in login response');
-            }
-
+            const response = await api.post('/api/mobile/login', { email, password });
             return response.data;
         } catch (error) {
+            console.error('Login error:', error);
             throw error;
         }
     },
@@ -34,11 +23,10 @@ const authService = {
     logout: async () => {
         try {
             await api.post('/api/auth/signout');
-            await clearAuthToken();
         } catch (error) {
-            // Even if API call fails, clear local token
+            // Ignore error
+        } finally {
             await clearAuthToken();
-            throw error;
         }
     },
 

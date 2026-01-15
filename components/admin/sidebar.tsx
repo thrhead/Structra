@@ -12,7 +12,11 @@ import {
   LogOutIcon,
   MenuIcon,
   XIcon,
-  TrendingUpIcon
+  TrendingUpIcon,
+  CalendarIcon,
+  FileTextIcon,
+  BarChart3Icon,
+  PieChartIcon
 } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -39,9 +43,19 @@ const sidebarItems = [
     icon: BriefcaseIcon
   },
   {
+    title: 'Takvim',
+    href: '/admin/calendar',
+    icon: CalendarIcon
+  },
+  {
     title: 'İşler',
     href: '/admin/jobs',
     icon: BriefcaseIcon
+  },
+  {
+    title: 'İş Şablonları',
+    href: '/admin/templates',
+    icon: FileTextIcon
   },
   {
     title: 'Onaylar',
@@ -52,6 +66,16 @@ const sidebarItems = [
     title: 'Maliyetler',
     href: '/admin/costs',
     icon: TrendingUpIcon
+  },
+  {
+    title: 'Maliyet Raporu',
+    href: '/admin/reports/costs',
+    icon: BarChart3Icon
+  },
+  {
+    title: 'Performans Raporu',
+    href: '/admin/reports/performance',
+    icon: PieChartIcon
   }
 ]
 
@@ -62,7 +86,7 @@ export function AdminSidebar() {
   return (
     <>
       {/* Mobile Menu Button */}
-      <div className="lg:hidden fixed top-4 left-4 z-50">
+      <div className="lg:hidden fixed top-4 left-4 z-[60]">
         <Button
           variant="outline"
           size="icon"
@@ -75,7 +99,7 @@ export function AdminSidebar() {
       {/* Sidebar Container */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-40 w-64 bg-white border-r transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:flex lg:flex-col",
+          "fixed inset-y-0 left-0 z-[55] w-64 bg-white border-r transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:flex lg:flex-col",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >

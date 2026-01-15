@@ -1,110 +1,173 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
+import NetInfo from '@react-native-community/netinfo';
+import { QueueService } from './QueueService';
+import { ToastService } from './ToastService';
 
-// TODO: Update with ngrok URL when using tunnel
-// Get ngrok URL by running: ngrok http 3000
-// Example: https://abc123-def456.ngrok-free.app
-const NGROK_URL = 'https://nonblamably-appreciatory-corban.ngrok-free.dev';
+// This value is updated automatically by start_tunnel_auto.ps1
+const NGROK_URL = 'https://adjustment-wilderness-midnight-recordings.trycloudflare.com';
 
-// Determine the correct base URL based on platform
 const getBaseUrl = () => {
-    // If NGROK_URL is set to a valid URL (not the placeholder), use it
-    if (NGROK_URL && NGROK_URL !== 'NGROK_URL_BURAYA' && NGROK_URL.startsWith('http')) {
-        console.log('[API] Using Ngrok URL:', NGROK_URL);
-        return NGROK_URL;
-    }
-
-    // For web (react-native-web), use localhost
+    // For web (react-native-web), use the same host that serves the app
+    // This allows it to work on both localhost and LAN IP
     if (Platform.OS === 'web') {
+        // Use window.location to get the current host
+        if (typeof window !== 'undefined' && window.location) {
+            const host = window.location.hostname;
+            // If accessed via IP, use that IP with port 3000
+            // If localhost, use localhost:3000
+            return `http://${host}:3000`;
+        }
         return 'http://localhost:3000';
     }
 
-    // For Android emulator, use 10.0.2.2
-    if (Platform.OS === 'android') {
-        return 'http://10.0.2.2:3000';
-    }
-
-    // For iOS simulator or physical devices
-    // You might want to make this configurable or dynamic
+    // Hardcoded LAN IP for physical device testing
     return 'http://192.168.1.173:3000';
+
+    /* Tunnel logic disabled for now to simplify
+    if (NGROK_URL) return NGROK_URL;
+    if (Platform.OS === 'android') return 'http://10.0.2.2:3000';
+    return 'http://localhost:3000';
+    */
 };
 
-const API_BASE_URL = __DEV__ ? getBaseUrl() : 'https://your-production-url.com';
+export const API_BASE_URL = __DEV__ ? getBaseUrl() : 'https://your-production-url.com';
 
-// Create axios instance
 const api = axios.create({
     baseURL: API_BASE_URL,
-    timeout: 10000,
+    timeout: 30000,
     headers: {
         'Content-Type': 'application/json',
     },
 });
 
-// Callback for 401 Unauthorized
 let logoutCallback = null;
 
 export const registerLogoutCallback = (callback) => {
     logoutCallback = callback;
 };
 
-// Request interceptor - Add auth token to requests
+// Request interceptor
 api.interceptors.request.use(
     async (config) => {
         try {
-            // If header is already set (by setApiHeaderToken), use it.
-            // Otherwise, try to get from storage (fallback)
+            const netState = await NetInfo.fetch();
+
+            // Offline Cache Logic: Check if we are offline and have cached data for GET requests
+            if (config.method === 'get') {
+                if (!netState.isConnected) {
+                    const cacheKey = `cache_request_${config.url}_${JSON.stringify(config.params)}`;
+                    const cachedString = await AsyncStorage.getItem(cacheKey);
+                    if (cachedString) {
+                        const cachedData = JSON.parse(cachedString);
+                        console.log(`[API] Offline - serving from cache: ${config.url}`);
+                        throw {
+                            __isOfflineCached: true,
+                            response: cachedData
+                        };
+                    }
+                }
+            }
+
+            // Action Queue Logic: Queue non-GET requests when offline
+            const writeMethods = ['post', 'put', 'patch', 'delete'];
+            if (writeMethods.includes(config.method.toLowerCase()) && !netState.isConnected) {
+                console.log(`[API] Offline - queueing ${config.method.toUpperCase()} request: ${config.url}`);
+                const queueItem = {
+                    type: config.method.toUpperCase(),
+                    url: config.url,
+                    payload: config.data,
+                    headers: config.headers,
+                };
+                await QueueService.addItem(queueItem);
+
+                // Show UI feedback
+                ToastService.show('Çevrimdışı Kaydedildi', 'İşlem kuyruğa alındı ve bağlantı sağlandığında gönderilecek.', 'warning');
+
+                // Throw special error to be handled as successful (but queued) response
+                throw {
+                    __isQueued: true,
+                    config
+                };
+            }
+
             if (!config.headers.Authorization) {
                 const token = await AsyncStorage.getItem('authToken');
                 if (token) {
                     config.headers.Authorization = `Bearer ${token}`;
                 }
             }
-
-            console.log(`[API Request] ${config.method.toUpperCase()} ${config.url}`);
-            console.log(`[API Request] Base URL: ${config.baseURL}`);
-            console.log('[API Request] Headers:', JSON.stringify(config.headers));
+            if (__DEV__) {
+                console.log(`[API] ${config.method.toUpperCase()} ${config.url}`);
+            }
         } catch (error) {
+            // Propagate special offline errors immediately
+            if (error.__isOfflineCached || error.__isQueued) {
+                return Promise.reject(error);
+            }
             console.error('Error getting auth token:', error);
         }
         return config;
     },
-    (error) => {
-        return Promise.reject(error);
-    }
+    (error) => Promise.reject(error)
 );
 
-// Response interceptor - Handle errors globally
+// Response interceptor
 api.interceptors.response.use(
-    (response) => {
+    async (response) => {
+        // Cache successful GET requests
+        if (response.config.method === 'get' && response.status >= 200 && response.status < 300) {
+            try {
+                const cacheKey = `cache_request_${response.config.url}_${JSON.stringify(response.config.params)}`;
+                // We store the whole response structure we care about
+                const dataToCache = {
+                    data: response.data,
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: response.headers,
+                };
+                await AsyncStorage.setItem(cacheKey, JSON.stringify(dataToCache));
+            } catch (e) {
+                console.warn('[API] Failed to cache response:', e);
+            }
+        }
         return response;
     },
     async (error) => {
+        // Handle Offline Queued Request
+        if (error.__isQueued) {
+            return Promise.resolve({
+                status: 202,
+                statusText: 'Accepted (Queued)',
+                data: {
+                    message: 'İşlem kuyruğa alındı ve bağlantı sağlandığında gönderilecek.',
+                    offline: true,
+                },
+                config: error.config,
+                headers: {},
+            });
+        }
+
+        // Handle Offline Cached Response
+        if (error.__isOfflineCached && error.response) {
+            return Promise.resolve({
+                ...error.response,
+                config: {}, // We can't easily reconstruct strict config but usually not needed for UI
+            });
+        }
+
         if (error.response) {
-            // Server responded with error status
             const { status, data } = error.response;
 
-            // Handle specific status codes
-            switch (status) {
-                case 401:
-                    // Unauthorized - clear token and redirect to login
-                    await AsyncStorage.removeItem('authToken');
-                    await AsyncStorage.removeItem('user');
-                    if (logoutCallback) {
-                        logoutCallback();
-                    }
-                    break;
-                case 403:
-                    console.error('Forbidden:', data.message);
-                    break;
-                case 404:
-                    console.error('Not found:', data.message);
-                    break;
-                case 500:
-                    console.error('Server error:', data.message);
-                    break;
-                default:
-                    console.error('API error:', data.message || data.error || 'Unknown error');
+            if (status === 401) {
+                await AsyncStorage.removeItem('authToken');
+                await AsyncStorage.removeItem('user');
+                if (logoutCallback) logoutCallback();
+            }
+
+            if (__DEV__ && status >= 400) {
+                console.error(`[API Error] ${status}:`, data);
             }
 
             return Promise.reject({
@@ -113,14 +176,12 @@ api.interceptors.response.use(
                 data: data,
             });
         } else if (error.request) {
-            // Request made but no response
             console.error('Network error:', error.message);
             return Promise.reject({
                 status: 0,
                 message: 'Network error. Please check your connection.',
             });
         } else {
-            // Something else happened
             console.error('Error:', error.message);
             return Promise.reject({
                 status: -1,
@@ -130,7 +191,7 @@ api.interceptors.response.use(
     }
 );
 
-// Helper functions
+// Helpers
 const setApiHeaderToken = (token) => {
     if (token) {
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -166,10 +227,8 @@ export const getAuthToken = async () => {
         }
         return token;
     } catch (error) {
-        console.error('Error getting auth token:', error);
         return null;
     }
 };
 
-export { API_BASE_URL };
 export default api;

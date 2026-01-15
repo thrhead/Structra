@@ -13,8 +13,11 @@ import {
     Image,
     TextInput,
     StatusBar,
-    SafeAreaView
+    KeyboardAvoidingView,
+    TouchableWithoutFeedback,
+    Keyboard
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -23,28 +26,53 @@ import costService from '../../services/cost.service';
 import authService from '../../services/auth.service';
 import SuccessModal from '../../components/SuccessModal';
 import ConfirmationModal from '../../components/ConfirmationModal';
+import { useAuth } from '../../context/AuthContext';
+import JobInfoCard from '../../components/job-detail/JobInfoCard';
+import CostSection from '../../components/job-detail/CostSection';
+import { WebInput } from '../../components/common/WebInput';
 
-const COLORS = {
-    primary: "#CCFF04",
-    backgroundLight: "#f8f8f5",
-    backgroundDark: "#010100",
-    cardDark: "#111827", // gray-900
-    cardBorder: "#1f2937", // gray-800
-    textLight: "#f8fafc", // slate-50
-    textGray: "#94a3b8", // slate-400
-    red500: "#ef4444",
-    red900: "#7f1d1d",
-    green500: "#22c55e",
-    orange500: "#f97316",
-    blue500: "#3b82f6",
-    black: "#000000",
-    white: "#ffffff",
+import { COLORS } from '../../constants/theme';
+
+
+
+
+const AppModal = ({ visible, children, ...props }) => {
+    if (Platform.OS === 'web') {
+        if (!visible) return null;
+        return (
+            <View style={[StyleSheet.absoluteFill, { zIndex: 9999 }]}>
+                {children}
+            </View>
+        );
+    }
+    return (
+        <Modal visible={visible} {...props}>
+            {children}
+        </Modal>
+    );
 };
 
-
+const PageWrapper = ({ children }) => {
+    if (Platform.OS === 'web') {
+        return (
+            <View style={{ flex: 1 }}>
+                {children}
+            </View>
+        );
+    }
+    return (
+        <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={{ flex: 1 }}
+        >
+            {children}
+        </KeyboardAvoidingView>
+    );
+};
 
 export default function JobDetailScreen({ route, navigation }) {
     const { jobId } = route.params;
+    const { user } = useAuth();
     const [job, setJob] = useState(null);
     const [loading, setLoading] = useState(true);
     const [modalVisible, setModalVisible] = useState(false);
@@ -56,13 +84,13 @@ export default function JobDetailScreen({ route, navigation }) {
 
     // Cost State
     const [costModalVisible, setCostModalVisible] = useState(false);
+    const [receiptImage, setReceiptImage] = useState(null);
     const [costAmount, setCostAmount] = useState('');
     const [costCategory, setCostCategory] = useState('Yemek');
     const [costDescription, setCostDescription] = useState('');
     const [costDate, setCostDate] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [submittingCost, setSubmittingCost] = useState(false);
-    const [userRole, setUserRole] = useState(null);
 
     // Rejection State
     const [rejectionModalVisible, setRejectionModalVisible] = useState(false);
@@ -84,19 +112,9 @@ export default function JobDetailScreen({ route, navigation }) {
 
     useEffect(() => {
         loadJobDetails();
-        checkUserRole();
     }, [jobId]);
 
-    const checkUserRole = async () => {
-        try {
-            const user = await authService.getProfile();
-            if (user) {
-                setUserRole(user.role);
-            }
-        } catch (error) {
-            console.error('JobDetailScreen: Error fetching user profile:', error);
-        }
-    };
+    // Removed checkUserRole as we use useAuth now
 
     const loadJobDetails = async () => {
         try {
@@ -275,6 +293,27 @@ export default function JobDetailScreen({ route, navigation }) {
         }
     };
 
+    const handleRejectJob = async () => {
+        if (!rejectionReason) {
+            Alert.alert('Uyarı', 'Lütfen bir red sebebi giriniz.');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            await jobService.rejectJob(jobId, rejectionReason);
+            Alert.alert('Başarılı', 'İş reddedildi.');
+            setRejectionModalVisible(false);
+            setRejectionReason('');
+            loadJobDetails();
+        } catch (error) {
+            console.error('Error rejecting job:', error);
+            Alert.alert('Hata', 'İş reddedilemedi.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const openRejectionModal = (stepId) => {
         setSelectedStepId(stepId);
         setRejectionModalVisible(true);
@@ -354,22 +393,52 @@ export default function JobDetailScreen({ route, navigation }) {
     const handleCreateCost = async () => {
         try {
             setSubmittingCost(true);
-            await costService.create({
-                jobId: job.id,
-                amount: parseFloat(costAmount),
-                amount: parseFloat(costAmount),
-                category: costCategory,
-                description: costDescription,
-                date: costDate.toISOString(),
-                currency: 'TRY'
-            });
 
-            Alert.alert('Başarılı', 'Masraf eklendi ve onaya gönderildi.');
+            let data;
+
+            if (receiptImage) {
+                data = new FormData();
+                data.append('jobId', job.id);
+                data.append('amount', costAmount);
+                data.append('category', costCategory);
+                data.append('description', costDescription);
+                data.append('date', costDate.toISOString());
+                data.append('currency', 'TRY');
+
+                const filename = receiptImage.split('/').pop();
+                const match = /\.(\w+)$/.exec(filename);
+                const type = match ? `image/${match[1]}` : `image`;
+
+                // Expo Web fix for FormData file
+                if (Platform.OS === 'web') {
+                    const response = await fetch(receiptImage);
+                    const blob = await response.blob();
+                    data.append('receipt', blob, filename);
+                } else {
+                    data.append('receipt', { uri: receiptImage, name: filename, type });
+                }
+            } else {
+                data = {
+                    jobId: job.id,
+                    amount: parseFloat(costAmount),
+                    category: costCategory,
+                    description: costDescription,
+                    date: costDate.toISOString(),
+                    currency: 'TRY'
+                };
+            }
+
+            await costService.create(data);
+
+            // Alert.alert('Başarılı', 'Masraf eklendi ve onaya gönderildi.');
+            setSuccessMessage('Masraf eklendi ve onaya gönderildi');
+            setSuccessModalVisible(true);
             setCostModalVisible(false);
             setCostAmount('');
             setCostDescription('');
             setCostCategory('Yemek');
             setCostDate(new Date());
+            setReceiptImage(null);
             loadJobDetails();
         } catch (error) {
             console.error('Error creating cost:', error);
@@ -438,397 +507,342 @@ export default function JobDetailScreen({ route, navigation }) {
                 <View style={{ width: 24 }} />
             </View>
 
-            <ScrollView style={styles.contentContainer}>
-                {/* Job Info Card */}
-                <View style={styles.card}>
-                    <Text style={styles.jobTitle}>{job.title}</Text>
-                    <View style={styles.infoRow}>
-                        <MaterialIcons name="business" size={16} color={COLORS.textGray} />
-                        <Text style={styles.infoText}>Müşteri: {job.customer?.name || 'Müşteri'}</Text>
-                    </View>
-                    <View style={styles.infoRow}>
-                        <MaterialIcons name="description" size={16} color={COLORS.textGray} />
-                        <Text style={styles.description}>{job.description}</Text>
-                    </View>
-                    {job.startedAt && (
-                        <View style={styles.infoRow}>
-                            <MaterialIcons name="play-circle-outline" size={16} color={COLORS.primary} />
-                            <Text style={styles.infoText}>Başlangıç: {formatDate(job.startedAt)}</Text>
-                        </View>
-                    )}
-                    {job.completedDate && (
-                        <View style={styles.infoRow}>
-                            <MaterialIcons name="check-circle-outline" size={16} color={COLORS.green500} />
-                            <Text style={styles.infoText}>Bitiş: {formatDate(job.completedDate)}</Text>
-                        </View>
-                    )}
-                </View>
+            <PageWrapper>
+                <ScrollView style={styles.contentContainer}>
+                    {/* Job Info Card */}
+                    <JobInfoCard job={job} />
 
 
-                {/* Assignments Section */}
-                <Text style={styles.sectionTitle}>Ekip ve Atamalar</Text>
-                {job.assignments && job.assignments.length > 0 ? (
-                    job.assignments.map((assignment, index) => (
-                        <View key={index} style={styles.card}>
-                            <View style={styles.infoRow}>
-                                <MaterialIcons name="group" size={20} color={COLORS.primary} />
-                                <View style={{ marginLeft: 8 }}>
-                                    {assignment.team ? (
-                                        <>
-                                            <Text style={[styles.infoText, { fontWeight: 'bold' }]}>{assignment.team.name}</Text>
-                                            {assignment.team.members && assignment.team.members.length > 0 && (
-                                                <Text style={[styles.infoText, { fontSize: 12, color: COLORS.textGray, marginTop: 4 }]}>
-                                                    {assignment.team.members.map(m => m.user?.name).filter(Boolean).join(', ')}
-                                                </Text>
-                                            )}
-                                        </>
-                                    ) : (
-                                        <Text style={styles.infoText}>{assignment.worker?.name}</Text>
-                                    )}
-                                </View>
-                            </View>
-                        </View>
-                    ))
-                ) : (
-                    <View style={styles.card}>
-                        <Text style={styles.infoText}>Atama bulunamadı.</Text>
-                    </View>
-                )}
-
-                {/* Steps Section */}
-                <Text style={styles.sectionTitle}>İş Adımları</Text>
-                {job.steps && job.steps.map((step, index) => {
-                    const isLocked = index > 0 && !job.steps[index - 1].isCompleted;
-
-                    return (
-                        <View key={step.id} style={[styles.stepCard, isLocked && styles.lockedCard]}>
-                            <View style={styles.stepHeader}>
-                                <View style={[styles.checkbox, step.isCompleted && styles.checkedBox]}>
-                                    {step.isCompleted && <MaterialIcons name="check" size={16} color={COLORS.black} />}
-                                </View>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={[styles.stepTitle, step.isCompleted && styles.completedText]}>
-                                        {step.title || step.name}
-                                    </Text>
-                                    {step.startedAt && (
-                                        <Text style={styles.dateText}>
-                                            Başladı: {formatDate(step.startedAt)}
-                                        </Text>
-                                    )}
-                                    {step.completedAt && (
-                                        <Text style={styles.dateText}>
-                                            Bitti: {formatDate(step.completedAt)}
-                                        </Text>
-                                    )}
-                                    {(step.approvalStatus && step.approvalStatus !== 'PENDING') &&
-                                        (!step.subSteps || step.subSteps.every(s => s.isCompleted && s.approvalStatus === 'APPROVED')) && (
-                                            <View style={[
-                                                styles.statusBadge,
-                                                step.approvalStatus === 'APPROVED' ? styles.badgeApproved : styles.badgeRejected
-                                            ]}>
-                                                <Text style={styles.statusBadgeText}>
-                                                    {step.approvalStatus === 'APPROVED' ? 'ONAYLANDI' : 'REDDEDİLDİ'}
-                                                </Text>
-                                            </View>
+                    {/* Assignments Section */}
+                    <Text style={styles.sectionTitle}>Ekip ve Atamalar</Text>
+                    {job.assignments && job.assignments.length > 0 ? (
+                        job.assignments.map((assignment, index) => (
+                            <View key={index} style={styles.card}>
+                                <View style={styles.infoRow}>
+                                    <MaterialIcons name="group" size={20} color={COLORS.primary} />
+                                    <View style={{ marginLeft: 8 }}>
+                                        {assignment.team ? (
+                                            <>
+                                                <Text style={[styles.infoText, { fontWeight: 'bold' }]}>{assignment.team.name}</Text>
+                                                {assignment.team.members && assignment.team.members.length > 0 && (
+                                                    <Text style={[styles.infoText, { fontSize: 12, color: COLORS.textGray, marginTop: 4 }]}>
+                                                        {assignment.team.members.map(m => m.user?.name).filter(Boolean).join(', ')}
+                                                    </Text>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <Text style={styles.infoText}>{assignment.worker?.name}</Text>
                                         )}
+                                    </View>
                                 </View>
-                                {isLocked && <MaterialIcons name="lock" size={20} color={COLORS.textGray} />}
                             </View>
+                        ))
+                    ) : (
+                        <View style={styles.card}>
+                            <Text style={styles.infoText}>Atama bulunamadı.</Text>
+                        </View>
+                    )}
 
-                            {step.approvalStatus === 'REJECTED' && step.rejectionReason && (
-                                <Text style={styles.rejectionReasonText}>Red Sebebi: {step.rejectionReason}</Text>
-                            )}
+                    {/* Steps Section */}
+                    <Text style={styles.sectionTitle}>İş Adımları</Text>
+                    {job.steps && job.steps.map((step, index) => {
+                        const isLocked = index > 0 && !job.steps[index - 1].isCompleted;
 
-                            {['ADMIN', 'MANAGER'].includes(userRole?.toUpperCase()) && (step.isCompleted || step.approvalStatus !== 'PENDING') && (
-                                <View style={styles.managerActions}>
-                                    <TouchableOpacity
-                                        style={[styles.actionButton, styles.rejectButton]}
-                                        onPress={() => openRejectionModal(step.id)}
-                                    >
-                                        <Text style={styles.actionButtonText}>Reddet</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity
-                                        style={[styles.actionButton, styles.approveButton]}
-                                        onPress={() => handleApproveStep(step.id)}
-                                    >
-                                        <Text style={styles.actionButtonText}>Onayla</Text>
-                                    </TouchableOpacity>
+                        return (
+                            <View key={step.id} style={[styles.stepCard, isLocked && styles.lockedCard]}>
+                                <View style={styles.stepHeader}>
+                                    <View style={[styles.checkbox, step.isCompleted && styles.checkedBox]}>
+                                        {step.isCompleted && <MaterialIcons name="check" size={16} color={COLORS.black} />}
+                                    </View>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={[styles.stepTitle, step.isCompleted && styles.completedText]}>
+                                            {step.title || step.name}
+                                        </Text>
+                                        {step.startedAt && (
+                                            <Text style={styles.dateText}>
+                                                Başladı: {formatDate(step.startedAt)}
+                                            </Text>
+                                        )}
+                                        {step.completedAt && (
+                                            <Text style={styles.dateText}>
+                                                Bitti: {formatDate(step.completedAt)}
+                                            </Text>
+                                        )}
+                                        {(step.approvalStatus && step.approvalStatus !== 'PENDING') &&
+                                            (!step.subSteps || step.subSteps.every(s => s.isCompleted && s.approvalStatus === 'APPROVED')) && (
+                                                <View style={[
+                                                    styles.statusBadge,
+                                                    step.approvalStatus === 'APPROVED' ? styles.badgeApproved : styles.badgeRejected
+                                                ]}>
+                                                    <Text style={styles.statusBadgeText}>
+                                                        {step.approvalStatus === 'APPROVED' ? 'ONAYLANDI' : 'REDDEDİLDİ'}
+                                                    </Text>
+                                                </View>
+                                            )}
+                                    </View>
+                                    {isLocked && <MaterialIcons name="lock" size={20} color={COLORS.textGray} />}
                                 </View>
-                            )}
 
-                            {!isLocked && step.subSteps && (
-                                <View style={styles.substepsContainer}>
-                                    {step.subSteps.map((substep, subIndex) => {
-                                        const substepPhotos = substep.photos || [];
-                                        const photoCount = substepPhotos.length;
-                                        const isSubstepLocked = subIndex > 0 && !step.subSteps[subIndex - 1].isCompleted;
-                                        const canComplete = photoCount >= 1 && substep.startedAt;
-                                        const canUpload = photoCount < 3 && substep.startedAt;
+                                {step.approvalStatus === 'REJECTED' && step.rejectionReason && (
+                                    <Text style={styles.rejectionReasonText}>Red Sebebi: {step.rejectionReason}</Text>
+                                )}
 
-                                        return (
-                                            <View key={substep.id} style={[styles.substepWrapper, isSubstepLocked && styles.lockedCard]}>
-                                                <View style={styles.substepRow}>
-                                                    <View style={styles.substepInfo}>
-                                                        <Text style={[styles.substepText, substep.isCompleted && styles.completedText]}>
-                                                            {substep.title || substep.name}
-                                                        </Text>
-                                                        {substep.startedAt && (
-                                                            <Text style={styles.dateText}>
-                                                                Başladı: {formatDate(substep.startedAt)}
+                                {['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase()) && (step.isCompleted || step.approvalStatus !== 'PENDING') && (
+                                    <View style={styles.managerActions}>
+                                        <TouchableOpacity
+                                            style={[styles.actionButton, styles.rejectButton]}
+                                            onPress={() => openRejectionModal(step.id)}
+                                        >
+                                            <Text style={styles.actionButtonText}>Reddet</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={[styles.actionButton, styles.approveButton]}
+                                            onPress={() => handleApproveStep(step.id)}
+                                        >
+                                            <Text style={styles.actionButtonText}>Onayla</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                )}
+
+                                {!isLocked && step.subSteps && (
+                                    <View style={styles.substepsContainer}>
+                                        {step.subSteps.map((substep, subIndex) => {
+                                            const substepPhotos = substep.photos || [];
+                                            const photoCount = substepPhotos.length;
+                                            const isSubstepLocked = subIndex > 0 && !step.subSteps[subIndex - 1].isCompleted;
+                                            const canComplete = photoCount >= 1 && substep.startedAt;
+                                            const canUpload = photoCount < 3 && substep.startedAt;
+
+                                            return (
+                                                <View key={substep.id} style={[styles.substepWrapper, isSubstepLocked && styles.lockedCard]}>
+                                                    <View style={styles.substepRow}>
+                                                        <View style={styles.substepInfo}>
+                                                            <Text style={[styles.substepText, substep.isCompleted && styles.completedText]}>
+                                                                {substep.title || substep.name}
                                                             </Text>
-                                                        )}
-                                                        {substep.completedAt && (
-                                                            <Text style={styles.dateText}>
-                                                                Bitti: {formatDate(substep.completedAt)}
-                                                            </Text>
-                                                        )}
-                                                        {substep.approvalStatus && (
-                                                            <View style={[
-                                                                styles.statusBadge,
-                                                                styles.smallBadge,
-                                                                substep.approvalStatus === 'APPROVED' ? styles.badgeApproved :
-                                                                    substep.approvalStatus === 'REJECTED' ? styles.badgeRejected :
-                                                                        styles.badgePending
-                                                            ]}>
-                                                                <Text style={styles.statusBadgeText}>
-                                                                    {substep.approvalStatus === 'APPROVED' ? 'ONAYLANDI' :
-                                                                        substep.approvalStatus === 'REJECTED' ? 'REDDEDİLDİ' : 'ONAY BEKLİYOR'}
+                                                            {substep.startedAt && (
+                                                                <Text style={styles.dateText}>
+                                                                    Başladı: {formatDate(substep.startedAt)}
                                                                 </Text>
-                                                            </View>
-                                                        )}
-                                                        {isSubstepLocked && <Text style={styles.lockedText}>(Önceki adımı tamamlayın)</Text>}
-                                                    </View>
+                                                            )}
+                                                            {substep.completedAt && (
+                                                                <Text style={styles.dateText}>
+                                                                    Bitti: {formatDate(substep.completedAt)}
+                                                                </Text>
+                                                            )}
+                                                            {substep.approvalStatus && (
+                                                                <View style={[
+                                                                    styles.statusBadge,
+                                                                    styles.smallBadge,
+                                                                    substep.approvalStatus === 'APPROVED' ? styles.badgeApproved :
+                                                                        substep.approvalStatus === 'REJECTED' ? styles.badgeRejected :
+                                                                            styles.badgePending
+                                                                ]}>
+                                                                    <Text style={styles.statusBadgeText}>
+                                                                        {substep.approvalStatus === 'APPROVED' ? 'ONAYLANDI' :
+                                                                            substep.approvalStatus === 'REJECTED' ? 'REDDEDİLDİ' : 'ONAY BEKLİYOR'}
+                                                                    </Text>
+                                                                </View>
+                                                            )}
+                                                            {isSubstepLocked && <Text style={styles.lockedText}>(Önceki adımı tamamlayın)</Text>}
+                                                        </View>
 
-                                                    {!['ADMIN', 'MANAGER'].includes(userRole?.toUpperCase()) && (
-                                                        <View style={styles.actionButtons}>
-                                                            {!substep.isCompleted ? (
-                                                                !substep.startedAt ? (
-                                                                    <TouchableOpacity
-                                                                        style={[styles.startButton, isSubstepLocked && styles.disabledButton]}
-                                                                        onPress={() => handleStartSubstep(step.id, substep.id)}
-                                                                        disabled={isSubstepLocked}
-                                                                    >
-                                                                        <Text style={styles.btnText}>Başla</Text>
-                                                                    </TouchableOpacity>
+                                                        {!['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase()) && (
+                                                            <View style={styles.actionButtons}>
+                                                                {!substep.isCompleted ? (
+                                                                    !substep.startedAt ? (
+                                                                        <TouchableOpacity
+                                                                            style={[styles.startButton, isSubstepLocked && styles.disabledButton]}
+                                                                            onPress={() => handleStartSubstep(step.id, substep.id)}
+                                                                            disabled={isSubstepLocked}
+                                                                        >
+                                                                            <Text style={styles.btnText}>Başla</Text>
+                                                                        </TouchableOpacity>
+                                                                    ) : (
+                                                                        <TouchableOpacity
+                                                                            style={[styles.completeButton, (!canComplete || isSubstepLocked) && styles.disabledButton]}
+                                                                            onPress={() => {
+                                                                                if (!substep.startedAt) {
+                                                                                    Alert.alert('Uyarı', 'Önce işe başlamalısınız.');
+                                                                                    return;
+                                                                                }
+                                                                                if (photoCount < 1) {
+                                                                                    Alert.alert('Uyarı', 'Tamamlamak için en az 1 fotoğraf yüklemelisiniz.');
+                                                                                    return;
+                                                                                }
+                                                                                handleSubstepToggle(step.id, substep.id, false);
+                                                                            }}
+                                                                            disabled={!canComplete || isSubstepLocked}
+                                                                        >
+                                                                            <Text style={styles.btnText}>Tamamla</Text>
+                                                                        </TouchableOpacity>
+                                                                    )
                                                                 ) : (
                                                                     <TouchableOpacity
-                                                                        style={[styles.completeButton, (!canComplete || isSubstepLocked) && styles.disabledButton]}
-                                                                        onPress={() => {
-                                                                            if (!substep.startedAt) {
-                                                                                Alert.alert('Uyarı', 'Önce işe başlamalısınız.');
-                                                                                return;
-                                                                            }
-                                                                            if (photoCount < 1) {
-                                                                                Alert.alert('Uyarı', 'Tamamlamak için en az 1 fotoğraf yüklemelisiniz.');
-                                                                                return;
-                                                                            }
-                                                                            handleSubstepToggle(step.id, substep.id, false);
-                                                                        }}
-                                                                        disabled={!canComplete || isSubstepLocked}
+                                                                        style={styles.undoButton}
+                                                                        onPress={() => handleSubstepToggle(step.id, substep.id, true)}
                                                                     >
-                                                                        <Text style={styles.btnText}>Tamamla</Text>
+                                                                        <Text style={styles.btnText}>Geri Al</Text>
                                                                     </TouchableOpacity>
-                                                                )
-                                                            ) : (
+                                                                )}
+                                                            </View>
+                                                        )}
+
+                                                        {['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase()) && (substep.isCompleted || substep.approvalStatus !== 'PENDING') && (
+                                                            <View style={styles.substepManagerActions}>
                                                                 <TouchableOpacity
-                                                                    style={styles.undoButton}
-                                                                    onPress={() => handleSubstepToggle(step.id, substep.id, true)}
+                                                                    style={[styles.miniActionButton, styles.rejectButton]}
+                                                                    onPress={() => openSubstepRejectionModal(substep.id)}
                                                                 >
-                                                                    <Text style={styles.btnText}>Geri Al</Text>
+                                                                    <MaterialIcons name="close" size={16} color={COLORS.white} />
                                                                 </TouchableOpacity>
+                                                                <TouchableOpacity
+                                                                    style={[styles.miniActionButton, styles.approveButton]}
+                                                                    onPress={() => handleApproveSubstep(substep.id)}
+                                                                >
+                                                                    <MaterialIcons name="check" size={16} color={COLORS.white} />
+                                                                </TouchableOpacity>
+                                                            </View>
+                                                        )}
+                                                    </View>
+
+                                                    {!isSubstepLocked && !substep.isCompleted && !['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase()) && (
+                                                        <View style={styles.stepPhotoContainer}>
+                                                            <Text style={styles.photoCountText}>
+                                                                Fotoğraflar ({photoCount}/3)
+                                                            </Text>
+                                                            {canUpload ? (
+                                                                <View style={styles.photoButtonsContainer}>
+                                                                    <TouchableOpacity
+                                                                        style={styles.photoIconBtn}
+                                                                        onPress={() => pickImage(step.id, substep.id, 'camera')}
+                                                                    >
+                                                                        <MaterialIcons name="camera-alt" size={20} color={COLORS.primary} />
+                                                                    </TouchableOpacity>
+                                                                    <TouchableOpacity
+                                                                        style={styles.photoIconBtn}
+                                                                        onPress={() => pickImage(step.id, substep.id, 'gallery')}
+                                                                    >
+                                                                        <MaterialIcons name="photo-library" size={20} color={COLORS.primary} />
+                                                                    </TouchableOpacity>
+                                                                </View>
+                                                            ) : (
+                                                                !substep.startedAt && <Text style={styles.lockedText}>Fotoğraf yüklemek için başlayın</Text>
                                                             )}
                                                         </View>
                                                     )}
 
-                                                    {['ADMIN', 'MANAGER'].includes(userRole?.toUpperCase()) && (substep.isCompleted || substep.approvalStatus !== 'PENDING') && (
-                                                        <View style={styles.substepManagerActions}>
-                                                            <TouchableOpacity
-                                                                style={[styles.miniActionButton, styles.rejectButton]}
-                                                                onPress={() => openSubstepRejectionModal(substep.id)}
-                                                            >
-                                                                <MaterialIcons name="close" size={16} color={COLORS.white} />
-                                                            </TouchableOpacity>
-                                                            <TouchableOpacity
-                                                                style={[styles.miniActionButton, styles.approveButton]}
-                                                                onPress={() => handleApproveSubstep(substep.id)}
-                                                            >
-                                                                <MaterialIcons name="check" size={16} color={COLORS.white} />
-                                                            </TouchableOpacity>
-                                                        </View>
+                                                    {substepPhotos.length > 0 && (
+                                                        <ScrollView horizontal style={styles.thumbnailsContainer} showsHorizontalScrollIndicator={false}>
+                                                            {substepPhotos.map((photo, pIndex) => (
+                                                                <TouchableOpacity key={pIndex} onPress={() => openImageModal(photo.url || photo)}>
+                                                                    <Image source={{ uri: photo.url || photo }} style={styles.thumbnail} />
+                                                                </TouchableOpacity>
+                                                            ))}
+                                                        </ScrollView>
                                                     )}
                                                 </View>
-
-                                                {!isSubstepLocked && !substep.isCompleted && !['ADMIN', 'MANAGER'].includes(userRole?.toUpperCase()) && (
-                                                    <View style={styles.stepPhotoContainer}>
-                                                        <Text style={styles.photoCountText}>
-                                                            Fotoğraflar ({photoCount}/3)
-                                                        </Text>
-                                                        {canUpload ? (
-                                                            <View style={styles.photoButtonsContainer}>
-                                                                <TouchableOpacity
-                                                                    style={styles.photoIconBtn}
-                                                                    onPress={() => pickImage(step.id, substep.id, 'camera')}
-                                                                >
-                                                                    <MaterialIcons name="camera-alt" size={20} color={COLORS.primary} />
-                                                                </TouchableOpacity>
-                                                                <TouchableOpacity
-                                                                    style={styles.photoIconBtn}
-                                                                    onPress={() => pickImage(step.id, substep.id, 'gallery')}
-                                                                >
-                                                                    <MaterialIcons name="photo-library" size={20} color={COLORS.primary} />
-                                                                </TouchableOpacity>
-                                                            </View>
-                                                        ) : (
-                                                            !substep.startedAt && <Text style={styles.lockedText}>Fotoğraf yüklemek için başlayın</Text>
-                                                        )}
-                                                    </View>
-                                                )}
-
-                                                {substepPhotos.length > 0 && (
-                                                    <ScrollView horizontal style={styles.thumbnailsContainer} showsHorizontalScrollIndicator={false}>
-                                                        {substepPhotos.map((photo, pIndex) => (
-                                                            <TouchableOpacity key={pIndex} onPress={() => openImageModal(photo.url || photo)}>
-                                                                <Image source={{ uri: photo.url || photo }} style={styles.thumbnail} />
-                                                            </TouchableOpacity>
-                                                        ))}
-                                                    </ScrollView>
-                                                )}
-                                            </View>
-                                        );
-                                    })}
-                                </View>
-                            )}
-
-                            {(!step.subSteps || step.subSteps.length === 0) && !['ADMIN', 'MANAGER'].includes(userRole?.toUpperCase()) && (
-                                <View style={{ marginTop: 12 }}>
-                                    <View style={styles.actionButtons}>
-                                        {!step.isCompleted ? (
-                                            !step.startedAt ? (
-                                                <TouchableOpacity
-                                                    style={[styles.startButton, isLocked && styles.disabledButton]}
-                                                    onPress={() => handleStartStep(step.id)}
-                                                    disabled={isLocked}
-                                                >
-                                                    <Text style={styles.btnText}>Başla</Text>
-                                                </TouchableOpacity>
-                                            ) : (
-                                                <TouchableOpacity
-                                                    style={[styles.completeButton, ((step.photos?.length || 0) < 1 || isLocked) && styles.disabledButton]}
-                                                    onPress={() => {
-                                                        if (!step.startedAt) {
-                                                            Alert.alert('Uyarı', 'Önce işe başlamalısınız.');
-                                                            return;
-                                                        }
-                                                        if ((step.photos?.length || 0) < 1) {
-                                                            Alert.alert('Uyarı', 'Tamamlamak için en az 1 fotoğraf yüklemelisiniz.');
-                                                            return;
-                                                        }
-                                                        handleToggleStep(step.id, false);
-                                                    }}
-                                                    disabled={(step.photos?.length || 0) < 1 || isLocked}
-                                                >
-                                                    <Text style={styles.btnText}>Tamamla</Text>
-                                                </TouchableOpacity>
-                                            )
-                                        ) : (
-                                            <TouchableOpacity
-                                                style={styles.undoButton}
-                                                onPress={() => handleToggleStep(step.id, true)}
-                                            >
-                                                <Text style={styles.btnText}>Geri Al</Text>
-                                            </TouchableOpacity>
-                                        )}
+                                            );
+                                        })}
                                     </View>
+                                )}
 
-                                    {!step.isCompleted && (
-                                        <View style={styles.stepPhotoContainer}>
-                                            <Text style={styles.photoCountText}>
-                                                Fotoğraflar ({step.photos?.length || 0}/3)
-                                            </Text>
-                                            {step.startedAt && (step.photos?.length || 0) < 3 ? (
-                                                <View style={styles.photoButtonsContainer}>
+                                {(!step.subSteps || step.subSteps.length === 0) && !['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase()) && (
+                                    <View style={{ marginTop: 12 }}>
+                                        <View style={styles.actionButtons}>
+                                            {!step.isCompleted ? (
+                                                !step.startedAt ? (
                                                     <TouchableOpacity
-                                                        style={styles.photoIconBtn}
-                                                        onPress={() => pickImage(step.id, null, 'camera')}
+                                                        style={[styles.startButton, isLocked && styles.disabledButton]}
+                                                        onPress={() => handleStartStep(step.id)}
+                                                        disabled={isLocked}
                                                     >
-                                                        <MaterialIcons name="camera-alt" size={20} color={COLORS.primary} />
+                                                        <Text style={styles.btnText}>Başla</Text>
                                                     </TouchableOpacity>
+                                                ) : (
                                                     <TouchableOpacity
-                                                        style={styles.photoIconBtn}
-                                                        onPress={() => pickImage(step.id, null, 'gallery')}
+                                                        style={[styles.completeButton, ((step.photos?.length || 0) < 1 || isLocked) && styles.disabledButton]}
+                                                        onPress={() => {
+                                                            if (!step.startedAt) {
+                                                                Alert.alert('Uyarı', 'Önce işe başlamalısınız.');
+                                                                return;
+                                                            }
+                                                            if ((step.photos?.length || 0) < 1) {
+                                                                Alert.alert('Uyarı', 'Tamamlamak için en az 1 fotoğraf yüklemelisiniz.');
+                                                                return;
+                                                            }
+                                                            handleToggleStep(step.id, false);
+                                                        }}
+                                                        disabled={(step.photos?.length || 0) < 1 || isLocked}
                                                     >
-                                                        <MaterialIcons name="photo-library" size={20} color={COLORS.primary} />
+                                                        <Text style={styles.btnText}>Tamamla</Text>
                                                     </TouchableOpacity>
-                                                </View>
+                                                )
                                             ) : (
-                                                !step.startedAt && <Text style={styles.lockedText}>Fotoğraf yüklemek için başlayın</Text>
+                                                <TouchableOpacity
+                                                    style={styles.undoButton}
+                                                    onPress={() => handleToggleStep(step.id, true)}
+                                                >
+                                                    <Text style={styles.btnText}>Geri Al</Text>
+                                                </TouchableOpacity>
                                             )}
                                         </View>
-                                    )}
 
-                                    {step.photos && step.photos.length > 0 && (
-                                        <ScrollView horizontal style={styles.thumbnailsContainer} showsHorizontalScrollIndicator={false}>
-                                            {step.photos.map((photo, pIndex) => (
-                                                <TouchableOpacity key={pIndex} onPress={() => openImageModal(photo.url || photo)}>
-                                                    <Image source={{ uri: photo.url || photo }} style={styles.thumbnail} />
-                                                </TouchableOpacity>
-                                            ))}
-                                        </ScrollView>
-                                    )}
-                                </View>
-                            )}
-                        </View>
-                    );
-                })}
+                                        {!step.isCompleted && (
+                                            <View style={styles.stepPhotoContainer}>
+                                                <Text style={styles.photoCountText}>
+                                                    Fotoğraflar ({step.photos?.length || 0}/3)
+                                                </Text>
+                                                {step.startedAt && (step.photos?.length || 0) < 3 ? (
+                                                    <View style={styles.photoButtonsContainer}>
+                                                        <TouchableOpacity
+                                                            style={styles.photoIconBtn}
+                                                            onPress={() => pickImage(step.id, null, 'camera')}
+                                                        >
+                                                            <MaterialIcons name="camera-alt" size={20} color={COLORS.primary} />
+                                                        </TouchableOpacity>
+                                                        <TouchableOpacity
+                                                            style={styles.photoIconBtn}
+                                                            onPress={() => pickImage(step.id, null, 'gallery')}
+                                                        >
+                                                            <MaterialIcons name="photo-library" size={20} color={COLORS.primary} />
+                                                        </TouchableOpacity>
+                                                    </View>
+                                                ) : (
+                                                    !step.startedAt && <Text style={styles.lockedText}>Fotoğraf yüklemek için başlayın</Text>
+                                                )}
+                                            </View>
+                                        )}
 
-                {/* Costs Section */}
-                <View style={styles.sectionHeaderRow}>
-                    <Text style={styles.sectionTitle}>Masraflar</Text>
-                    {!['ADMIN', 'MANAGER'].includes(userRole?.toUpperCase()) && (
-                        <TouchableOpacity
-                            style={styles.addCostButton}
-                            onPress={() => setCostModalVisible(true)}
-                        >
-                            <MaterialIcons name="add" size={20} color={COLORS.black} />
-                            <Text style={styles.addCostButtonText}>Ekle</Text>
-                        </TouchableOpacity>
-                    )}
-                </View>
-
-                {job.costs && job.costs.length > 0 ? (
-                    job.costs.map((cost) => (
-                        <View key={cost.id} style={styles.costCard}>
-                            <View style={styles.costHeader}>
-                                <Text style={styles.costCategory}>{cost.category}</Text>
-                                <Text style={[
-                                    styles.costStatus,
-                                    cost.status === 'APPROVED' ? styles.statusApproved :
-                                        cost.status === 'REJECTED' ? styles.statusRejected : styles.statusPending
-                                ]}>
-                                    {cost.status === 'APPROVED' ? 'Onaylandı' :
-                                        cost.status === 'REJECTED' ? 'Reddedildi' : 'Bekliyor'}
-                                </Text>
+                                        {step.photos && step.photos.length > 0 && (
+                                            <ScrollView horizontal style={styles.thumbnailsContainer} showsHorizontalScrollIndicator={false}>
+                                                {step.photos.map((photo, pIndex) => (
+                                                    <TouchableOpacity key={pIndex} onPress={() => openImageModal(photo.url || photo)}>
+                                                        <Image source={{ uri: photo.url || photo }} style={styles.thumbnail} />
+                                                    </TouchableOpacity>
+                                                ))}
+                                            </ScrollView>
+                                        )}
+                                    </View>
+                                )}
                             </View>
-                            <View style={styles.costRow}>
-                                <Text style={styles.costAmount}>{cost.amount} {cost.currency}</Text>
-                                <Text style={styles.costDate}>{new Date(cost.date).toLocaleDateString()}</Text>
-                            </View>
-                            <Text style={styles.costDescription}>{cost.description}</Text>
-                            {cost.rejectionReason && (
-                                <Text style={styles.rejectionReason}>Red Nedeni: {cost.rejectionReason}</Text>
-                            )}
-                        </View>
-                    ))
-                ) : (
-                    <Text style={styles.emptyText}>Henüz masraf eklenmemiş.</Text>
-                )}
+                        );
+                    })}
 
-                <View style={{ height: 100 }} />
-            </ScrollView>
+                    {/* Costs Section */}
+                    <CostSection
+                        job={job}
+                        canAdd={!['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase())}
+                        onAddPress={() => setCostModalVisible(true)}
+                    />
+
+                    <View style={{ height: 100 }} />
+                </ScrollView>
+            </PageWrapper>
 
             {/* Footer Actions */}
             <View style={styles.footer}>
-                {!['ADMIN', 'MANAGER'].includes(userRole?.toUpperCase()) ? (
+                {!['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase()) ? (
                     job.status === 'PENDING' ? (
                         <TouchableOpacity
                             style={styles.mainCompleteButton}
@@ -855,29 +869,43 @@ export default function JobDetailScreen({ route, navigation }) {
                         </TouchableOpacity>
                     )
                 ) : (
-                    <View style={{ width: '100%' }}>
-                        <View style={styles.acceptanceStatusContainer}>
-                            <Text style={styles.acceptanceStatusLabel}>Montaj Durumu:</Text>
-                            <Text style={[
-                                styles.acceptanceStatusValue,
-                                job.acceptanceStatus === 'ACCEPTED' ? styles.statusApproved :
-                                    job.acceptanceStatus === 'REJECTED' ? styles.statusRejected : styles.statusPending
-                            ]}>
-                                {job.acceptanceStatus === 'ACCEPTED' ? 'KABUL EDİLDİ' :
-                                    job.acceptanceStatus === 'REJECTED' ? 'REDDEDİLDİ' : 'ONAY BEKLİYOR'}
-                            </Text>
+                    <View style={{ width: '100%', flexDirection: 'row', gap: 12 }}>
+                        <View style={{ flex: 1 }}>
+                            <View style={styles.acceptanceStatusContainer}>
+                                <Text style={styles.acceptanceStatusLabel}>Durum:</Text>
+                                <Text style={[
+                                    styles.acceptanceStatusValue,
+                                    job.acceptanceStatus === 'ACCEPTED' ? styles.statusApproved :
+                                        job.acceptanceStatus === 'REJECTED' ? styles.statusRejected : styles.statusPending
+                                ]}>
+                                    {job.acceptanceStatus === 'ACCEPTED' ? 'KABUL' :
+                                        job.acceptanceStatus === 'REJECTED' ? 'RED' : 'BEKLİYOR'}
+                                </Text>
+                            </View>
+                            <View style={{ flexDirection: 'row', gap: 8 }}>
+                                <TouchableOpacity
+                                    style={[styles.mainCompleteButton, styles.rejectButton, { flex: 1, padding: 12 }]}
+                                    onPress={() => {
+                                        setSelectedStepId(null);
+                                        setSelectedSubstepId(null);
+                                        setRejectionModalVisible(true);
+                                    }}
+                                >
+                                    <Text style={styles.mainCompleteButtonText}>Reddet</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[styles.mainCompleteButton, styles.acceptJobButton, { flex: 1, padding: 12 }]}
+                                    onPress={handleAcceptJob}
+                                >
+                                    <Text style={styles.mainCompleteButtonText}>Kabul Et</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                        <TouchableOpacity
-                            style={[styles.mainCompleteButton, styles.acceptJobButton]}
-                            onPress={handleAcceptJob}
-                        >
-                            <Text style={styles.mainCompleteButtonText}>Montajı Kabul Et</Text>
-                        </TouchableOpacity>
                     </View>
                 )}
             </View>
 
-            <Modal visible={modalVisible} transparent={true} onRequestClose={() => setModalVisible(false)}>
+            <AppModal visible={modalVisible} transparent={true} onRequestClose={() => setModalVisible(false)}>
                 <View style={styles.modalContainer}>
                     <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
                         <MaterialIcons name="close" size={30} color={COLORS.white} />
@@ -886,104 +914,150 @@ export default function JobDetailScreen({ route, navigation }) {
                         <Image source={{ uri: selectedImage }} style={styles.fullImage} resizeMode="contain" />
                     )}
                 </View>
-            </Modal>
+            </AppModal>
 
-            <Modal visible={costModalVisible} transparent={true} animationType="slide" onRequestClose={() => setCostModalVisible(false)}>
-                <View style={styles.modalContainer}>
-                    <View style={styles.formCard}>
-                        <Text style={styles.modalTitle}>Masraf Ekle</Text>
-                        <Text style={styles.inputLabel}>Tarih</Text>
-                        <TouchableOpacity
-                            style={styles.dateSelector}
-                            onPress={() => setShowDatePicker(true)}
-                        >
-                            <MaterialIcons name="event" size={24} color={COLORS.textGray} />
-                            <Text style={styles.dateText}>
-                                {costDate.toLocaleDateString('tr-TR')}
-                            </Text>
-                        </TouchableOpacity>
-                        {showDatePicker && (
-                            <DateTimePicker
-                                value={costDate}
-                                mode="date"
-                                display="default"
-                                onChange={(event, selectedDate) => {
-                                    setShowDatePicker(Platform.OS === 'ios');
-                                    if (selectedDate) {
-                                        setCostDate(selectedDate);
+            <AppModal visible={costModalVisible} transparent={true} animationType="slide" onRequestClose={() => setCostModalVisible(false)}>
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : "height"}
+                    style={styles.modalContainer}
+                >
+                    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                        <View style={styles.formCard}>
+                            <Text style={styles.modalTitle}>Masraf Ekle</Text>
+                            <Text style={styles.inputLabel}>Tarih</Text>
+                            <TouchableOpacity
+                                style={styles.dateSelector}
+                                onPress={() => setShowDatePicker(true)}
+                            >
+                                <MaterialIcons name="event" size={24} color={COLORS.textGray} />
+                                <Text style={styles.dateText}>
+                                    {costDate.toLocaleDateString('tr-TR')}
+                                </Text>
+                            </TouchableOpacity>
+                            {showDatePicker && (
+                                <DateTimePicker
+                                    value={costDate}
+                                    mode="date"
+                                    display="default"
+                                    onChange={(event, selectedDate) => {
+                                        setShowDatePicker(Platform.OS === 'ios');
+                                        if (selectedDate) {
+                                            setCostDate(selectedDate);
+                                        }
+                                    }}
+                                />
+                            )}
+
+                            <Text style={styles.inputLabel}>Tutar (TL)</Text>
+                            <WebInput
+                                style={styles.input}
+                                value={costAmount}
+                                onChangeText={setCostAmount}
+                                inputMode="decimal"
+                                placeholder="0.00"
+                            />
+                            <Text style={styles.inputLabel}>Kategori</Text>
+                            <View style={styles.categoryContainer}>
+                                {COST_CATEGORIES.map(cat => (
+                                    <TouchableOpacity
+                                        key={cat}
+                                        style={[styles.categoryChip, costCategory === cat && styles.categoryChipSelected]}
+                                        onPress={() => setCostCategory(cat)}
+                                    >
+                                        <Text style={[styles.categoryText, costCategory === cat && styles.categoryTextSelected]}>{cat}</Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                            <Text style={styles.inputLabel}>Açıklama</Text>
+                            <WebInput
+                                style={[styles.input, styles.textArea]}
+                                value={costDescription}
+                                onChangeText={setCostDescription}
+                                inputMode="text"
+                                multiline
+                                numberOfLines={3}
+                                placeholder="Masraf detayları..."
+                            />
+
+                            <Text style={styles.inputLabel}>Fiş/Fatura Fotoğrafı</Text>
+                            <TouchableOpacity
+                                style={styles.imageUploadButton}
+                                onPress={async () => {
+                                    const result = await ImagePicker.launchImageLibraryAsync({
+                                        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                                        allowsEditing: true,
+                                        aspect: [4, 3],
+                                        quality: 0.5,
+                                    });
+
+                                    if (!result.canceled) {
+                                        setReceiptImage(result.assets[0].uri);
                                     }
                                 }}
-                            />
-                        )}
-
-                        <Text style={styles.inputLabel}>Tutar (TL)</Text>
-                        <TextInput
-                            style={styles.input}
-                            value={costAmount}
-                            onChangeText={setCostAmount}
-                            keyboardType="numeric"
-                            placeholder="0.00"
-                            placeholderTextColor={COLORS.textGray}
-                        />
-                        <Text style={styles.inputLabel}>Kategori</Text>
-                        <View style={styles.categoryContainer}>
-                            {COST_CATEGORIES.map(cat => (
+                            >
+                                {receiptImage ? (
+                                    <Image source={{ uri: receiptImage }} style={styles.previewImage} />
+                                ) : (
+                                    <View style={styles.uploadPlaceholder}>
+                                        <MaterialIcons name="add-a-photo" size={32} color={COLORS.textGray} />
+                                        <Text style={styles.uploadText}>Fotoğraf Ekle</Text>
+                                    </View>
+                                )}
+                            </TouchableOpacity>
+                            {receiptImage && (
                                 <TouchableOpacity
-                                    key={cat}
-                                    style={[styles.categoryChip, costCategory === cat && styles.categoryChipSelected]}
-                                    onPress={() => setCostCategory(cat)}
+                                    style={styles.removeImageButton}
+                                    onPress={() => setReceiptImage(null)}
                                 >
-                                    <Text style={[styles.categoryText, costCategory === cat && styles.categoryTextSelected]}>{cat}</Text>
+                                    <Text style={styles.removeImageText}>Fotoğrafı Kaldır</Text>
                                 </TouchableOpacity>
-                            ))}
-                        </View>
-                        <Text style={styles.inputLabel}>Açıklama</Text>
-                        <TextInput
-                            style={[styles.input, styles.textArea]}
-                            value={costDescription}
-                            onChangeText={setCostDescription}
-                            multiline
-                            numberOfLines={3}
-                            placeholder="Masraf detayları..."
-                            placeholderTextColor={COLORS.textGray}
-                        />
-                        <View style={styles.modalButtons}>
-                            <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setCostModalVisible(false)}>
-                                <Text style={styles.cancelButtonText}>İptal</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={[styles.modalButton, styles.submitButton]} onPress={handleCreateCost} disabled={submittingCost}>
-                                {submittingCost ? <ActivityIndicator color={COLORS.black} /> : <Text style={styles.submitButtonText}>Kaydet</Text>}
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </Modal>
+                            )}
 
-            <Modal visible={rejectionModalVisible} transparent={true} animationType="slide" onRequestClose={() => setRejectionModalVisible(false)}>
-                <View style={styles.modalContainer}>
-                    <View style={styles.formCard}>
-                        <Text style={styles.modalTitle}>{selectedSubstepId ? 'Alt Görevi Reddet' : 'İş Adımını Reddet'}</Text>
-                        <Text style={styles.inputLabel}>Red Sebebi</Text>
-                        <TextInput
-                            style={[styles.input, styles.textArea]}
-                            value={rejectionReason}
-                            onChangeText={setRejectionReason}
-                            multiline
-                            numberOfLines={3}
-                            placeholder="Lütfen red sebebini belirtin..."
-                            placeholderTextColor={COLORS.textGray}
-                        />
-                        <View style={styles.modalButtons}>
-                            <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setRejectionModalVisible(false)}>
-                                <Text style={styles.cancelButtonText}>İptal</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={[styles.modalButton, styles.rejectButton]} onPress={selectedSubstepId ? handleRejectSubstep : handleRejectStep}>
-                                <Text style={styles.actionButtonText}>Reddet</Text>
-                            </TouchableOpacity>
+                            <View style={styles.modalButtons}>
+                                <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setCostModalVisible(false)}>
+                                    <Text style={styles.cancelButtonText}>İptal</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={[styles.modalButton, styles.submitButton]} onPress={handleCreateCost} disabled={submittingCost}>
+                                    {submittingCost ? <ActivityIndicator color={COLORS.black} /> : <Text style={styles.submitButtonText}>Kaydet</Text>}
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                    </View>
-                </View>
-            </Modal>
+                    </TouchableWithoutFeedback>
+                </KeyboardAvoidingView>
+            </AppModal>
+
+            <AppModal visible={rejectionModalVisible} transparent={true} animationType="slide" onRequestClose={() => setRejectionModalVisible(false)}>
+                <KeyboardAvoidingView
+                    behavior={Platform.OS === "ios" ? "padding" : "height"}
+                    style={styles.modalContainer}
+                >
+                    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                        <View style={styles.formCard}>
+                            <Text style={styles.modalTitle}>
+                                {selectedSubstepId ? 'Alt Görevi Reddet' : selectedStepId ? 'İş Adımını Reddet' : 'İşi Reddet'}
+                            </Text>
+                            <Text style={styles.inputLabel}>Red Sebebi</Text>
+                            <WebInput
+                                style={[styles.input, styles.textArea]}
+                                value={rejectionReason}
+                                onChangeText={setRejectionReason}
+                                inputMode="text"
+                                multiline
+                                numberOfLines={3}
+                                placeholder="Lütfen red sebebini belirtin..."
+                            />
+                            <View style={styles.modalButtons}>
+                                <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setRejectionModalVisible(false)}>
+                                    <Text style={styles.cancelButtonText}>İptal</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={[styles.modalButton, styles.rejectButton]} onPress={selectedSubstepId ? handleRejectSubstep : selectedStepId ? handleRejectStep : handleRejectJob}>
+                                    <Text style={styles.actionButtonText}>Reddet</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </TouchableWithoutFeedback>
+                </KeyboardAvoidingView>
+            </AppModal>
 
             {
                 uploading && (
@@ -1018,6 +1092,10 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: COLORS.backgroundDark,
+        ...(Platform.OS === 'web' && {
+            height: '100vh',
+            overflow: 'hidden',
+        }),
     },
     centerContainer: {
         flex: 1,
@@ -1280,6 +1358,14 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0,0,0,0.9)',
         justifyContent: 'center',
         padding: 20,
+        ...(Platform.OS === 'web' && {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 9999,
+        }),
     },
     formCard: {
         backgroundColor: COLORS.cardDark,
@@ -1503,5 +1589,39 @@ const styles = StyleSheet.create({
         padding: 12,
         marginBottom: 16,
         gap: 8,
+    },
+    imageUploadButton: {
+        height: 200,
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        borderWidth: 1,
+        borderColor: COLORS.cardBorder,
+        borderStyle: 'dashed',
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 12,
+        overflow: 'hidden',
+    },
+    uploadPlaceholder: {
+        alignItems: 'center',
+        gap: 8,
+    },
+    uploadText: {
+        color: COLORS.textGray,
+        fontSize: 14,
+    },
+    previewImage: {
+        width: '100%',
+        height: '100%',
+        resizeMode: 'cover',
+    },
+    removeImageButton: {
+        alignItems: 'center',
+        padding: 8,
+        marginBottom: 16,
+    },
+    removeImageText: {
+        color: COLORS.red500,
+        fontSize: 14,
     },
 });

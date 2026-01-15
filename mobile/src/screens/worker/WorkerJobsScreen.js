@@ -1,575 +1,166 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
     View,
     Text,
     StyleSheet,
     FlatList,
     TouchableOpacity,
-    TextInput,
     RefreshControl,
     StatusBar,
-    SafeAreaView,
-    Modal,
-    Alert
+    Alert,
+    ActivityIndicator
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+
 import { useAuth } from '../../context/AuthContext';
 import jobService from '../../services/job.service';
+import { COLORS } from '../../constants/theme';
+import JobListItem from '../../components/JobListItem';
+import CreateJobModal from '../../components/modals/CreateJobModal';
+import UploadJobModal from '../../components/modals/UploadJobModal';
+import { useJobFiltering } from '../../hooks/useJobFiltering';
+import JobFilterTabs from '../../components/worker/JobFilterTabs';
+import JobSearchHeader from '../../components/worker/JobSearchHeader';
 
-const COLORS = {
-    primary: "#CCFF04",
-    backgroundLight: "#f8f8f5",
-    backgroundDark: "#010100",
-    cardDark: "#111827", // gray-900
-    cardBorder: "#1f2937", // gray-800
-    textLight: "#f8fafc", // slate-50
-    textGray: "#94a3b8", // slate-400
-    red500: "#ef4444",
-    red900: "#7f1d1d",
-    orange500: "#f97316",
-    blue500: "#3b82f6",
-    blue900: "#1e3a8a",
-    neonGreen: "#39ff14",
-    black: "#000000",
-};
-
-export default function WorkerJobsScreen({ navigation, route }) {
+export default function WorkerJobsScreen() {
+    const navigation = useNavigation();
     const { user } = useAuth();
     const [jobs, setJobs] = useState([]);
-    const [filteredJobs, setFilteredJobs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [selectedFilter, setSelectedFilter] = useState('Tümü');
-    const [modalVisible, setModalVisible] = useState(false);
-    const [formData, setFormData] = useState({ title: '', description: '' });
 
-    const [showSearch, setShowSearch] = useState(false);
+    // Modal States
+    const [modalVisible, setModalVisible] = useState(false);
+    const [uploadModalVisible, setUploadModalVisible] = useState(false);
 
     const isAdmin = user?.role === 'ADMIN' || user?.role === 'MANAGER';
 
-    useEffect(() => {
-        if (route.params?.openCreate && isAdmin) {
-            setModalVisible(true);
-            // Reset params to avoid reopening on focus
-            navigation.setParams({ openCreate: undefined });
+    // Fetch jobs
+    const fetchJobs = useCallback(async () => {
+        try {
+            setLoading(true);
+            const data = isAdmin ? await jobService.getAllJobs() : await jobService.getMyJobs();
+            setJobs(data);
+        } catch (error) {
+            console.error('Error fetching jobs:', error);
+            Alert.alert('Hata', 'Görevler yüklenirken bir hata oluştu');
+        } finally {
+            setLoading(false);
         }
-    }, [route.params]);
+    }, [isAdmin]);
 
     useFocusEffect(
         useCallback(() => {
-            loadJobs();
-        }, [])
+            fetchJobs();
+        }, [fetchJobs])
     );
 
-    useEffect(() => {
-        filterJobs();
-    }, [searchQuery, selectedFilter, jobs]);
+    // Filtering Hook
+    const {
+        filteredJobs,
+        selectedFilter,
+        setSelectedFilter,
+        searchQuery,
+        setSearchQuery
+    } = useJobFiltering(jobs);
 
-    const loadJobs = async () => {
+    const onRefresh = async () => {
+        setRefreshing(true);
+        // Do not set global loading true on refresh to keep list visible
         try {
-            setLoading(true);
-            let data;
-            if (isAdmin) {
-                data = await jobService.getAllJobs();
-            } else {
-                data = await jobService.getMyJobs();
-            }
+            const data = isAdmin ? await jobService.getAllJobs() : await jobService.getMyJobs();
             setJobs(data);
         } catch (error) {
-            console.error('Error loading jobs:', error);
-            // Fallback to mock data if API fails (for demo continuity)
-            // setJobs(mockJobs); 
+            console.error('Error refreshing jobs:', error);
         } finally {
-            setLoading(false);
             setRefreshing(false);
         }
     };
 
-    const onRefresh = () => {
-        setRefreshing(true);
-        loadJobs();
-    };
+    const renderItem = useCallback(({ item }) => (
+        <JobListItem
+            item={item}
+            onPress={(job) => navigation.navigate('JobDetail', { jobId: job.id })}
+        />
+    ), [navigation]);
 
-    const filterJobs = () => {
-        let filtered = jobs;
-
-        if (selectedFilter !== 'Tümü') {
-            if (selectedFilter === 'Devam Eden') {
-                filtered = filtered.filter(j => j.status === 'IN_PROGRESS');
-            } else if (selectedFilter === 'Bekleyen') {
-                filtered = filtered.filter(j => j.status === 'PENDING');
-            } else if (selectedFilter === 'Tamamlanan') {
-                filtered = filtered.filter(j => j.status === 'COMPLETED');
-            }
-        }
-
-        if (searchQuery) {
-            filtered = filtered.filter(j => j.title.toLowerCase().includes(searchQuery.toLowerCase()));
-        }
-
-        setFilteredJobs(filtered);
-    };
-
-    const handleCreateJob = async () => {
-        if (!formData.title) {
-            Alert.alert('Hata', 'İş başlığı zorunludur.');
-            return;
-        }
-        try {
-            await jobService.create(formData);
-            Alert.alert('Başarılı', 'Yeni iş oluşturuldu.');
-            setModalVisible(false);
-            loadJobs();
-        } catch (error) {
-            console.error('Create job error:', error);
-            Alert.alert('Hata', 'İş oluşturulamadı.');
-        }
-    };
-
-    const renderPriorityDot = (priority) => {
-        let color = COLORS.blue500;
-        if (priority === 'HIGH') color = COLORS.red500;
-        if (priority === 'MEDIUM') color = COLORS.orange500;
-        return <View style={[styles.priorityDot, { backgroundColor: color }]} />;
-    };
-
-    const renderStatusBadge = (status) => {
-        if (status === 'IN_PROGRESS') {
-            return (
-                <View style={[styles.badge, { backgroundColor: 'rgba(57, 255, 20, 0.1)' }]}>
-                    <Text style={[styles.badgeText, { color: COLORS.neonGreen }]}>Devam Ediyor</Text>
+    if (loading && !refreshing && jobs.length === 0) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <StatusBar barStyle="light-content" backgroundColor={COLORS.backgroundDark} />
+                <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+                    <ActivityIndicator size="large" color={COLORS.neonGreen} />
                 </View>
-            );
-        }
-        if (status === 'PENDING') {
-            return (
-                <View style={[styles.badge, { backgroundColor: 'rgba(30, 58, 138, 0.5)' }]}>
-                    <Text style={[styles.badgeText, { color: '#60a5fa' }]}>Bekliyor</Text>
-                </View>
-            );
-        }
-        if (status === 'COMPLETED') {
-            return (
-                <View style={[styles.badge, { backgroundColor: 'rgba(57, 255, 20, 0.1)' }]}>
-                    <Text style={[styles.badgeText, { color: 'rgba(57, 255, 20, 0.8)' }]}>Tamamlandı</Text>
-                </View>
-            );
-        }
-        return null;
-    };
-
-    const renderItem = ({ item }) => (
-        <View style={[
-            styles.card,
-            item.status === 'IN_PROGRESS' && styles.cardActive,
-            item.status === 'COMPLETED' && styles.cardCompleted
-        ]}>
-            <View style={styles.cardContent}>
-                <View style={styles.cardHeader}>
-                    <Text style={[styles.cardTitle, item.status === 'COMPLETED' && styles.textStrike]}>{item.title}</Text>
-                    <View style={styles.headerRight}>
-                        {item.status !== 'COMPLETED' && renderPriorityDot(item.priority)}
-                        {renderStatusBadge(item.status)}
-                    </View>
-                </View>
-
-                <View style={styles.cardFooter}>
-                    <View style={styles.footerInfo}>
-                        <View style={styles.infoRow}>
-                            <MaterialIcons name="event" size={16} color={COLORS.neonGreen} />
-                            <Text style={styles.infoText}>{item.dueDate ? new Date(item.dueDate).toLocaleDateString() : 'Tarih Yok'}</Text>
-                        </View>
-                        <View style={styles.infoRow}>
-                            <MaterialIcons name="person" size={16} color={COLORS.neonGreen} />
-                            <Text style={styles.infoText}>Atanan: {item.assignee?.name || 'Atanmamış'}</Text>
-                        </View>
-                    </View>
-
-                    <TouchableOpacity
-                        style={styles.detailsButton}
-                        onPress={() => navigation.navigate('JobDetail', { jobId: item.id })}
-                    >
-                        <Text style={styles.detailsButtonText}>Detaylar</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
-        </View>
-    );
+            </SafeAreaView>
+        );
+    }
 
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="light-content" backgroundColor={COLORS.backgroundDark} />
 
-            {/* Header */}
-            <View style={styles.header}>
-                <View style={styles.headerLeft}>
-                    <MaterialIcons name="assignment" size={30} color={COLORS.neonGreen} />
-                </View>
-                {showSearch ? (
-                    <TextInput
-                        style={styles.searchInput}
-                        placeholder="İş ara..."
-                        placeholderTextColor={COLORS.textGray}
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
-                        autoFocus
-                    />
-                ) : (
-                    <Text style={styles.headerTitle}>Görevler</Text>
-                )}
-                <TouchableOpacity
-                    style={styles.searchButton}
-                    onPress={() => {
-                        setShowSearch(!showSearch);
-                        if (showSearch) setSearchQuery('');
-                    }}
-                >
-                    <MaterialIcons name={showSearch ? "close" : "search"} size={24} color={COLORS.neonGreen} />
-                </TouchableOpacity>
-            </View>
-
-            {/* Filters */}
-            <View style={styles.filterContainer}>
-                <View style={styles.filterWrapper}>
-                    {['Tümü', 'Devam Eden', 'Bekleyen', 'Tamamlanan'].map((filter) => (
-                        <TouchableOpacity
-                            key={filter}
-                            style={[
-                                styles.filterTab,
-                                selectedFilter === filter && styles.filterTabActive
-                            ]}
-                            onPress={() => setSelectedFilter(filter)}
-                        >
-                            <Text style={[
-                                styles.filterText,
-                                selectedFilter === filter && styles.filterTextActive
-                            ]}>
-                                {filter}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
-                </View>
-            </View>
-
-            {/* Task List */}
-            <FlatList
-                data={filteredJobs}
-                renderItem={renderItem}
-                keyExtractor={item => item.id}
-                contentContainerStyle={styles.listContent}
-                refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.neonGreen} />
-                }
-                ListEmptyComponent={
-                    <View style={styles.emptyContainer}>
-                        <Text style={styles.emptyText}>Görev bulunamadı.</Text>
-                    </View>
-                }
+            <JobSearchHeader
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
             />
 
-            {/* FAB for Admin */}
+            <JobFilterTabs
+                selectedFilter={selectedFilter}
+                onSelectFilter={setSelectedFilter}
+            />
+
+            <FlatList
+                style={{ flex: 1 }}
+                data={filteredJobs}
+                renderItem={renderItem}
+                keyExtractor={item => item.id?.toString()}
+                contentContainerStyle={styles.listContent}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.neonGreen} />}
+                initialNumToRender={10}
+                windowSize={5}
+                maxToRenderPerBatch={10}
+                removeClippedSubviews={true}
+                ListEmptyComponent={<View style={styles.emptyContainer}><Text style={styles.emptyText}>Görev bulunamadı.</Text></View>}
+            />
+
             {isAdmin && (
                 <View style={styles.fabContainer}>
+                    <TouchableOpacity style={[styles.fab, styles.excelFab]} onPress={() => setUploadModalVisible(true)}>
+                        <MaterialCommunityIcons name="file-excel-box" size={28} color={COLORS.white} />
+                    </TouchableOpacity>
                     <TouchableOpacity style={styles.fab} onPress={() => setModalVisible(true)}>
                         <MaterialIcons name="add" size={30} color={COLORS.black} />
                     </TouchableOpacity>
                 </View>
             )}
 
-            {/* Create Job Modal */}
-            <Modal
+            <UploadJobModal
+                visible={uploadModalVisible}
+                onClose={() => setUploadModalVisible(false)}
+            />
+
+            <CreateJobModal
                 visible={modalVisible}
-                transparent={true}
-                animationType="slide"
-                onRequestClose={() => setModalVisible(false)}
-            >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Yeni İş Oluştur</Text>
+                onClose={() => setModalVisible(false)}
+                onSuccess={() => {
+                    setModalVisible(false);
+                    onRefresh();
+                    Alert.alert('Başarılı', 'İş oluşturuldu.');
+                }}
+            />
 
-                        <Text style={styles.label}>İş Başlığı</Text>
-                        <TextInput
-                            style={styles.input}
-                            value={formData.title}
-                            onChangeText={(text) => setFormData({ ...formData, title: text })}
-                            placeholder="Klima Montajı"
-                            placeholderTextColor="#666"
-                        />
-
-                        <Text style={styles.label}>Açıklama</Text>
-                        <TextInput
-                            style={[styles.input, { height: 80, textAlignVertical: 'top' }]}
-                            value={formData.description}
-                            onChangeText={(text) => setFormData({ ...formData, description: text })}
-                            placeholder="İş detayları..."
-                            placeholderTextColor="#666"
-                            multiline
-                        />
-
-                        <View style={styles.modalButtons}>
-                            <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
-                                <Text style={styles.cancelButtonText}>İptal</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.saveButton} onPress={handleCreateJob}>
-                                <Text style={styles.saveButtonText}>Oluştur</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </Modal>
-        </SafeAreaView>
+        </SafeAreaView >
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: COLORS.backgroundDark,
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: 16,
-        backgroundColor: 'rgba(0,0,0,0.8)',
-        borderBottomWidth: 1,
-        borderBottomColor: COLORS.cardBorder,
-    },
-    headerLeft: {
-        width: 40,
-        alignItems: 'flex-start',
-    },
-    headerTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: COLORS.textLight,
-        flex: 1,
-        textAlign: 'center',
-    },
-    searchInput: {
-        flex: 1,
-        color: COLORS.textLight,
-        fontSize: 16,
-        paddingHorizontal: 12,
-        height: 40,
-        backgroundColor: 'rgba(255,255,255,0.1)',
-        borderRadius: 8,
-        marginHorizontal: 12,
-    },
-    searchButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    filterContainer: {
-        padding: 16,
-        paddingBottom: 12,
-    },
-    filterWrapper: {
-        flexDirection: 'row',
-        backgroundColor: COLORS.cardDark,
-        borderRadius: 8,
-        padding: 4,
-    },
-    filterTab: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 8,
-        borderRadius: 6,
-    },
-    filterTabActive: {
-        backgroundColor: COLORS.neonGreen,
-    },
-    filterText: {
-        fontSize: 13,
-        fontWeight: '500',
-        color: COLORS.textGray,
-    },
-    filterTextActive: {
-        color: COLORS.black,
-    },
-    listContent: {
-        padding: 16,
-        paddingTop: 0,
-        paddingBottom: 100,
-    },
-    card: {
-        backgroundColor: COLORS.cardDark,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: COLORS.cardBorder,
-        marginBottom: 16,
-        overflow: 'hidden',
-    },
-    cardActive: {
-        borderColor: 'rgba(57, 255, 20, 0.5)',
-        shadowColor: COLORS.neonGreen,
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.3,
-        shadowRadius: 15,
-        elevation: 5,
-    },
-    cardCompleted: {
-        opacity: 0.6,
-    },
-    cardContent: {
-        padding: 16,
-    },
-    cardHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: 12,
-    },
-    cardTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: COLORS.textLight,
-        flex: 1,
-        marginRight: 8,
-        lineHeight: 24,
-    },
-    textStrike: {
-        textDecorationLine: 'line-through',
-    },
-    headerRight: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-    },
-    priorityDot: {
-        width: 12,
-        height: 12,
-        borderRadius: 6,
-    },
-    badge: {
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 12,
-    },
-    badgeText: {
-        fontSize: 12,
-        fontWeight: '500',
-    },
-    cardFooter: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-end',
-    },
-    footerInfo: {
-        gap: 4,
-    },
-    infoRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-    },
-    infoText: {
-        fontSize: 14,
-        color: COLORS.textGray,
-    },
-    detailsButton: {
-        backgroundColor: COLORS.neonGreen,
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 8,
-        minWidth: 84,
-        alignItems: 'center',
-    },
-    detailsButtonText: {
-        color: COLORS.black,
-        fontSize: 14,
-        fontWeight: '500',
-    },
-    fabContainer: {
-        position: 'absolute',
-        bottom: 24,
-        right: 24,
-    },
-    fab: {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        backgroundColor: COLORS.neonGreen,
-        alignItems: 'center',
-        justifyContent: 'center',
-        shadowColor: COLORS.neonGreen,
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.5,
-        shadowRadius: 20,
-        elevation: 10,
-    },
-    emptyContainer: {
-        padding: 20,
-        alignItems: 'center',
-    },
-    emptyText: {
-        color: COLORS.textGray,
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.8)',
-        justifyContent: 'center',
-        padding: 20,
-    },
-    modalContent: {
-        backgroundColor: '#1A1A1A',
-        borderRadius: 16,
-        padding: 20,
-        borderWidth: 1,
-        borderColor: '#333',
-    },
-    modalTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#ffffff',
-        marginBottom: 20,
-        textAlign: 'center',
-    },
-    label: {
-        color: '#e2e8f0',
-        marginBottom: 8,
-        fontWeight: '600',
-    },
-    input: {
-        backgroundColor: '#2d3748',
-        borderRadius: 8,
-        padding: 12,
-        color: '#ffffff',
-        marginBottom: 16,
-        borderWidth: 1,
-        borderColor: '#4b5563',
-    },
-    modalButtons: {
-        flexDirection: 'row',
-        gap: 12,
-        marginTop: 10,
-    },
-    cancelButton: {
-        flex: 1,
-        padding: 14,
-        borderRadius: 8,
-        backgroundColor: '#334155',
-        alignItems: 'center',
-    },
-    saveButton: {
-        flex: 1,
-        padding: 14,
-        borderRadius: 8,
-        backgroundColor: '#CCFF04',
-        alignItems: 'center',
-    },
-    cancelButtonText: {
-        color: '#e2e8f0',
-        fontWeight: '600',
-    },
-    saveButtonText: {
-        color: '#000000',
-        fontWeight: 'bold',
-    },
+    container: { flex: 1, backgroundColor: COLORS.backgroundDark },
+    listContent: { padding: 16, paddingTop: 0, paddingBottom: 100 },
+    fabContainer: { position: 'absolute', bottom: 24, right: 24, alignItems: 'center' },
+    fab: { width: 56, height: 56, borderRadius: 28, backgroundColor: COLORS.neonGreen, alignItems: 'center', justifyContent: 'center', shadowColor: COLORS.neonGreen, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.5, shadowRadius: 20, elevation: 10 },
+    excelFab: { marginBottom: 16, backgroundColor: '#3b82f6' },
+    emptyContainer: { padding: 20, alignItems: 'center' },
+    emptyText: { color: COLORS.textGray },
 });

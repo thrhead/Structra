@@ -1,11 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { format } from 'date-fns'
-import { tr } from 'date-fns/locale'
 import { toast } from 'sonner'
 import {
   Dialog,
@@ -27,12 +25,13 @@ import {
 } from '@/components/ui/select'
 import { PlusIcon, Loader2Icon, XIcon, ChevronUpIcon, ChevronDownIcon, CornerDownRightIcon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { createJobAction } from '@/lib/actions/jobs'
 
 const jobSchema = z.object({
   title: z.string().min(3, 'İş başlığı en az 3 karakter olmalıdır'),
   description: z.string().optional(),
   customerId: z.string().min(1, 'Müşteri seçilmelidir'),
-  teamId: z.string().optional(),
+  teamId: z.string().optional().nullable(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
   location: z.string().optional(),
   scheduledDate: z.string().optional(),
@@ -58,182 +57,21 @@ interface ChecklistStep {
   subSteps?: { title: string }[]
 }
 
-const CHECKLIST_TEMPLATES = {
-  'klima': {
-    label: 'Klima Montajı',
-    steps: [
-      {
-        title: 'Dış ünite yer tespiti ve montajı',
-        description: 'Duvar veya zemin konsolu ile sabitleme',
-        subSteps: [
-          { title: 'Montaj yerinin belirlenmesi' },
-          { title: 'Konsol sabitlenmesi' },
-          { title: 'Ünitenin konsolda dengelenmesi' }
-        ]
-      },
-      {
-        title: 'İç ünite yer tespiti ve montajı',
-        description: 'Terazi kontrolü ve montaj plakası sabitleme',
-        subSteps: [
-          { title: 'Montaj plakası seviye kontrolü' },
-          { title: 'Plakanın duvara sabitlenmesi' },
-          { title: 'İç ünitenin plakaya takılması' }
-        ]
-      },
-      {
-        title: 'Bakır boru hattı çekilmesi',
-        description: 'İzolasyon ve boru bükümü',
-        subSteps: [
-          { title: 'Boru uzunluğunun ölçülmesi' },
-          { title: 'Boruların bükülmesi' },
-          { title: 'İzolasyon montajı' }
-        ]
-      },
-      {
-        title: 'Drenaj hattı çekilmesi',
-        description: 'Eğim kontrolü ve su testi',
-        subSteps: [
-          { title: 'Drenaj borusunun eğim kontrolü' },
-          { title: 'Su testi yapılması' }
-        ]
-      },
-      {
-        title: 'Elektrik bağlantılarının yapılması',
-        description: 'İç ve dış ünite arası sinyal kablosu',
-        subSteps: [
-          { title: 'Kablo çekilmesi' },
-          { title: 'Bağlantıların yapılması' },
-          { title: 'İzolasyon kontrolü' }
-        ]
-      },
-      {
-        title: 'Vakumlama işlemi',
-        description: 'Sistemdeki nem ve havanın alınması',
-        subSteps: [
-          { title: 'Vakum pompası bağlantısı' },
-          { title: '15-20 dk vakum çekilmesi' },
-          { title: 'Basınç kontrolü' }
-        ]
-      },
-      {
-        title: 'Gaz açımı ve kaçak kontrolü',
-        description: 'Köpük veya dedektör ile kontrol',
-        subSteps: [
-          { title: 'Gaz vanalarının açılması' },
-          { title: 'Bağlantılarda kaçak kontrolü' }
-        ]
-      },
-      {
-        title: 'Performans testi',
-        description: 'Isıtma ve soğutma modlarında test',
-        subSteps: [
-          { title: 'Soğutma modu testi' },
-          { title: 'Isıtma modu testi' },
-          { title: 'Basınç değerlerinin kontrolü' }
-        ]
-      },
-      {
-        title: 'Müşteri bilgilendirme ve teslim',
-        description: 'Kumanda kullanımı ve garanti bilgisi',
-        subSteps: [
-          { title: 'Kumanda kullanım eğitimi' },
-          { title: 'Garanti belgelerinin teslimi' },
-          { title: 'Bakım tavsiyelerinin verilmesi' }
-        ]
-      }
-    ]
-  },
-  'silo': {
-    label: 'Silo Montajı',
-    steps: [
-      {
-        title: 'Zemin beton kontrolü',
-        description: 'Terazi, mukavemet ve ankraj yerleşimi kontrolü',
-        subSteps: [
-          { title: 'Zemin düzlük kontrolü' },
-          { title: 'Beton mukavemet testi' },
-          { title: 'Ankraj noktalarının işaretlenmesi' }
-        ]
-      },
-      {
-        title: 'Silo gövde panellerinin montajı',
-        description: 'İlk ring montajı ve yükseltme',
-        subSteps: [
-          { title: 'İlk ring panellerinin yerleştirilmesi' },
-          { title: 'Dikey seviye kontrolü' },
-          { title: 'Üst ringlerin sırayla montajı' }
-        ]
-      },
-      {
-        title: 'Cıvata tork kontrolleri',
-        description: 'Tüm birleşim noktalarının torklanması',
-        subSteps: [
-          { title: 'Tork değerlerinin belirlenmesi' },
-          { title: 'Cıvataların sıkılması' },
-          { title: 'Kontrol sıkımı' }
-        ]
-      },
-      {
-        title: 'Sızdırmazlık kontrolü',
-        description: 'Panel birleşim yerlerine mastik uygulaması',
-        subSteps: [
-          { title: 'Birleşim yerlerinin temizlenmesi' },
-          { title: 'Mastik uygulaması' }
-        ]
-      },
-      {
-        title: 'Çatı panellerinin montajı',
-        description: 'Çatı konstrüksiyonu ve kaplama',
-        subSteps: [
-          { title: 'Çatı demirlerin montajı' },
-          { title: 'Çatı panellerinin yerleştirilmesi' },
-          { title: 'Su yalıtımı kontrolü' }
-        ]
-      },
-      {
-        title: 'Havalandırma bacalarının montajı',
-        description: 'Fan ve baca montajı',
-        subSteps: [
-          { title: 'Baca deliklerinin açılması' },
-          { title: 'Fan montajı' },
-          { title: 'Elektrik bağlantıları' }
-        ]
-      },
-      {
-        title: 'Merdiven ve platform montajı',
-        description: 'Güvenlik kafesi ve korkuluklar',
-        subSteps: [
-          { title: 'Merdiven montajı' },
-          { title: 'Platform döşenmesi' },
-          { title: 'Güvenlik korkuluklarının takılması' }
-        ]
-      },
-      {
-        title: 'Alt konik montajı',
-        description: 'Varsa alt konik ve boşaltma ağzı',
-        subSteps: [
-          { title: 'Konik panellerinin montajı' },
-          { title: 'Boşaltma kapağı takılması' }
-        ]
-      },
-      {
-        title: 'Yükleme/Boşaltma sistemi testi',
-        description: 'Helezon ve elevatör kontrolleri',
-        subSteps: [
-          { title: 'Helezon dönüş testi' },
-          { title: 'Elevatör çalışma testi' },
-          { title: 'Emniyet sistemleri kontrolü' }
-        ]
-      }
-    ]
-  }
+interface Template {
+  id: string
+  name: string
+  steps: ChecklistStep[]
 }
 
-export function JobDialog() {
+interface JobDialogProps {
+    customers: Customer[]
+    teams: Team[]
+    templates: Template[]
+}
+
+export function JobDialog({ customers, teams, templates }: JobDialogProps) {
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [customers, setCustomers] = useState<Customer[]>([])
-  const [teams, setTeams] = useState<Team[]>([])
   const [steps, setSteps] = useState<ChecklistStep[]>([])
   const router = useRouter()
 
@@ -249,18 +87,6 @@ export function JobDialog() {
       priority: 'MEDIUM'
     }
   })
-
-  useEffect(() => {
-    if (open) {
-      Promise.all([
-        fetch('/api/customers').then(res => res.json()),
-        fetch('/api/teams').then(res => res.json())
-      ]).then(([customersData, teamsData]) => {
-        if (Array.isArray(customersData)) setCustomers(customersData)
-        if (Array.isArray(teamsData)) setTeams(teamsData)
-      }).catch(err => console.error('Failed to fetch data:', err))
-    }
-  }, [open])
 
   const addStep = () => {
     setSteps([...steps, { title: '', description: '', subSteps: [] }])
@@ -309,11 +135,16 @@ export function JobDialog() {
     setSteps(newSteps)
   }
 
-  const loadTemplate = (templateKey: string) => {
-    const template = CHECKLIST_TEMPLATES[templateKey as keyof typeof CHECKLIST_TEMPLATES]
+  const loadTemplate = (templateId: string) => {
+    const template = templates.find(t => t.id === templateId)
     if (template) {
       // Deep copy to avoid reference issues
-      setSteps(JSON.parse(JSON.stringify(template.steps)))
+      const templateSteps = template.steps.map(step => ({
+        title: step.title,
+        description: step.description || '',
+        subSteps: step.subSteps?.map(sub => ({ title: sub.title })) || []
+      }))
+      setSteps(templateSteps)
     }
   }
 
@@ -326,27 +157,19 @@ export function JobDialog() {
           subSteps: step.subSteps?.filter(sub => sub.title.trim() !== '')
         }))
 
-      const res = await fetch('/api/admin/jobs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      await createJobAction({
           ...data,
           steps: validSteps.length > 0 ? validSteps : null
-        }),
       })
 
-      if (!res.ok) {
-        const error = await res.json()
-        throw new Error(error.error || 'Bir hata oluştu')
-      }
-
+      toast.success('İş başarıyla oluşturuldu')
       setOpen(false)
       reset()
       setSteps([])
       router.refresh()
-    } catch (error) {
+    } catch (error: any) {
       console.error(error)
-      toast.error('İş oluşturulurken bir hata oluştu')
+      toast.error(error.message || 'İş oluşturulurken bir hata oluştu')
     } finally {
       setIsLoading(false)
     }
@@ -395,7 +218,7 @@ export function JobDialog() {
 
             <div className="space-y-2">
               <Label htmlFor="teamId">Atanacak Ekip</Label>
-              <Select onValueChange={(val) => setValue('teamId', val === 'none' ? undefined : val)}>
+              <Select onValueChange={(val) => setValue('teamId', val === 'none' ? null : val)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Ekip seçiniz (Opsiyonel)" />
                 </SelectTrigger>
@@ -459,9 +282,9 @@ export function JobDialog() {
                     <SelectValue placeholder="Şablondan Yükle" />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(CHECKLIST_TEMPLATES).map(([key, template]) => (
-                      <SelectItem key={key} value={key}>
-                        {template.label}
+                    {templates.map((template) => (
+                      <SelectItem key={template.id} value={template.id}>
+                        {template.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
