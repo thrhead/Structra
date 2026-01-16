@@ -27,7 +27,7 @@ export const authConfig: NextAuthConfig = {
         email: { label: "E-posta", type: "email" },
         password: { label: "Şifre", type: "password" }
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         try {
           const { email, password } = loginSchema.parse(credentials)
 
