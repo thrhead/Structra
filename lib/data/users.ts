@@ -25,7 +25,7 @@ export async function getUsers({ page = 1, limit = 10, filter }: GetUsersParams 
   }
 
   if (filter?.role && filter.role !== "ALL") {
-    where.role = filter.role as any;
+    where.role = filter.role;
   }
 
   const [users, total] = await Promise.all([
@@ -60,40 +60,40 @@ export async function getUsers({ page = 1, limit = 10, filter }: GetUsersParams 
 }
 
 export async function getUserStats() {
-    const total = await prisma.user.count();
-    const active = await prisma.user.count({ where: { isActive: true } });
-    const newUsers = await prisma.user.count({
-        where: {
-            createdAt: {
-                gte: new Date(new Date().setDate(new Date().getDate() - 30))
-            }
-        }
-    });
+  const total = await prisma.user.count();
+  const active = await prisma.user.count({ where: { isActive: true } });
+  const newUsers = await prisma.user.count({
+    where: {
+      createdAt: {
+        gte: new Date(new Date().setDate(new Date().getDate() - 30))
+      }
+    }
+  });
 
-    return { total, active, newUsers };
+  return { total, active, newUsers };
 }
 
 export async function getUser(id: string) {
-    return await prisma.user.findUnique({
-        where: { id },
+  return await prisma.user.findUnique({
+    where: { id },
+    include: {
+      assignedJobs: {
+        take: 5,
+        orderBy: { assignedAt: 'desc' },
         include: {
-            assignedJobs: {
-                take: 5,
-                orderBy: { assignedAt: 'desc' },
-                include: {
-                    job: true
-                }
-            },
-            managedTeams: true,
-            teamMember: {
-                include: {
-                    team: true
-                }
-            },
-            createdJobs: {
-                take: 5,
-                orderBy: { createdAt: 'desc' }
-            }
+          job: true
         }
-    });
+      },
+      managedTeams: true,
+      teamMember: {
+        include: {
+          team: true
+        }
+      },
+      createdJobs: {
+        take: 5,
+        orderBy: { createdAt: 'desc' }
+      }
+    }
+  });
 }

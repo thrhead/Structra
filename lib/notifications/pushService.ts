@@ -3,7 +3,7 @@ import { Expo, ExpoPushMessage } from 'expo-server-sdk';
 
 const expo = new Expo();
 
-export async function sendPushNotification(pushToken: string, title: string, body: string, data?: any) {
+export async function sendPushNotification(pushToken: string, title: string, body: string, data?: Record<string, unknown>) {
     if (!Expo.isExpoPushToken(pushToken)) {
         console.error(`Push token ${pushToken} is not a valid Expo push token`);
         return;

@@ -94,7 +94,7 @@ export function generateJobPDF(data: JobReportData) {
         }
     })
 
-    yPos = (doc as any).lastAutoTable.finalY + 10
+    yPos = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10
 
     // Customer Information
     doc.setFontSize(14)
@@ -121,7 +121,7 @@ export function generateJobPDF(data: JobReportData) {
         }
     })
 
-    yPos = (doc as any).lastAutoTable.finalY + 10
+    yPos = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10
 
     // Team Information
     if (data.team) {
@@ -140,7 +140,7 @@ export function generateJobPDF(data: JobReportData) {
             headStyles: { fillColor: [22, 163, 74] }
         })
 
-        yPos = (doc as any).lastAutoTable.finalY + 10
+        yPos = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10
     }
 
     // Add new page if needed
@@ -180,7 +180,7 @@ export function generateJobPDF(data: JobReportData) {
         }
     })
 
-    yPos = (doc as any).lastAutoTable.finalY + 10
+    yPos = (doc as jsPDF & { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10
 
     // Add new page if needed
     if (yPos > 250) {

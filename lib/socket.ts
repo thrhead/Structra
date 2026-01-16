@@ -40,22 +40,22 @@ export const getSocketServer = (): SocketIOServer | undefined => {
     return global.io
 }
 
-export const emitToUser = (userId: string, event: string, data: any) => {
+export const emitToUser = (userId: string, event: string, data: Record<string, unknown>) => {
     if (!global.io) return
     global.io.to(`user:${userId}`).emit(event, data)
 }
 
-export const emitToTeam = (teamId: string, event: string, data: any) => {
+export const emitToTeam = (teamId: string, event: string, data: Record<string, unknown>) => {
     if (!global.io) return
     global.io.to(`team:${teamId}`).emit(event, data)
 }
 
-export const broadcast = (event: string, data: any) => {
+export const broadcast = (event: string, data: Record<string, unknown>) => {
     if (!global.io) return
     global.io.emit(event, data)
 }
 
-export const notifyAdmins = async (event: string, data: any) => {
+export const notifyAdmins = async (event: string, data: Record<string, unknown>) => {
     if (!global.io) return
 
     try {

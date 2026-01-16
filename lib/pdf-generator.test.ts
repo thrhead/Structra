@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
 import { generateCostReportPDF } from './pdf-generator'
-import jsPDF from 'jspdf'
 
 // Mock jsPDF
 const mockSave = vi.fn()
