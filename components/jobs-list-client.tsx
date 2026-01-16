@@ -14,7 +14,7 @@ interface Job {
     priority: string
     scheduledDate: Date | null
     customer: { company: string }
-    assignments: Array<{ team: { name: string } }>
+    assignments: Array<{ team: { name: string } | null }>
     steps: Array<{ id: string; isCompleted: boolean }>
 }
 
