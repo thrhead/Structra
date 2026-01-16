@@ -10,8 +10,8 @@ async function main() {
     const ali = await prisma.user.findUnique({ where: { email: 'ali@montaj.com' } })
     const manager = await prisma.user.findUnique({ where: { email: 'manager@montaj.com' } }) || tahir // Fallback
 
-    if (!tahir || !ali) {
-        console.error('❌ Users Tahir or Ali not found. Please run initial seed first.')
+    if (!tahir || !ali || !manager) {
+        console.error('❌ Users Tahir, Ali, or Manager not found. Please run initial seed first.')
         return
     }
 
