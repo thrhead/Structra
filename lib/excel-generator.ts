@@ -153,7 +153,7 @@ export function generateJobExcel(jobData: JobData) {
                 formatDate(cost.date),
                 cost.category,
                 cost.description,
-                cost.amount,
+                cost.amount.toString(),
                 statusLabels[cost.status] || cost.status,
             ])
         })
