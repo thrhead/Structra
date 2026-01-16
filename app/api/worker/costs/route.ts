@@ -129,11 +129,11 @@ export async function POST(req: Request) {
 
         // Notify job creator
         if (job.creator?.id) {
-            emitToUser(job.creator.id, 'cost:submitted', socketPayload)
+            emitToUser(job.creator.id, 'cost:submitted', socketPayload as Record<string, unknown>)
         }
 
         // Broadcast to all admins/managers
-        broadcast('cost:submitted', socketPayload)
+        broadcast('cost:submitted', socketPayload as Record<string, unknown>)
 
         // Send push notification to admins
         await sendAdminNotification(
