@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { FileQuestion } from 'lucide-react'
 
@@ -24,12 +23,18 @@ export default function NotFound() {
                     </p>
 
                     <div className="flex gap-3 justify-center">
-                        <Button variant="outline" asChild>
-                            <Link href="/">Ana Sayfa</Link>
-                        </Button>
-                        <Button asChild>
-                            <Link href="/admin">Dashboard</Link>
-                        </Button>
+                        <Link
+                            href="/"
+                            className="inline-flex items-center justify-center rounded-lg font-medium border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 h-11 px-6 py-2"
+                        >
+                            Ana Sayfa
+                        </Link>
+                        <Link
+                            href="/admin"
+                            className="inline-flex items-center justify-center rounded-lg font-medium bg-indigo-600 text-white hover:bg-indigo-700 h-11 px-6 py-2"
+                        >
+                            Dashboard
+                        </Link>
                     </div>
                 </CardContent>
             </Card>
