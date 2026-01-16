@@ -48,10 +48,10 @@ export const authConfig: NextAuthConfig = {
           return {
             id: user.id,
             email: user.email,
-            name: user.name,
+            name: user.name || user.email,
             role: user.role,
-            phone: user.phone,
-          }
+            phone: user.phone
+          } as any
         } catch (error) {
           console.error("Authorization error:", error)
           return null
