@@ -29,7 +29,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ job
                 // We keep the main status as COMPLETED or move back to IN_PROGRESS?
                 // If rejected, the worker needs to fix it. So IN_PROGRESS makes sense.
                 status: 'IN_PROGRESS',
-                completedAt: null, // Reset completion
+                completedDate: null, // Reset completion
             },
             include: {
                 assignments: {
