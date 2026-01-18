@@ -17,6 +17,7 @@ const nextConfig = {
     serverExternalPackages: ['@prisma/client', 'bcryptjs'],
     experimental: {
         reactCompiler: true,
+        turbopack: {},
     },
     // CORS headers for mobile app
     async headers() {
