@@ -25,7 +25,7 @@ import {
 import { PlusIcon, Loader2Icon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { updateUserAction } from '@/lib/actions/users'
+import { updateUserAction, createUserAction } from '@/lib/actions/users'
 import { Switch } from "@/components/ui/switch"
 
 // Schema for editing (password optional)
