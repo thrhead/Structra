@@ -27,12 +27,15 @@
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro",
-      "output": "single",
+      "output": "static",
       "name": "Assembly Tracker",
-      "shortName": "AssemblyTracker",
+      "shortName": "Assembly",
       "description": "İş takip ve yönetim uygulaması",
       "themeColor": "#1a365d",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#ffffff",
+      "display": "standalone",
+      "orientation": "portrait",
+      "scope": "/"
     },
     "extra": {
       "eas": {

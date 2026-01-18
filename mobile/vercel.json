@@ -1,0 +1,9 @@
+{
+    "framework": "expo",
+    "buildCommand": "npx expo export",
+    "outputDirectory": "dist",
+    "cleanUrls": true,
+    "regions": [
+        "arn1"
+    ]
+}
