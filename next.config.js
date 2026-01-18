@@ -15,9 +15,9 @@ const withPWA = require("@ducanh2912/next-pwa").default({
 
 const nextConfig = {
     serverExternalPackages: ['@prisma/client', 'bcryptjs'],
+    turbopack: {},
     experimental: {
         reactCompiler: true,
-        turbopack: {},
     },
     // CORS headers for mobile app
     async headers() {
