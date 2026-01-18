@@ -1,13 +1,30 @@
 # Aktif Bağlam
 
-**Son Güncelleme:** 14 Ocak 2026  
-**Versiyon:** 2.6.0 (Offline Sync & Resilience)
+**Son Güncelleme:** 18 Ocak 2026  
+**Versiyon:** 2.7.0 (Global Theming & Final Polish)
 
 ### Mevcut Durum
 
-- **Web Uygulaması:** Production-ready (v2.0). Tüm temel ve gelişmiş özellikler tamamlandı.
-- **Mobil Uygulama:** Stable (v2.5.0). Worker, Manager ve Admin rolleri için tüm özellikler tamamlandı ve test edildi.
+- **Web Uygulaması:** Stable (v2.1). Vercel build hataları giderildi, SEO ve erişilebilirlik iyileştirmeleri yapıldı.
+- **Mobil Uygulama:** Stable (v2.7.0). Tamamen temalandırılabilir (Light/Dark) yapıya geçildi. Tüm ekranlar modernize edildi.
 - **Teknik Stack:** Next.js + PostgreSQL + Prisma + NextAuth.js + React Native (Expo)
+
+### Son Değişiklikler (Ocak 2026)
+
+1.  **Global Temalandırma Sistemi (v2.7.0)**:
+    - **Dual Themes**: `lightTheme` ve `darkTheme` desteği eklendi (`ThemeContext`).
+    - **Modern Light UI**: Açık mod için modern "Electric Blue" ve "Modern Gray" paleti eklendi.
+    - **Dinamik Geçiş**: Dashboard üzerinden anlık tema değiştirme özelliği.
+    - **Glassmorphism**: Hem açık hem koyu modda geliştirilmiş cam efekti ve gölgelendirmeler.
+
+2.  **Mobil Stabilite ve Fixler**:
+    - **Logout**: Mobil (PWA ve Native) çıkış yapma sorunları giderildi.
+    - **Connectivity**: Mobil uygulamanın backend ile olan tüm API ve Socket bağlantıları doğrulandı ve optimize edildi.
+    - **Theming Fixes**: `JobDetailScreen`, `CalendarScreen` ve `UserManagement` ekranlarındaki tema uyumsuzlukları giderildi.
+
+3.  **Hata Giderme (Vercel & Build)**:
+    - Next.js 15+ uyumluluğu için "use client" direktifleri ve server-component optimizasyonları yapıldı.
+    - Prerender ve Button `asChild` hataları çözüldü.
 
 ### Son Değişiklikler (Aralık 2025)
 
@@ -63,39 +80,7 @@
         - ✅ Tüm servis katmanları (`auth`, `job`, `user`, `customer`, `team`)
         - ✅ Mobil uyumlu API endpoint'leri (`/api/admin/users`, `/api/admin/customers`, `/api/worker/jobs` vb.)
 
-2.  **Ekip Performans Grafikleri Tamamlandı (v2.0)**:
-    - Ekip detay sayfası oluşturuldu (`/admin/teams/[id]`)
-    - İş dağılımı, durum grafikleri ve üye performansı eklendi
-    - Recharts ile görselleştirme
-
-3.  **Maliyet Takibi Modülü Tamamlandı (v2.0)**:
-    - Schema güncellendi (`receiptUrl`, `status`, `createdById`, `approvedById`, `rejectionReason`)
-    - Worker API: Masraf girişi (`POST /api/worker/costs`)
-    - Admin API: Listeleme ve onay (`GET/PATCH /api/admin/costs`)
-
-4.  **Alt Görevler ve Zaman Takibi (v2.0)**:
-    - İş şemasına `scheduledEndDate` eklendi
-    - JobDialog güncellendi: Alt görev oluşturma desteği
-    - Başlangıç-bitiş tarih/saat seçimi
-
-5.  **Gelişmiş Fotoğraf Yönetimi (v2.3)**:
-    - **Alt Görev Bazlı Fotoğraflar**: Her checklist maddesi için ayrı fotoğraf yükleme.
-    - **Kısıtlamalar**: Min 1 (tamamlamak için), Max 3 (sınır) fotoğraf kuralı.
-    - **Yerel Depolama**: Cloudinary yerine `public/uploads` klasörüne yerel kayıt desteği.
-    - **Sıralı İlerleme**: Alt görevlerin sırayla tamamlanması zorunluluğu.
-
-6.  **Bildirim Sistemi İyileştirmeleri (v2.4)**:
-    - **Admin & Worker Badge**: Dashboard ve header'da okunmamış bildirim sayısı (kırmızı nokta) gösterimi.
-    - **Akıllı Bildirim Yönetimi**: Bildirime tıklandığında otomatik "okundu" işaretleme ve listeden kaldırma.
-    - **API Entegrasyonu**: Onay, Red ve Kabul işlemlerinde otomatik bildirim gönderimi (`notification-helper`).
-
-7.  **Kritik API ve UI Düzeltmeleri (v2.4)**:
-    - **Next.js 16 Uyumluluğu**: API route'larında `params` promise yapısına uygun hale getirildi (`await params`).
-    - **Auth Entegrasyonu**: Tüm kritik endpoint'ler `verifyAuth` ile hem Web hem Mobil (Bearer) token destekler hale geldi.
-    - **Admin Dashboard**: Layout merge conflict sorunu çözüldü, dashboard yapısı düzeltildi.
-    - **UI/UX**: Türkçe karakter sorunları giderildi, onay/red butonları modernize edildi.
-
-8.  **Offline Sync & Resilience (v2.6) ✅**:
+4.  **Offline Sync & Resilience (v2.6) ✅**:
     - **Offline Mod**: İnternet bağlantısı koptuğunda "Bağlantı Yok" banner'ı ve salt-okunur mod.
     - **Queue Sistemi**: Çevrimdışı yapılan işlemlerin (POST/PUT) `AsyncStorage` üzerinde kuyruklanması.
     - **Otomatik Senkronizasyon**: Bağlantı geldiğinde kuyruğun otomatik işlenmesi (`SyncManager`).

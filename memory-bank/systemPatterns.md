@@ -56,6 +56,8 @@
 - **Teknoloji**: Custom hooks, utilities, Service Layer
 - **Desenler**:
   - Service pattern for API calls (Web & Mobile)
+  - **Theme Management**: `ThemeContext` ile dinamik `lightTheme`/`darkTheme` değişimi.
+  - **Connectivity Management**: `NetworkContext` ile anlık internet durumu takibi.
   - Context API for global state (Auth, Theme)
   - Form validation with Zod
 

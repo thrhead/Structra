@@ -8,29 +8,29 @@
 - **UI Kütüphanesi**: React 18+
 - **Stil**: TailwindCSS + shadcn/ui komponentleri
 - **Grafik**: Recharts
-- **Form Yönetimi**: React Hook Form + Zod validation
-- **Durum Yönetimi**: Zustand (Web) / Context API (Mobile)
-- **HTTP Client**: Axios
+- **Framework**: Next.js 16+ (App Router)
+- **UI Kütüphanesi**: React 19+
+- **Stil**: TailwindCSS 4+ + shadcn/ui komponentleri
 
 ### Backend
 
-- **Runtime**: Node.js 18+
-- **Framework**: Next.js API Routes
+- **Runtime**: Node.js 20+
+- **Framework**: Next.js API Routes (Next 16)
 - **Veritabanı**: PostgreSQL
 - **ORM**: Prisma
 - **Authentication**: NextAuth.js (JWT Strategy)
 - **Real-time**: Socket.IO
 
-### Mobile (v2.5 - Stable)
-- **Framework**: React Native 0.74+
-- **Platform**: Expo SDK 51
-- **Navigation**: React Navigation 6 (Stack & Bottom Tabs)
+### Mobile (v2.7.0 - Stable)
+- **Framework**: React Native 0.81+
+- **Platform**: Expo SDK 54
+- **Navigation**: React Navigation 7 (Stack & Bottom Tabs)
 - **Storage**: AsyncStorage
 - **HTTP Client**: Axios
 - **Real-time**: Socket.IO Client
 - **Maps**: react-native-maps
 - **Network**: @react-native-community/netinfo
-- **UI**: StyleSheet API + Custom Components
+- **UI**: StyleSheet API + Custom Components + `expo-linear-gradient`
 - **Features**:
   - **Worker**: Job List, Detail, Checklist, Photo Upload, Map, Expenses
   - **Manager**: Team List, Job Assignment, Dashboard

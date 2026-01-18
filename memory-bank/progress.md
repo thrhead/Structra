@@ -404,10 +404,12 @@
 ## 🚧 Devam Eden / Planlanmış
 
 ### Kısa Vadeli (Next Sprint)
-- [x] Mobile App Testing & Polish (Completed v2.5.0)
-- [x] Real-time Notifications (Socket.IO Mobile)
-- [ ] Push Notifications (Expo)
+- [x] Mobile App Testing & Polish (Completed v2.7.0) ✅
+- [x] Real-time Notifications (Socket.IO Mobile) ✅
+- [x] Push Notifications (Expo - Foundation) ✅
 - [x] Offline Mode (Mobile) ✅
+- [x] Global Theming (Light/Dark Mode) ✅
+- [x] Mobile Logout Fix ✅
 
 ### Orta Vadeli
 - [ ] Advanced analytics dashboard
@@ -485,19 +487,21 @@
 - ✅ Substep time tracking
 - ✅ Modern UI redesign
 
-### v2.5 - Mobile App (Tamamlandı - Aralık 2025) ✅
-- ✅ React Native + Expo Foundation
+### v2.7.0 - Global Theming & Final Polish (Tamamlandı - Ocak 2026) ✅
+- ✅ React Native + Expo Foundation (v54)
 - ✅ Worker Features (Complete)
 - ✅ Manager Features (Complete)
 - ✅ Admin Features (Complete)
-- ✅ Full Backend Integration
+- ✅ Full Backend Integration (Next.js 16)
+- ✅ **Global Theming (Light/Dark Mode Switcher)**
+- ✅ **Mobile Logout & Connectivity Resilience**
 - ✅ **Substep Photo Constraints (Min 1, Max 3)**
 - ✅ **Local File Upload Strategy**
 - ✅ **Sequential Substep Locking**
 - ✅ **Real-time Notifications (Socket.IO)**
 - ✅ **Job Start/End Time Tracking**
 - ✅ **Expense Management (Real Data)**
-- ✅ **Dashboard Redesign (Neon Theme)**
+- ✅ **Dashboard Redesign (Electric Blue & Neon Theme)**
 
 ### v3.0 (Gelecek - 2025 Q1)
 - [x] Offline support (Phase 1-5 Complete) ✅

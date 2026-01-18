@@ -48,15 +48,17 @@ Bu proje; Next.js 16, React Native ve modern web teknolojileri kullanılarak gel
 * **Visualization:** Recharts
 
 ### Mobile (App)
-* **Framework:** React Native, Expo (SDK 52+)
+* **Framework:** React Native, Expo (SDK 54)
 * **Navigation:** React Navigation v7
 * **Storage:** AsyncStorage
+* **Real-time:** Socket.IO Client
+* **Connectivity:** NetInfo for offline resilience
 
 ### Backend & Database
-* **API:** Next.js API Routes & Server Actions
+* **API:** Next.js API Routes & Server Actions (Next 16)
 * **Database:** PostgreSQL (Neon Serverless)
-* **ORM:** Prisma ORM (Optimize edilmiş indeksler ile)
-* **Auth:** NextAuth.js v5 (Beta)
+* **ORM:** Prisma ORM
+* **Auth:** NextAuth.js v4/v5 (Bearer & JWT)
 * **Real-time:** Socket.IO (Custom Server)
 
 ### Kalite ve Test
