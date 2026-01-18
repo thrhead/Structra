@@ -25,7 +25,7 @@ const getBaseUrl = () => {
             }
             return 'http://localhost:3000';
         }
-        return 'https://assemblyweb.vercel.app/api';
+        return 'https://assemblyweb.vercel.app';
     }
 
     // Hardcoded LAN IP for physical device testing in development
@@ -34,7 +34,7 @@ const getBaseUrl = () => {
     }
 
     // Fallback for production if no env var is set
-    return 'https://assemblyweb.vercel.app/api';
+    return 'https://assemblyweb.vercel.app';
 };
 
 export const API_BASE_URL = getBaseUrl();
