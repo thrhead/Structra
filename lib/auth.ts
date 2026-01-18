@@ -53,7 +53,11 @@ export const authConfig: NextAuthConfig = {
             phone: user.phone
           } as any
         } catch (error) {
-          console.error("Authorization error:", error)
+          console.error("Authorization error details:", {
+            error,
+            message: error instanceof Error ? error.message : "Unknown error",
+            stack: error instanceof Error ? error.stack : undefined
+          })
           return null
         }
       },
