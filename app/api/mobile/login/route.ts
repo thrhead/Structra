@@ -15,25 +15,11 @@ export async function OPTIONS() {
     return NextResponse.json({}, { headers: corsHeaders })
 }
 
-import * as fs from 'fs';
-import * as path from 'path';
-
-const LOG_FILE = path.join(process.cwd(), 'api_debug.log');
-
-function logToFile(message: string) {
-    const timestamp = new Date().toISOString();
-    try {
-        fs.appendFileSync(LOG_FILE, `${timestamp} - ${message}\n`);
-    } catch (e) {
-        console.error('Failed to write to log file:', e);
-    }
-}
-
 export async function POST(req: Request) {
-    logToFile("Mobile login request received (POST /api/mobile/login)")
+    console.log("Mobile login request received (POST /api/mobile/login)")
     try {
         const body = await req.json()
-        logToFile(`Login attempt for email: ${body.email}`)
+        console.log(`Login attempt for email: ${body.email}`)
         const { email, password } = loginSchema.parse(body)
 
         const user = await prisma.user.findUnique({
@@ -41,18 +27,18 @@ export async function POST(req: Request) {
         })
 
         if (!user || !user.isActive) {
-            logToFile(`Login failed: User not found or inactive (${email})`)
+            console.log(`Login failed: User not found or inactive (${email})`)
             return NextResponse.json({ error: "Kullanıcı bulunamadı veya aktif değil" }, { status: 401, headers: corsHeaders })
         }
 
         const isPasswordValid = await compare(password, user.passwordHash)
 
         if (!isPasswordValid) {
-            logToFile(`Login failed: Invalid password for ${email}`)
+            console.log(`Login failed: Invalid password for ${email}`)
             return NextResponse.json({ error: "Hatalı şifre" }, { status: 401, headers: corsHeaders })
         }
 
-        logToFile(`Login success: ${email} (Role: ${user.role})`)
+        console.log(`Login success: ${email} (Role: ${user.role})`)
 
         // Create a simple JWT token for the mobile app using jose
         const secret = new TextEncoder().encode(
@@ -81,7 +67,7 @@ export async function POST(req: Request) {
             token
         }, { headers: corsHeaders })
     } catch (error) {
-        logToFile(`Mobile login error: ${error}`)
+        console.log(`Mobile login error: ${error}`)
         console.error("Mobile login error:", error)
         return NextResponse.json({
             error: "Giriş yapılamadı",
