@@ -30,7 +30,8 @@ export async function GET() {
                 hasDbUrl: !!process.env.DATABASE_URL,
                 hasDirectUrl: !!process.env.DIRECT_URL,
                 nodeEnv: process.env.NODE_ENV,
-                authSecretPreview: process.env.AUTH_SECRET ? `${process.env.AUTH_SECRET.substring(0, 3)}...` : 'not-set'
+                authSecretPreview: process.env.AUTH_SECRET ? `${process.env.AUTH_SECRET.substring(0, 3)}...` : 'not-set',
+                envKeys: Object.keys(process.env).filter(k => k.includes('AUTH') || k.includes('DATABASE') || k.includes('URL'))
             },
             sampleWorkers: workers
         })
