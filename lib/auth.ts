@@ -99,6 +99,21 @@ export const authConfig: NextAuthConfig = {
   },
   secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
   trustHost: true,
+  logger: {
+    error(error) {
+      console.error("NextAuth Error:", {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+    },
+    warn(code) {
+      console.warn("NextAuth Warning:", code);
+    },
+    debug(code, metadata) {
+      console.log("NextAuth Debug:", { code, metadata });
+    },
+  },
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig)
