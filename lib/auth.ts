@@ -104,14 +104,15 @@ export const authConfig: NextAuthConfig = {
   session: {
     strategy: "jwt",
   },
-  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "temporary-secret-to-debug-vercel-issue",
   trustHost: true,
   logger: {
     error(error) {
       console.error("NextAuth Error:", {
         message: error.message,
         stack: error.stack,
-        name: error.name
+        name: error.name,
+        secretLength: (process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "").length
       });
     },
     warn(code) {
