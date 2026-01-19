@@ -175,6 +175,13 @@ export default function AdminDashboardScreen({ navigation }) {
                                     </View>
                                     <Text style={{ color: theme.colors.text, fontWeight: '600' }}>Yeni Kullanıcı</Text>
                                 </GlassCard>
+
+                                <GlassCard theme={theme} style={{ flex: 1, padding: 16, alignItems: 'center', gap: 8 }} onPress={() => navigation.navigate('CustomerManagement', { openCreate: true })}>
+                                    <View style={{ padding: 12, borderRadius: 12, backgroundColor: 'rgba(20, 184, 166, 0.1)' }}>
+                                        <MaterialIcons name="business" size={28} color="#14b8a6" />
+                                    </View>
+                                    <Text style={{ color: theme.colors.text, fontWeight: '600' }}>Yeni Müşteri</Text>
+                                </GlassCard>
                             </View>
                         </View>
 

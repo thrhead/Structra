@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, TextInput, Alert, Modal } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 // import { COLORS } from '../../constants/theme';
@@ -7,7 +7,7 @@ import { useCustomerManagement } from '../../hooks/useCustomerManagement';
 import CustomerListItem from '../../components/admin/CustomerListItem';
 import CustomerFormModal from '../../components/admin/CustomerFormModal';
 
-export default function CustomerManagementScreen({ navigation }) {
+export default function CustomerManagementScreen({ navigation, route }) {
     const { theme, isDark } = useTheme();
     const {
         filteredCustomers,
@@ -24,6 +24,14 @@ export default function CustomerManagementScreen({ navigation }) {
 
     const [modalVisible, setModalVisible] = useState(false);
     const [editingCustomer, setEditingCustomer] = useState(null);
+
+    useEffect(() => {
+        if (route.params?.openCreate) {
+            handleAddCustomer();
+            // Clear the param so it doesn't reopen on every navigation back
+            navigation.setParams({ openCreate: undefined });
+        }
+    }, [route.params?.openCreate]);
 
     const onRefresh = () => {
         setRefreshing(true);

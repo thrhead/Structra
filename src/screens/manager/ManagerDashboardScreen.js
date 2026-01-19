@@ -47,8 +47,8 @@ export default function ManagerDashboardScreen({ navigation }) {
             end={theme.colors.gradientEnd}
             style={{ flex: 1 }}
         >
-            <ScrollView 
-                style={styles.container} 
+            <ScrollView
+                style={styles.container}
                 contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}
                 showsVerticalScrollIndicator={false}
             >
@@ -187,6 +187,12 @@ export default function ManagerDashboardScreen({ navigation }) {
                             <Text style={{ color: theme.colors.text, fontWeight: '600' }}>Masraflar</Text>
                         </GlassCard>
 
+                        <GlassCard theme={theme} style={{ flex: 1, padding: 16, alignItems: 'center', gap: 12 }} onPress={() => navigation.navigate('CustomerManagement', { openCreate: true })}>
+                            <MaterialIcons name="business" size={32} color="#14b8a6" />
+                            <Text style={{ color: theme.colors.text, fontWeight: '600' }}>Müşteri Ekle</Text>
+                        </GlassCard>
+                    </View>
+                    <View style={[styles.quickActions, { marginTop: 12 }]}>
                         <GlassCard theme={theme} style={{ flex: 1, padding: 16, alignItems: 'center', gap: 12, opacity: 0.6 }}>
                             <MaterialIcons name="bar-chart" size={32} color={theme.colors.subText} />
                             <Text style={{ color: theme.colors.subText, fontWeight: '600' }}>Raporlar</Text>
