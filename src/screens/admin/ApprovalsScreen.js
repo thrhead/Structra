@@ -55,6 +55,7 @@ export default function ApprovalsScreen({ navigation }) {
             </View>
 
             <FlatList
+                style={{ flex: 1 }}
                 data={filteredApprovals}
                 renderItem={({ item }) => (
                     <ApprovalCard

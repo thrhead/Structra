@@ -1096,9 +1096,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: COLORS.backgroundDark,
-        ...(Platform.OS === 'web' && {
-            height: '100%',
-        }),
     },
     centerContainer: {
         flex: 1,

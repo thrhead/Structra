@@ -286,6 +286,7 @@ export default function WorkerDashboardScreen({ navigation }) {
                 )}
 
                 <ScrollView
+                    style={{ flex: 1 }}
                     contentContainerStyle={[styles.scrollContent, { flexGrow: 1 }]}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />}
                 >

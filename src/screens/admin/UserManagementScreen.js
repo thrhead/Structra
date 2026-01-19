@@ -139,6 +139,7 @@ export default function UserManagementScreen({ navigation, route }) {
         <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
             {renderHeader()}
             <FlatList
+                style={{ flex: 1 }}
                 data={filteredUsers}
                 renderItem={({ item }) => (
                     <UserListItem

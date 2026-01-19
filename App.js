@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
@@ -33,6 +33,21 @@ import { SocketProvider } from './src/context/SocketContext';
 import ToastNotification from './src/components/ToastNotification';
 import { QueueService } from './src/services/QueueService';
 import { SyncManager } from './src/services/SyncManager';
+
+// Web specific styles injection
+if (Platform.OS === 'web') {
+  const style = document.createElement('style');
+  style.textContent = `
+    html, body, #root {
+      height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden; /* Prevent body scroll, let app handle it */
+    }
+  `;
+  document.head.appendChild(style);
+}
 
 const Stack = createStackNavigator();
 

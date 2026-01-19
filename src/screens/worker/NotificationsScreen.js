@@ -33,6 +33,7 @@ export default function NotificationsScreen({ navigation }) {
     return (
         <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
             <FlatList
+                style={{ flex: 1 }}
                 data={notifications}
                 renderItem={({ item }) => (
                     <NotificationItem
