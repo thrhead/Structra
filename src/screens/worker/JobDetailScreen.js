@@ -1095,7 +1095,6 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.backgroundDark,
         ...(Platform.OS === 'web' && {
             height: '100%',
-            overflow: 'hidden',
         }),
     },
     centerContainer: {
