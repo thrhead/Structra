@@ -53,7 +53,7 @@ const AppModal = ({ visible, children, ...props }) => {
 const PageWrapper = ({ children }) => {
     if (Platform.OS === 'web') {
         return (
-            <View style={{ flex: 1 }}>
+            <View style={{ flex: 1, minHeight: 0, height: '100dvh' }}>
                 {children}
             </View>
         );
@@ -508,7 +508,7 @@ export default function JobDetailScreen({ route, navigation }) {
             </View>
 
             <PageWrapper>
-                <ScrollView 
+                <ScrollView
                     style={{ flex: 1 }}
                     contentContainerStyle={[styles.contentContainer, { flexGrow: 1 }]}
                 >
@@ -738,8 +738,8 @@ export default function JobDetailScreen({ route, navigation }) {
                                                     {substepPhotos.length > 0 && (
                                                         <ScrollView horizontal style={styles.thumbnailsContainer} showsHorizontalScrollIndicator={false}>
                                                             {substepPhotos.map((photo, pIndex) => (
-                                                        <TouchableOpacity key={pIndex} onPress={() => openImageModal(getValidImageUrl(photo.url || photo))}>
-                                                            <Image source={{ uri: getValidImageUrl(photo.url || photo) }} style={styles.thumbnail} />
+                                                                <TouchableOpacity key={pIndex} onPress={() => openImageModal(getValidImageUrl(photo.url || photo))}>
+                                                                    <Image source={{ uri: getValidImageUrl(photo.url || photo) }} style={styles.thumbnail} />
                                                                 </TouchableOpacity>
                                                             ))}
                                                         </ScrollView>

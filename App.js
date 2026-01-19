@@ -38,23 +38,31 @@ import { SyncManager } from './src/services/SyncManager';
 if (Platform.OS === 'web') {
   const style = document.createElement('style');
   style.textContent = `
-    html, body, #root {
+    html {
       height: 100%;
-      height: 100dvh;
-      width: 100%;
+      overflow: hidden;
+    }
+    body {
+      height: 100%;
       margin: 0;
       padding: 0;
       overflow: hidden;
-      display: flex;
-      flex-direction: column;
+      position: fixed;
+      width: 100%;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
     }
     #root {
-      flex: 1;
-    }
-    #root > div {
+      height: 100%;
       display: flex;
       flex-direction: column;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    #root > div {
       flex: 1;
+      display: flex;
+      flex-direction: column;
       height: 100%;
     }
     textarea, input {
@@ -122,7 +130,7 @@ function AppNavigator() {
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={[{ flex: 1 }, Platform.OS === 'web' && { height: '100dvh', overflow: 'hidden' }]}>
       <NavigationContainer>
         <Stack.Navigator
           initialRouteName={getInitialRoute()}

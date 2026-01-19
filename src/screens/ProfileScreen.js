@@ -68,7 +68,10 @@ export default function ProfileScreen({ navigation }) {
     };
 
     return (
-        <ScrollView contentContainerStyle={[{ backgroundColor: theme.colors.background, flexGrow: 1, paddingBottom: 40 }]}>
+        <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={[{ backgroundColor: theme.colors.background, flexGrow: 1, paddingBottom: 40 }]}
+        >
             {/* User Info Section */}
             <View style={styles.section}>
                 <GlassCard style={styles.profileHeader} theme={theme}>
