@@ -40,10 +40,22 @@ if (Platform.OS === 'web') {
   style.textContent = `
     html, body, #root {
       height: 100%;
+      height: 100dvh;
       width: 100%;
       margin: 0;
       padding: 0;
-      overflow: hidden; /* Prevent body scroll but keep container height */
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    #root {
+      flex: 1;
+    }
+    #root > div {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      height: 100%;
     }
     textarea, input {
       font-family: inherit;
@@ -265,7 +277,7 @@ export default function App() {
   }, []);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, height: Platform.OS === 'web' ? '100%' : undefined }}>
+    <GestureHandlerRootView style={{ flex: 1, height: Platform.OS === 'web' ? '100dvh' : undefined }}>
       <ErrorBoundary>
         <SafeAreaProvider>
           <NetworkProvider>
