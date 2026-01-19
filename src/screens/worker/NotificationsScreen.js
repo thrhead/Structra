@@ -42,7 +42,7 @@ export default function NotificationsScreen({ navigation }) {
                     />
                 )}
                 keyExtractor={item => item.id}
-                contentContainerStyle={styles.list}
+                contentContainerStyle={[styles.list, { flexGrow: 1 }]}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />
                 }

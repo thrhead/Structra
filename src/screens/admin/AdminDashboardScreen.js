@@ -100,7 +100,7 @@ export default function AdminDashboardScreen({ navigation }) {
 
                 <ScrollView
                     style={styles.scrollView}
-                    contentContainerStyle={styles.scrollContent}
+                    contentContainerStyle={[styles.scrollContent, { flexGrow: 1 }]}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />}
                     showsVerticalScrollIndicator={false}
                 >

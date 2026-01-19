@@ -149,7 +149,7 @@ export default function UserManagementScreen({ navigation, route }) {
                     />
                 )}
                 keyExtractor={item => item.id}
-                contentContainerStyle={styles.listContainer}
+                contentContainerStyle={[styles.listContainer, { flexGrow: 1 }]}
                 refreshControl={
                     <RefreshControl
                         refreshing={refreshing}

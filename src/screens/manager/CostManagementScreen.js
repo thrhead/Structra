@@ -56,6 +56,7 @@ export default function CostManagementScreen({ navigation }) {
 
             <ScrollView
                 style={styles.scrollView}
+                contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />
                 }

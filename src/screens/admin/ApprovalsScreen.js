@@ -65,7 +65,7 @@ export default function ApprovalsScreen({ navigation }) {
                     />
                 )}
                 keyExtractor={item => `${item.type}-${item.id}`}
-                contentContainerStyle={styles.listContent}
+                contentContainerStyle={[styles.listContent, { flexGrow: 1 }]}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />
                 }

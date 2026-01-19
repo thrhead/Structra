@@ -61,7 +61,7 @@ export default function ExpenseManagementScreen({ navigation, route }) {
                 </TouchableOpacity>
             </View>
 
-            <ScrollView contentContainerStyle={styles.contentContainer}>
+            <ScrollView contentContainerStyle={[styles.contentContainer, { flexGrow: 1 }]}>
                 {/* Project Filter */}
                 <ProjectFilter
                     projects={projects}

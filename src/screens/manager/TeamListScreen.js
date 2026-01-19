@@ -95,7 +95,7 @@ export default function TeamListScreen({ navigation }) {
                             />
                         )}
                         keyExtractor={item => item.id}
-                        contentContainerStyle={styles.listContainer}
+                        contentContainerStyle={[styles.listContainer, { flexGrow: 1, paddingBottom: 100 }]}
                         style={{ flex: 1 }}
                         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />}
                     />
@@ -108,7 +108,7 @@ export default function TeamListScreen({ navigation }) {
                     data={members}
                     renderItem={({ item }) => <MemberCard item={item} theme={theme} />}
                     keyExtractor={item => item.id}
-                    contentContainerStyle={styles.listContainer}
+                    contentContainerStyle={[styles.listContainer, { flexGrow: 1, paddingBottom: 20 }]}
                     style={{ flex: 1 }}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />}
                     ListEmptyComponent={

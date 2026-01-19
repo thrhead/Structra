@@ -129,7 +129,7 @@ export default function CustomerManagementScreen({ navigation }) {
                     />
                 )}
                 keyExtractor={item => item.id.toString()}
-                contentContainerStyle={styles.listContainer}
+                contentContainerStyle={[styles.listContainer, { flexGrow: 1 }]}
                 style={{ flex: 1 }}
                 ListEmptyComponent={renderEmptyState}
                 refreshControl={
