@@ -7,6 +7,7 @@
   ],
   "scripts": {
     "web": "npm run dev --workspace=apps/web",
-    "mobile": "npm run start --workspace=apps/mobile"
+    "mobile": "npm run start --workspace=apps/mobile",
+    "test": "npm run test --workspaces"
   }
 }
