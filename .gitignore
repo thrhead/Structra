@@ -50,3 +50,7 @@ expo-env.d.ts
 # OS
 .DS_Store
 *.pem
+
+# Sync Repos
+apps/web_sync_repo/
+apps/mobile_sync_repo/
