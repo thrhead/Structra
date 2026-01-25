@@ -13,13 +13,24 @@ Aşağıdaki ana track'ler hem `tracks.md` dosyasında hem de kaynak kodda (Web 
 | **lint-quality-overhaul** | ✅ Tamamlandı | Proje genelindeki TypeScript ve lint hataları %95+ oranında temizlendi, build stabilitesi sağlandı. |
 | **mobile_feature_parity_v1**| ✅ Arşivlendi | Mobil uygulama; imza, fotoğraf, çevrimdışı kuyruklama ve dinamik tema desteği ile V2.0 seviyesine ulaştı. |
 
+### Phase 3: Verification & Polish (Completed)
+- [x] **Deployment:** Vercel (Web) and Expo (Mobile) configurations finalized.
+- [x] **Bug Fixes:**
+    - Mobile Photo Upload (Axios FormData Fix)
+    - Vercel 500 Error (Cloudinary Integration)
+    - iOS Build Syntax Error (JSX Cleanup)
+- [x] **UX Improvements:**
+    - Mandatory Photo on Sub-steps only.
+    - Dashboard Charts (Step-based tracking).
+- [x] **Documentation:** Updated READMEs and standardized project docs.
+
 ## 2. Teknik Audit ve "Görünmez" Eksiklikler
 
 Roadmap V2.0 "Tamamlandı" olarak görünse de, `archive/technical_audit_plans_20260123` klasöründeki detaylı planlarda yer alan bazı **kurumsal (enterprise)** ve **güvenlik (security)** maddeleri henüz koda dökülmemiştir:
 
 ### 🚀 Enterprise & API (enterprise-integrations-plan.md)
 *   **Hatalı Webhook Gönderimi (Resilient Delivery):** Mevcut `webhook-service.ts` basit bir fetch yapmaktadır. Detaylı planda istenen **Exponential Backoff (Üstel Bekleme)** ve otomatik yeniden deneme (retry) mekanizması eklenmelidir.
-*   **API Dokümantasyonu (Swagger/OpenAPI):** `/api/v1/*` endpoint'leri için otomatik dokümantasyon (Swagger UI) entegrasyonu eksiktir.
+*   **API Dokümantasyonu (Swagger/OpenAPI)::** `/api/v1/*` endpoint'leri için otomatik dokümantasyon (Swagger UI) entegrasyonu eksiktir.
 
 ### 🛡️ Güvenlik (security-hardening-plan.md)
 *   **Input Sanitization (XSS):** Zod kullanımı yaygınlaşmış olsa da, HTML içerikli alanlar için `DOMPurify` gibi kütüphanelerle XSS koruması (sanitization) planlandığı halde henüz tam set uygulanmamıştır.
