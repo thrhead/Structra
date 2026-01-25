@@ -9,6 +9,7 @@
   "scripts": {
     "web": "npm run dev --workspace=apps/web",
     "mobile": "npm run start --workspace=apps/mobile",
+    "lint": "npm run lint --workspaces",
     "test": "npm run test --workspaces"
   }
 }
