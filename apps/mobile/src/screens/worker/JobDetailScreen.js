@@ -40,7 +40,7 @@ import { WebInput } from '../../components/common/WebInput';
 import GlassCard from '../../components/ui/GlassCard';
 import { CreateExpenseModal } from '../../components/worker/expense/CreateExpenseModal';
 import SignaturePad from '../../components/SignaturePad';
-import { COLORS } from '../../constants/theme';
+import { COLORS, Z_INDEX } from '../../constants/theme';
 import { SocketProvider } from '../../context/SocketContext';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -51,7 +51,7 @@ const AppModal = ({ visible, children, ...props }) => {
     if (Platform.OS === 'web') {
         if (!visible) return null;
         return (
-            <View style={[StyleSheet.absoluteFill, { zIndex: 9999 }]}>
+            <View style={[StyleSheet.absoluteFill, { zIndex: Z_INDEX.modal }]}>
                 {children}
             </View>
         );
@@ -155,7 +155,11 @@ export default function JobDetailScreen({ route, navigation }) {
 
     const renderPhotoItem = React.useCallback(({ item }) => (
         <TouchableOpacity onPress={() => openImageModal(item)}>
-            <Image source={{ uri: getValidImageUrl(item.url || item) }} style={styles.thumbnail} />
+            <Image 
+                source={{ uri: getValidImageUrl(item.url || item) }} 
+                style={styles.thumbnail} 
+                accessibilityLabel="Job photo"
+            />
         </TouchableOpacity>
     ), [theme]);
 
@@ -815,7 +819,7 @@ Assembly Tracker Ltd. Şti.
                                     <TouchableOpacity
                                         style={[styles.checkbox, step.isCompleted && styles.checkedBox]}
                                         onPress={() => handleToggleStep(step.id, step.isCompleted)}
-                                        disabled={isLocked}
+                                        disabled={isLocked || user?.role?.toUpperCase() === 'ADMIN'}
                                     >
                                         {step.isCompleted && <MaterialIcons name="check" size={16} color="#FFFFFF" />}
                                     </TouchableOpacity>
@@ -873,7 +877,7 @@ Assembly Tracker Ltd. Şti.
                                                         <TouchableOpacity
                                                             style={[styles.checkbox, { width: 20, height: 20 }, substep.isCompleted && styles.checkedBox]}
                                                             onPress={() => handleSubstepToggle(step.id, substep.id, substep.isCompleted)}
-                                                            disabled={isSubstepLocked}
+                                                            disabled={isSubstepLocked || user?.role?.toUpperCase() === 'ADMIN'}
                                                         >
                                                             {substep.isCompleted && <MaterialIcons name="check" size={14} color="#FFFFFF" />}
                                                         </TouchableOpacity>
@@ -883,8 +887,8 @@ Assembly Tracker Ltd. Şti.
                                                                     {substep.title}
                                                                 </Text>
 
-                                                                {/* Alt adım için fotoğraf yükleme butonu */}
-                                                                {!isSubstepLocked && !substep.isCompleted && (
+                                                                {/* Alt adım için fotoğraf yükleme butonu - Sadece saha personeli için */}
+                                                                {!isSubstepLocked && !substep.isCompleted && user?.role?.toUpperCase() !== 'ADMIN' && (
                                                                     <TouchableOpacity
                                                                         onPress={() => pickImage(step.id, substep.id, 'camera')}
                                                                         style={[styles.actionButton, { padding: 4, marginLeft: 8 }]}
