@@ -45,10 +45,20 @@
 - **Action:** Updated `jest.setup.js` and `jest.config.js` to include mocks for `AlertContext`, `ThemeContext`, `Navigation`, and Expo libraries.
 - **Status:** Mocks implemented and pushed. `npm test` environment configuration pending (open issue).
 
+### 7. Estimate vs. Actual Analysis (Issue #32)
+- **Goal:** Enable variance analysis by comparing planned budget/duration vs. actual costs/time.
+- **Action:**
+  - **Database:** Added `budget` and `estimatedDuration` to `Job` schema.
+  - **Backend:** Updated `jobs.ts` actions and created `/api/admin/reports/variance`.
+  - **Web:** Created new Analysis report page `/admin/reports/analysis`.
+  - **Mobile:** Updated `EditJobScreen` to allow budget input and `JobInfoCard` to display estimates.
+- **Status:** Completed.
+- **GitHub Issue:** #32 Closed.
+
 ## Repository Status
 - **Remote:** `https://github.com/thrhead/assembly_tracker.git`
 - **Branch:** `main`
-- **Push Status:** Successfully pushed changes for Issues #15, #20, #19, #16.
+- **Push Status:** Successfully pushed changes for Issues #15, #20, #19, #16, #32.
 
 ## Open Issues / Ongoing Work
 - **#14 (Manuel Test):** Remains open per user request.
