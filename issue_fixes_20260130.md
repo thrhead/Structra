@@ -55,10 +55,19 @@
 - **Status:** Completed.
 - **GitHub Issue:** #32 Closed.
 
+### 8. Centralized Team Reports (Issue #31)
+- **Goal:** Create a consolidated report page for all teams to compare performance and financials.
+- **Action:**
+  - **Data:** Added `getAllTeamsReports` to `apps/web/lib/data/teams.ts` to aggregate team stats.
+  - **UI:** Created `apps/web/app/[locale]/admin/reports/teams/page.tsx` with summary cards and comparison table.
+  - **Navigation:** Added link to Team Reports in the main Admin Reports dashboard.
+- **Status:** Completed.
+- **GitHub Issue:** #31 Closed.
+
 ## Repository Status
 - **Remote:** `https://github.com/thrhead/assembly_tracker.git`
 - **Branch:** `main`
-- **Push Status:** Successfully pushed changes for Issues #15, #20, #19, #16, #32.
+- **Push Status:** Successfully pushed changes for Issues #15, #20, #19, #16, #32, #31.
 
 ## Open Issues / Ongoing Work
 - **#14 (Manuel Test):** Remains open per user request.
