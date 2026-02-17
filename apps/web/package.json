@@ -17,9 +17,6 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "next": "15.1.0",
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
     "@asteasolutions/zod-to-openapi": "^8.4.0",
     "@ducanh2912/next-pwa": "^10.2.9",
     "@fullcalendar/core": "^6.1.20",
