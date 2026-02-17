@@ -10,9 +10,17 @@
     "web": "npm run dev --workspace=apps/web",
     "mobile": "npm run start --workspace=apps/mobile",
     "lint": "npm run lint --workspaces",
-    "test": "npm run test --workspaces"
+    "test": "npm run test --workspaces",
+    "build:web": "npm run build --workspace=apps/web",
+    "vercel-build": "cd apps/web && npx prisma generate --schema=./prisma/schema.prisma && npx next build"
+  },
+  "dependencies": {
+    "next": "15.1.7",
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
   },
   "devDependencies": {
+    "prisma": "5.22.0",
     "typescript": "5.7.2"
   }
 }
