@@ -18,7 +18,7 @@ const getBaseUrl = () => {
             }
             return 'http://localhost:3000';
         }
-        return 'https://assemblyweb.vercel.app';
+        return 'https://field-service-management-lovat.vercel.app';
     }
 
     // Hardcoded LAN IP for physical device testing in development
@@ -28,8 +28,8 @@ const getBaseUrl = () => {
     }
 
     // Fallback for production if no env var is set
-    console.log('[Config] Using Fallback URL: https://assemblyweb.vercel.app');
-    return 'https://assemblyweb.vercel.app';
+    console.log('[Config] Using Fallback URL: https://field-service-management-lovat.vercel.app');
+    return 'https://field-service-management-lovat.vercel.app';
 };
 
 export const API_URL = getBaseUrl();
