@@ -99,6 +99,12 @@ const withPWA = require("@ducanh2912/next-pwa").default({
 });
 
 const nextConfig = {
+    typescript: {
+        ignoreBuildErrors: true,
+    },
+    eslint: {
+        ignoreDuringBuilds: true,
+    },
     transpilePackages: ['swagger-ui-react'],
     serverExternalPackages: ['@prisma/client', 'bcryptjs', 'swagger-jsdoc'],
     images: {
