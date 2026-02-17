@@ -99,6 +99,14 @@ const withPWA = require("@ducanh2912/next-pwa").default({
 });
 
 const nextConfig = {
+    webpack: (config) => {
+        config.resolve.alias = {
+            ...config.resolve.alias,
+            react: require.resolve('react'),
+            'react-dom': require.resolve('react-dom'),
+        };
+        return config;
+    },
     transpilePackages: ['swagger-ui-react'],
     serverExternalPackages: ['@prisma/client', 'bcryptjs', 'swagger-jsdoc'],
     images: {
