@@ -7,6 +7,8 @@ import createMiddleware from 'next-intl/middleware';
 
 const ALLOWED_ORIGINS = [
   /^http:\/\/localhost:\d+$/,
+  /^https:\/\/field-service-management-.*\.vercel\.app$/,
+  /^https:\/\/field-service-management-lovat\.vercel\.app$/,
   /^https:\/\/assembly-.*\.vercel\.app$/,
   /^https:\/\/assemblyweb\.vercel\.app$/
 ];
