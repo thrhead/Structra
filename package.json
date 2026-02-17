@@ -12,14 +12,15 @@
     "lint": "npm run lint --workspaces",
     "test": "npm run test --workspaces",
     "build:web": "npm run build --workspace=apps/web",
-    "vercel-build": "npm run build --workspace=apps/web"
+    "vercel-build": "cd apps/web && prisma generate && next build"
   },
   "dependencies": {
+    "next": "15.1.0",
     "react": "19.0.0",
-    "react-dom": "19.0.0",
-    "next": "15.1.0"
+    "react-dom": "19.0.0"
   },
   "devDependencies": {
+    "prisma": "5.22.0",
     "typescript": "5.7.2"
   }
 }
