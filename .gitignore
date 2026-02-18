@@ -62,3 +62,6 @@ apps/web_sync_repo/
 apps/mobile_sync_repo/
 apps/mobile_sync_approval_final/
 assembly_tr_temp/
+
+.gemini/
+gha-creds-*.json
