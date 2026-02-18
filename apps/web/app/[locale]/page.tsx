@@ -4,7 +4,13 @@ import { redirect } from "@/lib/navigation"
 import { getTranslations } from 'next-intl/server';
 
 export default async function HomePage() {
-  const session = await auth()
+  let session = null;
+  try {
+    session = await auth();
+  } catch (error) {
+    console.error("Auth failed:", error);
+  }
+
   const t = await getTranslations('Home');
   
   // Eğer giriş yapmışsa, rolüne göre yönlendir
