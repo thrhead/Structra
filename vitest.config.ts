@@ -18,6 +18,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./vitest.setup.ts'],
+    exclude: ['**/node_modules/**', '**/dist/**', '**/apps/mobile/**', '**/cypress/**', '**/.{idea,git,cache,output,temp}/**'],
     server: {
       deps: {
         inline: ['next-intl'],
