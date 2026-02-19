@@ -9,8 +9,8 @@ export default getRequestConfig(async ({requestLocale}) => {
 
   let messages;
   try {
-    // Corrected path after move
-    messages = (await import(`./messages/${locale}.json`)).default;
+    // Relative to this file (src/i18n/request.ts), messages are in ../messages/
+    messages = (await import(`../messages/${locale}.json`)).default;
   } catch (error) {
     console.error(`Failed to load messages for locale ${locale}:`, error);
     messages = {}; 
