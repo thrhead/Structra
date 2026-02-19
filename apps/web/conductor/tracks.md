@@ -2,7 +2,7 @@
 
 | ID | Title | Status |
 |----|-------|--------|
-| - | - | - |
+| [web-deployment-fix](./tracks/web_deployment_fix_20260219/index.md) | Web App Deployment Fix (Monorepo Transition) | NEW |
 
 ## Archived Tracks (2026)
 | ID | Title | Date |
