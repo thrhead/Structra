@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth"
 import { redirect } from "@/lib/navigation"
 import { getTranslations } from 'next-intl/server';
 
+export const runtime = 'nodejs'
+
 export default async function HomePage() {
   let session = null;
   try {
