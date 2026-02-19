@@ -7,10 +7,9 @@ on:
     branches: [ "main" ]
 
 jobs:
-  test:
-    name: Run Tests
+  web-ci:
+    name: Web App CI (Root)
     runs-on: ubuntu-latest
-    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -21,22 +20,37 @@ jobs:
         node-version: '20'
         cache: 'npm'
         
-    - name: Install Dependencies
-      # Using npm install instead of ci because package-lock might vary across environments/versions in dev
+    - name: Install Web Dependencies
       run: npm install
 
-    - name: Verification - Web Tests
-      id: web-tests
-      run: npm run test --workspace=apps/web
+    - name: Run Web Tests
+      run: npm test
+
+    - name: Build Web App
+      # Prisma generate is needed for build
+      run: npx prisma generate && npm run build
+      env:
+        DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/db"
+        NEXTAUTH_SECRET: "test-secret"
+
+  mobile-ci:
+    name: Mobile App CI (apps/mobile)
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
       
-    - name: Verification - Mobile Tests
-      id: mobile-tests
-      # Mobile tests often have issues with native modules in Node environment, 
-      # but we run them to verify logic where possible.
-      run: npm run test --workspace=apps/mobile
-      
-    - name: Test Summary
-      if: always()
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        
+    - name: Install Mobile Dependencies
       run: |
-        echo "Web Tests Status: ${{ steps.web-tests.outcome }}"
-        echo "Mobile Tests Status: ${{ steps.mobile-tests.outcome }}"
+        cd apps/mobile
+        npm install
+
+    - name: Run Mobile Tests
+      run: |
+        cd apps/mobile
+        npm test

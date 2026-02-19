@@ -4,8 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "web:dev": "next dev",
+    "mobile:dev": "cd apps/mobile && npm run start",
     "build": "prisma generate && next build",
     "start": "next start",
+    "lint": "eslint . && cd apps/mobile && npm run lint",
+    "test": "vitest && cd apps/mobile && npm run test",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
