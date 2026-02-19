@@ -2,11 +2,12 @@
 
 | ID | Title | Status |
 |----|-------|--------|
-| [web-deployment-fix](./tracks/web_deployment_fix_20260219/index.md) | Web App Deployment Fix (Monorepo Transition) | COMPLETED |
+| - | - | - |
 
 ## Archived Tracks (2026)
 | ID | Title | Date |
 |----|-------|------|
+| [web-deployment-fix](./archive/web_deployment_fix_20260219/metadata.json) | Web App Deployment Fix (Monorepo Transition) | 2026-02-19 |
 | [resilient-offline-overhaul](./archive/resilient_offline_overhaul_20260129/metadata.json) | Saha Dayanıklılığı: Offline Medya ve Çakışma Yönetimi | 2026-01-29 |
 | [admin-job-overhaul](./archive/admin_job_overhaul_20260129/metadata.json) | Admin İş Yönetimi, Numaralandırma ve Lider Atama | 2026-01-29 |
 | [mobile-approval-filtering-sync](./archive/mobile_approval_filtering_sync_20260128/metadata.json) | Mobile Approval & Filtering Synchronization | 2026-01-28 |
