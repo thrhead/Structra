@@ -77,3 +77,29 @@ export async function GET(
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
 }
+
+export async function DELETE(
+    req: Request,
+    props: { params: Promise<{ id: string }> }
+) {
+    try {
+        const session = await verifyAuth(req)
+        if (!session || session.user.role !== 'ADMIN') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
+        const params = await props.params
+        const { id: teamId } = params
+
+        // Delete the team (Prisma handles cascading if configured, but let's be explicit if needed)
+        // Assignments and members are typically set to onDelete: Cascade in schema
+        await prisma.team.delete({
+            where: { id: teamId }
+        })
+
+        return NextResponse.json({ success: true })
+    } catch (error) {
+        console.error('Delete team error:', error)
+        return NextResponse.json({ error: 'Failed to delete team' }, { status: 500 })
+    }
+}
