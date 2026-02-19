@@ -12,21 +12,21 @@ import { generateJobNumber, generateStepNumber, generateSubStepNumber } from '@/
 const jobSchema = z.object({
   title: z.string().min(3, 'İş başlığı en az 3 karakter olmalıdır'),
   projectNo: z.string().optional().nullable(),
-  description: z.string().optional(),
+  description: z.string().optional().nullable(),
   customerId: z.string().min(1, 'Müşteri seçilmelidir'),
   teamId: z.string().optional().nullable(),
   workerId: z.string().optional().nullable(),
-  jobLeadId: z.string().optional().nullable(), // Yeni alan
+  jobLeadId: z.string().optional().nullable(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
-  location: z.string().optional(),
-  scheduledDate: z.string().optional(), // ISO date string
-  scheduledEndDate: z.string().optional(), // ISO date string
-  budget: z.number().optional().nullable(), // Yeni alan
-  estimatedDuration: z.number().optional().nullable(), // Yeni alan
+  location: z.string().optional().nullable(),
+  scheduledDate: z.string().optional().nullable(),
+  scheduledEndDate: z.string().optional().nullable(),
+  budget: z.number().optional().nullable(),
+  estimatedDuration: z.number().optional().nullable(),
   steps: z.array(z.object({
     id: z.string().optional(),
     title: z.string(),
-    description: z.string().optional(),
+    description: z.string().optional().nullable(),
     subSteps: z.array(z.object({
       id: z.string().optional(),
       title: z.string()
@@ -62,7 +62,7 @@ export async function createJobAction(prevState: CreateJobState, formData: FormD
     customerId: formData.get('customerId'),
     teamId: formData.get('teamId'),
     workerId: formData.get('workerId'),
-    jobLeadId: formData.get('jobLeadId'), // Yeni alan
+    jobLeadId: formData.get('jobLeadId'),
     priority: formData.get('priority'),
     location: formData.get('location'),
     scheduledDate: formData.get('scheduledDate'),
