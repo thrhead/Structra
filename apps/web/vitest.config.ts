@@ -6,12 +6,12 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './'),
+      '@': path.resolve(__dirname, './src'),
       'next/navigation': 'next/navigation.js',
-      // Force ROOT versions for both to ensure they match (since react-dom seems to stick to root)
-      'react': path.resolve(__dirname, '../../node_modules/react'),
-      'react-dom/client': path.resolve(__dirname, '../../node_modules/react-dom/client.js'),
-      'react-dom': path.resolve(__dirname, '../../node_modules/react-dom'),
+      // Force local versions
+      'react': path.resolve(__dirname, 'node_modules/react'),
+      'react-dom/client': path.resolve(__dirname, 'node_modules/react-dom/client.js'),
+      'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
     },
   },
   test: {
