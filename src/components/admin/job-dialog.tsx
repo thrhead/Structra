@@ -109,6 +109,10 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
   } = useForm<FormData>({
     resolver: zodResolver(jobSchema),
     defaultValues: {
+      title: '',
+      projectNo: '',
+      description: '',
+      customerId: '',
       priority: 'MEDIUM',
       status: 'PENDING',
       acceptanceStatus: 'PENDING',
