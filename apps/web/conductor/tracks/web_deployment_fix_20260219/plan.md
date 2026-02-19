@@ -25,3 +25,6 @@
 - [x] Task: Vercel üzerine deneme deployu başlatılması ve logların izlenmesi.
 - [x] Task: Uygulama ana sayfasının ve login ekranının canlı ortamda test edilmesi.
 - [x] Task: Conductor - User Manual Verification 'Final Verification & Deployment' (Protocol in workflow.md)
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions c636666
