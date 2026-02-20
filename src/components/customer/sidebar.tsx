@@ -1,7 +1,6 @@
 'use client'
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { Link, usePathname } from "@/lib/navigation"
 import { cn } from "@/lib/utils"
 import { BriefcaseIcon, UserIcon, LogOutIcon, XIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
