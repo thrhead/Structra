@@ -4,6 +4,7 @@ import { verifyAuth } from '@/lib/auth-helper'
 import { z } from 'zod'
 import { hash } from 'bcryptjs'
 import { logger } from '@/lib/logger'
+import { logAudit, AuditAction } from '@/lib/audit'
 
 const updateUserSchema = z.object({
     name: z.string().min(2).optional(),
@@ -25,6 +26,13 @@ export async function PUT(
         }
 
         const body = await req.json()
+        
+        // Platform detection
+        const xPlatform = req.headers.get('x-platform');
+        const userAgent = req.headers.get('user-agent') || '';
+        const isMobileUA = /mobile|android|iphone|ipad|expo/i.test(userAgent);
+        const platform = xPlatform || body.platform || (isMobileUA ? 'mobile' : 'web');
+
         const data = updateUserSchema.parse(body)
 
         const updateData: any = { ...data }
@@ -47,11 +55,14 @@ export async function PUT(
             }
         })
 
-        logger.audit(`User updated: ${updatedUser.name} (${updatedUser.role})`, {
-            userId: updatedUser.id,
-            updaterId: session.user.id,
-            updates: Object.keys(data)
-        });
+        // LOGGING: Audit log for user update
+        await logAudit(session.user.id, AuditAction.USER_UPDATE, {
+            targetUserId: updatedUser.id,
+            name: updatedUser.name,
+            role: updatedUser.role,
+            updates: Object.keys(data),
+            platform: platform
+        }, platform);
 
         return NextResponse.json(updatedUser)
     } catch (error) {
@@ -81,6 +92,12 @@ export async function DELETE(
             return NextResponse.json({ error: 'Kendinizi silemezsiniz' }, { status: 400 })
         }
 
+        // Platform detection
+        const xPlatform = req.headers.get('x-platform');
+        const userAgent = req.headers.get('user-agent') || '';
+        const isMobileUA = /mobile|android|iphone|ipad|expo/i.test(userAgent);
+        const platform = xPlatform || (isMobileUA ? 'mobile' : 'web');
+
         // Get user details before deleting for log
         const userToDelete = await prisma.user.findUnique({
             where: { id: params.id },
@@ -91,11 +108,13 @@ export async function DELETE(
             where: { id: params.id }
         })
 
-        logger.audit(`User deleted: ${userToDelete?.name || params.id}`, {
-            userId: params.id,
-            deleterId: session.user.id,
-            userEmail: userToDelete?.email
-        });
+        // LOGGING: Audit log for user deletion
+        await logAudit(session.user.id, AuditAction.USER_DELETE, {
+            targetUserId: params.id,
+            name: userToDelete?.name,
+            email: userToDelete?.email,
+            platform: platform
+        }, platform);
 
         return NextResponse.json({ success: true })
     } catch (error) {

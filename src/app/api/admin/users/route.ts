@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { hash } from 'bcryptjs'
 import { createUserAdminSchema } from '@/lib/validations-edge'
 import { logger } from '@/lib/logger'
+import { logAudit, AuditAction } from '@/lib/audit'
 
 export async function GET(req: Request) {
     try {
@@ -60,6 +61,13 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json()
+        
+        // Platform detection
+        const xPlatform = req.headers.get('x-platform');
+        const userAgent = req.headers.get('user-agent') || '';
+        const isMobileUA = /mobile|android|iphone|ipad|expo/i.test(userAgent);
+        const platform = xPlatform || body.platform || (isMobileUA ? 'mobile' : 'web');
+
         const data = createUserAdminSchema.parse(body)
 
         // Check if email exists
@@ -93,10 +101,13 @@ export async function POST(req: Request) {
             }
         })
 
-        logger.audit(`User created: ${newUser.name} (${newUser.role})`, {
-            userId: newUser.id,
-            adminId: session.user.id
-        });
+        // LOGGING: Audit log for user creation
+        await logAudit(session.user.id, AuditAction.USER_CREATE, {
+            targetUserId: newUser.id,
+            email: newUser.email,
+            role: newUser.role,
+            platform: platform
+        }, platform);
 
         return NextResponse.json(newUser, { status: 201 })
     } catch (error) {

@@ -7,6 +7,7 @@ import { auth } from '@/lib/auth'
 import { hash } from 'bcryptjs'
 import { sanitizeHtml, stripHtml } from '@/lib/security'
 import { logger } from '@/lib/logger'
+import { logAudit, AuditAction } from '@/lib/audit'
 
 // Define schema here if not in validations, or import it.
 // Assuming we want a specific schema for customer creation which includes company info.
@@ -70,10 +71,13 @@ export async function createCustomerAction(data: z.infer<typeof customerCreateSc
             })
         })
 
-        logger.audit(`Customer created: ${customer.company}`, {
+        // LOGGING: Audit log for customer creation
+        await logAudit(session.user.id, AuditAction.USER_CREATE, {
+            targetUserId: customer.userId,
             customerId: customer.id,
-            adminId: session.user.id
-        });
+            company: customer.company,
+            platform: 'web'
+        }, 'web');
 
         revalidatePath('/admin/customers')
         return { success: true }
@@ -152,10 +156,12 @@ export async function updateCustomerAction(data: z.infer<typeof customerUpdateSc
             })
         })
 
-        logger.audit(`Customer updated: ${company || name}`, {
+        // LOGGING: Audit log for customer update
+        await logAudit(session.user.id, AuditAction.USER_UPDATE, {
             customerId: id,
-            updaterId: session.user.id
-        });
+            company: company || name,
+            platform: 'web'
+        }, 'web');
 
         revalidatePath('/admin/customers')
         return { success: true }

@@ -7,6 +7,7 @@ import { auth } from '@/lib/auth'
 import { sendJobNotification } from '@/lib/notification-helper'
 import { EventBus } from '@/lib/event-bus'
 import { sanitizeHtml, stripHtml } from '@/lib/security'
+import { logAudit, AuditAction } from '@/lib/audit'
 import { generateJobNumber, generateStepNumber, generateSubStepNumber } from '@/lib/utils/job-number'
 
 const jobSchema = z.object({
@@ -157,6 +158,15 @@ export async function createJobAction(prevState: CreateJobState, formData: FormD
     })
 
     await EventBus.emit('job.created', job);
+
+    // LOGGING: Audit log for job creation
+    await logAudit(session.user.id, AuditAction.JOB_CREATE, {
+      jobId: job.id,
+      title: job.title,
+      customerId: job.customerId,
+      jobNo: job.jobNo,
+      platform: 'web'
+    }, 'web');
 
     revalidatePath('/admin/jobs')
     return { success: true }
@@ -312,6 +322,14 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
       await EventBus.emit('job.completed', { id });
     }
 
+    // LOGGING: Audit log for job update
+    await logAudit(session.user.id, AuditAction.JOB_UPDATE, {
+      jobId: id,
+      title: title,
+      jobNo: projectNo, // using projectNo as identifier if available
+      platform: 'web'
+    }, 'web');
+
     revalidatePath('/admin/jobs')
     revalidatePath(`/admin/jobs/${id}`)
     return { success: true }
@@ -329,6 +347,13 @@ export async function deleteJobAction(id: string) {
   try {
     await prisma.job.delete({ where: { id } })
     await EventBus.emit('job.deleted', { id })
+
+    // LOGGING: Audit log for job deletion
+    await logAudit(session.user.id, AuditAction.JOB_DELETE, {
+      jobId: id,
+      platform: 'web'
+    }, 'web');
+
     revalidatePath('/admin/jobs')
     return { success: true }
   } catch (error) {

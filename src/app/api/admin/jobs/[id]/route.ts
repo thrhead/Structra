@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { EventBus } from '@/lib/event-bus'
 import { checkConflict } from '@/lib/conflict-check'
 import { logger } from '@/lib/logger'
+import { logAudit, AuditAction } from '@/lib/audit'
 
 const updateJobSchema = z.object({
     startedAt: z.string().optional().nullable(),
@@ -42,6 +43,12 @@ export async function PUT(
         const params = await props.params
         const body = await req.json()
 
+        // Platform detection
+        const xPlatform = req.headers.get('x-platform');
+        const userAgent = req.headers.get('user-agent') || '';
+        const isMobileUA = /mobile|android|iphone|ipad|expo/i.test(userAgent);
+        const platform = xPlatform || body.platform || (isMobileUA ? 'mobile' : 'web');
+
         // Parse body with full schema
         const data = fullUpdateJobSchema.parse(body)
 
@@ -53,20 +60,14 @@ export async function PUT(
         const conflict = await checkConflict(req, currentJob?.updatedAt)
         if (conflict) return conflict
 
-        // Handle Steps Logic if provided (Simplistic approach: Transactional replace or upsert)
-        // For now, focusing on core fields as requested. 
-        // Note: steps handling is complex, assuming basic update for now. 
-        // Ideally we should differentiate between creating new steps vs updating existing.
-
         const updatedJob = await prisma.job.update({
             where: { id: params.id },
             data: {
                 title: data.title,
                 description: data.description,
                 customerId: data.customerId,
-                // teamId is not on Job model, it's a relation via JobAssignment
                 assignments: data.teamId && data.teamId !== 'none' ? {
-                    deleteMany: {}, // Clear previous assignments (assuming single team for now)
+                    deleteMany: {},
                     create: { teamId: data.teamId }
                 } : undefined,
                 priority: data.priority,
@@ -83,11 +84,14 @@ export async function PUT(
         // Trigger side effects
         await EventBus.emit('job.updated', updatedJob);
 
-        logger.audit(`Job updated (PUT): ${updatedJob.title}`, {
+        // LOGGING: Audit log for job update
+        await logAudit(session.user.id, AuditAction.JOB_UPDATE, {
             jobId: updatedJob.id,
-            updaterId: session.user.id,
-            updates: Object.keys(data)
-        });
+            title: updatedJob.title,
+            jobNo: updatedJob.jobNo,
+            updates: Object.keys(data),
+            platform: platform
+        }, platform);
 
         return NextResponse.json({ success: true, job: updatedJob })
     } catch (error) {
@@ -112,6 +116,13 @@ export async function PATCH(
 
         const params = await props.params
         const body = await req.json()
+        
+        // Platform detection
+        const xPlatform = req.headers.get('x-platform');
+        const userAgent = req.headers.get('user-agent') || '';
+        const isMobileUA = /mobile|android|iphone|ipad|expo/i.test(userAgent);
+        const platform = xPlatform || body.platform || (isMobileUA ? 'mobile' : 'web');
+
         const { startedAt, completedDate, scheduledDate, scheduledEndDate } = updateJobSchema.parse(body)
 
         // Seviye 3: Çatışma Kontrolü
@@ -129,18 +140,21 @@ export async function PATCH(
                 completedDate: completedDate ? new Date(completedDate) : (completedDate === null ? null : undefined),
                 scheduledDate: scheduledDate ? new Date(scheduledDate) : (scheduledDate === null ? null : undefined),
                 scheduledEndDate: scheduledEndDate ? new Date(scheduledEndDate) : (scheduledEndDate === null ? null : undefined),
-                status: completedDate ? 'COMPLETED' : undefined // Auto update status if completed date is set
+                status: completedDate ? 'COMPLETED' : undefined 
             }
         })
 
         // Trigger side effects
         await EventBus.emit('job.updated', updatedJob);
 
-        logger.audit(`Job updated (PATCH): ${updatedJob.title}`, {
+        // LOGGING: Audit log for job update (PATCH)
+        await logAudit(session.user.id, AuditAction.JOB_UPDATE, {
             jobId: updatedJob.id,
-            updaterId: session.user.id,
-            updates: Object.keys(body)
-        });
+            title: updatedJob.title,
+            jobNo: updatedJob.jobNo,
+            updates: Object.keys(body),
+            platform: platform
+        }, platform);
 
         return NextResponse.json({ success: true, job: updatedJob })
     } catch (error) {
@@ -164,6 +178,12 @@ export async function DELETE(
         }
 
         const params = await props.params
+        
+        // Platform detection
+        const xPlatform = req.headers.get('x-platform');
+        const userAgent = req.headers.get('user-agent') || '';
+        const isMobileUA = /mobile|android|iphone|ipad|expo/i.test(userAgent);
+        const platform = xPlatform || (isMobileUA ? 'mobile' : 'web');
 
         // Check if job exists
         const job = await prisma.job.findUnique({
@@ -181,10 +201,13 @@ export async function DELETE(
         // Trigger side effects
         await EventBus.emit('job.deleted', { id: params.id });
 
-        logger.audit(`Job deleted: ${job.title}`, {
+        // LOGGING: Audit log for job deletion
+        await logAudit(session.user.id, AuditAction.JOB_DELETE, {
             jobId: params.id,
-            deleterId: session.user.id
-        });
+            title: job.title,
+            jobNo: job.jobNo,
+            platform: platform
+        }, platform);
 
         return NextResponse.json({ success: true, message: 'Job deleted successfully' })
     } catch (error) {

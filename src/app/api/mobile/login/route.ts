@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { compare } from 'bcryptjs'
 import { SignJWT } from 'jose'
+import { logAudit, AuditAction } from '@/lib/audit'
 
 // Generate a real JWT token compatible with verifyAuth
 const generateToken = async (user: any) => {
@@ -59,6 +60,12 @@ export async function POST(req: Request) {
         // Note: Mobile app currently expects { user, token } structure
         const token = await generateToken(user)
         
+        // LOGGING: Audit log for mobile login
+        await logAudit(user.id, AuditAction.LOGIN, {
+            email: user.email,
+            platform: 'mobile'
+        }, 'mobile');
+
         return NextResponse.json({
             user: {
                 id: user.id,

@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db'
 import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
 import { logger } from '@/lib/logger'
+import { logAudit, AuditAction } from '@/lib/audit'
 
 const teamSchema = z.object({
   name: z.string().min(2, 'Ekip adı en az 2 karakter olmalıdır'),
@@ -51,10 +52,12 @@ export async function createTeamAction(data: z.infer<typeof teamSchema>) {
             return newTeam;
         })
 
-        logger.audit(`Team created: ${team.name}`, {
+        // LOGGING: Audit log for team creation
+        await logAudit(session.user.id, AuditAction.TEAM_MEMBER_ADD, {
             teamId: team.id,
-            adminId: session.user.id
-        });
+            teamName: team.name,
+            platform: 'web'
+        }, 'web');
 
         revalidatePath('/admin/teams')
         return { success: true }
@@ -112,10 +115,12 @@ export async function updateTeamAction(id: string, data: z.infer<typeof teamSche
             }
         })
 
-        logger.audit(`Team updated: ${name}`, {
+        // LOGGING: Audit log for team update
+        await logAudit(session.user.id, AuditAction.TEAM_ASSIGNMENT, {
             teamId: id,
-            updaterId: session.user.id
-        });
+            teamName: name,
+            platform: 'web'
+        }, 'web');
 
         revalidatePath('/admin/teams')
         revalidatePath(`/admin/teams/${id}`)

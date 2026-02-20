@@ -4,6 +4,7 @@ import { compare } from "bcryptjs"
 import { prisma } from "@/lib/db"
 import { loginSchema } from "@/lib/validations-edge"
 import { authConfig } from "./auth.config"
+import { logAudit, AuditAction } from "./audit"
 
 declare module "next-auth" {
   interface Session {
@@ -55,4 +56,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
+  events: {
+    async signIn({ user }) {
+      if (user.id) {
+        await logAudit(user.id, AuditAction.LOGIN, {
+          email: user.email,
+          platform: 'web'
+        }, 'web');
+      }
+    },
+    async signOut({ session }) {
+      if (session?.user?.id) {
+        await logAudit(session.user.id, AuditAction.LOGOUT, {
+          email: session.user.email,
+          platform: 'web'
+        }, 'web');
+      }
+    }
+  }
 })

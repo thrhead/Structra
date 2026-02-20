@@ -151,6 +151,11 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
+        // Platform detection
+        const xPlatform = req.headers.get('x-platform');
+        const userAgent = req.headers.get('user-agent') || '';
+        const isMobileUA = /mobile|android|iphone|ipad|expo/i.test(userAgent);
+        
         let body;
         try {
             body = await req.json()
@@ -159,7 +164,9 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 });
         }
 
-        console.log('DEBUG: Received Job Creation Payload:', JSON.stringify(body, null, 2));
+        const platform = xPlatform || body.platform || (isMobileUA ? 'mobile' : 'web');
+
+        console.log(`DEBUG: Received Job Creation Payload from ${platform}:`, JSON.stringify(body, null, 2));
 
         // Pre-processing for Mobile: Convert string numbers to actual numbers if needed
         if (body.budget && typeof body.budget === 'string') {
@@ -277,8 +284,9 @@ export async function POST(req: Request) {
             jobId: newJob.id,
             title: newJob.title,
             customerId: newJob.customer.id,
-            jobNo: newJob.jobNo
-        });
+            jobNo: newJob.jobNo,
+            platform: platform // Explicitly passed in details too
+        }, platform);
 
         return NextResponse.json(newJob, { status: 201 })
     } catch (error: any) {

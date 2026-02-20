@@ -50,7 +50,8 @@ export interface AuditDetails {
 export async function logAudit(
     userId: string,
     action: AuditAction | string,
-    details: AuditDetails
+    details: AuditDetails,
+    platform: string = 'web'
 ) {
     try {
         await prisma.systemLog.create({
@@ -59,7 +60,7 @@ export async function logAudit(
                 message: action,
                 userId: userId,
                 meta: details as any, // Json in Prisma
-                platform: 'web', // Default to web, could be inferred
+                platform: details.platform || platform, 
                 createdAt: new Date(),
             },
         });
