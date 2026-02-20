@@ -13,10 +13,11 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { SearchIcon, PencilIcon } from "lucide-react"
+import { SearchIcon, PencilIcon, EyeIcon } from "lucide-react"
 import { format } from "date-fns"
 import { tr } from "date-fns/locale"
 import { getUsers } from "@/lib/data/users"
+import { Link } from "@/lib/navigation"
 
 export default async function UsersPage(props: {
   searchParams: Promise<{ search?: string }>
@@ -83,13 +84,20 @@ export default async function UsersPage(props: {
               <TableHead>Telefon</TableHead>
               <TableHead>Durum</TableHead>
               <TableHead>Kayıt Tarihi</TableHead>
-              <TableHead className="w-[100px] text-right">İşlemler</TableHead>
+              <TableHead className="w-[120px] text-right">İşlemler</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {users.map((user) => (
               <TableRow key={user.id}>
-                <TableCell className="font-medium">{user.name}</TableCell>
+                <TableCell className="font-medium">
+                  <Link 
+                    href={`/admin/users/${user.id}`}
+                    className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                  >
+                    {user.name}
+                  </Link>
+                </TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>
                   <Badge variant="secondary" className={roleColors[user.role] || ""}>
@@ -107,6 +115,12 @@ export default async function UsersPage(props: {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 p-0" asChild>
+                      <Link href={`/admin/users/${user.id}`}>
+                        <EyeIcon className="h-4 w-4 text-gray-500" />
+                        <span className="sr-only">Detayları Gör</span>
+                      </Link>
+                    </Button>
                     <UserDialog
                       user={user}
                       trigger={
