@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db';
 import { Expo, ExpoPushMessage } from 'expo-server-sdk';
+import { emitToUser, notifyAdmins } from '@/lib/socket';
 
 export type NotificationType = 'INFO' | 'WARNING' | 'SUCCESS' | 'ERROR';
 
@@ -55,6 +56,16 @@ export async function sendJobNotification(
             }))
         });
         console.log(`DB Notification created for ${recipientIds.size} users for job ${jobId}`);
+
+        // Emit socket events for real-time web updates
+        recipientIdArray.forEach(userId => {
+            emitToUser(userId, 'notification:new', {
+                title,
+                message,
+                type: type.toLowerCase(),
+                link
+            });
+        });
 
         // 4. Send Push Notifications
         // Fetch users with their push tokens (legacy and new)
@@ -146,6 +157,16 @@ export async function sendAdminNotification(
             }))
         });
         console.log(`Admin notification created for ${admins.length} admins`);
+
+        // Emit socket events for real-time web updates
+        adminIds.forEach(adminId => {
+            emitToUser(adminId, 'notification:new', {
+                title,
+                message,
+                type: type.toLowerCase(),
+                link
+            });
+        });
 
         // 3. Send Push Notifications
         const messages: ExpoPushMessage[] = [];
@@ -254,7 +275,13 @@ export async function sendAdminNotification(
 
             console.log(`Notification created for user ${userId}`);
 
-    
+            // Emit socket event for real-time web updates
+            emitToUser(userId, 'notification:new', {
+                title,
+                message,
+                type: type.toLowerCase(),
+                link
+            });
 
             // 3. Send Push Notifications
 

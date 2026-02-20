@@ -47,9 +47,20 @@ export function NotificationDropdown() {
 
   useEffect(() => {
     fetchNotifications()
-    // Poll for new notifications every 30 seconds
+
+    // Listen for real-time refresh events
+    const handleRefresh = () => {
+      fetchNotifications()
+    }
+    window.addEventListener('notification:refresh', handleRefresh)
+
+    // Poll for new notifications every 30 seconds as a fallback
     const interval = setInterval(fetchNotifications, 30000)
-    return () => clearInterval(interval)
+
+    return () => {
+      window.removeEventListener('notification:refresh', handleRefresh)
+      clearInterval(interval)
+    }
   }, [])
 
   const handleNotificationClick = async (notification: Notification) => {

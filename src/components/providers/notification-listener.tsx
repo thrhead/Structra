@@ -55,6 +55,9 @@ export function NotificationListener() {
             toastFn(data.title, {
                 description: data.message,
             })
+
+            // Dispatch event to refresh notification list in other components
+            window.dispatchEvent(new CustomEvent('notification:refresh'))
         })
 
         return () => {
