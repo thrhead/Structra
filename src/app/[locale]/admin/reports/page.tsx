@@ -30,6 +30,7 @@ import CategoryPieChart from "@/components/admin/reports/charts/CategoryPieChart
 import CostTrendChart from "@/components/admin/reports/charts/CostTrendChart"
 import TotalCostChart from "@/components/admin/reports/charts/TotalCostChart"
 import CostListTable from "@/components/admin/reports/CostListTable"
+import VarianceTable from "@/components/admin/reports/VarianceTable"
 import KPICards from "@/components/admin/reports/KPICards"
 import { Progress } from "@/components/ui/progress"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -68,7 +69,8 @@ export default function AdminReportsPage(props: {
             const [
                 generalStats, allJobs, weeklySteps, jobDistribution,
                 teamPerformance, filterJobs, filterCategories, costBreakdown,
-                costTrend, totalTrend, pendingCostsList, costList, teamsReportData
+                costTrend, totalTrend, pendingCostsList, costList, teamsReportData,
+                varianceData
             ] = await Promise.all([
                 getReportStats(from, to, jobStatus, jobId, category),
                 getJobsForReport(),
@@ -82,13 +84,15 @@ export default function AdminReportsPage(props: {
                 getTotalCostTrend(from, to, costStatus, jobStatus, jobId, category),
                 getPendingCostsList(from, to, jobStatus, jobId, category),
                 getCostList(from, to, costStatus, jobStatus, jobId, category),
-                getAllTeamsReports()
+                getAllTeamsReports(),
+                fetch('/api/admin/reports/variance').then(res => res.json()).catch(() => [])
             ])
 
             setData({
                 generalStats, allJobs, weeklySteps, jobDistribution,
                 teamPerformance, filterJobs, filterCategories, costBreakdown,
                 costTrend, totalTrend, pendingCostsList, costList, teamsReportData,
+                varianceData,
                 activeTab: searchParams?.tab || 'overview'
             })
             setLoading(false)
@@ -110,7 +114,7 @@ export default function AdminReportsPage(props: {
         </div>
     }
 
-    const { generalStats, allJobs, weeklySteps, jobDistribution, teamPerformance, filterJobs, filterCategories, costBreakdown, costTrend, totalTrend, costList, teamsReportData, activeTab } = data
+    const { generalStats, allJobs, weeklySteps, jobDistribution, teamPerformance, filterJobs, filterCategories, costBreakdown, costTrend, totalTrend, costList, teamsReportData, varianceData, activeTab } = data
     const { totalJobs, pendingJobs, inProgressJobs, completedJobs } = generalStats
     const { reports: teamReports, globalStats: teamGlobalStats } = teamsReportData
 
@@ -154,6 +158,7 @@ export default function AdminReportsPage(props: {
                     <TabsTrigger value="overview" className="gap-2"><BarChart3 className="w-4 h-4" /> Genel Bakış</TabsTrigger>
                     <TabsTrigger value="performance" className="gap-2"><Zap className="w-4 h-4" /> Performans</TabsTrigger>
                     <TabsTrigger value="costs" className="gap-2"><Wallet className="w-4 h-4" /> Maliyetler</TabsTrigger>
+                    <TabsTrigger value="variance" className="gap-2"><TrendingUp className="w-4 h-4" /> Sapma Analizi</TabsTrigger>
                     <TabsTrigger value="teams" className="gap-2"><Users className="w-4 h-4" /> Ekipler</TabsTrigger>
                 </TabsList>
 
@@ -177,6 +182,11 @@ export default function AdminReportsPage(props: {
                         <h3 className="text-lg font-semibold mb-4">Haftalık Tamamlanan Adımlar</h3>
                         <WeeklyStepsChart data={weeklySteps} categories={weeklySteps.categories} />
                     </section>
+                </TabsContent>
+
+                {/* Sapma Analizi Sekmesi */}
+                <TabsContent value="variance" className="space-y-6">
+                    <VarianceTable data={varianceData} />
                 </TabsContent>
 
                 {/* Performans Sekmesi */}

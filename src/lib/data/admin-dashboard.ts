@@ -11,7 +11,8 @@ export async function getAdminDashboardData() {
       pendingApprovalsCount,
       pendingCostsAgg,
       approvedCostsAgg,
-      weeklyCompletedSteps
+      weeklyCompletedSteps,
+      activeJobsBudgetAgg
     ] = await Promise.all([
       prisma.user.findMany({
         where: {
@@ -65,11 +66,22 @@ export async function getAdminDashboardData() {
         select: {
           completedAt: true
         }
-      }).catch(e => { console.error("weeklyCompletedSteps fetch failed", e); return []; })
+      }).catch(e => { console.error("weeklyCompletedSteps fetch failed", e); return []; }),
+      prisma.job.aggregate({
+        where: {
+          OR: [
+            { status: 'IN_PROGRESS' },
+            { scheduledDate: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } }
+          ],
+          budget: { not: null }
+        },
+        _sum: { budget: true }
+      }).catch(e => { console.error("activeJobsBudgetAgg fetch failed", e); return { _sum: { budget: 0 } }; })
     ])
 
     const totalCostToday = todaysCosts.reduce((sum, cost) => sum + cost.amount, 0)
-    const dailyBudget = 2000
+    // Dynamic budget: Sum of budgets of active/scheduled jobs. Fallback to 2000 if no budgets defined.
+    const dailyBudget = activeJobsBudgetAgg._sum?.budget || 2000
     const budgetPercentage = Math.min(Math.round((totalCostToday / dailyBudget) * 100), 100)
 
     // Group jobs by date

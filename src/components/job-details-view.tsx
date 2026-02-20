@@ -19,6 +19,8 @@ interface JobDetailsProps {
         status: string
         priority: string
         location: string | null
+        budget: number | null
+        estimatedDuration: number | null
         createdAt: Date
         jobLead?: {
             id: string
@@ -80,6 +82,15 @@ export function JobDetailsView({ job }: JobDetailsProps) {
     const totalSteps = job.steps.length
     const completedSteps = job.steps.filter(s => s.isCompleted).length
     const progressPercentage = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0
+
+    const formatDuration = (minutes: number | null) => {
+        if (!minutes) return 'Belirtilmemiş'
+        const hours = Math.floor(minutes / 60)
+        const mins = minutes % 60
+        if (hours === 0) return `${mins}dk`
+        if (mins === 0) return `${hours}sa`
+        return `${hours}sa ${mins}dk`
+    }
 
     const getProgressColor = (percent: number) => {
         if (percent === 100) return "bg-green-600"

@@ -13,6 +13,8 @@ interface Job {
     status: string
     priority: string
     scheduledDate: Date | null
+    budget: number | null
+    estimatedDuration: number | null
     customer: { company: string }
     assignments: Array<{ team: { name: string } | null }>
     steps: Array<{ id: string; isCompleted: boolean }>
@@ -22,6 +24,15 @@ interface JobsListClientProps {
     initialJobs: Job[]
     teams: Array<{ id: string; name: string }>
     customers: Array<{ id: string; company: string }>
+}
+
+const formatDuration = (minutes: number | null) => {
+    if (!minutes) return 'Belirtilmemiş'
+    const hours = Math.floor(minutes / 60)
+    const mins = minutes % 60
+    if (hours === 0) return `${mins}dk`
+    if (mins === 0) return `${hours}sa`
+    return `${hours}sa ${mins}dk`
 }
 
 export function JobsListClient({ initialJobs, teams, customers }: JobsListClientProps) {
@@ -100,6 +111,12 @@ export function JobsListClient({ initialJobs, teams, customers }: JobsListClient
                                             <div><span className="font-medium">Ekip:</span> {job.assignments[0]?.team?.name || 'Atanmadı'}</div>
                                             <div><span className="font-medium">İlerleme:</span> {completedSteps}/{totalSteps} ({progress}%)</div>
                                             <div><span className="font-medium">Tarih:</span> {job.scheduledDate ? new Date(job.scheduledDate).toLocaleDateString('tr-TR') : 'Belirtilmemiş'}</div>
+                                            <div className="text-emerald-600 font-medium">
+                                                <span className="text-gray-500 font-medium">Bütçe:</span> {job.budget ? `₺${job.budget.toLocaleString('tr-TR')}` : 'Belirtilmemiş'}
+                                            </div>
+                                            <div className="text-indigo-600 font-medium">
+                                                <span className="text-gray-500 font-medium">Tahmini Süre:</span> {formatDuration(job.estimatedDuration)}
+                                            </div>
                                         </div>
                                     </CardContent>
                                 </Card>
