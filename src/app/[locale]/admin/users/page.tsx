@@ -11,13 +11,14 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { SearchIcon, PencilIcon, Eye } from "lucide-react"
 import { format } from "date-fns"
 import { tr } from "date-fns/locale"
 import { getUsers } from "@/lib/data/users"
 import { Link } from "@/lib/navigation"
+import { cn } from "@/lib/utils"
 
 export default async function UsersPage(props: {
   searchParams: Promise<{ search?: string }>
@@ -115,11 +116,13 @@ export default async function UsersPage(props: {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 p-0" asChild title="Detayları Gör">
-                      <Link href={`/admin/users/${user.id}`}>
-                        <Eye className="h-4 w-4 text-gray-500" />
-                      </Link>
-                    </Button>
+                    <Link
+                      href={`/admin/users/${user.id}`}
+                      className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "h-8 w-8 p-0")}
+                      title="Detayları Gör"
+                    >
+                      <Eye className="h-4 w-4 text-gray-500" />
+                    </Link>
                     <UserDialog
                       user={JSON.parse(JSON.stringify(user))}
                       trigger={
