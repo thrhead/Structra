@@ -13,7 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { SearchIcon, PencilIcon, EyeIcon } from "lucide-react"
+import { SearchIcon, PencilIcon, Eye } from "lucide-react"
 import { format } from "date-fns"
 import { tr } from "date-fns/locale"
 import { getUsers } from "@/lib/data/users"
@@ -117,12 +117,12 @@ export default async function UsersPage(props: {
                   <div className="flex justify-end gap-2">
                     <Button variant="ghost" size="icon" className="h-8 w-8 p-0" asChild>
                       <Link href={`/admin/users/${user.id}`}>
-                        <EyeIcon className="h-4 w-4 text-gray-500" />
+                        <Eye className="h-4 w-4 text-gray-500" />
                         <span className="sr-only">Detayları Gör</span>
                       </Link>
                     </Button>
                     <UserDialog
-                      user={user}
+                      user={JSON.parse(JSON.stringify(user))}
                       trigger={
                         <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
                           <span className="sr-only">Düzenle</span>
