@@ -1,27 +1,65 @@
-import { auth } from '@/lib/auth'
-import { redirect } from '@/lib/navigation'
-import { prisma } from '@/lib/db'
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
+import { useRouter } from '@/lib/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { formatDistanceToNow } from 'date-fns'
 import { tr } from 'date-fns/locale'
-import Link from '@/lib/navigation'
-import { CheckCircle2, AlertTriangle, XCircle, Bell, Inbox } from 'lucide-react'
+import { Link } from '@/lib/navigation'
+import { CheckCircle2, AlertTriangle, XCircle, Bell, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
-async function getNotifications(userId: string) {
-  return await prisma.notification.findMany({
-    where: { userId },
-    orderBy: { createdAt: 'desc' }
-  })
-}
+export default function NotificationsPage() {
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  const [notifications, setNotifications] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-export default async function NotificationsPage() {
-  const session = await auth()
-  if (!session) {
-    redirect('/login')
+  const fetchNotifications = async () => {
+    try {
+      setLoading(true)
+      const res = await fetch('/api/notifications')
+      if (res.ok) {
+        const data = await res.json()
+        setNotifications(data.notifications || [])
+      }
+    } catch (error) {
+      console.error('Fetch error:', error)
+      toast.error('Bildirimler yüklenemedi.')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const notifications = await getNotifications(session?.user?.id || '')
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login')
+    } else if (status === 'authenticated') {
+      fetchNotifications()
+    }
+  }, [status])
+
+  const handleDeleteNotification = async (id: string, link: string | null) => {
+    try {
+      const res = await fetch(`/api/notifications?id=${id}`, {
+        method: 'DELETE'
+      })
+
+      if (res.ok) {
+        setNotifications(prev => prev.filter(n => n.id !== id))
+        if (link) {
+          router.push(link)
+        }
+      } else {
+        toast.error('Bildirim silinemedi.')
+      }
+    } catch (error) {
+      console.error('Delete error:', error)
+      toast.error('Bir hata oluştu.')
+    }
+  }
 
   const groupNotificationsByDate = (notifications: any[]) => {
     const now = new Date()
@@ -46,7 +84,6 @@ export default async function NotificationsPage() {
   }
 
   const grouped = groupNotificationsByDate(notifications)
-  const unreadCount = notifications.filter(n => !n.isRead).length
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -66,6 +103,42 @@ export default async function NotificationsPage() {
     }
   }
 
+  const NotificationItem = ({ notification }: { notification: any }) => (
+    <div
+      onClick={() => handleDeleteNotification(notification.id, notification.link)}
+      className="cursor-pointer block"
+    >
+      <Card className={`hover:shadow-md transition-shadow ${
+        !notification.isRead ? getNotificationBgColor(notification.type) : ''
+      }`}>
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5">{getNotificationIcon(notification.type)}</div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2">
+                <h4 className={`text-sm ${!notification.isRead ? 'font-semibold' : 'font-medium'}`}>
+                  {notification.title}
+                </h4>
+                {!notification.isRead && (
+                  <div className="h-2 w-2 rounded-full bg-blue-500 shrink-0 mt-1" />
+                )}
+              </div>
+              <p className="text-sm text-gray-600 mt-1">
+                {notification.message}
+              </p>
+              <p className="text-xs text-gray-400 mt-2">
+                {formatDistanceToNow(new Date(notification.createdAt), { 
+                  addSuffix: true,
+                  locale: tr 
+                })}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+
   const NotificationGroup = ({ title, items }: { title: string, items: any[] }) => {
     if (items.length === 0) return null
 
@@ -74,63 +147,38 @@ export default async function NotificationsPage() {
         <h3 className="text-sm font-semibold text-gray-500 mb-3">{title}</h3>
         <div className="space-y-2">
           {items.map((notification) => (
-            <Link
-              key={notification.id}
-              href={notification.link || '#'}
-              className="block"
-            >
-              <Card className={`hover:shadow-md transition-shadow ${
-                !notification.isRead ? getNotificationBgColor(notification.type) : ''
-              }`}>
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="mt-0.5">{getNotificationIcon(notification.type)}</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <h4 className={`text-sm ${!notification.isRead ? 'font-semibold' : 'font-medium'}`}>
-                          {notification.title}
-                        </h4>
-                        {!notification.isRead && (
-                          <div className="h-2 w-2 rounded-full bg-blue-500 shrink-0 mt-1" />
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {notification.message}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-2">
-                        {formatDistanceToNow(new Date(notification.createdAt), {
-                          addSuffix: true,
-                          locale: tr
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
+            <NotificationItem key={notification.id} notification={notification} />
           ))}
         </div>
       </div>
     )
   }
 
+  if (status === 'loading' || loading) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Bildirimler</h1>
-        <p className="text-gray-600 mt-1">
-          {unreadCount > 0 ? `${unreadCount} okunmamış bildirim` : 'Tüm bildirimler okundu'}
-        </p>
+    <div className="p-4 lg:p-8 max-w-4xl mx-auto">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Bildirimler</h1>
+          <p className="text-gray-600">Güncel tüm bildirimleriniz ve duyurular.</p>
+        </div>
+        <Badge variant="secondary" className="px-3 py-1">
+          {notifications.length} Bildirim
+        </Badge>
       </div>
 
-      {/* Notifications */}
       {notifications.length === 0 ? (
-        <Card>
-          <CardContent className="p-12 text-center flex flex-col items-center justify-center">
-            <Inbox className="h-16 w-16 text-gray-300 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900">Bildiriminiz bulunmuyor</h3>
-            <p className="text-gray-500 mt-1">Yeni bildirimler burada görünecek</p>
+        <Card className="border-dashed py-12">
+          <CardContent className="flex flex-col items-center justify-center text-gray-500">
+            <Bell className="h-12 w-12 mb-4 opacity-20" />
+            <p>Henüz bir bildiriminiz bulunmuyor.</p>
           </CardContent>
         </Card>
       ) : (

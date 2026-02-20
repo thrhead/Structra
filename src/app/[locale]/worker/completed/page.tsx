@@ -42,7 +42,7 @@ async function getCompletedJobs(userId: string) {
       }
     },
     orderBy: {
-      completedDate: 'desc'
+      createdAt: 'desc'
     }
   })
 }

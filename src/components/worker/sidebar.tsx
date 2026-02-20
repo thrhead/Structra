@@ -8,14 +8,20 @@ import {
   BriefcaseIcon,
   CheckSquareIcon,
   SettingsIcon,
+  HomeIcon,
   XIcon
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 const sidebarItems = [
   {
-    title: 'İşlerim',
+    title: 'Ana Sayfa',
     href: '/worker',
+    icon: HomeIcon
+  },
+  {
+    title: 'İşlerim',
+    href: '/worker?filter=ALL',
     icon: BriefcaseIcon
   },
   {
