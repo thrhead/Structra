@@ -132,17 +132,31 @@ export async function DELETE(
             return NextResponse.json({ error: 'Kendinizi silemezsiniz' }, { status: 400 })
         }
 
-        await prisma.user.delete({
-            where: { id }
-        })
+        // Use a transaction to clean up non-critical relations and then delete the user
+        await prisma.$transaction(async (tx) => {
+            // Delete non-critical dependencies that don't need manual cleanup
+            await tx.pushToken.deleteMany({ where: { userId: id } });
+            await tx.notification.deleteMany({ where: { userId: id } });
+            await tx.systemLog.deleteMany({ where: { userId: id } });
+            await tx.apiKey.deleteMany({ where: { userId: id } });
+
+            // Now attempt to delete the user
+            await tx.user.delete({
+                where: { id }
+            })
+        });
 
         return NextResponse.json({ success: true })
-    } catch (error) {
+    } catch (error: any) {
         console.error('User deletion error:', error)
-        // Check if user has dependencies
-        if (error instanceof Error && error.message.includes('Foreign key constraint failed')) {
-            return NextResponse.json({ error: 'Bu kullanıcıya bağlı kayıtlar (iş, ekip vb.) olduğu için silinemez. Önce ilişkili kayıtları temizleyin veya kullanıcıyı pasif yapın.' }, { status: 400 })
+        
+        // Handle Prisma Foreign Key Constraint error (P2003)
+        if (error.code === 'P2003') {
+            return NextResponse.json({ 
+                error: 'Bu kullanıcıya bağlı kritik kayıtlar (atamalar, onaylar, masraflar veya mesajlar) mevcut. Güvenlik nedeniyle bu kullanıcı doğrudan silinemez. Bunun yerine kullanıcıyı "Pasif" duruma getirmeyi deneyin.' 
+            }, { status: 400 })
         }
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+
+        return NextResponse.json({ error: 'Sunucu hatası: ' + (error.message || 'Bilinmeyen hata') }, { status: 500 })
     }
 }
