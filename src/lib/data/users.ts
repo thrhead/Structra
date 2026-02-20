@@ -78,10 +78,13 @@ export async function getUser(id: string) {
     where: { id },
     include: {
       assignedJobs: {
-        take: 5,
         orderBy: { assignedAt: 'desc' },
         include: {
-          job: true
+          job: {
+            include: {
+              customer: true
+            }
+          }
         }
       },
       managedTeams: true,
@@ -89,11 +92,66 @@ export async function getUser(id: string) {
         include: {
           team: true
         }
-      },
-      createdJobs: {
-        take: 5,
-        orderBy: { createdAt: 'desc' }
       }
     }
   });
+}
+
+export async function getUserReports(id: string) {
+  const [user, assignedJobs, createdCosts] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id },
+      select: { role: true }
+    }),
+    prisma.jobAssignment.findMany({
+      where: {
+        OR: [
+          { workerId: id },
+          { team: { members: { some: { userId: id } } } }
+        ]
+      },
+      include: {
+        job: true
+      }
+    }),
+    prisma.costTracking.findMany({
+      where: { createdById: id }
+    })
+  ]);
+
+  if (!user) return null;
+
+  const jobs = assignedJobs.map(aj => aj.job);
+  
+  // KPIs
+  const activeJobs = jobs.filter(j => ['PENDING', 'IN_PROGRESS'].includes(j.status));
+  const completedJobs = jobs.filter(j => j.status === 'COMPLETED');
+  
+  // Calculate total hours from completed jobs
+  const totalMinutes = completedJobs.reduce((acc, job) => {
+    if (job.startedAt && job.completedDate) {
+      const diff = (job.completedDate.getTime() - job.startedAt.getTime()) / (1000 * 60);
+      return acc + diff;
+    }
+    return acc + (job.estimatedDuration || 0);
+  }, 0);
+
+  const totalCosts = createdCosts.reduce((acc, cost) => acc + cost.amount, 0);
+  const reimbursedCosts = createdCosts
+    .filter(c => c.status === 'APPROVED')
+    .reduce((acc, cost) => acc + cost.amount, 0);
+
+  return {
+    kpis: {
+      totalHours: Math.round(totalMinutes / 60),
+      activeProjectCount: activeJobs.length,
+      completedProjectCount: completedJobs.length,
+      totalExpenditure: totalCosts,
+      reimbursedExpenditure: reimbursedCosts
+    },
+    history: {
+      activeTasks: activeJobs,
+      completedTasks: completedJobs
+    }
+  };
 }
