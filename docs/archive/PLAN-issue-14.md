@@ -15,18 +15,18 @@ Enable the visualization of "Estimated Budget" and "Estimated Duration" fields i
 
 ### 1. Update Job List Table
 **File:** `src/components/jobs-list-client.tsx`
-- [ ] Add "Bütçe" (Budget) column to the table.
-- [ ] Add "Süre" (Duration) column to the table.
-- [ ] Format `budget` as Turkish Lira (TRY).
-- [ ] Format `estimatedDuration` (minutes) into a readable string (e.g., "2sa 30dk").
+- [x] Add "Bütçe" (Budget) column to the table.
+- [x] Add "Süre" (Duration) column to the table.
+- [x] Format `budget` as Turkish Lira (TRY).
+- [x] Format `estimatedDuration` (minutes) into a readable string (e.g., "2sa 30dk").
 
 ### 2. Update Job Details View
 **File:** `src/components/job-details-view.tsx`
-- [ ] Add "Tahmini Bütçe" and "Tahmini Süre" fields to the "İş Bilgileri" (Job Info) card.
-- [ ] Display next to the "Durum" or "Açıklama" sections for quick visibility.
-- [ ] (Optional) Add a visual comparison if the job is completed (Actual vs Estimated).
+- [x] Add "Tahmini Bütçe" and "Tahmini Süre" fields to the "İş Bilgileri" (Job Info) card.
+- [x] Display next to the "Durum" or "Açıklama" sections for quick visibility.
+- [x] (Optional) Add a visual comparison if the job is completed (Actual vs Estimated).
 
 ## Verification
-- [ ] Create a job with Budget and Duration.
-- [ ] Verify columns appear in the Job List.
-- [ ] Verify fields appear in the Job Details page.
+- [x] Create a job with Budget and Duration.
+- [x] Verify columns appear in the Job List.
+- [x] Verify fields appear in the Job Details page.

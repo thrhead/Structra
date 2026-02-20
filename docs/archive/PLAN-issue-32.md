@@ -1,4 +1,4 @@
-# Plan: Issue #32 - Tahmin vs Gerçek Analizi
+1# Plan: Issue #32 - Tahmin vs Gerçek Analizi
 
 ## Hedef
 İşler için "Tahmin Edilen" (Planned) ve "Gerçekleşen" (Actual) verilerin karşılaştırıldığı analiz raporları oluşturmak. Bu raporlar, proje yönetimindeki sapmaları (maliyet ve süre) izlemeyi sağlayacaktır.

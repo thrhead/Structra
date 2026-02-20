@@ -10,7 +10,7 @@ Format: `[ProjectNo]-WO-[Sequence]` for Jobs, and `[JobNo]-SUB-[StepSequence]` f
     - Modify `apps/web/lib/utils/job-number.ts`.
     - Add logic to check for `projectNo`.
     - If `projectNo` exists, find the highest `WO` index for that project and increment.
-    - Format: `${projectNo}-WO-${seq.toString().padStart(2, '0')}`.
+    - Format: `${projectNo}-WO-${seq.toString().padStart(2, '0')}`.11
     - Fallback: Keep `JOB-YYYY-XXXX` if no `projectNo`.
 - [ ] **Update `formatTaskNumber`**:
     - Change output format to include `-SUB-` for steps/substeps as requested.

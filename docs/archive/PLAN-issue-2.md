@@ -15,7 +15,7 @@ The current notification system in the web application has several issues:
 ## Task Breakdown
 ### Phase 1: Backend Integration
 - [ ] Task 1.1: Integrate Socket.io client or server emission in `src/lib/notification-helper.ts`.
-- [ ] Task 1.2: Ensure `NotificationPayload` is consistent with `src/lib/socket-events.ts`.
+1- [ ] Task 1.2: Ensure `NotificationPayload` is consistent with `src/lib/socket-events.ts`.
 
 ### Phase 2: Frontend Synchronization
 - [ ] Task 2.1: Implement `useNotifications` hook or similar to centralize fetching and state.
