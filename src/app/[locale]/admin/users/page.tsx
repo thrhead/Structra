@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "@/lib/navigation"
 import { UserDialog } from "@/components/admin/user-dialog"
+import { DeleteUserButton } from "@/components/admin/delete-user-button"
 import {
   Table,
   TableBody,
@@ -82,7 +83,7 @@ export default async function UsersPage(props: {
               <TableHead>Telefon</TableHead>
               <TableHead>Durum</TableHead>
               <TableHead>Kayıt Tarihi</TableHead>
-              <TableHead className="w-[50px]">İşlemler</TableHead>
+              <TableHead className="w-[100px] text-right">İşlemler</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -104,22 +105,32 @@ export default async function UsersPage(props: {
                 <TableCell>
                   {format(new Date(user.createdAt), 'd MMM yyyy', { locale: tr })}
                 </TableCell>
-                <TableCell>
-                  <UserDialog
-                    user={user}
-                    trigger={
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <span className="sr-only">Düzenle</span>
-                        <PencilIcon className="h-4 w-4 text-gray-500" />
-                      </Button>
-                    }
-                  />
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    <UserDialog
+                      user={user}
+                      trigger={
+                        <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
+                          <span className="sr-only">Düzenle</span>
+                          <PencilIcon className="h-4 w-4 text-gray-500" />
+                        </Button>
+                      }
+                    />
+                    {user.id !== session.user.id && (
+                      <DeleteUserButton 
+                        userId={user.id} 
+                        userName={user.name || user.email} 
+                        size="icon" 
+                        variant="ghost" 
+                      />
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
             {users.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                   Kullanıcı bulunamadı.
                 </TableCell>
               </TableRow>

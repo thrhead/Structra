@@ -110,3 +110,39 @@ export async function GET(
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
 }
+
+export async function DELETE(
+    req: Request,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const session = await verifyAuth(req)
+        const { id } = await params;
+
+        if (!session) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
+        if (session.user.role !== 'ADMIN') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+        }
+
+        // Prevent self-deletion
+        if (session.user.id === id) {
+            return NextResponse.json({ error: 'Kendinizi silemezsiniz' }, { status: 400 })
+        }
+
+        await prisma.user.delete({
+            where: { id }
+        })
+
+        return NextResponse.json({ success: true })
+    } catch (error) {
+        console.error('User deletion error:', error)
+        // Check if user has dependencies
+        if (error instanceof Error && error.message.includes('Foreign key constraint failed')) {
+            return NextResponse.json({ error: 'Bu kullanıcıya bağlı kayıtlar (iş, ekip vb.) olduğu için silinemez. Önce ilişkili kayıtları temizleyin veya kullanıcıyı pasif yapın.' }, { status: 400 })
+        }
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    }
+}
