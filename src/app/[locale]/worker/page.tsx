@@ -187,6 +187,18 @@ export default function WorkerDashboard() {
                   </span>
                 </div>
 
+                <div className="pt-2 border-t border-gray-100 flex flex-col gap-1">
+                  <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Kayıt Bilgisi</span>
+                  <div className="flex items-center gap-2 text-[11px] text-gray-500">
+                    <Clock className="h-3 w-3" />
+                    <span>{format(new Date(job.createdAt), 'd MMM yyyy, HH:mm', { locale: tr })}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[11px] text-gray-500">
+                    <User className="h-3 w-3" />
+                    <span>{job.creator?.name || "Sistem"}</span>
+                  </div>
+                </div>
+
                 <div className="flex items-center gap-2">
                   <Badge variant="outline" className="text-xs font-normal">
                     {statusLabels[job.status] || job.status}

@@ -165,6 +165,13 @@ export async function getJob(id: string) {
             user: true
           }
         },
+        creator: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
         jobLead: {
           select: {
             id: true,

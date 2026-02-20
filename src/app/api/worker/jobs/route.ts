@@ -54,6 +54,9 @@ export async function GET(req: Request) {
             }
           }
         },
+        creator: {
+          select: { name: true }
+        },
         steps: {
           select: {
             id: true,

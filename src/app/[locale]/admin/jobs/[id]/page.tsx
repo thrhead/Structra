@@ -3,7 +3,7 @@ import { redirect } from "@/lib/navigation"
 import { prisma } from "@/lib/db"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Clock, User } from "lucide-react"
 import { Link } from "@/lib/navigation"
 // import { AdminJobDetailsTabs } from "@/components/admin/job-details-tabs"
 // import { ApprovalActionCard } from "@/components/admin/approval-action-card"
@@ -14,6 +14,8 @@ import { EditIcon } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { ChatPanel } from "@/components/chat/ChatPanel"
 import { JobDetailsClientWrapper } from "@/components/admin/job-details-client-wrapper"
+import { format } from "date-fns"
+import { tr } from "date-fns/locale"
 
 export const dynamicParams = true
 
@@ -104,7 +106,16 @@ export default async function AdminJobDetailsPage(props: {
                                 </Badge>
                             </div>
                         </div>
-                        <p className="text-gray-500">İşin ilerleme durumunu ve detaylarını görüntüleyin.</p>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-sm text-gray-500">
+                            <div className="flex items-center gap-1">
+                                <Clock className="h-3.5 w-3.5" />
+                                <span>{format(new Date(job.createdAt), "d MMMM yyyy HH:mm", { locale: tr })}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                                <User className="h-3.5 w-3.5" />
+                                <span>{job.creator?.name || 'Sistem'} tarafından oluşturuldu</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">

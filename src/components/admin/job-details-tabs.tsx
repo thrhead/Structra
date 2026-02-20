@@ -325,6 +325,18 @@ export function AdminJobDetailsTabs({ job, workers, teams }: AdminJobDetailsTabs
                                     <span className="text-gray-500">Bloklanan:</span>
                                     <span className="font-medium text-red-600">{blockedSteps}</span>
                                 </div>
+                                <div className="border-t pt-2 mt-2 space-y-2">
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500">Oluşturan:</span>
+                                        <span className="font-medium">{job.creator?.name || 'Sistem'}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500">Oluşturulma:</span>
+                                        <span className="font-medium" suppressHydrationWarning>
+                                            {job.createdAt ? new Date(job.createdAt).toLocaleString('tr-TR') : '-'}
+                                        </span>
+                                    </div>
+                                </div>
                             </CardContent>
                         </Card>
 

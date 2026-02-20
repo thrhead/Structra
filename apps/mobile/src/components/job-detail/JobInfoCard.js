@@ -178,6 +178,24 @@ const JobInfoCard = ({ job }) => {
             {job.title}
           </Text>
 
+          <View style={{ marginTop: 8, padding: 8, backgroundColor: theme.dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', borderRadius: 8 }}>
+            <Text style={{ fontSize: 10, color: theme.colors.subText, fontWeight: "bold", marginBottom: 4 }}>
+              KAYIT BİLGİSİ
+            </Text>
+            <View style={styles.infoRow}>
+              <MaterialIcons name="person" size={14} color={theme.colors.subText} />
+              <Text style={{ fontSize: 12, color: theme.colors.text, marginLeft: 4 }}>
+                {job.creator?.name || "Sistem"} tarafından oluşturuldu
+              </Text>
+            </View>
+            <View style={[styles.infoRow, { marginBottom: 0 }]}>
+              <MaterialIcons name="access-time" size={14} color={theme.colors.subText} />
+              <Text style={{ fontSize: 12, color: theme.colors.text, marginLeft: 4 }}>
+                {new Date(job.createdAt).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              </Text>
+            </View>
+          </View>
+
           {(job.budget || job.estimatedDuration) && (
             <View style={{ flexDirection: "row", gap: 12, marginTop: 4 }}>
               {job.budget > 0 && (
