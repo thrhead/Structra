@@ -115,17 +115,15 @@ export default async function UsersPage(props: {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 p-0" asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 p-0" asChild title="Detayları Gör">
                       <Link href={`/admin/users/${user.id}`}>
                         <Eye className="h-4 w-4 text-gray-500" />
-                        <span className="sr-only">Detayları Gör</span>
                       </Link>
                     </Button>
                     <UserDialog
                       user={JSON.parse(JSON.stringify(user))}
                       trigger={
-                        <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
-                          <span className="sr-only">Düzenle</span>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 p-0" title="Düzenle">
                           <PencilIcon className="h-4 w-4 text-gray-500" />
                         </Button>
                       }
