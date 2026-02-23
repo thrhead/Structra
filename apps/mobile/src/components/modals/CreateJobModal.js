@@ -12,7 +12,7 @@ import teamService from '../../services/team.service';
 export default function CreateJobModal({ visible, onClose, onSuccess }) {
     const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
-    const [errorMessage, setErrorMessage] = useState(null);
+    const [validationError, setValidationError] = useState(null);
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -43,10 +43,11 @@ export default function CreateJobModal({ visible, onClose, onSuccess }) {
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [dateTarget, setDateTarget] = useState('start');
 
-    // Reset error when visibility changes
+    // Reset state when modal opens
     useEffect(() => {
         if (visible) {
-            setErrorMessage(null);
+            setValidationError(null);
+            setLoading(false);
         }
     }, [visible]);
 
@@ -67,18 +68,18 @@ export default function CreateJobModal({ visible, onClose, onSuccess }) {
             steps: []
         });
         setLoading(false);
-        setErrorMessage(null);
+        setValidationError(null);
     };
 
     const handleCreateJob = async () => {
-        setErrorMessage(null);
+        setValidationError(null);
         
-        if (!formData.title.trim()) {
-            setErrorMessage("Lütfen iş başlığı giriniz.");
+        if (!formData.title || formData.title.trim() === '') {
+            setValidationError("Lütfen iş başlığı giriniz.");
             return;
         }
         if (!formData.customerId) {
-            setErrorMessage("Lütfen bir müşteri seçiniz.");
+            setValidationError("Lütfen bir müşteri seçiniz.");
             return;
         }
 
@@ -89,8 +90,8 @@ export default function CreateJobModal({ visible, onClose, onSuccess }) {
             onSuccess();
         } catch (error) {
             console.error('Create job error:', error);
-            const msg = error.response?.data?.error || t('jobs.createError');
-            setErrorMessage(msg);
+            const msg = error.response?.data?.error || "İş oluşturulurken bir hata oluştu.";
+            setValidationError(msg);
         } finally {
             setLoading(false);
         }
@@ -112,7 +113,7 @@ export default function CreateJobModal({ visible, onClose, onSuccess }) {
                         label: c.company || c.companyName,
                         sub: c.user?.name || c.contactPerson
                     })));
-                } catch (e) { setErrorMessage(t('jobs.fetchError')); }
+                } catch (e) { setValidationError("Müşteriler yüklenemedi."); }
             } else {
                 setSelectionItems(customers.map(c => ({
                     id: c.id,
@@ -129,7 +130,7 @@ export default function CreateJobModal({ visible, onClose, onSuccess }) {
                     if (Array.isArray(teamData)) setTeams(teamData);
                     const options = [{ id: null, label: t('jobs.noAssignment') }, ...teamData.map(t => ({ id: t.id, label: t.name }))];
                     setSelectionItems(options);
-                } catch (e) { setErrorMessage(t('jobs.fetchError')); }
+                } catch (e) { setValidationError("Ekipler yüklenemedi."); }
             } else {
                 const options = [{ id: null, label: t('jobs.noAssignment') }, ...teams.map(t => ({ id: t.id, label: t.name }))];
                 setSelectionItems(options);
@@ -181,6 +182,7 @@ export default function CreateJobModal({ visible, onClose, onSuccess }) {
             }
         }
         setSelectionModalVisible(false);
+        setValidationError(null);
     };
 
     const onDateChange = (event, selectedDate) => {
@@ -205,10 +207,10 @@ export default function CreateJobModal({ visible, onClose, onSuccess }) {
                 <View style={styles.modalContent}>
                     <Text style={styles.modalTitle}>{t('jobs.createTitle')}</Text>
                     
-                    {errorMessage && (
+                    {validationError && (
                         <View style={styles.errorContainer}>
-                            <MaterialIcons name="error-outline" size={20} color="#ff4444" />
-                            <Text style={styles.errorText}>{errorMessage}</Text>
+                            <MaterialIcons name="error" size={20} color="#ff4444" />
+                            <Text style={styles.errorText}>{validationError}</Text>
                         </View>
                     )}
 
@@ -225,11 +227,11 @@ export default function CreateJobModal({ visible, onClose, onSuccess }) {
 
                         <Text style={styles.label}>{t('jobs.jobTitle')} *</Text>
                         <TextInput
-                            style={[styles.input, loading && { opacity: 0.5 }]}
+                            style={[styles.input, loading && { opacity: 0.5 }, validationError && !formData.title && { borderColor: '#ff4444' }]}
                             value={formData.title}
                             onChangeText={(text) => {
                                 setFormData(prev => ({ ...prev, title: text }));
-                                if (errorMessage) setErrorMessage(null);
+                                setValidationError(null);
                             }}
                             placeholder={t('jobs.titlePlaceholder')}
                             placeholderTextColor="#666"
@@ -238,7 +240,7 @@ export default function CreateJobModal({ visible, onClose, onSuccess }) {
 
                         <Text style={styles.label}>{t('jobs.customer')} *</Text>
                         <TouchableOpacity 
-                            style={[styles.selectorButton, loading && { opacity: 0.5 }, errorMessage && !formData.customerId && {borderColor: '#ff4444'}]} 
+                            style={[styles.selectorButton, loading && { opacity: 0.5 }, validationError && !formData.customerId && { borderColor: '#ff4444' }]} 
                             onPress={() => openSelection('customer')}
                             disabled={loading}
                         >
@@ -346,7 +348,7 @@ export default function CreateJobModal({ visible, onClose, onSuccess }) {
                 >
                     <View style={styles.modalOverlay}>
                         <View style={[styles.modalContent, { maxHeight: '80%' }]}>
-                            <View style={{ flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', marginBottom: 15 }}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15, paddingHorizontal: 10 }}>
                                 <Text style={styles.modalTitle}>{selectionTitle}</Text>
                                 <TouchableOpacity onPress={() => setSelectionModalVisible(false)}>
                                     <MaterialIcons name="close" size={24} color="#fff" />
@@ -384,8 +386,8 @@ const styles = StyleSheet.create({
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', padding: 20 },
     modalContent: { backgroundColor: '#1A1A1A', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#333' },
     modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#ffffff', marginBottom: 20, textAlign: 'center' },
-    errorContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255, 68, 68, 0.1)', padding: 10, borderRadius: 8, marginBottom: 15, borderLeftWidth: 4, borderLeftColor: '#ff4444' },
-    errorText: { color: '#ff4444', marginLeft: 8, fontSize: 14, fontWeight: '600' },
+    errorContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255, 68, 68, 0.1)', padding: 12, borderRadius: 8, marginBottom: 15, borderLeftWidth: 4, borderLeftColor: '#ff4444' },
+    errorText: { color: '#ff4444', marginLeft: 10, fontSize: 14, fontWeight: '700' },
     label: { color: '#e2e8f0', marginBottom: 6, fontWeight: '600', fontSize: 14, marginTop: 10 },
     input: { backgroundColor: '#2d3748', borderRadius: 8, padding: 12, color: '#ffffff', borderWidth: 1, borderColor: '#4b5563' },
     selectorButton: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#2d3748', borderRadius: 8, padding: 12, borderWidth: 1, borderColor: '#4b5563' },
