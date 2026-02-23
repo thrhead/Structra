@@ -43,8 +43,8 @@ const jobSchema = z.object({
   scheduledEndDate: z.string().optional(),
   startedAt: z.string().optional(),
   completedDate: z.string().optional(),
-  budget: z.number().optional().nullable(),
-  estimatedDuration: z.number().optional().nullable(),
+  budget: z.preprocess((val) => (val === '' || val === null ? undefined : Number(val)), z.number().optional()),
+  estimatedDuration: z.preprocess((val) => (val === '' || val === null ? undefined : Number(val)), z.number().optional()),
   steps: z.array(z.object({
     id: z.string().optional(),
     title: z.string(),
