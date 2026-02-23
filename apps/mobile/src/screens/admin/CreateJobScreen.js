@@ -8,7 +8,8 @@ import {
     Alert,
     Platform,
     Modal,
-    KeyboardAvoidingView
+    KeyboardAvoidingView,
+    ActivityIndicator
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '../../components/CustomDateTimePicker';
@@ -29,6 +30,7 @@ export default function CreateJobScreen({ navigation }) {
     const { showAlert } = useAlert();
     const [customers, setCustomers] = useState([]);
     const [teams, setTeams] = useState([]);
+    const [validationError, setValidationError] = useState(null);
 
     const {
         formData,
@@ -82,6 +84,21 @@ export default function CreateJobScreen({ navigation }) {
         return team ? team.name : 'Ekip Seçiniz (Opsiyonel)';
     };
 
+    const handleCreateJob = async () => {
+        setValidationError(null);
+        
+        if (!formData.title || formData.title.trim() === '') {
+            setValidationError("Lütfen iş başlığı giriniz.");
+            return;
+        }
+        if (!formData.customerId) {
+            setValidationError("Lütfen bir müşteri seçiniz.");
+            return;
+        }
+
+        submitJob(() => navigation.goBack());
+    };
+
     return (
         <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
             {/* Header */}
@@ -101,14 +118,26 @@ export default function CreateJobScreen({ navigation }) {
                     style={{ flex: 1 }}
                     contentContainerStyle={[styles.content, { flexGrow: 1 }]}
                 >
+                    {/* Error Message */}
+                    {validationError && (
+                        <View style={styles.errorContainer}>
+                            <MaterialIcons name="error" size={20} color="#ff4444" />
+                            <Text style={styles.errorText}>{validationError}</Text>
+                        </View>
+                    )}
+
                     {/* Basic Info */}
                     <View style={styles.section}>
                         <CustomInput
                             label="İş Başlığı *"
                             value={formData.title}
-                            onChangeText={(text) => setFormData({ ...formData, title: text })}
+                            onChangeText={(text) => {
+                                setFormData({ ...formData, title: text });
+                                setValidationError(null);
+                            }}
                             placeholder="Örn: Klima Montajı - A Blok"
                             theme={theme}
+                            editable={!loading}
                         />
 
                         <CustomInput
@@ -117,12 +146,14 @@ export default function CreateJobScreen({ navigation }) {
                             onChangeText={(text) => setFormData({ ...formData, projectNo: text })}
                             placeholder="Örn: PRJ-2024-001"
                             theme={theme}
+                            editable={!loading}
                         />
 
                         <Text style={[styles.label, { color: theme.colors.subText }]}>Müşteri *</Text>
                         <TouchableOpacity
-                            style={[styles.selector, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
+                            style={[styles.selector, { backgroundColor: theme.colors.surface, borderColor: validationError && !formData.customerId ? '#ff4444' : theme.colors.border }, loading && { opacity: 0.5 }]}
                             onPress={() => setShowCustomerModal(true)}
+                            disabled={loading}
                         >
                             <Text style={[styles.selectorText, { color: !formData.customerId ? theme.colors.subText : theme.colors.text }]}>
                                 {getCustomerLabel()}
@@ -132,8 +163,9 @@ export default function CreateJobScreen({ navigation }) {
 
                         <Text style={[styles.label, { color: theme.colors.subText }]}>Atanacak Ekip</Text>
                         <TouchableOpacity
-                            style={[styles.selector, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
+                            style={[styles.selector, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }, loading && { opacity: 0.5 }]}
                             onPress={() => setShowTeamModal(true)}
+                            disabled={loading}
                         >
                             <Text style={[styles.selectorText, { color: !formData.teamId ? theme.colors.subText : theme.colors.text }]}>
                                 {getTeamLabel()}
@@ -143,8 +175,9 @@ export default function CreateJobScreen({ navigation }) {
 
                         <Text style={[styles.label, { color: theme.colors.subText }]}>Öncelik</Text>
                         <TouchableOpacity
-                            style={[styles.selector, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
+                            style={[styles.selector, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }, loading && { opacity: 0.5 }]}
                             onPress={() => setShowPriorityModal(true)}
+                            disabled={loading}
                         >
                             <Text style={[styles.selectorText, { color: theme.colors.text }]}>{formData.priority}</Text>
                             <MaterialIcons name="arrow-drop-down" size={24} color={theme.colors.subText} />
@@ -154,8 +187,9 @@ export default function CreateJobScreen({ navigation }) {
                             <View style={styles.col}>
                                 <Text style={[styles.label, { color: theme.colors.subText }]}>Başlangıç Tarihi</Text>
                                 <TouchableOpacity
-                                    style={[styles.dateSelector, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
+                                    style={[styles.dateSelector, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }, loading && { opacity: 0.5 }]}
                                     onPress={() => setShowStartDatePicker(true)}
+                                    disabled={loading}
                                 >
                                     <Text style={[styles.dateText, { color: theme.colors.text }]}>
                                         {formData.scheduledDate.toLocaleDateString('tr-TR')}
@@ -168,8 +202,9 @@ export default function CreateJobScreen({ navigation }) {
                             <View style={styles.col}>
                                 <Text style={[styles.label, { color: theme.colors.subText }]}>Bitiş Tarihi</Text>
                                 <TouchableOpacity
-                                    style={[styles.dateSelector, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
+                                    style={[styles.dateSelector, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }, loading && { opacity: 0.5 }]}
                                     onPress={() => setShowEndDatePicker(true)}
+                                    disabled={loading}
                                 >
                                     <Text style={[styles.dateText, { color: theme.colors.text }]}>
                                         {formData.scheduledEndDate.toLocaleDateString('tr-TR')}
@@ -188,6 +223,7 @@ export default function CreateJobScreen({ navigation }) {
                             placeholder="Montaj yapılacak adres"
                             multiline
                             theme={theme}
+                            editable={!loading}
                         />
 
                         <CustomInput
@@ -198,6 +234,7 @@ export default function CreateJobScreen({ navigation }) {
                             multiline
                             numberOfLines={3}
                             theme={theme}
+                            editable={!loading}
                         />
                     </View>
 
@@ -213,6 +250,7 @@ export default function CreateJobScreen({ navigation }) {
                         onUpdateSubStep={updateSubStep}
                         onOpenTemplateModal={() => setShowTemplateModal(true)}
                         theme={theme}
+                        disabled={loading}
                     />
 
                     <View style={styles.footer}>
@@ -224,29 +262,21 @@ export default function CreateJobScreen({ navigation }) {
                             textStyle={{ color: theme.colors.text }}
                             disabled={loading}
                         />
-                        <CustomButton
-                            title="Oluştur"
-                            onPress={() => {
-                                console.log('Create button pressed. Current formData:', formData);
-                                if (!formData.title || formData.title.trim() === "") {
-                                    Alert.alert('Eksik Bilgi', 'Lütfen iş başlığı giriniz.');
-                                    return;
-                                }
-                                if (!formData.customerId) {
-                                    Alert.alert('Eksik Bilgi', 'Lütfen bir müşteri seçiniz.');
-                                    return;
-                                }
-                                submitJob(() => navigation.goBack());
-                            }}
-                            loading={loading}
+                        <TouchableOpacity
+                            style={[
+                                styles.submitButton, 
+                                { backgroundColor: theme.colors.primary },
+                                loading && { opacity: 0.7 }
+                            ]}
+                            onPress={handleCreateJob}
                             disabled={loading}
-                            style={{ 
-                                flex: 1, 
-                                backgroundColor: loading ? theme.colors.border : theme.colors.primary,
-                                opacity: loading ? 0.6 : 1 
-                            }}
-                            textStyle={{ color: theme.colors.textInverse }}
-                        />
+                        >
+                            {loading ? (
+                                <ActivityIndicator color={theme.colors.textInverse} />
+                            ) : (
+                                <Text style={[styles.submitButtonText, { color: theme.colors.textInverse }]}>Oluştur</Text>
+                            )}
+                        </TouchableOpacity>
                     </View>
                     <View style={{ height: 40 }} />
                 </ScrollView>
@@ -258,7 +288,10 @@ export default function CreateJobScreen({ navigation }) {
                 onClose={() => setShowCustomerModal(false)}
                 title="Müşteri Seç"
                 items={customers}
-                onSelect={(item) => setFormData({ ...formData, customerId: item.id })}
+                onSelect={(item) => {
+                    setFormData({ ...formData, customerId: item.id });
+                    setValidationError(null);
+                }}
                 selectedId={formData.customerId}
                 displayKey="complex_customer"
                 theme={theme}
@@ -392,6 +425,22 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 16,
     },
+    errorContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255, 68, 68, 0.1)',
+        padding: 12,
+        borderRadius: 8,
+        marginBottom: 16,
+        borderLeftWidth: 4,
+        borderLeftColor: '#ff4444'
+    },
+    errorText: {
+        color: '#ff4444',
+        marginLeft: 10,
+        fontSize: 14,
+        fontWeight: '700'
+    },
     section: {
         marginBottom: 24,
     },
@@ -439,6 +488,18 @@ const styles = StyleSheet.create({
     footer: {
         flexDirection: 'row',
         marginTop: 24,
+        gap: 12
+    },
+    submitButton: {
+        flex: 1,
+        height: 48,
+        borderRadius: 8,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    submitButtonText: {
+        fontSize: 16,
+        fontWeight: 'bold',
     },
     // Modal Styles needed for DatePicker modal fallback
     modalOverlay: {
