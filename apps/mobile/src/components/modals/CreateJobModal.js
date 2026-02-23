@@ -384,21 +384,3 @@ const styles = StyleSheet.create({
     selectionItemText: { color: '#fff', fontSize: 16 },
     selectionItemSub: { color: '#888', fontSize: 12, marginTop: 4 }
 });
-
-const styles = StyleSheet.create({
-    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', padding: 20 },
-    modalContent: { backgroundColor: '#1A1A1A', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#333' },
-    modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#ffffff', marginBottom: 20, textAlign: 'center' },
-    label: { color: '#e2e8f0', marginBottom: 6, fontWeight: '600', fontSize: 14, marginTop: 10 },
-    input: { backgroundColor: '#2d3748', borderRadius: 8, padding: 12, color: '#ffffff', borderWidth: 1, borderColor: '#4b5563' },
-    selectorButton: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#2d3748', borderRadius: 8, padding: 12, borderWidth: 1, borderColor: '#4b5563' },
-    selectorButtonText: { color: '#ffffff' },
-    modalButtons: { flexDirection: 'row', gap: 12, marginTop: 20 },
-    cancelButton: { flex: 1, padding: 14, borderRadius: 8, backgroundColor: '#334155', alignItems: 'center' },
-    saveButton: { flex: 1, padding: 14, borderRadius: 8, backgroundColor: '#CCFF04', alignItems: 'center' },
-    cancelButtonText: { color: '#e2e8f0', fontWeight: '600' },
-    saveButtonText: { color: '#000000', fontWeight: 'bold' },
-    selectionItem: { padding: 16, borderBottomWidth: 1, borderBottomColor: '#333' },
-    selectionItemText: { color: '#fff', fontSize: 16 },
-    selectionItemSub: { color: '#888', fontSize: 12, marginTop: 4 }
-});
