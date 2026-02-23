@@ -92,11 +92,6 @@ export const useJobForm = (job = null) => {
   };
 
   const submitJob = async (onSuccess) => {
-    if (!formData.title || !formData.customerId) {
-      Alert.alert("Hata", "Lütfen başlık ve müşteri seçiniz");
-      return;
-    }
-
     setLoading(true);
     try {
       const validSteps = steps

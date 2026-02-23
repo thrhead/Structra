@@ -227,19 +227,24 @@ export default function CreateJobScreen({ navigation }) {
                         <CustomButton
                             title="Oluştur"
                             onPress={() => {
-                                if (!formData.title.trim()) {
-                                    showAlert('Hata', 'Lütfen bir iş başlığı giriniz.', [], 'error');
+                                console.log('Create button pressed. Current formData:', formData);
+                                if (!formData.title || formData.title.trim() === "") {
+                                    Alert.alert('Eksik Bilgi', 'Lütfen iş başlığı giriniz.');
                                     return;
                                 }
                                 if (!formData.customerId) {
-                                    showAlert('Hata', 'Lütfen bir müşteri seçiniz.', [], 'error');
+                                    Alert.alert('Eksik Bilgi', 'Lütfen bir müşteri seçiniz.');
                                     return;
                                 }
                                 submitJob(() => navigation.goBack());
                             }}
                             loading={loading}
                             disabled={loading}
-                            style={{ flex: 1, backgroundColor: theme.colors.primary, opacity: loading ? 0.7 : 1 }}
+                            style={{ 
+                                flex: 1, 
+                                backgroundColor: loading ? theme.colors.border : theme.colors.primary,
+                                opacity: loading ? 0.6 : 1 
+                            }}
                             textStyle={{ color: theme.colors.textInverse }}
                         />
                     </View>
