@@ -290,8 +290,17 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
 
         const result = await createJobAction({ success: false }, formData)
 
+        if (!result) {
+          throw new Error('Sunucudan yanıt alınamadı')
+        }
+
         if (result.error) {
           throw new Error(result.error)
+        }
+
+        if (result.errors) {
+          const firstError = Object.values(result.errors)[0]
+          throw new Error(Array.isArray(firstError) ? firstError[0] : 'Validasyon hatası')
         }
 
         toast.success('İş başarıyla oluşturuldu')
