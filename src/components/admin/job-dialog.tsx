@@ -248,6 +248,11 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
     }
   }
 
+  const onFormError = (errors: any) => {
+    if (errors.title) toast.error(errors.title.message)
+    if (errors.customerId) toast.error(errors.customerId.message)
+  }
+
   const onSubmit = async (data: FormData) => {
     setIsLoading(true)
     console.log('JobDialog onSubmit triggered with data:', data)
@@ -266,21 +271,15 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
         }))
 
       if (job) {
-        console.log('Updating existing job:', job.id)
         const updateData = {
           id: job.id,
           ...data,
           jobLeadId: data.jobLeadId === 'none' ? null : data.jobLeadId,
           steps: validSteps.length > 0 ? validSteps : []
         }
-        console.log('Sending update request to updateJobAction:', updateData)
-
-        const result = await updateJobAction(updateData)
-        console.log('Update result:', result)
-
+        await updateJobAction(updateData)
         toast.success('İş başarıyla güncellendi')
       } else {
-        console.log('Creating new job')
         const formData = new FormData()
         Object.entries(data).forEach(([key, value]) => {
           if (value !== undefined && value !== null) {
@@ -326,26 +325,32 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
         <DialogHeader>
           <DialogTitle>{job ? 'İş Düzenle' : 'Yeni İş Oluştur'}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
+        <form onSubmit={handleSubmit(onSubmit, onFormError)} className="space-y-4 mt-4">
           <div className="grid grid-cols-3 gap-4">
             <div className="col-span-2 space-y-2">
-              <Label htmlFor="title">İş Başlığı</Label>
-              <Input id="title" {...register('title')} placeholder="Örn: Klima Montajı - A Blok" />
+              <Label htmlFor="title" className={errors.title ? "text-red-500" : ""}>İş Başlığı *</Label>
+              <Input 
+                id="title" 
+                {...register('title')} 
+                placeholder="Örn: Klima Montajı - A Blok"
+                className={errors.title ? "border-red-500 focus-visible:ring-red-500" : ""}
+                disabled={isLoading}
+              />
               {errors.title && (
-                <p className="text-sm text-red-500">{errors.title.message}</p>
+                <p className="text-xs text-red-500 font-medium">{errors.title.message}</p>
               )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="projectNo">Proje No</Label>
-              <Input id="projectNo" {...register('projectNo')} placeholder="Örn: PRJ-001" />
+              <Input id="projectNo" {...register('projectNo')} placeholder="Örn: PRJ-001" disabled={isLoading} />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="customerId">Müşteri</Label>
-              <Select value={customerId} onValueChange={(val) => setValue('customerId', val)}>
-                <SelectTrigger>
+              <Label htmlFor="customerId" className={errors.customerId ? "text-red-500" : ""}>Müşteri *</Label>
+              <Select value={customerId} onValueChange={(val) => setValue('customerId', val)} disabled={isLoading}>
+                <SelectTrigger className={errors.customerId ? "border-red-500" : ""}>
                   <SelectValue placeholder="Müşteri seçiniz" />
                 </SelectTrigger>
                 <SelectContent>
@@ -357,7 +362,7 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
                 </SelectContent>
               </Select>
               {errors.customerId && (
-                <p className="text-sm text-red-500">{errors.customerId.message}</p>
+                <p className="text-xs text-red-500 font-medium">{errors.customerId.message}</p>
               )}
             </div>
 
@@ -369,7 +374,7 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
                 if (newTeam?.lead) {
                   setValue('jobLeadId', newTeam.lead.id)
                 }
-              }}>
+              }} disabled={isLoading}>
                 <SelectTrigger>
                   <SelectValue placeholder="Ekip seçiniz (Opsiyonel)" />
                 </SelectTrigger>
@@ -392,7 +397,11 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
                 <UserCog className="h-4 w-4 text-indigo-600" />
                 <Label htmlFor="jobLeadId" className="text-indigo-900 font-semibold text-sm">Bu İşten Sorumlu Lider</Label>
               </div>
-              <Select value={jobLeadId || 'none'} onValueChange={(val) => setValue('jobLeadId', val === 'none' ? null : val)}>
+              <Select 
+                value={jobLeadId || 'none'} 
+                onValueChange={(val) => setValue('jobLeadId', val === 'none' ? null : val)}
+                disabled={isLoading}
+              >
                 <SelectTrigger className="bg-white border-indigo-200">
                   <SelectValue placeholder="İş lideri seçiniz" />
                 </SelectTrigger>
@@ -419,7 +428,7 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
           <div className="grid grid-cols-4 gap-4">
             <div className="space-y-2">
               <Label htmlFor="status">İş Durumu</Label>
-              <Select value={status} onValueChange={(val: any) => setValue('status', val)}>
+              <Select value={status} onValueChange={(val: any) => setValue('status', val)} disabled={isLoading}>
                 <SelectTrigger>
                   <SelectValue placeholder="Durum" />
                 </SelectTrigger>
@@ -434,7 +443,7 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
 
             <div className="space-y-2">
               <Label htmlFor="acceptanceStatus">Kabul Durumu</Label>
-              <Select value={acceptanceStatus} onValueChange={(val: any) => setValue('acceptanceStatus', val)}>
+              <Select value={acceptanceStatus} onValueChange={(val: any) => setValue('acceptanceStatus', val)} disabled={isLoading}>
                 <SelectTrigger>
                   <SelectValue placeholder="Kabul Durumu" />
                 </SelectTrigger>
@@ -448,7 +457,7 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
 
             <div className="space-y-2">
               <Label htmlFor="priority">Öncelik</Label>
-              <Select value={priority} onValueChange={(val: any) => setValue('priority', val)}>
+              <Select value={priority} onValueChange={(val: any) => setValue('priority', val)} disabled={isLoading}>
                 <SelectTrigger>
                   <SelectValue placeholder="Öncelik" />
                 </SelectTrigger>
@@ -463,7 +472,7 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
 
             <div className="space-y-2">
               <Label htmlFor="location">Konum / Adres</Label>
-              <Input id="location" {...register('location')} placeholder="Montaj yapılacak adres" />
+              <Input id="location" {...register('location')} placeholder="Montaj yapılacak adres" disabled={isLoading} />
             </div>
           </div>
 
@@ -473,11 +482,11 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
               <div className="grid grid-cols-1 gap-2">
                 <div className="space-y-1">
                   <Label htmlFor="scheduledDate" className="text-xs">Başlangıç</Label>
-                  <Input id="scheduledDate" type="datetime-local" {...register('scheduledDate')} />
+                  <Input id="scheduledDate" type="datetime-local" {...register('scheduledDate')} disabled={isLoading} />
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="scheduledEndDate" className="text-xs">Bitiş</Label>
-                  <Input id="scheduledEndDate" type="datetime-local" {...register('scheduledEndDate')} />
+                  <Input id="scheduledEndDate" type="datetime-local" {...register('scheduledEndDate')} disabled={isLoading} />
                 </div>
               </div>
             </div>
@@ -493,6 +502,7 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
                     step="0.01"
                     {...register('budget', { valueAsNumber: true })}
                     placeholder="0.00"
+                    disabled={isLoading}
                   />
                 </div>
                 <div className="space-y-1">
@@ -502,22 +512,8 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
                     type="number"
                     {...register('estimatedDuration', { valueAsNumber: true })}
                     placeholder="Dakika"
+                    disabled={isLoading}
                   />
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Gerçekleşen Tarihler</h3>
-              <div className="grid grid-cols-1 gap-2">
-                <div className="space-y-1">
-                  <Label htmlFor="startedAt" className="text-xs">Gerçek Başlangıç</Label>
-                  <Input id="startedAt" type="datetime-local" {...register('startedAt')} />
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="completedDate" className="text-xs">Gerçek Bitiş</Label>
-
-                  <Input id="completedDate" type="datetime-local" {...register('completedDate')} />
                 </div>
               </div>
             </div>
@@ -525,7 +521,7 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
 
           <div className="space-y-2">
             <Label htmlFor="description">Açıklama</Label>
-            <Textarea id="description" {...register('description')} placeholder="İş detayları..." rows={3} />
+            <Textarea id="description" {...register('description')} placeholder="İş detayları..." rows={3} disabled={isLoading} />
           </div>
 
           {/* Checklist Section */}
@@ -533,7 +529,7 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
             <div className="flex items-center justify-between">
               <Label className="text-base">Kontrol Listesi (Opsiyonel)</Label>
               <div className="flex gap-2">
-                <Select onValueChange={loadTemplate}>
+                <Select onValueChange={loadTemplate} disabled={isLoading}>
                   <SelectTrigger className="w-[180px] h-8 text-xs">
                     <SelectValue placeholder="Şablondan Yükle" />
                   </SelectTrigger>
@@ -545,7 +541,7 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
                     ))}
                   </SelectContent>
                 </Select>
-                <Button type="button" variant="outline" size="sm" onClick={addStep}>
+                <Button type="button" variant="outline" size="sm" onClick={addStep} disabled={isLoading}>
                   <PlusIcon className="h-4 w-4 mr-1" />
                   Yeni Adım
                 </Button>
@@ -567,12 +563,14 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
                           placeholder="Adım başlığı (örn: Malzeme kontrolü)"
                           value={step.title}
                           onChange={(e) => updateStep(index, 'title', e.target.value)}
+                          disabled={isLoading}
                         />
                         <Textarea
                           placeholder="Açıklama (opsiyonel)"
                           value={step.description}
                           onChange={(e) => updateStep(index, 'description', e.target.value)}
                           rows={2}
+                          disabled={isLoading}
                         />
 
                         {/* Sub-steps */}
@@ -586,6 +584,7 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
                                 placeholder="Alt görev..."
                                 value={subStep.title}
                                 onChange={(e) => updateSubStep(index, subIndex, e.target.value)}
+                                disabled={isLoading}
                               />
                               <Button
                                 type="button"
@@ -593,6 +592,7 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
                                 size="icon"
                                 className="h-8 w-8 text-red-400 hover:text-red-600"
                                 onClick={() => removeSubStep(index, subIndex)}
+                                disabled={isLoading}
                               >
                                 <XIcon className="h-3 w-3" />
                               </Button>
@@ -604,6 +604,7 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
                             size="sm"
                             className="text-xs text-indigo-600 h-6 px-2"
                             onClick={() => addSubStep(index)}
+                            disabled={isLoading}
                           >
                             <PlusIcon className="h-3 w-3 mr-1" />
                             Alt Görev Ekle
@@ -617,7 +618,7 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
                           size="icon"
                           className="h-8 w-8"
                           onClick={() => moveStep(index, 'up')}
-                          disabled={index === 0}
+                          disabled={index === 0 || isLoading}
                         >
                           <ChevronUpIcon className="h-4 w-4" />
                         </Button>
@@ -627,7 +628,7 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
                           size="icon"
                           className="h-8 w-8"
                           onClick={() => moveStep(index, 'down')}
-                          disabled={index === steps.length - 1}
+                          disabled={index === steps.length - 1 || isLoading}
                         >
                           <ChevronDownIcon className="h-4 w-4" />
                         </Button>
@@ -637,6 +638,7 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
                           size="icon"
                           className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
                           onClick={() => removeStep(index)}
+                          disabled={isLoading}
                         >
                           <XIcon className="h-4 w-4" />
                         </Button>
@@ -649,12 +651,18 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
           </div>
 
           <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isLoading}>
               İptal
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
-              {job ? 'Güncelle' : 'Oluştur'}
+            <Button type="submit" disabled={isLoading} className={isLoading ? "opacity-70 pointer-events-none" : ""}>
+              {isLoading ? (
+                <>
+                  <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+                  İşleniyor...
+                </>
+              ) : (
+                job ? 'Güncelle' : 'Oluştur'
+              )}
             </Button>
           </div>
         </form>
