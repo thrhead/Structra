@@ -145,7 +145,7 @@ const nextConfig = {
                     },
                     {
                         key: 'Content-Security-Policy',
-                        value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; img-src 'self' blob: data: https://res.cloudinary.com https://ui-avatars.com https://*.tile.openstreetmap.org https://unpkg.com; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://*.pusher.com wss://*.pusher.com https://va.vercel-scripts.com; frame-ancestors 'none'; object-src 'none'; base-uri 'self';"
+                        value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; img-src 'self' blob: data: https://res.cloudinary.com https://ui-avatars.com https://*.tile.openstreetmap.org https://unpkg.com; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://field-service-management-lovat.vercel.app https://*.pusher.com wss://*.pusher.com https://va.vercel-scripts.com; frame-ancestors 'none'; object-src 'none'; base-uri 'self';"
                     }
                 ]
             }

@@ -11,7 +11,10 @@ const ALLOWED_ORIGINS = [
   /^https:\/\/field-service-management-.*\.vercel\.app$/,
   /^https:\/\/field-service-management-lovat\.vercel\.app$/,
   /^https:\/\/assembly-.*\.vercel\.app$/,
-  /^https:\/\/assemblyweb\.vercel\.app$/
+  /^https:\/\/assemblyweb\.vercel\.app$/,
+  /^null$/, // For mobile file:// or other scenarios
+  /^capacitor:\/\/.*$/, // Capacitor support
+  /^exp:\/\/.*$/ // Expo support
 ];
 
 const intlMiddleware = createMiddleware({
