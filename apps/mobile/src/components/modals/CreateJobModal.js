@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, Alert, ScrollView, FlatList } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, Alert, ScrollView, FlatList, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -8,9 +8,12 @@ import jobService from '../../services/job.service';
 import templateService from '../../services/template.service';
 import customerService from '../../services/customer.service';
 import teamService from '../../services/team.service';
+import { useAlert } from '../../context/AlertContext';
 
 export default function CreateJobModal({ visible, onClose, onSuccess }) {
     const { t } = useTranslation();
+    const { showAlert } = useAlert();
+    const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         title: '',
         description: '',
@@ -49,11 +52,7 @@ export default function CreateJobModal({ visible, onClose, onSuccess }) {
     }, [visible]);
 
     const fetchDependencies = async () => {
-        // Load data lazily if not already loaded, or rely on passing props if prefered.
-        // For independence, we fetch here or use a cache context.
-        // Given the original code fetched lazily on open, we'll keep that pattern or similar.
-        // To avoid redundant network calls, you might want to move this up or use React Query.
-        // For this refactor, we will implement lazy loading on selection open to match original behavior closely but cleaner.
+        // Initial fetch logic if needed
     };
 
     const resetForm = () => {
@@ -72,25 +71,31 @@ export default function CreateJobModal({ visible, onClose, onSuccess }) {
             templateName: '',
             steps: []
         });
+        setLoading(false);
     };
 
     const handleCreateJob = async () => {
-        if (!formData.title || !formData.customerId) {
-            Alert.alert(t('common.error'), t('jobs.validationError'));
+        if (!formData.title.trim() || !formData.customerId) {
+            showAlert(t('common.error'), t('jobs.validationError'), [], 'error');
             return;
         }
 
+        setLoading(true);
         try {
             await jobService.create(formData);
             resetForm();
             onSuccess();
         } catch (error) {
-            Alert.alert(t('common.error'), t('jobs.createError'));
-            console.error(error);
+            console.error('Create job error:', error);
+            const errorMessage = error.response?.data?.error || t('jobs.createError');
+            showAlert(t('common.error'), errorMessage, [], 'error');
+        } finally {
+            setLoading(false);
         }
     };
 
     const openSelection = async (target) => {
+        if (loading) return;
         setSelectionTarget(target);
         setSelectionModalVisible(true);
 
@@ -105,7 +110,7 @@ export default function CreateJobModal({ visible, onClose, onSuccess }) {
                         label: c.company || c.companyName,
                         sub: c.user?.name || c.contactPerson
                     })));
-                } catch (e) { Alert.alert(t('common.error'), t('jobs.fetchError')); }
+                } catch (e) { showAlert(t('common.error'), t('jobs.fetchError'), [], 'error'); }
             } else {
                 setSelectionItems(customers.map(c => ({
                     id: c.id,
@@ -122,7 +127,7 @@ export default function CreateJobModal({ visible, onClose, onSuccess }) {
                     if (Array.isArray(teamData)) setTeams(teamData);
                     const options = [{ id: null, label: t('jobs.noAssignment') }, ...teamData.map(t => ({ id: t.id, label: t.name }))];
                     setSelectionItems(options);
-                } catch (e) { Alert.alert(t('common.error'), t('jobs.fetchError')); }
+                } catch (e) { showAlert(t('common.error'), t('jobs.fetchError'), [], 'error'); }
             } else {
                 const options = [{ id: null, label: t('jobs.noAssignment') }, ...teams.map(t => ({ id: t.id, label: t.name }))];
                 setSelectionItems(options);
@@ -199,34 +204,51 @@ export default function CreateJobModal({ visible, onClose, onSuccess }) {
                     <Text style={styles.modalTitle}>{t('jobs.createTitle')}</Text>
                     <ScrollView style={{ maxHeight: 500 }}>
                         <Text style={styles.label}>{t('jobs.template')} {t('jobs.optional')}</Text>
-                        <TouchableOpacity style={styles.selectorButton} onPress={() => openSelection('template')}>
+                        <TouchableOpacity 
+                            style={[styles.selectorButton, loading && { opacity: 0.5 }]} 
+                            onPress={() => openSelection('template')}
+                            disabled={loading}
+                        >
                             <Text style={styles.selectorButtonText}>{formData.templateName || t('jobs.selectTemplate')}</Text>
                             <MaterialIcons name="arrow-drop-down" size={24} color="#aaa" />
                         </TouchableOpacity>
 
                         <Text style={styles.label}>{t('jobs.jobTitle')} *</Text>
                         <TextInput
-                            style={styles.input}
+                            style={[styles.input, loading && { opacity: 0.5 }]}
                             value={formData.title}
                             onChangeText={(text) => setFormData(prev => ({ ...prev, title: text }))}
                             placeholder={t('jobs.titlePlaceholder')}
                             placeholderTextColor="#666"
+                            editable={!loading}
                         />
 
                         <Text style={styles.label}>{t('jobs.customer')} *</Text>
-                        <TouchableOpacity style={styles.selectorButton} onPress={() => openSelection('customer')}>
+                        <TouchableOpacity 
+                            style={[styles.selectorButton, loading && { opacity: 0.5 }]} 
+                            onPress={() => openSelection('customer')}
+                            disabled={loading}
+                        >
                             <Text style={styles.selectorButtonText}>{formData.customerName || t('jobs.selectCustomer')}</Text>
                             <MaterialIcons name="arrow-drop-down" size={24} color="#aaa" />
                         </TouchableOpacity>
 
                         <Text style={styles.label}>{t('jobs.assignTeam')} {t('jobs.optional')}</Text>
-                        <TouchableOpacity style={styles.selectorButton} onPress={() => openSelection('team')}>
+                        <TouchableOpacity 
+                            style={[styles.selectorButton, loading && { opacity: 0.5 }]} 
+                            onPress={() => openSelection('team')}
+                            disabled={loading}
+                        >
                             <Text style={styles.selectorButtonText}>{formData.teamName || t('jobs.selectTeam')}</Text>
                             <MaterialIcons name="arrow-drop-down" size={24} color="#aaa" />
                         </TouchableOpacity>
 
                         <Text style={styles.label}>{t('jobs.priority')}</Text>
-                        <TouchableOpacity style={styles.selectorButton} onPress={() => openSelection('priority')}>
+                        <TouchableOpacity 
+                            style={[styles.selectorButton, loading && { opacity: 0.5 }]} 
+                            onPress={() => openSelection('priority')}
+                            disabled={loading}
+                        >
                             <Text style={styles.selectorButtonText}>
                                 {formData.priority === 'LOW' ? t('jobs.low') :
                                     formData.priority === 'MEDIUM' ? t('jobs.medium') :
@@ -238,13 +260,21 @@ export default function CreateJobModal({ visible, onClose, onSuccess }) {
                         <View style={{ flexDirection: 'row', gap: 10 }}>
                             <View style={{ flex: 1 }}>
                                 <Text style={styles.label}>{t('jobs.start')}</Text>
-                                <TouchableOpacity style={styles.selectorButton} onPress={() => { setDateTarget('start'); setShowDatePicker(true); }}>
+                                <TouchableOpacity 
+                                    style={[styles.selectorButton, loading && { opacity: 0.5 }]} 
+                                    onPress={() => { setDateTarget('start'); setShowDatePicker(true); }}
+                                    disabled={loading}
+                                >
                                     <Text style={styles.selectorButtonText}>{formData.scheduledDate.toLocaleDateString()}</Text>
                                 </TouchableOpacity>
                             </View>
                             <View style={{ flex: 1 }}>
                                 <Text style={styles.label}>{t('jobs.end')}</Text>
-                                <TouchableOpacity style={styles.selectorButton} onPress={() => { setDateTarget('end'); setShowDatePicker(true); }}>
+                                <TouchableOpacity 
+                                    style={[styles.selectorButton, loading && { opacity: 0.5 }]} 
+                                    onPress={() => { setDateTarget('end'); setShowDatePicker(true); }}
+                                    disabled={loading}
+                                >
                                     <Text style={styles.selectorButtonText}>{formData.scheduledEndDate.toLocaleDateString()}</Text>
                                 </TouchableOpacity>
                             </View>
@@ -252,30 +282,44 @@ export default function CreateJobModal({ visible, onClose, onSuccess }) {
 
                         <Text style={styles.label}>{t('jobs.location')}</Text>
                         <TextInput
-                            style={styles.input}
+                            style={[styles.input, loading && { opacity: 0.5 }]}
                             value={formData.location}
                             onChangeText={(text) => setFormData(prev => ({ ...prev, location: text }))}
                             placeholder={t('jobs.addressPlaceholder')}
                             placeholderTextColor="#666"
+                            editable={!loading}
                         />
 
                         <Text style={styles.label}>{t('jobs.description')}</Text>
                         <TextInput
-                            style={[styles.input, { height: 80, textAlignVertical: 'top' }]}
+                            style={[styles.input, { height: 80, textAlignVertical: 'top' }, loading && { opacity: 0.5 }]}
                             value={formData.description}
                             onChangeText={(text) => setFormData(prev => ({ ...prev, description: text }))}
                             placeholder={t('jobs.descriptionPlaceholder')}
                             placeholderTextColor="#666"
                             multiline
+                            editable={!loading}
                         />
                     </ScrollView>
 
                     <View style={styles.modalButtons}>
-                        <TouchableOpacity style={styles.cancelButton} onPress={() => { onClose(); resetForm(); }}>
+                        <TouchableOpacity 
+                            style={styles.cancelButton} 
+                            onPress={() => { onClose(); resetForm(); }}
+                            disabled={loading}
+                        >
                             <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.saveButton} onPress={handleCreateJob}>
-                            <Text style={styles.saveButtonText}>{t('jobs.create')}</Text>
+                        <TouchableOpacity 
+                            style={[styles.saveButton, loading && { opacity: 0.7 }]} 
+                            onPress={handleCreateJob}
+                            disabled={loading}
+                        >
+                            {loading ? (
+                                <ActivityIndicator color="#000" />
+                            ) : (
+                                <Text style={styles.saveButtonText}>{t('jobs.create')}</Text>
+                            )}
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -322,6 +366,24 @@ export default function CreateJobModal({ visible, onClose, onSuccess }) {
         </Modal>
     );
 }
+
+const styles = StyleSheet.create({
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', padding: 20 },
+    modalContent: { backgroundColor: '#1A1A1A', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#333' },
+    modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#ffffff', marginBottom: 20, textAlign: 'center' },
+    label: { color: '#e2e8f0', marginBottom: 6, fontWeight: '600', fontSize: 14, marginTop: 10 },
+    input: { backgroundColor: '#2d3748', borderRadius: 8, padding: 12, color: '#ffffff', borderWidth: 1, borderColor: '#4b5563' },
+    selectorButton: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#2d3748', borderRadius: 8, padding: 12, borderWidth: 1, borderColor: '#4b5563' },
+    selectorButtonText: { color: '#ffffff' },
+    modalButtons: { flexDirection: 'row', gap: 12, marginTop: 20 },
+    cancelButton: { flex: 1, padding: 14, borderRadius: 8, backgroundColor: '#334155', alignItems: 'center' },
+    saveButton: { flex: 1, padding: 14, borderRadius: 8, backgroundColor: '#CCFF04', alignItems: 'center' },
+    cancelButtonText: { color: '#e2e8f0', fontWeight: '600' },
+    saveButtonText: { color: '#000000', fontWeight: 'bold' },
+    selectionItem: { padding: 16, borderBottomWidth: 1, borderBottomColor: '#333' },
+    selectionItemText: { color: '#fff', fontSize: 16 },
+    selectionItemSub: { color: '#888', fontSize: 12, marginTop: 4 }
+});
 
 const styles = StyleSheet.create({
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', padding: 20 },
