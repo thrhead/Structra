@@ -49,31 +49,14 @@ export type CreateJobState = {
   errors?: Record<string, string[]>
 }
 
-export async function createJobAction(prevState: CreateJobState, formData: FormData): Promise<CreateJobState> {
+export async function createJobAction(data: any) {
   const session = await auth()
 
   if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
     return { error: 'Yetkisiz işlem' }
   }
 
-  const rawData = {
-    title: formData.get('title'),
-    projectNo: formData.get('projectNo'),
-    description: formData.get('description'),
-    customerId: formData.get('customerId'),
-    teamId: formData.get('teamId'),
-    workerId: formData.get('workerId'),
-    jobLeadId: formData.get('jobLeadId'),
-    priority: formData.get('priority'),
-    location: formData.get('location'),
-    scheduledDate: formData.get('scheduledDate'),
-    scheduledEndDate: formData.get('scheduledEndDate'),
-    budget: formData.get('budget') ? parseFloat(formData.get('budget') as string) : null,
-    estimatedDuration: formData.get('estimatedDuration') ? parseInt(formData.get('estimatedDuration') as string) : null,
-    steps: JSON.parse(formData.get('steps') as string || '[]')
-  }
-
-  const validated = jobSchema.safeParse(rawData)
+  const validated = jobSchema.safeParse(data)
 
   if (!validated.success) {
     return {
@@ -96,7 +79,7 @@ export async function createJobAction(prevState: CreateJobState, formData: FormD
           title: stripHtml(validated.data.title),
           description: validated.data.description ? sanitizeHtml(validated.data.description) : null,
           customerId: validated.data.customerId,
-          jobLeadId: validated.data.jobLeadId || null, // Atama
+          jobLeadId: validated.data.jobLeadId || null, 
           priority: validated.data.priority,
           location: validated.data.location ? stripHtml(validated.data.location) : null,
           scheduledDate: validated.data.scheduledDate ? new Date(validated.data.scheduledDate) : null,
@@ -112,8 +95,8 @@ export async function createJobAction(prevState: CreateJobState, formData: FormD
         await tx.jobAssignment.create({
           data: {
             jobId: newJob.id,
-            teamId: validated.data.teamId === 'none' ? undefined : validated.data.teamId,
-            workerId: validated.data.workerId === 'none' ? undefined : validated.data.workerId
+            teamId: (validated.data.teamId === 'none' || !validated.data.teamId) ? undefined : validated.data.teamId,
+            workerId: (validated.data.workerId === 'none' || !validated.data.workerId) ? undefined : validated.data.workerId
           }
         })
       }
@@ -159,7 +142,6 @@ export async function createJobAction(prevState: CreateJobState, formData: FormD
 
     await EventBus.emit('job.created', job);
 
-    // LOGGING: Audit log for job creation
     await logAudit(session.user.id, AuditAction.JOB_CREATE, {
       jobId: job.id,
       title: job.title,
@@ -175,6 +157,7 @@ export async function createJobAction(prevState: CreateJobState, formData: FormD
     return { error: 'İş oluşturulurken bir hata oluştu' }
   }
 }
+
 
 export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
   console.log('updateJobAction called with:', JSON.stringify(data, null, 2))
