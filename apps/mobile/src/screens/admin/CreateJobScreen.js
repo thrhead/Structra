@@ -222,12 +222,24 @@ export default function CreateJobScreen({ navigation }) {
                             onPress={() => navigation.goBack()}
                             style={{ flex: 1, marginRight: 8, borderColor: theme.colors.border }}
                             textStyle={{ color: theme.colors.text }}
+                            disabled={loading}
                         />
                         <CustomButton
                             title="Oluştur"
-                            onPress={() => submitJob(() => navigation.goBack())}
+                            onPress={() => {
+                                if (!formData.title.trim()) {
+                                    showAlert('Hata', 'Lütfen bir iş başlığı giriniz.', [], 'error');
+                                    return;
+                                }
+                                if (!formData.customerId) {
+                                    showAlert('Hata', 'Lütfen bir müşteri seçiniz.', [], 'error');
+                                    return;
+                                }
+                                submitJob(() => navigation.goBack());
+                            }}
                             loading={loading}
-                            style={{ flex: 1, backgroundColor: theme.colors.primary }}
+                            disabled={loading}
+                            style={{ flex: 1, backgroundColor: theme.colors.primary, opacity: loading ? 0.7 : 1 }}
                             textStyle={{ color: theme.colors.textInverse }}
                         />
                     </View>
