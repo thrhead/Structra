@@ -8,11 +8,9 @@ import jobService from '../../services/job.service';
 import templateService from '../../services/template.service';
 import customerService from '../../services/customer.service';
 import teamService from '../../services/team.service';
-import { useAlert } from '../../context/AlertContext';
 
 export default function CreateJobModal({ visible, onClose, onSuccess }) {
     const { t } = useTranslation();
-    const { showAlert } = useAlert();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         title: '',
@@ -76,7 +74,7 @@ export default function CreateJobModal({ visible, onClose, onSuccess }) {
 
     const handleCreateJob = async () => {
         if (!formData.title.trim() || !formData.customerId) {
-            showAlert(t('common.error'), t('jobs.validationError'), [], 'error');
+            Alert.alert(t('common.error'), t('jobs.validationError'));
             return;
         }
 
@@ -88,7 +86,7 @@ export default function CreateJobModal({ visible, onClose, onSuccess }) {
         } catch (error) {
             console.error('Create job error:', error);
             const errorMessage = error.response?.data?.error || t('jobs.createError');
-            showAlert(t('common.error'), errorMessage, [], 'error');
+            Alert.alert(t('common.error'), errorMessage);
         } finally {
             setLoading(false);
         }
@@ -110,7 +108,7 @@ export default function CreateJobModal({ visible, onClose, onSuccess }) {
                         label: c.company || c.companyName,
                         sub: c.user?.name || c.contactPerson
                     })));
-                } catch (e) { showAlert(t('common.error'), t('jobs.fetchError'), [], 'error'); }
+                } catch (e) { Alert.alert(t('common.error'), t('jobs.fetchError')); }
             } else {
                 setSelectionItems(customers.map(c => ({
                     id: c.id,
@@ -127,7 +125,7 @@ export default function CreateJobModal({ visible, onClose, onSuccess }) {
                     if (Array.isArray(teamData)) setTeams(teamData);
                     const options = [{ id: null, label: t('jobs.noAssignment') }, ...teamData.map(t => ({ id: t.id, label: t.name }))];
                     setSelectionItems(options);
-                } catch (e) { showAlert(t('common.error'), t('jobs.fetchError'), [], 'error'); }
+                } catch (e) { Alert.alert(t('common.error'), t('jobs.fetchError')); }
             } else {
                 const options = [{ id: null, label: t('jobs.noAssignment') }, ...teams.map(t => ({ id: t.id, label: t.name }))];
                 setSelectionItems(options);
