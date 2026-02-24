@@ -44,6 +44,37 @@ export interface AuditDetails {
 }
 
 /**
+ * Formats an audit action into a human-readable message.
+ */
+function formatAuditMessage(action: AuditAction | string, details: AuditDetails): string {
+    const resourceId = details.resourceId || details.jobId || details.userId || 'Bilinmiyor';
+    
+    switch (action) {
+        case AuditAction.JOB_CREATE:
+            const jobInfo = [];
+            if (details.title) jobInfo.push(details.title);
+            if (details.jobNo) jobInfo.push(`#${details.jobNo}`);
+            jobInfo.push(`(ID: ${resourceId})`);
+            return `İş oluşturuldu: ${jobInfo.join(' ')}`.trim();
+
+        case AuditAction.JOB_UPDATE:
+            return `İş güncellendi: ${details.title || resourceId}`;
+
+        case AuditAction.JOB_DELETE:
+            return `İş silindi: ${details.title || resourceId}`;
+
+        case AuditAction.JOB_STATUS_CHANGE:
+            return `İş durumu değişti: ${details.title || ''} (${details.before?.status} -> ${details.after?.status}) (ID: ${resourceId})`;
+
+        case AuditAction.USER_CREATE:
+            return `Yeni kullanıcı oluşturuldu: ${details.email || details.name || resourceId}`;
+
+        default:
+            return action;
+    }
+}
+
+/**
  * Logs a critical system action to the database.
  * Uses the existing SystemLog model with level="AUDIT".
  */
@@ -54,10 +85,12 @@ export async function logAudit(
     platform: string = 'web'
 ) {
     try {
+        const message = formatAuditMessage(action, details);
+        
         await prisma.systemLog.create({
             data: {
                 level: 'AUDIT',
-                message: action,
+                message: message,
                 userId: userId,
                 meta: details as any, // Json in Prisma
                 platform: details.platform || platform, 
