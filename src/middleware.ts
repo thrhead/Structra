@@ -37,7 +37,7 @@ export default auth((req) => {
           headers: {
             "Access-Control-Allow-Origin": origin || "*",
             "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-            "Access-Control-Allow-Headers": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization, X-Platform",
+            "Access-Control-Allow-Headers": "X-CSRF-Token, X-Requested-With, Accept, Accept-Language, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization, X-Platform, X-Client-Version",
             "Access-Control-Allow-Credentials": "true",
           },
         });
