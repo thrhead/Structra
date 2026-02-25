@@ -129,6 +129,12 @@
     }
   },
   "Admin": {
+    "forecastingTitle": "Zeka & Tahminleme",
+    "forecastingSubtitle": "Tamamlanan iş verilerine dayalı akıllı süre tahminleri.",
+    "intelligenceDesc": "Bu bölüm, geçmişte tamamlanan benzer başlıklı işlerin sürelerini analiz ederek gelecekteki planlamalarınız için öngörü sağlar. Sistem ne kadar çok veri toplarsa, tahminler o kadar kesinleşir.",
+    "avgDuration": "Ortalama Süre",
+    "samples": "örnek veri",
+    "noData": "Tahminleme için henüz yeterli veri toplanmadı.",
     "logs": {
       "title": "Sistem Logları",
       "subtitle": "Hata ve sistem hareketlerini izleyin.",

@@ -129,6 +129,12 @@
     }
   },
   "Admin": {
+    "forecastingTitle": "Intelligence & Forecasting",
+    "forecastingSubtitle": "Smart duration estimates based on completed job data.",
+    "intelligenceDesc": "This section provides insights for your future planning by analyzing the durations of similar jobs completed in the past. The more data the system collects, the more accurate the estimates become.",
+    "avgDuration": "Average Duration",
+    "samples": "samples",
+    "noData": "Not enough data collected for forecasting yet.",
     "logs": {
       "title": "System Logs",
       "subtitle": "Monitor errors and system activities.",
