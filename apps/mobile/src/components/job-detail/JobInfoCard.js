@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Linking, Platform } from "react-native";
 import { Svg, Circle } from "react-native-svg";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../../context/ThemeContext";
@@ -15,6 +15,26 @@ const JobInfoCard = ({ job }) => {
   const totalSteps = job.steps?.length || 0;
   const completedSteps = job.steps?.filter((s) => s.isCompleted).length || 0;
   const progress = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0;
+
+  const handleNavigate = () => {
+    if (!job.latitude || !job.longitude) return;
+    
+    const label = job.title || 'İş Konumu';
+    const url = Platform.select({
+      ios: `maps:0,0?q=${label}@${job.latitude},${job.longitude}`,
+      android: `geo:0,0?q=${job.latitude},${job.longitude}(${label})`
+    });
+
+    Linking.canOpenURL(url).then(supported => {
+      if (supported) {
+        Linking.openURL(url);
+      } else {
+        // Fallback to browser
+        const browserUrl = `https://www.google.com/maps/search/?api=1&query=${job.latitude},${job.longitude}`;
+        Linking.openURL(browserUrl);
+      }
+    });
+  };
 
   // Helper for Circular Progress
   const renderCircularProgress = () => {
@@ -178,6 +198,16 @@ const JobInfoCard = ({ job }) => {
             {job.title}
           </Text>
 
+          {job.latitude && job.longitude && (
+            <TouchableOpacity 
+              style={[styles.navigateButton, { backgroundColor: theme.colors.primary + '10', borderColor: theme.colors.primary + '30' }]} 
+              onPress={handleNavigate}
+            >
+              <MaterialIcons name="navigation" size={18} color={theme.colors.primary} />
+              <Text style={[styles.navigateButtonText, { color: theme.colors.primary }]}>Yol Tarifi Al</Text>
+            </TouchableOpacity>
+          )}
+
           <View style={{ marginTop: 8, padding: 8, backgroundColor: theme.dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', borderRadius: 8 }}>
             <Text style={{ fontSize: 10, color: theme.colors.subText, fontWeight: "bold", marginBottom: 4 }}>
               KAYIT BİLGİSİ
@@ -340,6 +370,22 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.05)",
     marginVertical: 12,
   },
+  navigateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignSelf: 'flex-start',
+    marginTop: 8,
+    marginBottom: 12,
+    gap: 6
+  },
+  navigateButtonText: {
+    fontSize: 13,
+    fontWeight: 'bold'
+  }
 });
 
 export default JobInfoCard;
