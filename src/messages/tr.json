@@ -146,6 +146,20 @@
       "prune": "Eski Logları Temizle",
       "pruneConfirm": "90 günden eski teknik loglar silinecek. Onaylıyor musunuz?",
       "noLogs": "Log kaydı bulunamadı."
+    },
+    "assembly3d": {
+      "title": "3D Montaj Kılavuzu",
+      "explodedView": "Patlama Görünümü",
+      "normalView": "Normal Görünüm",
+      "selectPart": "Detay görmek için bir parçaya tıklayın",
+      "nextStep": "Sonraki",
+      "prevStep": "Önceki",
+      "completed": "Tamamlandı",
+      "pending": "Bekliyor",
+      "selected": "Seçili",
+      "instructions": "Talimatlar",
+      "resetView": "Görünümü Sıfırla",
+      "loading": "3D Model yükleniyor..."
     }
   }
 }

@@ -146,6 +146,20 @@
       "prune": "Prune Old Logs",
       "pruneConfirm": "Technical logs older than 90 days will be deleted. Do you confirm?",
       "noLogs": "No log records found."
+    },
+    "assembly3d": {
+      "title": "3D Assembly Guide",
+      "explodedView": "Exploded View",
+      "normalView": "Normal View",
+      "selectPart": "Click a part for details",
+      "nextStep": "Next",
+      "prevStep": "Previous",
+      "completed": "Completed",
+      "pending": "Pending",
+      "selected": "Selected",
+      "instructions": "Instructions",
+      "resetView": "Reset View",
+      "loading": "Loading 3D Model..."
     }
   }
 }

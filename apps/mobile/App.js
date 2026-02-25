@@ -17,6 +17,7 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import WorkerDashboardScreen from './src/screens/worker/WorkerDashboardScreen';
 import WorkerJobsScreen from './src/screens/worker/WorkerJobsScreen';
 import JobDetailScreen from './src/screens/worker/JobDetailScreen';
+import Assembly3DScreen from './src/screens/worker/Assembly3DScreen';
 import ExpenseManagementScreen from './src/screens/worker/ExpenseManagementScreen';
 import ManagerDashboardScreen from './src/screens/manager/ManagerDashboardScreen';
 import TeamListScreen from './src/screens/manager/TeamListScreen';
@@ -130,6 +131,11 @@ function AppNavigator() {
                 name="JobDetail"
                 component={JobDetailScreen}
                 options={{ title: t('worker.jobDetails'), headerShown: false }}
+              />
+              <Stack.Screen
+                name="Assembly3D"
+                component={Assembly3DScreen}
+                options={{ title: '3D Montaj', headerShown: false }}
               />
               <Stack.Screen
                 name="ExpenseManagement"

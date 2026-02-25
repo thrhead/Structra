@@ -426,9 +426,9 @@ export default function JobDetailScreen({ route, navigation }) {
         try {
             setLoading(true);
             await jobService.approveStep(stepId);
-            
+
             LoggerService.audit('Job step approved', { jobId, stepId });
-            
+
             showAlert(t('common.success'), t('alerts.stepApproveSuccess'), [], 'success');
             loadJobDetails();
         } catch (error) {
@@ -560,9 +560,9 @@ export default function JobDetailScreen({ route, navigation }) {
             setLoading(true);
             console.log('[Mobile] Starting job:', jobId, 'Last Updated:', job.updatedAt);
             await jobService.startJob(jobId, job.updatedAt || new Date().toISOString());
-            
+
             LoggerService.audit('Job started', { jobId, jobTitle: job.title, workerId: user.id });
-            
+
             showAlert(t('common.success'), t('alerts.jobStartSuccess'), [], 'success');
             loadJobDetails();
         } catch (error) {
@@ -862,12 +862,20 @@ Assembly Tracker Ltd. Şti.
                         </>
                     )}
                     {job && (
-                        <TouchableOpacity
-                            onPress={() => navigation.navigate('Chat', { jobId: job.id, jobTitle: job.title })}
-                            style={styles.chatButton}
-                        >
-                            <MaterialIcons name="chat" size={24} color={theme.colors.primary} />
-                        </TouchableOpacity>
+                        <>
+                            <TouchableOpacity
+                                onPress={() => navigation.navigate('Assembly3D', { steps: job.steps || [], jobTitle: job.title })}
+                                style={styles.chatButton}
+                            >
+                                <MaterialIcons name="view-in-ar" size={24} color={theme.colors.primary} />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={() => navigation.navigate('Chat', { jobId: job.id, jobTitle: job.title })}
+                                style={styles.chatButton}
+                            >
+                                <MaterialIcons name="chat" size={24} color={theme.colors.primary} />
+                            </TouchableOpacity>
+                        </>
                     )}
                 </View>
             </View>

@@ -9,12 +9,11 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint . && cd apps/mobile && npm run lint",
-    "test": "vitest && cd apps/mobile && npm run test",
+    "test": "vitest",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "db:sync": "prisma generate && prisma db push",
-    "test": "vitest",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
@@ -39,6 +38,8 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@react-email/components": "^1.0.1",
     "@react-leaflet/core": "^2.1.0",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.5.0",
     "@types/crypto-js": "^4.2.2",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
@@ -74,6 +75,7 @@
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-react": "^5.31.0",
     "tailwind-merge": "^3.4.0",
+    "three": "^0.183.1",
     "xlsx": "latest",
     "zod": "^4.1.12",
     "zustand": "^5.0.8"
@@ -90,6 +92,7 @@
     "@types/react-dom": "^18.3.1",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-react": "^5.18.0",
+    "@types/three": "^0.183.1",
     "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^4.3.1",
     "@vitest/coverage-v8": "^2.0.5",

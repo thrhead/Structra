@@ -40,6 +40,11 @@ const JobTimeline = dynamic(
     { ssr: false, loading: () => <div className="h-[400px] bg-gray-100 rounded-lg animate-pulse" /> }
 )
 
+const Assembly3DViewer = dynamic(
+    () => import('@/components/3d/assembly-3d-viewer').then(mod => mod.Assembly3DViewer),
+    { ssr: false, loading: () => <div className="h-[500px] bg-gray-100 rounded-lg animate-pulse flex items-center justify-center"><span className="text-gray-400 text-sm">3D Model yükleniyor...</span></div> }
+)
+
 interface AdminJobDetailsTabsProps {
     job: any
     workers: { id: string; name: string | null }[]
@@ -98,10 +103,11 @@ export function AdminJobDetailsTabs({ job, workers, teams }: AdminJobDetailsTabs
             </div>
 
             <Tabs defaultValue="overview" className="w-full">
-                <TabsList className="grid w-full grid-cols-6">
+                <TabsList className="grid w-full grid-cols-7">
                     <TabsTrigger value="overview">Genel Bakış</TabsTrigger>
                     <TabsTrigger value="timeline">Zaman Çizelgesi</TabsTrigger>
                     <TabsTrigger value="analytics">Grafikler</TabsTrigger>
+                    <TabsTrigger value="3d-assembly" className="flex items-center gap-1">3D Montaj</TabsTrigger>
                     <TabsTrigger value="map">Harita</TabsTrigger>
                     <TabsTrigger value="details">Detaylar</TabsTrigger>
                     <TabsTrigger value="approvals">Onaylar</TabsTrigger>
@@ -127,6 +133,10 @@ export function AdminJobDetailsTabs({ job, workers, teams }: AdminJobDetailsTabs
                         blockedSteps={blockedSteps}
                         steps={job.steps}
                     />
+                </TabsContent>
+
+                <TabsContent value="3d-assembly" className="space-y-6">
+                    <Assembly3DViewer steps={job.steps} jobTitle={job.title} />
                 </TabsContent>
 
                 <TabsContent value="map" className="space-y-6">
