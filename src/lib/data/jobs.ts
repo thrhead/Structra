@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 
 export type JobFilter = {
   search?: string;
+  jobNo?: string; // Added for specific ID search
   status?: string | string[]; // Allow array for multi-select
   priority?: string;
   customerId?: string;
@@ -25,14 +26,34 @@ export async function getJobs({ page = 1, limit = 20, filter }: GetJobsParams = 
 
     const where: Prisma.JobWhereInput = {};
 
-    if (filter?.search) {
+    // ID / JobNo Specific Filter
+    if (filter?.jobNo) {
       where.OR = [
+        { id: filter.jobNo }, // Exact match for internal ID
+        { jobNo: { contains: filter.jobNo, mode: "insensitive" } } // Partial match for display No
+      ];
+    }
+
+    if (filter?.search) {
+      // Keep existing search but ensure it doesn't conflict with specific jobNo if both provided
+      const searchOR = [
         { id: { contains: filter.search, mode: "insensitive" } },
         { title: { contains: filter.search, mode: "insensitive" } },
         { jobNo: { contains: filter.search, mode: "insensitive" } },
         { customer: { company: { contains: filter.search, mode: "insensitive" } } },
         { customer: { user: { name: { contains: filter.search, mode: "insensitive" } } } }
       ];
+
+      if (where.OR) {
+        // If jobNo already added OR, we wrap them in AND
+        where.AND = [
+          { OR: where.OR as Prisma.JobWhereInput[] },
+          { OR: searchOR as Prisma.JobWhereInput[] }
+        ];
+        delete where.OR;
+      } else {
+        where.OR = searchOR;
+      }
     }
 
     // Handle status (single or multiple)
@@ -74,43 +95,31 @@ export async function getJobs({ page = 1, limit = 20, filter }: GetJobsParams = 
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
-        include: {
+        select: {
+          id: true,
+          jobNo: true,
+          projectNo: true,
+          title: true,
+          status: true,
+          priority: true,
+          scheduledDate: true,
+          createdAt: true,
           customer: {
-            include: {
-              user: {
-                select: { name: true }
-              }
+            select: {
+              company: true,
+              user: { select: { name: true } }
             }
           },
           assignments: {
-            include: {
+            select: {
               team: {
-                include: {
-                  lead: { select: { id: true, name: true } },
-                  members: {
-                    include: {
-                      user: { select: { id: true, name: true } }
-                    }
-                  }
+                select: {
+                  id: true,
+                  name: true,
+                  lead: { select: { name: true } }
                 }
               },
-              worker: { select: { id: true, name: true } }
-            }
-          },
-          steps: {
-            select: {
-              id: true,
-              isCompleted: true,
-              subSteps: {
-                select: { approvalStatus: true }
-              }
-            }
-          },
-          costs: {
-            select: {
-              id: true,
-              amount: true,
-              status: true
+              worker: { select: { name: true } }
             }
           },
           _count: {

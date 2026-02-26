@@ -46,6 +46,7 @@ const statusLabels: Record<string, string> = {
 export default async function JobsPage(props: {
   searchParams: Promise<{ 
     search?: string; 
+    jobNo?: string;
     status?: string; 
     teams?: string; 
     from?: string; 
@@ -73,6 +74,7 @@ export default async function JobsPage(props: {
     getJobs({
       filter: { 
         search: searchParams.search,
+        jobNo: searchParams.jobNo,
         status: statusFilter,
         teams: teamsFilter,
         dateRange: dateRangeFilter
@@ -131,6 +133,45 @@ export default async function JobsPage(props: {
       </div>
 
       <div className="bg-white rounded-lg shadow">
+        {/* Active Filters Summary */}
+        {(searchParams.status || searchParams.teams || searchParams.search || searchParams.jobNo || searchParams.from) && (
+          <div className="px-6 py-3 border-b bg-slate-50/50 flex flex-wrap gap-2 items-center">
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mr-1">Aktif Filtreler:</span>
+            {searchParams.search && (
+              <Badge variant="secondary" className="gap-1 bg-white border-slate-200">
+                Arama: {searchParams.search}
+              </Badge>
+            )}
+            {searchParams.jobNo && (
+              <Badge variant="secondary" className="gap-1 bg-blue-50 text-blue-700 border-blue-100">
+                İş No: {searchParams.jobNo}
+              </Badge>
+            )}
+            {statusFilter?.map(s => (
+              <Badge key={s} variant="outline" className="bg-white capitalize">
+                Durum: {statusLabels[s] || s}
+              </Badge>
+            ))}
+            {teamsFilter?.map(tId => {
+              const teamName = teams.find(t => t.id === tId)?.name
+              return (
+                <Badge key={tId} variant="outline" className="bg-white">
+                  Ekip: {teamName || tId}
+                </Badge>
+              )
+            })}
+            {searchParams.from && (
+              <Badge variant="outline" className="bg-white">
+                Tarih: {format(new Date(searchParams.from), 'P', { locale: tr })} 
+                {searchParams.to ? ` - ${format(new Date(searchParams.to), 'P', { locale: tr })}` : ''}
+              </Badge>
+            )}
+            <Link href="/admin/jobs" className="text-xs text-blue-600 hover:underline font-medium ml-auto">
+              Tümünü Temizle
+            </Link>
+          </div>
+        )}
+
         <div className="p-4 border-b">
           <div className="relative max-w-sm">
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />

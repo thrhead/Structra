@@ -26,7 +26,7 @@ const JobSearchHeader = ({ searchQuery, setSearchQuery, title = "Görevler" }) =
                         color: theme.colors.text,
                         backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'
                     }]}
-                    placeholder="İş ara..."
+                    placeholder="İş no, ID veya başlık ara..."
                     placeholderTextColor={theme.colors.subText}
                     value={searchQuery}
                     onChangeText={setSearchQuery}

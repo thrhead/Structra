@@ -2,6 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { getCostBreakdown, getJobStatusDistribution, getTeamPerformance } from './reports'
 import { prisma } from '@/lib/db'
 
+vi.mock('next/cache', () => ({
+    unstable_cache: (fn: any) => fn
+}))
+
 describe('Report Service', () => {
     beforeEach(() => {
         vi.clearAllMocks()

@@ -132,6 +132,7 @@ model Job {
 
   @@index([status, createdAt])
   @@index([status, completedDate])
+  @@index([customerId, status, scheduledDate])
   @@map("jobs")
 }
 
@@ -278,6 +279,7 @@ model CostTracking {
   job             Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
   @@index([status, date])
+  @@index([jobId, status])
   @@map("cost_tracking")
 }
 
@@ -442,6 +444,6 @@ model SystemLog {
 
   @@index([level, createdAt])
   @@index([platform, createdAt])
-  @@index([userId])
+  @@index([userId, createdAt])
   @@map("system_logs")
 }

@@ -2,23 +2,28 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { FilterIcon } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { FilterIcon, Search, X, CalendarIcon } from 'lucide-react'
 import { tr } from 'date-fns/locale'
 import { format } from 'date-fns'
+import { cn } from '@/lib/utils'
 
 import { DateRange } from "react-day-picker"
 
-export interface FilterState {
-    dateRange?: DateRange
-    status: string[]
-    teams: string[]
-}
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetFooter,
+} from "@/components/ui/sheet"
 
 interface AdvancedFilterProps {
     teams: { id: string; name: string }[]
@@ -37,6 +42,7 @@ export function AdvancedFilter({ teams }: AdvancedFilterProps) {
     
     const [status, setStatus] = useState<string[]>([])
     const [selectedTeams, setTeams] = useState<string[]>([])
+    const [jobNo, setJobNo] = useState('')
     const [dateRange, setDateRange] = useState<DateRange | undefined>()
     const [isOpen, setIsOpen] = useState(false)
 
@@ -47,6 +53,9 @@ export function AdvancedFilter({ teams }: AdvancedFilterProps) {
         
         const teamsParam = searchParams.get('teams')
         if (teamsParam) setTeams(teamsParam.split(','))
+
+        const jobNoParam = searchParams.get('jobNo')
+        if (jobNoParam) setJobNo(jobNoParam)
 
         const from = searchParams.get('from')
         const to = searchParams.get('to')
@@ -74,10 +83,6 @@ export function AdvancedFilter({ teams }: AdvancedFilterProps) {
         )
     }
 
-    const handleDateSelect = (range: DateRange | undefined) => {
-        setDateRange(range)
-    }
-
     const applyFilters = () => {
         const params = new URLSearchParams(searchParams.toString())
         
@@ -87,15 +92,16 @@ export function AdvancedFilter({ teams }: AdvancedFilterProps) {
         if (selectedTeams.length > 0) params.set('teams', selectedTeams.join(','))
         else params.delete('teams')
 
+        if (jobNo) params.set('jobNo', jobNo)
+        else params.delete('jobNo')
+
         if (dateRange?.from) params.set('from', dateRange.from.toISOString())
         else params.delete('from')
 
         if (dateRange?.to) params.set('to', dateRange.to.toISOString())
         else params.delete('to')
 
-        // Reset page when filtering
         params.delete('page')
-
         router.push(`?${params.toString()}`)
         setIsOpen(false)
     }
@@ -103,11 +109,13 @@ export function AdvancedFilter({ teams }: AdvancedFilterProps) {
     const clearFilters = () => {
         setStatus([])
         setTeams([])
+        setJobNo('')
         setDateRange(undefined)
         
         const params = new URLSearchParams(searchParams.toString())
         params.delete('status')
         params.delete('teams')
+        params.delete('jobNo')
         params.delete('from')
         params.delete('to')
         params.delete('page')
@@ -116,93 +124,112 @@ export function AdvancedFilter({ teams }: AdvancedFilterProps) {
         setIsOpen(false)
     }
 
-    const activeFilterCount = (dateRange?.from ? 1 : 0) + status.length + selectedTeams.length
+    const activeFilterCount = (dateRange?.from ? 1 : 0) + status.length + selectedTeams.length + (jobNo ? 1 : 0)
 
     return (
-        <Popover open={isOpen} onOpenChange={setIsOpen}>
-            <PopoverTrigger asChild>
-                <Button variant="outline" className="gap-2 h-10">
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+                <Button variant="outline" className="gap-2 h-10 shadow-sm border-slate-200">
                     <FilterIcon className="h-4 w-4" />
-                    Filtrele
+                    <span className="hidden sm:inline">Filtrele</span>
                     {activeFilterCount > 0 && (
-                        <Badge variant="secondary" className="ml-1 px-1 h-5 min-w-5 flex items-center justify-center">
+                        <Badge variant="secondary" className="ml-1 px-1 h-5 min-w-5 flex items-center justify-center bg-primary/10 text-primary border-none">
                             {activeFilterCount}
                         </Badge>
                     )}
                 </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80 p-4" align="start">
-                <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <h4 className="font-medium">Filtreler</h4>
-                        <Button variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={clearFilters}>
-                            Temizle
-                        </Button>
-                    </div>
+            </SheetTrigger>
+            <SheetContent className="w-full sm:max-w-md overflow-y-auto flex flex-col p-0">
+                <SheetHeader className="p-6 border-b">
+                    <SheetTitle>Gelişmiş Filtreleme</SheetTitle>
+                    <SheetDescription>
+                        İş listesini kriterlere göre daraltın.
+                    </SheetDescription>
+                </SheetHeader>
 
-                    {/* Date Range */}
-                    <div className="space-y-2">
-                        <Label>Tarih Aralığı</Label>
-                        <div className="border rounded-md p-2">
-                            <Calendar
-                                mode="range"
-                                selected={dateRange}
-                                onSelect={setDateRange as any}
-                                initialFocus
-                                locale={tr}
+                <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                    {/* Job No / ID Search */}
+                    <div className="space-y-3">
+                        <Label className="text-sm font-semibold">İş No / ID</Label>
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input 
+                                placeholder="Örn: TR-2024-0001" 
+                                className="pl-9 h-11" 
+                                value={jobNo}
+                                onChange={(e) => setJobNo(e.target.value)}
                             />
                         </div>
                     </div>
 
-                    {/* Status */}
-                    <div className="space-y-2">
-                        <Label>Durum</Label>
-                        <div className="grid grid-cols-2 gap-2">
-                            {STATUS_OPTIONS.map((option) => (
-                                <div key={option.value} className="flex items-center space-x-2">
-                                    <Checkbox
-                                        id={`status-${option.value}`}
-                                        checked={status.includes(option.value)}
-                                        onCheckedChange={() => handleStatusChange(option.value)}
+                    {/* Status Section */}
+                    <div className="space-y-3">
+                        <Label className="text-sm font-semibold">Durum</Label>
+                        <div className="grid grid-cols-2 gap-3">
+                            {STATUS_OPTIONS.map((opt) => (
+                                <div key={opt.value} className={cn(
+                                    "flex items-center space-x-2 p-3 rounded-lg border transition-all cursor-pointer",
+                                    status.includes(opt.value) ? "bg-primary/5 border-primary ring-1 ring-primary" : "bg-muted/30 border-transparent hover:bg-muted/50"
+                                )} onClick={() => handleStatusChange(opt.value)}>
+                                    <Checkbox 
+                                        id={`status-${opt.value}`} 
+                                        checked={status.includes(opt.value)}
+                                        onCheckedChange={() => {}} // Controlled by div click
                                     />
-                                    <label
-                                        htmlFor={`status-${option.value}`}
-                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                    >
-                                        {option.label}
-                                    </label>
+                                    <span className="text-sm font-medium leading-none">
+                                        {opt.label}
+                                    </span>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    {/* Teams */}
-                    <div className="space-y-2">
-                        <Label>Ekipler</Label>
-                        <div className="max-h-32 overflow-y-auto space-y-2 border rounded-md p-2">
+                    {/* Teams Section */}
+                    <div className="space-y-3">
+                        <Label className="text-sm font-semibold">Ekipler</Label>
+                        <div className="grid grid-cols-1 gap-2 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
                             {teams.map((team) => (
-                                <div key={team.id} className="flex items-center space-x-2">
-                                    <Checkbox
+                                <div key={team.id} className={cn(
+                                    "flex items-center space-x-2 p-3 rounded-lg border transition-all cursor-pointer",
+                                    selectedTeams.includes(team.id) ? "bg-primary/5 border-primary ring-1 ring-primary" : "bg-muted/30 border-transparent hover:bg-muted/50"
+                                )} onClick={() => handleTeamChange(team.id)}>
+                                    <Checkbox 
                                         id={`team-${team.id}`}
                                         checked={selectedTeams.includes(team.id)}
-                                        onCheckedChange={() => handleTeamChange(team.id)}
+                                        onCheckedChange={() => {}}
                                     />
-                                    <label
-                                        htmlFor={`team-${team.id}`}
-                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                    >
+                                    <span className="text-sm font-medium leading-none">
                                         {team.name}
-                                    </label>
+                                    </span>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    <Button className="w-full" onClick={applyFilters}>
-                        Uygula
-                    </Button>
+                    {/* Date Range Section */}
+                    <div className="space-y-3 pb-4">
+                        <Label className="text-sm font-semibold">Tarih Aralığı</Label>
+                        <div className="border rounded-xl p-3 bg-white dark:bg-slate-900 shadow-inner">
+                            <Calendar
+                                mode="range"
+                                selected={dateRange}
+                                onSelect={setDateRange as any}
+                                locale={tr}
+                                className="w-full"
+                            />
+                        </div>
+                    </div>
                 </div>
-            </PopoverContent>
-        </Popover>
+
+                <SheetFooter className="p-6 border-t bg-slate-50 dark:bg-slate-900/50 flex-row gap-3 sm:space-x-0">
+                    <Button variant="ghost" className="flex-1 h-11" onClick={clearFilters}>
+                        Temizle
+                    </Button>
+                    <Button className="flex-1 h-11" onClick={applyFilters}>
+                        Filtreleri Uygula
+                    </Button>
+                </SheetFooter>
+            </SheetContent>
+        </Sheet>
     )
 }
