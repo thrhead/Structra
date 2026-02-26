@@ -162,7 +162,7 @@ export function ChatPanel({ jobId, title }: ChatPanelProps) {
 
     if (!mounted || loading) {
         return (
-            <div className="flex h-[400px] items-center justify-center rounded-lg border bg-card">
+            <div role="status" className="flex h-[400px] items-center justify-center rounded-lg border bg-card">
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
             </div>
         )

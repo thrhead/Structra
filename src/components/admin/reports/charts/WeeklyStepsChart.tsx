@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, memo } from 'react';
 import {
     BarChart,
     Bar,
@@ -24,17 +24,19 @@ interface WeeklyStepsChartProps {
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
-export default function WeeklyStepsChart({ data, categories }: WeeklyStepsChartProps) {
+const WeeklyStepsChart = memo(({ data, categories }: WeeklyStepsChartProps) => {
     const [selectedDay, setSelectedDay] = useState<any>(null);
 
     const { currentWeek, previousWeek } = data;
 
     // Combine current and previous for the chart
-    const chartData = currentWeek.map((day: any, index: number) => ({
-        ...day,
-        prevTotal: previousWeek[index]?.total || 0,
-        displayDate: new Date(day.date).toLocaleDateString('tr-TR', { weekday: 'short' })
-    }));
+    const chartData = useMemo(() => {
+        return currentWeek.map((day: any, index: number) => ({
+            ...day,
+            prevTotal: previousWeek[index]?.total || 0,
+            displayDate: new Date(day.date).toLocaleDateString('tr-TR', { weekday: 'short' })
+        }));
+    }, [currentWeek, previousWeek]);
 
     const handleBarClick = (data: any) => {
         setSelectedDay(data);
@@ -144,4 +146,7 @@ export default function WeeklyStepsChart({ data, categories }: WeeklyStepsChartP
             )}
         </div>
     );
-}
+});
+
+WeeklyStepsChart.displayName = 'WeeklyStepsChart';
+export default WeeklyStepsChart;

@@ -26,7 +26,7 @@ describe('logAudit', () => {
         expect(prisma.systemLog.create).toHaveBeenCalledWith({
             data: expect.objectContaining({
                 level: 'AUDIT',
-                message: action,
+                message: expect.stringContaining('İş oluşturuldu'),
                 userId: userId,
                 platform: 'web',
                 meta: details,

@@ -28,10 +28,14 @@ const ReportsScreen = () => {
     ];
 
     useEffect(() => {
-        fetchReports();
+        let isMounted = true;
+        fetchReports(isMounted);
+        return () => {
+            isMounted = false;
+        };
     }, []);
 
-    const fetchReports = async () => {
+    const fetchReports = async (isMounted = true) => {
         try {
             setLoading(true);
             const token = await AsyncStorage.getItem('authToken');
@@ -43,6 +47,8 @@ const ReportsScreen = () => {
                 axios.get(`${API_URL}/api/admin/reports/teams`, { headers }).catch(() => ({ data: { reports: [], globalStats: {} } }))
             ]);
             
+            if (!isMounted) return;
+
             setPerfData(perfRes.data);
             setCostData(costRes.data);
             setTeamsData(teamsRes.data);
@@ -53,7 +59,7 @@ const ReportsScreen = () => {
         } catch (error) {
             console.error('Fetch reports error:', error);
         } finally {
-            setLoading(false);
+            if (isMounted) setLoading(false);
         }
     };
 

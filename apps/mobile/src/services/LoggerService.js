@@ -45,6 +45,16 @@ export const LoggerService = {
     },
 
     /**
+     * Stop the Logger Service cleanup
+     */
+    destroy: () => {
+        if (LoggerService._interval) {
+            clearInterval(LoggerService._interval);
+            LoggerService._interval = null;
+        }
+    },
+
+    /**
      * Adds a new log to the queue
      */
     log: async (level, message, context = null, stack = null) => {

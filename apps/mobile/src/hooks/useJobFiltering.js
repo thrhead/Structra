@@ -1,19 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 
 export const useJobFiltering = (jobs) => {
-    const [filteredJobs, setFilteredJobs] = useState([]);
     const [selectedFilter, setSelectedFilter] = useState('Tümü');
     const [searchQuery, setSearchQuery] = useState('');
 
-    useEffect(() => {
-        // Debounce search
-        const handler = setTimeout(() => {
-            filter();
-        }, 300);
-        return () => clearTimeout(handler);
-    }, [searchQuery, jobs, selectedFilter]);
-
-    const filter = () => {
+    const filteredJobs = useMemo(() => {
         let result = [...(jobs || [])];
 
         // Status Filter
@@ -54,8 +45,8 @@ export const useJobFiltering = (jobs) => {
             return dateA - dateB;
         });
 
-        setFilteredJobs(result);
-    };
+        return result;
+    }, [jobs, selectedFilter, searchQuery]);
 
     return {
         filteredJobs,

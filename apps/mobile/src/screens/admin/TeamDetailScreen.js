@@ -22,20 +22,26 @@ const TeamDetailScreen = ({ route, navigation }) => {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
-    const fetchTeamDetails = async () => {
+    const fetchTeamDetails = async (isMounted = true) => {
         try {
             const response = await api.get(`/api/admin/teams/${teamId}`);
-            setTeam(response.data);
+            if (isMounted) setTeam(response.data);
         } catch (error) {
             console.error('Fetch team details error:', error);
         } finally {
-            setLoading(false);
-            setRefreshing(false);
+            if (isMounted) {
+                setLoading(false);
+                setRefreshing(false);
+            }
         }
     };
 
     useEffect(() => {
-        fetchTeamDetails();
+        let isMounted = true;
+        fetchTeamDetails(isMounted);
+        return () => {
+            isMounted = false;
+        };
     }, []);
 
     const onRefresh = () => {

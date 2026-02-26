@@ -295,6 +295,15 @@ export default function App() {
     } catch (error) {
       console.error('App initialization error:', error);
     }
+
+    return () => {
+      try {
+        SyncManager.destroy();
+        LoggerService.destroy();
+      } catch (error) {
+        console.error('App cleanup error:', error);
+      }
+    };
   }, []);
 
   return (
