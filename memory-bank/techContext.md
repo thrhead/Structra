@@ -1,140 +1,91 @@
-# Teknik Bağlam
+# Teknik Bağlam: Structra Teknoloji Yığını ve Kurulum
 
-## Teknoloji Yığını
+Structra, modern web ve mobil teknolojilerinin en verimli kombinasyonunu kullanarak hızlı geliştirme ve yüksek performans sunar.
 
-### Frontend
+## Teknoloji Yığını (Tech Stack)
 
-- **Framework**: Next.js 14+ (App Router)
-- **UI Kütüphanesi**: React 18+
-- **Stil**: TailwindCSS + shadcn/ui komponentleri
-- **Grafik**: Recharts
-- **Form Yönetimi**: React Hook Form + Zod validation
-- **Durum Yönetimi**: Zustand (Web) / Context API (Mobile)
-- **HTTP Client**: Axios
-
-### Backend
-
-- **Runtime**: Node.js 18+
-- **Framework**: Next.js API Routes
+### 🌍 Web ve Backend
+- **Framework**: Next.js 14 (App Router)
+- **Dil**: TypeScript (Strict Mode)
+- **Stil**: TailwindCSS + shadcn/ui
 - **Veritabanı**: PostgreSQL
 - **ORM**: Prisma
-- **Authentication**: NextAuth.js (JWT Strategy)
+- **Kimlik Doğrulama**: NextAuth.js v4
 - **Real-time**: Socket.IO
+- **Raporlama**: jsPDF (PDF), xlsx (Excel), Recharts (Grafik)
 
-### Mobile (v2.5 - Stable)
+### 📱 Mobil
 - **Framework**: React Native 0.74+
-- **Platform**: Expo SDK 51
-- **Navigation**: React Navigation 6 (Stack & Bottom Tabs)
-- **Storage**: AsyncStorage
-- **HTTP Client**: Axios
-- **Real-time**: Socket.IO Client
-- **Maps**: react-native-maps
-- **Network**: @react-native-community/netinfo
-- **UI**: StyleSheet API + Custom Components
-- **Features**:
-  - **Worker**: Job List, Detail, Checklist, Photo Upload, Map, Expenses
-  - **Manager**: Team List, Job Assignment, Dashboard
-  - **Admin**: User CRUD, Customer CRUD, Dashboard
-  - **Shared**: Auth, Profile, Settings, Notifications, Offline Sync
+- **Toolchain**: Expo SDK 51
+- **Navigasyon**: React Navigation 6
+- **Depolama**: AsyncStorage
+- **İnternet Kontrolü**: @react-native-community/netinfo
+- **Harita**: react-native-maps
 
-### DevOps
-- **Version Control**: Git
-- **Package Manager**: npm
-- **Linting**: ESLint + Prettier
-- **TypeScript**: Strict Mode enabled
+### ☁️ DevOps ve Altyapı
+- **Deployment**: Vercel (Web & API)
+- **Veritabanı Host**: Neon / Supabase (PostgreSQL)
+- **Görsel Depolama**: Cloudinary / Yerel Disk (public/uploads)
+- **Email**: Resend (Email bildirimleri)
 
-## Proje Yapısı
+## Proje Yapısı ve Bağımlılıklar
 
 ```
-assembly_tracker/
-├── app/                      # Next.js App Router (Web & API)
-│   ├── (auth)/              # Auth layouts
-│   ├── (dashboard)/         # Dashboard layouts
-│   ├── api/                 # API routes
-│   │   ├── auth/
-│   │   ├── admin/           # Admin endpoints
-│   │   ├── worker/          # Worker endpoints
-│   │   └── ...
-│   └── layout.tsx           # Root layout
-├── mobile/                  # React Native App (Expo)
-│   ├── src/
-│   │   ├── screens/        # Screen components
-│   │   │   ├── worker/
-│   │   │   ├── manager/
-│   │   │   └── admin/
-│   │   ├── components/     # Shared components
-│   │   ├── context/        # React Context (Auth)
-│   │   └── services/       # API services
-│   │       ├── api.js
-│   │       ├── auth.service.js
-│   │       ├── job.service.js
-│   │       ├── user.service.js
-│   │       ├── customer.service.js
-│   │       └── team.service.js
-│   ├── App.js
-│   └── app.json
-├── components/              # Shared React components (Web)
-├── lib/                     # Utility functions
-├── prisma/                  # Database schema
-└── public/                  # Static assets
+Structra/
+├── src/                      # Ana uygulama (Next.js)
+│   ├── app/                  # Rotalar, sayfalar ve API'ler
+│   ├── components/           # UI ve işlevsel bileşenler
+│   ├── lib/                  # Veritabanı, auth ve utility'ler
+│   └── types/                # TypeScript tip tanımlamaları
+├── apps/
+│   └── mobile/               # Mobil uygulama (React Native)
+├── prisma/                   # DB şeması ve migration'lar
+├── public/                   # Statik dosyalar ve yüklenen fotoğraflar
+├── scripts/                  # Bakım ve otomasyon scriptleri
+└── memory-bank/              # Proje dokümantasyonu
 ```
 
-## Veritabanı Şeması (Özet)
-
-1. **User**: Kullanıcılar ve roller (Admin, Manager, Worker, Customer)
-2. **Job**: İş kayıtları, durum, öncelik
-3. **JobStep**: İş adımları ve kontrol listesi
-4. **JobSubStep**: Alt adımlar, zaman takibi ve fotoğraflar
-5. **Team**: Ekipler ve üyeler
-6. **Customer**: Müşteri firmalar
-7. **CostTracking**: Maliyet takibi ve onay süreci
-8. **Notification**: Sistem bildirimleri
-9. **StepPhoto**: İş adımlarına ve alt adımlara yüklenen fotoğraflar (subStepId ile)
-
-## Development Setup
+## Kurulum ve Geliştirme
 
 ### Gereksinimler
+- Node.js 18.x veya 20.x
+- PostgreSQL (Lokal veya Bulut)
+- Git LFS (Büyük dosyalar için)
 
-- Node.js 18+
-- PostgreSQL veritabanı
-- Expo Go (Mobil test için)
+### Adım Adım Kurulum
 
-### Kurulum
+1. **Repoyu Klonlayın**:
+   ```bash
+   git clone https://github.com/thrhead/Structra.git
+   cd Structra
+   ```
 
-```bash
-# Web & API
-npm install
-npx prisma generate
-npm run dev
+2. **Bağımlılıkları Kurun**:
+   ```bash
+   npm install
+   cd apps/mobile && npm install
+   ```
 
-# Mobile
-cd mobile
-npm install
-npx expo start
-```
+3. **Çalışma Ortamı (Env) Ayarları**:
+   Ana dizinde `.env` dosyası oluşturun:
+   ```env
+   DATABASE_URL="postgresql://user:pass@host:5432/db"
+   NEXTAUTH_SECRET="your-secret"
+   NEXTAUTH_URL="http://localhost:3000"
+   NEXT_PUBLIC_SOCKET_URL="http://localhost:3000"
+   ```
 
-### Environment Variables
+4. **Veritabanı Hazırlığı**:
+   ```bash
+   npx prisma db push
+   npx prisma db seed
+   ```
 
-```env
-DATABASE_URL="postgresql://..."
-NEXTAUTH_SECRET="..."
-NEXTAUTH_URL="http://localhost:3000"
-```
+5. **Uygulamaları Başlatın**:
+   - Web: `npm run dev`
+   - Mobil: `cd apps/mobile && npx expo start`
 
-## Mobil Uyumluluk
-
-### Web
-- Responsive Design (Mobile-first Tailwind)
-- Touch-friendly UI elements
-
-### Native App
-- iOS ve Android desteği (Expo)
-- Native navigasyon deneyimi
-- Cihaz özelliklerine erişim (Kamera, Galeri, Konum)
-
-## Güvenlik
-
-- **Auth**: JWT tabanlı kimlik doğrulama
-- **API**: Role-based middleware koruması
-- **Input**: Zod validasyonu (Client & Server)
-- **DB**: SQL injection koruması (Prisma)
+## Performans Notları
+- **Image Optimization**: Görseller için `next/image` ve mobil tarafında `resizeMode` kullanılır.
+- **Bundle Size**: Web tarafında `next/dynamic` ile asenkron yükleme (code splitting) aktiftir.
+- **DB Indexing**: Sık kullanılan tüm FK alanları indekslenmiştir.

@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Textarea } from '@/components/ui/textarea'
 import { format } from 'date-fns'
 import { tr } from 'date-fns/locale'
+import Image from 'next/image'
 
 interface JobApprovalsViewProps {
     job: any
@@ -233,10 +234,12 @@ function ApprovalCard({ item, type, onApprove, onReject, loading }: any) {
                                 rel="noopener noreferrer"
                                 className="relative aspect-square rounded-md overflow-hidden border bg-gray-200 group"
                             >
-                                <img
+                                <Image
                                     src={photo.url}
                                     alt="İşlem fotoğrafı"
-                                    className="object-cover w-full h-full transition-opacity group-hover:opacity-90"
+                                    fill
+                                    sizes="(max-width: 768px) 33vw, 20vw"
+                                    className="object-cover transition-opacity group-hover:opacity-90"
                                 />
                                 <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
                             </a>

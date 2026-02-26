@@ -1,44 +1,26 @@
-# Assembly Tracker Project Brief
+# Proje Özeti: Structra - Saha Montaj ve Servis Takip Sistemi
 
-## Project Overview
-Assembly Tracker is a comprehensive platform for tracking field assembly and service teams. The system enables management of assembly processes, cost control, and team coordination for factory external operations through both a web dashboard and a native mobile application.
+Structra, saha operasyonlarını yöneten işletmeler için geliştirilmiş, uçtan uca montaj ve servis takip platformudur. Sistem, fabrika dışındaki ekiplerin koordinasyonunu sağlamak, iş ilerlemesini gerçek zamanlı izlemek ve maliyetleri kontrol altında tutmak amacıyla hem kapsamlı bir web tabanlı yönetim paneli hem de saha çalışanları için optimize edilmiş bir mobil uygulama sunar.
 
-## Core Requirements
-- User authentication with role-based access (Admin, Manager, Team Lead, Worker, Customer)
-- Job tracking system with step-by-step progress monitoring
-- Team management and assignment capabilities
-- Cost tracking and approval workflows
-- Real-time notifications and status updates
-- **Native Mobile Application (iOS/Android) for field workers**
-- Mobile-responsive web interface with Turkish language support
+## Temel Hedefler
+- **Gerçek Zamanlı İzlenebilirlik**: Saha ekiplerinin konumlarını ve iş aşamalarını anlık olarak takip etmek.
+- **Operasyonel Verimlilik**: Kağıt üzerindeki checklist'leri dijitalleştirerek hata payını azaltmak ve hızı artırmak.
+- **Maliyet Yönetimi**: Saha harcamalarını kayıt altına alarak bütçe takibini şeffaf hale getirmek.
+- **Müşteri Memnuniyeti**: Müşterilere kendi işlerinin ilerlemesini izleyebilecekleri şeffaf bir portal sunmak.
 
-## Key Features
-- Job creation with detailed steps and sub-steps
-- Time tracking for sub-tasks with start/end times
-- Automatic parent task completion when all sub-tasks are done
-- Team performance metrics and visualizations
-- Photo upload for work documentation
-- Reporting system for job status and costs
-- **Mobile Features**:
-  - Offline-capable job list
-  - Native map integration
-  - Camera integration for photo uploads
-  - Push notifications
+## Temel Gereksinimler
+- **Çoklu Rol Desteği**: Admin, Yönetici (Manager), Ekip Lideri (Team Lead), Çalışan (Worker) ve Müşteri (Customer).
+- **Adım Bazlı İş Takibi**: Her iş için özelleştirilebilir ana adımlar ve alt görevler (sub-steps).
+- **Dijital Kanıt**: İş adımlarının tamamlanması için fotoğraf yükleme ve GPS konumu zorunluluğu.
+- **Çevrimdışı Çalışma**: İnternet bağlantısı olmayan sahalarda bile veri girişine izin veren mobil altyapı.
+- **Raporlama ve Analiz**: Yönetimsel kararlar için detaylı performans ve maliyet analizleri.
 
-## Technical Stack
-- **Web**: Next.js 16 with App Router
-- **Mobile**: React Native with Expo
-- **Language**: TypeScript
-- **Database**: PostgreSQL with Prisma ORM
-- **Auth**: NextAuth.js v4 (Web & API)
-- **Styling**: TailwindCSS (Web), Native Styles (Mobile)
-- **Real-time**: Socket.IO
+## Teknik Ekosistem
+- **Web**: Next.js 14 (App Router), TailwindCSS, shadcn/ui.
+- **Mobil**: React Native, Expo SDK 51, AsyncStorage.
+- **Backend**: Next.js API Routes, Prisma ORM, PostgreSQL.
+- **İletişim**: Socket.IO ile gerçek zamanlı bildirimler ve veri akışı.
+- **Güvenlik**: NextAuth.js v4 (JWT ve RBAC).
 
-## Current Status
-The application is in a Production-ready state for the Web platform (v2.0) and Stable state for the Mobile platform (v2.5). All core features including User/Customer management, Job tracking, and Cost management are implemented across both platforms.
-
-## Next Steps
-1. Conduct extensive field testing for the mobile app
-2. Implement offline mode and push notifications for mobile
-3. Optimize performance and polish UI/UX
-4. Prepare for production deployment
+## Mevcut Durum (v3.0.0)
+Structra, web tarafında tam özellikli (v3.0) ve mobil tarafta kararlı (v2.6) sürümdedir. Performans optimizasyonları, veritabanı indekslemeleri ve gelişmiş görsel yönetim özellikleri sisteme başarıyla entegre edilmiştir.

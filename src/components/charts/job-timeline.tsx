@@ -7,9 +7,10 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { format } from 'date-fns'
 import { tr } from 'date-fns/locale'
-import { Clock, Play, CheckCircle, XCircle, Loader2, AlertCircle, Image, MapPin } from 'lucide-react'
+import { Clock, Play, CheckCircle, XCircle, Loader2, AlertCircle, Image as ImageIcon, MapPin } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import Image from 'next/image'
 
 interface StepPhoto {
     id: string
@@ -275,7 +276,7 @@ export function JobTimeline({ steps, scheduledDate, completedDate, jobId }: JobT
                                                                     {subStep.photos && subStep.photos.length > 0 && (
                                                                         <div className="mt-2">
                                                                             <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
-                                                                                <Image className="h-3 w-3" />
+                                                                                <ImageIcon className="h-3 w-3" />
                                                                                 <span>Fotoğraflar ({subStep.photos.length})</span>
                                                                             </div>
                                                                             <div className="flex flex-wrap gap-1">
@@ -283,12 +284,14 @@ export function JobTimeline({ steps, scheduledDate, completedDate, jobId }: JobT
                                                                                     <button
                                                                                         key={photo.id}
                                                                                         onClick={() => setSelectedPhoto(photo)}
-                                                                                        className="w-12 h-12 rounded border overflow-hidden hover:ring-2 hover:ring-blue-500 transition-all"
+                                                                                        className="w-12 h-12 rounded border overflow-hidden hover:ring-2 hover:ring-blue-500 transition-all relative"
                                                                                     >
-                                                                                        <img
+                                                                                        <Image
                                                                                             src={photo.url}
-                                                                                            alt=""
-                                                                                            className="w-full h-full object-cover"
+                                                                                            alt="Alt görev fotoğrafı"
+                                                                                            fill
+                                                                                            sizes="48px"
+                                                                                            className="object-cover"
                                                                                         />
                                                                                     </button>
                                                                                 ))}
@@ -332,20 +335,23 @@ export function JobTimeline({ steps, scheduledDate, completedDate, jobId }: JobT
                         className="fixed inset-0 bg-background/80 z-50 flex items-center justify-center p-4"
                         onClick={() => setSelectedPhoto(null)}
                     >
-                        <div className="relative max-w-4xl max-h-[90vh]">
-                            <img
-                                src={selectedPhoto.url}
-                                alt=""
-                                className="max-w-full max-h-[90vh] object-contain rounded-lg"
-                            />
+                        <div className="relative max-w-4xl max-h-[90vh] w-full h-full flex items-center justify-center">
+                            <div className="relative w-full h-full">
+                                <Image
+                                    src={selectedPhoto.url}
+                                    alt="Tam boy fotoğraf"
+                                    fill
+                                    className="object-contain rounded-lg"
+                                />
+                            </div>
                             {selectedPhoto.uploadedBy?.name && (
-                                <div className="absolute bottom-4 left-4 bg-muted/90 text-white px-3 py-1 rounded text-sm">
+                                <div className="absolute bottom-4 left-4 bg-muted/90 text-white px-3 py-1 rounded text-sm z-10">
                                     📷 {selectedPhoto.uploadedBy.name} • {format(new Date(selectedPhoto.uploadedAt), 'd MMM, HH:mm', { locale: tr })}
                                 </div>
                             )}
                             <button
                                 onClick={() => setSelectedPhoto(null)}
-                                className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white w-10 h-10 rounded-full flex items-center justify-center"
+                                className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white w-10 h-10 rounded-full flex items-center justify-center z-10"
                             >
                                 ✕
                             </button>

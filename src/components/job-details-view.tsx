@@ -9,6 +9,7 @@ import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { Progress } from "@/components/ui/progress"
 import { formatTaskNumber } from "@/lib/utils/job-number"
+import Image from "next/image"
 
 interface JobDetailsProps {
     job: {
@@ -411,10 +412,12 @@ export function JobDetailsView({ job }: JobDetailsProps) {
                                                                     <div className="ml-8 grid grid-cols-4 md:grid-cols-6 gap-2">
                                                                         {subStep.photos.map(photo => (
                                                                             <div key={photo.id} className="relative aspect-square rounded-md overflow-hidden border border-gray-200 shadow-sm hover:scale-105 transition-transform">
-                                                                                <img
+                                                                                <Image
                                                                                     src={photo.url}
                                                                                     alt="Alt görev fotoğrafı"
-                                                                                    className="w-full h-full object-cover"
+                                                                                    fill
+                                                                                    sizes="(max-width: 768px) 25vw, 16vw"
+                                                                                    className="object-cover"
                                                                                 />
                                                                             </div>
                                                                         ))}
@@ -436,11 +439,13 @@ export function JobDetailsView({ job }: JobDetailsProps) {
                                                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                                                         {step.photos!.map(photo => (
                                                             <div key={photo.id} className="group relative">
-                                                                <div className="aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-100 shadow-sm">
-                                                                    <img
+                                                                <div className="aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-100 shadow-sm relative">
+                                                                    <Image
                                                                         src={photo.url}
                                                                         alt="İş fotoğrafı"
-                                                                        className="w-full h-full object-cover group-hover:opacity-90 transition-opacity"
+                                                                        fill
+                                                                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                                                                        className="object-cover group-hover:opacity-90 transition-opacity"
                                                                     />
                                                                 </div>
                                                                 <div className="mt-1.5 flex justify-between items-center px-1">

@@ -1,129 +1,45 @@
-# Ürün Bağlamı
+# Ürün Bağlamı: Structra'nın Varlık Sebebi ve Kullanıcı Deneyimi
 
-## Neden Bu Proje Var?
+Structra, saha operasyonları yürüten şirketlerin en büyük sorunu olan "görünmezlik" problemini çözer. Fabrika veya merkez ofis dışındaki ekiplerin ne yaptığı, işin ne kadarının tamamlandığı ve karşılaşılan engeller genellikle telefon trafiği ile çözülmeye çalışılır. Structra bu süreci dijital bir ekosisteme taşır.
 
-### Çözülen Problemler
+## Çözülen Temel Problemler
 
-1. **Ekip Takibi Zorluğu**
+### 1. Ekip Takibi ve Koordinasyon
+- **Sorun**: Ekiplerin o an nerede olduğu ve hangi iş aşamasında olduğu bilinmiyor.
+- **Çözüm**: Gerçek zamanlı dashboard ve GPS destekli adım takibi.
 
-   - Fabrika dışında çalışan ekiplerin ne yaptığı bilinmiyor
-   - İş ilerlemesi manuel olarak takip ediliyor
-   - Gerçek zamanlı durum bilgisi yok
+### 2. Kalite Kontrol ve Standartlaştırma
+- **Sorun**: Montajın standartlara uygun yapıldığından emin olunamıyor.
+- **Çözüm**: Fotoğraf yükleme zorunluluğu olan checklist sistemi ve yönetici onay mekanizması.
 
-2. **Maliyet Kontrolsüzlüğü**
+### 3. Maliyet ve Zaman Kayıpları
+- **Sorun**: Beklenmedik harcamalar ve işlerin planlanan süreyi aşması.
+- **Çözüm**: Anlık maliyet girişi ve her iş adımı için detaylı zaman takibi (Başlangıç/Bitiş).
 
-   - Montaj maliyetleri tam olarak hesaplanamıyor
-   - Ekip çalışma süreleri düzgün takip edilmiyor
-   - Bütçe aşımları önceden görülemiyor
+### 4. İletişim Dağınıklığı
+- **Sorun**: Müşteri bilgilendirmesi manuel ve gecikmeli yapılıyor.
+- **Çözüm**: Müşteri portalı üzerinden otomatik ilerleme takibi ve anlık bildirimler.
 
-3. **İletişim Eksikliği**
+## Kullanıcı Deneyimi (UX) Haritası
 
-   - Şefler ve ekipler arasında koordinasyon zorluğu
-   - Müşteriler işlerinin durumunu bilemiyor
-   - Bilgilendirme telefon veya mesajla manuel yapılıyor
+### 👷 Saha Çalışanı (Worker)
+- **Deneyim**: Basit, büyük butonlu, güneş altında okunabilir arayüz.
+- **Akış**: İş listesini gör -> İşi başlat -> Checklist'i doldur (Fotoğraf çek) -> Masrafları gir -> İşi tamamla.
 
-4. **Veri Dağınıklığı**
-   - Montaj bilgileri farklı yerlerde tutuluyor
-   - Raporlama manuel yapılıyor
-   - Geçmiş verilere erişim zor
+### 👨‍💼 Montaj Şefi / Yönetici (Manager)
+- **Deneyim**: Hızlı karar vermeyi sağlayan özet grafikler ve filtreleme araçları.
+- **Akış**: Ekipleri ve işleri planla -> Atama yap -> Tamamlanan işleri incele ve onayla/reddet -> Rapor al.
 
-## Nasıl Çalışmalı?
+### 👑 Üst Yönetici (Admin)
+- **Deneyim**: Tüm sistemin sağlığını ve karlılığını ölçen makro bakış.
+- **Akış**: Kullanıcıları ve müşterileri yönet -> Sistem loglarını incele -> Maliyet ve performans analizlerini karşılaştır.
 
-### Kullanıcı Deneyimi - Montaj Ekibi
+### 🤝 Müşteri (Customer)
+- **Deneyim**: Güven veren, şeffaf ve minimalist bir takip ekranı.
+- **Akış**: İş durumunu sorgula -> Fotoğrafları gör -> Tahmini bitiş tarihini takip et.
 
-1. **Giriş Yapma**
-
-   - Basit ve hızlı login
-   - Mobil cihazdan kolay erişim
-
-2. **İş Listesi Görüntüleme**
-
-   - Bugünkü işlerini görebilmeli
-   - Hangi aşamada olduğunu görebilmeli
-
-3. **İş Güncelleme**
-
-   - Basit checklist ile aşama işaretleme
-   - Her aşama için not ekleyebilme
-   - Fotoğraf ekleme (ileride)
-
-4. **Bildirim Alma**
-   - Yeni iş atandığında bildirim
-   - Acil işler için uyarı
-
-### Kullanıcı Deneyimi - Montaj Şefi
-
-1. **Dashboard**
-
-   - Tüm ekiplerin durumunu görme
-   - Günlük yapılan işleri görme
-   - Bekleyen onayları görme
-
-2. **İş Yönetimi**
-
-   - Yeni iş atama
-   - İş durumlarını kontrol etme
-   - Tamamlanan işleri onaylama
-
-3. **Bildirim ve Onay**
-   - Günlük yapılan işler için bildirim
-   - Yapılacak işler için onay
-   - Ekiplerle iletişim
-
-### Kullanıcı Deneyimi - Yönetici
-
-1. **Genel Bakış**
-
-   - Tüm montajların durumu
-   - Maliyet özeti
-   - Performans metrikleri
-
-2. **Detaylı Raporlar**
-
-   - Grafik ve tablolarla görselleştirme
-   - Zaman bazlı analiz
-   - Maliyet analizi
-
-3. **Kullanıcı Yönetimi**
-   - Ekip üyeleri ekleme/çıkarma
-   - Yetki verme
-   - Rol atama
-
-### Kullanıcı Deneyimi - Müşteri
-
-1. **İş Takibi**
-
-   - Montaj durumunu görme
-   - İlerleme yüzdesi
-   - Tahmini tamamlanma tarihi
-
-2. **Bilgilendirme**
-   - İş aşamaları hakkında bilgi
-   - Grafik ile görsel takip
-   - Tamamlandığında bildirim
-
-## Temel İlkeler
-
-### Basitlik
-
-- Kullanımı kolay, karmaşık olmayan arayüz
-- Minimum tıklama ile işlem yapabilme
-- Anlaşılır göstergeler
-
-### Hız
-
-- Hızlı yüklenen sayfalar
-- Anlık veri güncelleme
-- Mobilde performanslı çalışma
-
-### Güvenilirlik
-
-- Veri kaybı olmaması
-- Offline çalışabilme (ileride)
-- Güvenli veri saklama
-
-### Şeffaflık
-
-- Herkesin kendi sorumluluğundaki işleri görebilmesi
-- İlerlemenin net görülmesi
-- Geçmiş kayıtlara erişim
+## Tasarım İlkeleri
+- **Basitlik**: Sahadaki çalışanın işini zorlaştırmayan minimum etkileşim.
+- **Güvenilirlik**: İnternet kopsa bile verinin kaybolmaması (Offline Queue).
+- **Hız**: Sayfaların ve verilerin anlık yüklenmesi (Performance Optimizations).
+- **Görsel Kanıt**: "Yapıldı" demek yerine "Fotoğrafını Çek" yaklaşımı.

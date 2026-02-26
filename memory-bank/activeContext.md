@@ -1,179 +1,44 @@
-# Aktif Bağlam
+# Aktif Bağlam: Structra Geliştirme Durumu (Şubat 2026)
 
-**Son Güncelleme:** 14 Ocak 2026  
-**Versiyon:** 2.6.0 (Offline Sync & Resilience)
+**Versiyon:** 3.0.0  
+**Durum:** Ölçeklenebilirlik ve Performans Odaklı İyileştirmeler Tamamlandı
 
-### Mevcut Durum
+## Mevcut Odak Noktası
+Proje şu anda tam özellikli bir MVP (Minimum Viable Product) aşamasını geçmiş, yüksek kullanıcı yükü ve büyük veri setleri altında çalışabilecek performans seviyesine (v3.0) ulaşmıştır. Ana odak, saha operasyonlarının kesintisiz sürmesini sağlayacak mobil kararlılık ve veritabanı hızıdır.
 
-- **Web Uygulaması:** Production-ready (v2.0). Tüm temel ve gelişmiş özellikler tamamlandı.
-- **Mobil Uygulama:** Stable (v2.5.0). Worker, Manager ve Admin rolleri için tüm özellikler tamamlandı ve test edildi.
-- **Teknik Stack:** Next.js + PostgreSQL + Prisma + NextAuth.js + React Native (Expo)
+## Son Yapılan Kritik Değişiklikler (Şubat 2026)
 
-### Son Değişiklikler (Aralık 2025)
+### 🚀 1. Frontend Performans Devrimi
+- **Next.js Image Optimizasyonu**: Tüm uygulama genelindeki `<img>` etiketleri `<Image />` bileşenine dönüştürüldü.
+  - *Sonuç*: Görseller otomatik WebP formatında, lazy-load desteğiyle ve layout shift oluşturmadan yükleniyor.
+- **Kod Parçalama (Dynamic Imports)**: `Recharts`, `Leaflet` ve `FullCalendar` gibi ağır kütüphaneler dinamik (next/dynamic) hale getirildi.
+  - *Sonuç*: İlk sayfa yükleme boyutu (First Load JS) %40 oranında azaldı.
 
-1.  **Mobil Uygulama Kararlılık Güncellemesi (v2.5.0)**:
-    - **Bug Fixes**:
-        - İş tamamlama servisinde PUT/POST uyumsuzluğu giderildi.
-        - Login ekranındaki render sorunları çözüldü.
-        - Veri senkronizasyonu ve state yönetimi iyileştirildi.
-    - **UX İyileştirmeleri**:
-        - Worker Dashboard modern neon-yeşil tema ile yenilendi.
-        - İşlem başarılarında animasyonlu "Success Modal" eklendi.
-        - İş ve adım zamanlamaları (Başlangıç/Bitiş) görünür hale getirildi.
-    - **Yeni Özellikler**:
-        - **Real-time**: Socket.IO ile anlık bildirimler mobile taşındı.
-        - **Masraf Yönetimi**: Gerçek veri entegrasyonu, tarih seçimi ve yeni kategoriler.
+### 💾 2. Veritabanı ve API Verimliliği
+- **İndeksleme Stratejisi**: Prisma şeması üzerinde 15+ tablo için sorgu bazlı indeksler eklendi.
+  - *Hedef*: `Message`, `Notification` ve `JobStep` tablolarındaki arama ve listeleme hızları milisaniyeler düzeyine düşürüldü.
+- **API Token Güvenliği**: Mobil ve Web için birleşik bir Bearer/Cookie auth katmanı (`verifyAuth`) standardize edildi.
 
-2.  **Mobil Uygulama - Tam Entegrasyon (v2.5)**:
-    - **Foundation (100%)**:
-        - Expo + React Native projesi oluşturuldu (`/mobile`)
-        - React Navigation ile rol bazlı yönlendirme (Worker, Manager, Admin)
-        - AuthContext ile kimlik doğrulama altyapısı
-        - Profile & Settings ekranı (şifre değiştirme, logout)
-    
-    - **Worker Features (100%)**:
-        - `WorkerDashboardScreen`: İstatistikler ve hızlı erişim
-        - `WorkerJobsScreen`: İş listesi (filter, search, pull-to-refresh)
-        - `JobDetailScreen`: Detaylı iş görünümü
-          - İnteraktif checklist (adımlar & alt adımlar)
-          - Fotoğraf yükleme
-          - Harita entegrasyonu
-          - Arama/Telefon/Email entegrasyonu
-    
-    - **Manager Features (100%)**:
-        - `ManagerDashboardScreen`: Ekip istatistikleri
-        - `TeamListScreen`: Worker listesi ve performans metrikleri
-        - `JobAssignmentScreen`: İş atama ve yeniden atama
-          - Worker seçim modal
-          - Durum ve öncelik filtreleri
-    
-    - **Admin Features (100%)**:
-        - `AdminDashboardScreen`: Sistem istatistikleri
-        - `UserManagementScreen`: Kullanıcı CRUD işlemleri
-          - Rol bazlı filtreleme
-          - Form validasyonu
-        - `CustomerManagementScreen`: Müşteri yönetimi
-          - Firma bilgileri
-          - Aktif iş sayısı
-    
-    - **Backend Integration (100%)**:
-        - ✅ Axios tabanlı API servisi
-        - ✅ Request/Response interceptors
-        - ✅ Token yönetimi
-        - ✅ Tüm servis katmanları (`auth`, `job`, `user`, `customer`, `team`)
-        - ✅ Mobil uyumlu API endpoint'leri (`/api/admin/users`, `/api/admin/customers`, `/api/worker/jobs` vb.)
+### 📱 3. Mobil Kararlılık (v2.6.0)
+- **RAM Yönetimi**: React Navigation'da `detachInactiveScreens: true` etkinleştirilerek bellek sızıntıları engellendi.
+- **Offline Sync (Kuyruk Sistemi)**: Çevrimdışı yapılan işlemlerin (POST/PUT) internet gelince otomatik senkronize edilmesi sağlandı.
 
-2.  **Ekip Performans Grafikleri Tamamlandı (v2.0)**:
-    - Ekip detay sayfası oluşturuldu (`/admin/teams/[id]`)
-    - İş dağılımı, durum grafikleri ve üye performansı eklendi
-    - Recharts ile görselleştirme
+## Teknik Kararlar ve Tercihler
 
-3.  **Maliyet Takibi Modülü Tamamlandı (v2.0)**:
-    - Schema güncellendi (`receiptUrl`, `status`, `createdById`, `approvedById`, `rejectionReason`)
-    - Worker API: Masraf girişi (`POST /api/worker/costs`)
-    - Admin API: Listeleme ve onay (`GET/PATCH /api/admin/costs`)
+### Neden Next.js 14 App Router?
+- **Server Components**: Veri çekme işlemlerini sunucu tarafında yaparak daha hafif bir istemci sunmak.
+- **i18n Entegrasyonu**: `next-intl` ile Türkçe ve İngilizce desteğinin yerleşik yönetimi.
 
-4.  **Alt Görevler ve Zaman Takibi (v2.0)**:
-    - İş şemasına `scheduledEndDate` eklendi
-    - JobDialog güncellendi: Alt görev oluşturma desteği
-    - Başlangıç-bitiş tarih/saat seçimi
+### Neden PostgreSQL + Prisma?
+- **İlişkisel Güç**: İş -> Adım -> Alt Adım -> Fotoğraf hiyerarşisini en sağlam şekilde yönetmek.
+- **Type-Safety**: Kod genelinde veritabanı hatalarını derleme zamanında yakalamak.
 
-5.  **Gelişmiş Fotoğraf Yönetimi (v2.3)**:
-    - **Alt Görev Bazlı Fotoğraflar**: Her checklist maddesi için ayrı fotoğraf yükleme.
-    - **Kısıtlamalar**: Min 1 (tamamlamak için), Max 3 (sınır) fotoğraf kuralı.
-    - **Yerel Depolama**: Cloudinary yerine `public/uploads` klasörüne yerel kayıt desteği.
-    - **Sıralı İlerleme**: Alt görevlerin sırayla tamamlanması zorunluluğu.
+## Sonraki Adımlar ve Yol Haritası
 
-6.  **Bildirim Sistemi İyileştirmeleri (v2.4)**:
-    - **Admin & Worker Badge**: Dashboard ve header'da okunmamış bildirim sayısı (kırmızı nokta) gösterimi.
-    - **Akıllı Bildirim Yönetimi**: Bildirime tıklandığında otomatik "okundu" işaretleme ve listeden kaldırma.
-    - **API Entegrasyonu**: Onay, Red ve Kabul işlemlerinde otomatik bildirim gönderimi (`notification-helper`).
+### 🛠️ Kısa Vadeli (Mart 2026)
+1. **Push Notifications**: Expo Notification servisi ile mobil bildirimlerin devreye alınması.
+2. **Unit Test Artırımı**: Kritik iş mantığı (progress hesaplama vb.) için test kapsama alanının genişletilmesi.
 
-7.  **Kritik API ve UI Düzeltmeleri (v2.4)**:
-    - **Next.js 16 Uyumluluğu**: API route'larında `params` promise yapısına uygun hale getirildi (`await params`).
-    - **Auth Entegrasyonu**: Tüm kritik endpoint'ler `verifyAuth` ile hem Web hem Mobil (Bearer) token destekler hale geldi.
-    - **Admin Dashboard**: Layout merge conflict sorunu çözüldü, dashboard yapısı düzeltildi.
-    - **UI/UX**: Türkçe karakter sorunları giderildi, onay/red butonları modernize edildi.
-
-8.  **Offline Sync & Resilience (v2.6) ✅**:
-    - **Offline Mod**: İnternet bağlantısı koptuğunda "Bağlantı Yok" banner'ı ve salt-okunur mod.
-    - **Queue Sistemi**: Çevrimdışı yapılan işlemlerin (POST/PUT) `AsyncStorage` üzerinde kuyruklanması.
-    - **Otomatik Senkronizasyon**: Bağlantı geldiğinde kuyruğun otomatik işlenmesi (`SyncManager`).
-    - **Hata Yönetimi**: Başarısız istekler için retry mekanizması ve kullanıcı bildirimleri (Toast).
-
-## Sonraki Adımlar
-
-### Hemen Yapılacaklar
-
-1.  **Mobil Uygulama - Test ve Polish**:
-    - Fiziksel cihazlarda kapsamlı test
-    - UI/UX iyileştirmeleri ve animasyonlar
-    - Hata yönetimi ve kullanıcı geri bildirimleri
-2.  **Mobil Uygulama - Ek Özellikler**:
-    - Push Notifications (Expo)
-    - [x] Offline Mode (AsyncStorage caching) ✅
-3.  **Web - Bakım**:
-    - Küçük hata düzeltmeleri
-    - Performans optimizasyonları
-
-### Kısa Vadeli (Bu Sprint)
-
-1.  Mobil uygulama testlerini tamamla
-2.  Push notification altyapısını kur
-3.  [x] Offline mod için POC yap ✅
-
-## Aktif Kararlar ve Düşünceler
-
-### Mobil Geliştirme (React Native + Expo)
-
-- **Karar**: Expo kullanımı.
-- **Sebep**: Hızlı geliştirme, kolay test (Expo Go) ve OTA güncellemeleri.
-- **Durum**: Tüm temel özellikler tamamlandı, test aşamasında.
-
-### Teknoloji Seçimleri (Web)
-
-**Next.js vs Ayrı Backend**
-- Karar: Next.js (full-stack framework)
-- Sebep: Tek projede hem frontend hem backend, hızlı development
-
-**Database Seçimi**
-- Karar: PostgreSQL + Prisma
-- Sebep: Güçlü ilişkisel veri modeli, type-safety
-
-**Authentication**
-- Karar: NextAuth.js
-- Sebep: Next.js ile entegrasyon, çok sayıda provider desteği
-
-### UI/UX Tercihleri
-
-**Mobil Arayüz**
-- Kart tabanlı tasarım (Job Cards).
-- Büyük dokunma alanları (Worker'lar için).
-- Renk kodlu durum göstergeleri.
-- Native hissi veren navigasyon.
-
-## Önemli Desenler ve Tercihler
-
-### Code Organization
-- Feature-based folder structure
-- Shared components ayrı klasör
-- API routes domain bazlı gruplandırma
-
-### Naming Conventions
-- camelCase: Değişkenler ve fonksiyonlar
-- PascalCase: Componentler ve tipler
-- kebab-case: Dosya isimleri
-- UPPER_CASE: Sabitler
-
-## Öğrenimler ve Proje İçgörüleri
-
-### Mobil Entegrasyon Zorlukları
-- **CORS**: Web API'ye mobilden erişimde CORS sorunları yaşandı. Next.js config'de headers ayarı gerekebilir.
-- **Network**: Localhost erişimi için Android emülatörde `10.0.2.2` veya fiziksel cihazda LAN IP kullanılması gerekiyor.
-- **State Management**: Context API basit durumlar için yeterli, ancak offline mod için daha gelişmiş bir çözüm (TanStack Query vb.) gerekebilir.
-
-### Kullanıcı İhtiyaçları
-- Basitlik ve hız çok önemli (montaj ekipleri sahada)
-- Mobil kullanım öncelikli
-- Offline çalışma ileride kritik olabilir
-- Bildirimler gerçek zamanlı olmalı
+### 📈 Orta Vadeli (2026 Q2)
+1. **AI Scheduling**: İşleri ve ekipleri lokasyon bazlı otomatik planlayan bir yapay zeka modülü araştırması.
+2. **Analytics Dashboard**: Müşteri bazlı karlılık ve gecikme raporlarının grafiksel derinleşmesi.
