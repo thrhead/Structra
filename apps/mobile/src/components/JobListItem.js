@@ -42,7 +42,7 @@ const renderStatusBadge = (status, theme, isDark) => {
     return null;
 };
 
-const JobListItem = ({ item, onPress }) => {
+const JobListItem = memo(({ item, onPress }) => {
     const { theme, isDark } = useTheme();
 
     return (
@@ -103,7 +103,7 @@ const JobListItem = ({ item, onPress }) => {
             </View>
         </TouchableOpacity>
     );
-};
+});
 
 const styles = StyleSheet.create({
     card: { borderRadius: 16, borderWidth: 1, marginBottom: 16, overflow: 'hidden' }, // Removing fixed bg and border

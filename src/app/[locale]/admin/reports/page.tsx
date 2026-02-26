@@ -23,12 +23,15 @@ import {
     getCostList
 } from "@/lib/data/reports"
 import { getAllTeamsReports, getTeamDetailedReports } from "@/lib/data/teams"
-import WeeklyStepsChart from "@/components/admin/reports/charts/WeeklyStepsChart"
-import JobDistributionChart from "@/components/admin/reports/charts/JobDistributionChart"
-import TeamPerformanceChart from "@/components/admin/reports/charts/TeamPerformanceChart"
-import CategoryPieChart from "@/components/admin/reports/charts/CategoryPieChart"
-import CostTrendChart from "@/components/admin/reports/charts/CostTrendChart"
-import TotalCostChart from "@/components/admin/reports/charts/TotalCostChart"
+import dynamic from 'next/dynamic'
+
+const WeeklyStepsChart = dynamic(() => import("@/components/admin/reports/charts/WeeklyStepsChart"), { ssr: false, loading: () => <div className="h-[350px] w-full flex items-center justify-center bg-slate-50 dark:bg-slate-900 animate-pulse rounded-lg">Yükleniyor...</div> })
+const JobDistributionChart = dynamic(() => import("@/components/admin/reports/charts/JobDistributionChart"), { ssr: false, loading: () => <div className="h-[300px] w-full bg-slate-50 dark:bg-slate-900 animate-pulse rounded-lg"></div> })
+const TeamPerformanceChart = dynamic(() => import("@/components/admin/reports/charts/TeamPerformanceChart"), { ssr: false, loading: () => <div className="h-[300px] w-full bg-slate-50 dark:bg-slate-900 animate-pulse rounded-lg"></div> })
+const CategoryPieChart = dynamic(() => import("@/components/admin/reports/charts/CategoryPieChart"), { ssr: false, loading: () => <div className="h-[300px] w-full bg-slate-50 dark:bg-slate-900 animate-pulse rounded-lg"></div> })
+const CostTrendChart = dynamic(() => import("@/components/admin/reports/charts/CostTrendChart"), { ssr: false, loading: () => <div className="h-[300px] w-full bg-slate-50 dark:bg-slate-900 animate-pulse rounded-lg"></div> })
+const TotalCostChart = dynamic(() => import("@/components/admin/reports/charts/TotalCostChart"), { ssr: false })
+
 import CostListTable from "@/components/admin/reports/CostListTable"
 import VarianceTable from "@/components/admin/reports/VarianceTable"
 import KPICards from "@/components/admin/reports/KPICards"
@@ -51,6 +54,7 @@ export default function AdminReportsPage(props: {
     const [loadingTeam, setLoadingTeam] = useState(false)
 
     useEffect(() => {
+        let isMounted = true;
         async function load() {
             setLoading(true)
             const searchParams = await props.searchParams;
@@ -66,38 +70,48 @@ export default function AdminReportsPage(props: {
             from.setHours(0, 0, 0, 0);
             to.setHours(23, 59, 59, 999);
 
-            const [
-                generalStats, allJobs, weeklySteps, jobDistribution,
-                teamPerformance, filterJobs, filterCategories, costBreakdown,
-                costTrend, totalTrend, pendingCostsList, costList, teamsReportData,
-                varianceData
-            ] = await Promise.all([
-                getReportStats(from, to, jobStatus, jobId, category),
-                getJobsForReport(),
-                getWeeklyCompletedSteps(),
-                getJobStatusDistribution(from, to, jobStatus, jobId),
-                getTeamPerformance(from, to, jobStatus, jobId),
-                getJobsListForFilter(jobStatus),
-                getCategoriesForFilter(),
-                getCostBreakdown(from, to, costStatus, jobStatus, jobId, category),
-                getCostTrend(from, to, costStatus, jobStatus, jobId, category),
-                getTotalCostTrend(from, to, costStatus, jobStatus, jobId, category),
-                getPendingCostsList(from, to, jobStatus, jobId, category),
-                getCostList(from, to, costStatus, jobStatus, jobId, category),
-                getAllTeamsReports(),
-                fetch('/api/admin/reports/variance').then(res => res.json()).catch(() => [])
-            ])
+            try {
+                const [
+                    generalStats, allJobs, weeklySteps, jobDistribution,
+                    teamPerformance, filterJobs, filterCategories, costBreakdown,
+                    costTrend, totalTrend, pendingCostsList, costList, teamsReportData,
+                    varianceData
+                ] = await Promise.all([
+                    getReportStats(from, to, jobStatus, jobId, category),
+                    getJobsForReport(),
+                    getWeeklyCompletedSteps(),
+                    getJobStatusDistribution(from, to, jobStatus, jobId),
+                    getTeamPerformance(from, to, jobStatus, jobId),
+                    getJobsListForFilter(jobStatus),
+                    getCategoriesForFilter(),
+                    getCostBreakdown(from, to, costStatus, jobStatus, jobId, category),
+                    getCostTrend(from, to, costStatus, jobStatus, jobId, category),
+                    getTotalCostTrend(from, to, costStatus, jobStatus, jobId, category),
+                    getPendingCostsList(from, to, jobStatus, jobId, category),
+                    getCostList(from, to, costStatus, jobStatus, jobId, category),
+                    getAllTeamsReports(),
+                    fetch('/api/admin/reports/variance').then(res => res.json()).catch(() => [])
+                ])
 
-            setData({
-                generalStats, allJobs, weeklySteps, jobDistribution,
-                teamPerformance, filterJobs, filterCategories, costBreakdown,
-                costTrend, totalTrend, pendingCostsList, costList, teamsReportData,
-                varianceData,
-                activeTab: searchParams?.tab || 'overview'
-            })
-            setLoading(false)
+                if (isMounted) {
+                    setData({
+                        generalStats, allJobs, weeklySteps, jobDistribution,
+                        teamPerformance, filterJobs, filterCategories, costBreakdown,
+                        costTrend, totalTrend, pendingCostsList, costList, teamsReportData,
+                        varianceData,
+                        activeTab: searchParams?.tab || 'overview'
+                    })
+                }
+            } catch (error) {
+                console.error('Error loading reports:', error);
+            } finally {
+                if (isMounted) setLoading(false)
+            }
         }
         load()
+        return () => {
+            isMounted = false;
+        };
     }, [props.searchParams])
 
     const handleTeamSelect = async (teamId: string) => {
