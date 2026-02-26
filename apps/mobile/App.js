@@ -86,7 +86,7 @@ function AppNavigator() {
       <NavigationContainer linking={linking}>
         <Stack.Navigator
           initialRouteName={getInitialRoute(user)}
-          detachInactiveScreens={false}
+          detachInactiveScreens={true}
           screenOptions={({ navigation, route }) => ({
             animationEnabled: false,
             headerShown: true,

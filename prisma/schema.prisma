@@ -163,6 +163,7 @@ model JobStep {
   subSteps        JobSubStep[]
   photos          StepPhoto[]
 
+  @@index([jobId])
   @@map("job_steps")
 }
 
@@ -186,6 +187,7 @@ model JobSubStep {
   step            JobStep     @relation(fields: [stepId], references: [id], onDelete: Cascade)
   photos          StepPhoto[]
 
+  @@index([stepId])
   @@map("job_sub_steps")
 }
 
@@ -200,6 +202,9 @@ model StepPhoto {
   subStep      JobSubStep? @relation(fields: [subStepId], references: [id])
   uploadedBy   User        @relation(fields: [uploadedById], references: [id])
 
+  @@index([stepId])
+  @@index([subStepId])
+  @@index([uploadedById])
   @@map("step_photos")
 }
 
@@ -213,6 +218,9 @@ model JobAssignment {
   team       Team?    @relation(fields: [teamId], references: [id])
   worker     User?    @relation(fields: [workerId], references: [id])
 
+  @@index([jobId])
+  @@index([teamId])
+  @@index([workerId])
   @@map("job_assignments")
 }
 
@@ -227,6 +235,7 @@ model Notification {
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId, isRead])
   @@map("notifications")
 }
 
@@ -244,6 +253,8 @@ model Approval {
   job         Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
   requester   User     @relation("Requester", fields: [requesterId], references: [id])
 
+  @@index([jobId])
+  @@index([requesterId])
   @@map("approvals")
 }
 
@@ -310,6 +321,7 @@ model PushToken {
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@map("push_tokens")
 }
 
@@ -322,6 +334,7 @@ model Conversation {
   job       Job?      @relation(fields: [jobId], references: [id], onDelete: Cascade)
   messages  Message[]
 
+  @@index([jobId])
   @@map("conversations")
 }
 
@@ -341,6 +354,10 @@ model Message {
   receiver       User?         @relation("MessageReceiver", fields: [receiverId], references: [id])
   sender         User          @relation("MessageSender", fields: [senderId], references: [id])
 
+  @@index([conversationId, sentAt])
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([jobId])
   @@map("messages")
 }
 
@@ -357,6 +374,7 @@ model ApiKey {
   updatedAt DateTime         @updatedAt
   logs      IntegrationLog[]
 
+  @@index([userId])
   @@map("api_keys")
 }
 
@@ -376,6 +394,8 @@ model IntegrationLog {
   createdAt  DateTime @default(now())
   apiKey     ApiKey?  @relation(fields: [apiKeyId], references: [id], onDelete: SetNull)
 
+  @@index([apiKeyId, createdAt])
+  @@index([webhookId])
   @@map("integration_logs")
 }
 
@@ -422,5 +442,6 @@ model SystemLog {
 
   @@index([level, createdAt])
   @@index([platform, createdAt])
+  @@index([userId])
   @@map("system_logs")
 }
