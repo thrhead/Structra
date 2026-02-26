@@ -1,68 +1,75 @@
-# Structra - Assembly & Field Service Tracker
+# Structra - Saha Operasyonları ve Montaj Takip Platformu
 
-Structra, saha montaj ve servis ekiplerini uçtan uca takip etmek için geliştirilmiş kapsamlı bir iş yönetim platformudur. Web tabanlı yönetim paneli ve yerel mobil uygulaması ile fabrika dışı operasyonların şeffaflığını artırır.
-
-## 🚀 Öne Çıkan Özellikler
-
-- **Çoklu Rol Yönetimi**: Admin, Yönetici, Ekip Lideri, Çalışan ve Müşteri rolleri.
-- **İnteraktif İş Takibi**: Adım ve alt adım bazlı checklist, zaman takibi (Başlangıç/Bitiş).
-- **Mobil Odaklılık**: Expo tabanlı, çevrimdışı çalışma desteği sunan yerel uygulama.
-- **Maliyet ve Onay**: Harcama takibi ve yönetici onay mekanizması.
-- **Gerçek Zamanlı Bildirimler**: Socket.IO ile anlık durum güncellemeleri.
-- **Görsel Dokümantasyon**: İş adımlarına fotoğraf yükleme ve galeri yönetimi.
-- **Raporlama**: Ekip performansı, maliyet analizi ve PDF/Excel rapor export.
-
-## 🛠️ Teknik Stack
-
-### Web & API
-- **Framework**: Next.js 14 (App Router)
-- **UI**: React 18, TailwindCSS, shadcn/ui
-- **ORM**: Prisma (PostgreSQL)
-- **Auth**: NextAuth.js
-- **Real-time**: Socket.IO
-
-### Mobil
-- **Platform**: React Native (Expo SDK 51)
-- **Storage**: AsyncStorage (Offline Sync)
-- **Maps**: Native Map Integration
-
-## 📦 Kurulum
-
-### Gereksinimler
-- Node.js 18+
-- PostgreSQL Veritabanı
-
-### Adımlar
-
-1. **Repoyu Klonlayın**:
-   ```bash
-   git clone https://github.com/thrhead/Structra.git
-   cd Structra
-   ```
-
-2. **Bağımlılıkları Kurun**:
-   ```bash
-   npm install
-   cd apps/mobile && npm install
-   ```
-
-3. **Veritabanı Kurulumu**:
-   `.env` dosyasını oluşturun ve `DATABASE_URL` bilgisini girin.
-   ```bash
-   npx prisma db push
-   npx prisma db seed
-   ```
-
-4. **Uygulamayı Başlatın**:
-   - Web: `npm run dev`
-   - Mobil: `cd apps/mobile && npx expo start`
-
-## 🏗️ Mimari ve Dokümantasyon
-
-Projenin teknik detayları, mimari kararları ve ilerleme durumu için `memory-bank` klasörüne göz atabilirsiniz:
-- `memory-bank/systemPatterns.md`: Mimaride kullanılan desenler.
-- `memory-bank/techContext.md`: Teknik bağımlılıklar ve kurulum detayları.
-- `memory-bank/activeContext.md`: Güncel çalışma odağı ve son kararlar.
+Structra, saha ekiplerini yöneten işletmeler için tasarlanmış, uçtan uca izlenebilirlik sağlayan modern bir iş yönetim çözümüdür. Fabrika dışındaki montaj, servis ve bakım süreçlerini dijitalleştirerek verimliliği artırır ve maliyet kontrolü sağlar.
 
 ---
-*Bu proje modern yazılım mühendisliği prensipleri ve yüksek performans hedefleriyle geliştirilmiştir.*
+
+## 🌟 Öne Çıkan Özellikler
+
+### 🛡️ Çok Katmanlı Yönetim
+- **Admin**: Sistem genelinde kullanıcı, müşteri ve log yönetimi.
+- **Manager**: İş planlama, ekip atama ve tamamlanan işlerin onayı.
+- **Worker**: Saha checklist'leri, fotoğraf yükleme ve masraf girişi.
+- **Customer**: İş ilerlemesini izleme, tahmini bitiş tarihi ve servis raporları.
+
+### 👷 Saha Odaklı Mobil Deneyim
+- **Çevrimdışı (Offline) Mod**: İnternet bağlantısı koptuğunda veri girişine devam etme ve otomatik senkronizasyon.
+- **Dijital Kanıt**: Her iş adımı için fotoğraf yükleme ve konuma dayalı doğrulama.
+- **Zaman Takibi**: Her alt görev için net başlama ve bitiş saatleri.
+
+### 📊 Akıllı Analiz ve Raporlama
+- **Ekip Performansı**: Ekiplerin iş tamamlama süreleri ve verimlilik grafikleri.
+- **Maliyet Kontrolü**: Saha harcamalarının anlık takibi ve bütçe analizi.
+- **Dökümantasyon**: Tek tıkla profesyonel PDF servis raporları ve Excel veri çıktıları.
+
+## 🚀 Teknik Mimari
+
+Structra, 2026 standartlarına uygun yüksek performanslı bir teknoloji yığını ile inşa edilmiştir:
+
+- **Frontend**: Next.js 14 (App Router) & React 18
+- **Mobile**: React Native & Expo (Cross-platform)
+- **Database**: PostgreSQL with Prisma ORM
+- **Real-time**: Socket.IO ile anlık bildirim sistemi
+- **Optimizasyon**: `next/image` optimizasyonu ve veritabanı indekslemesi ile yüksek hız
+- **Güvenlik**: NextAuth.js v4 & Rol bazlı erişim kontrolü (RBAC)
+
+## 📦 Hızlı Başlangıç
+
+### 1. Kurulum
+```bash
+# Repoyu çekin
+git clone https://github.com/thrhead/Structra.git
+cd Structra
+
+# Bağımlılıkları yükleyin
+npm install
+cd apps/mobile && npm install
+```
+
+### 2. Veritabanı ve Ortam Değişkenleri
+Ana dizinde bir `.env` dosyası oluşturun:
+```env
+DATABASE_URL="postgresql://..."
+NEXTAUTH_SECRET="your-secret"
+NEXTAUTH_URL="http://localhost:3000"
+```
+
+Veritabanını hazırlayın:
+```bash
+npx prisma db push
+npx prisma db seed
+```
+
+### 3. Uygulamayı Çalıştırma
+- **Web Paneli**: `npm run dev`
+- **Mobil Uygulama**: `cd apps/mobile && npx expo start`
+
+## 📖 Dokümantasyon
+
+Proje hakkında daha detaylı teknik bilgi ve mimari kararlar için `memory-bank` klasörünü inceleyebilirsiniz:
+- [Sistem Desenleri](memory-bank/systemPatterns.md)
+- [Teknik Detaylar](memory-bank/techContext.md)
+- [Proje İlerlemesi](memory-bank/progress.md)
+
+---
+*Geleceğin saha operasyonlarını bugün Structra ile yönetin.*
