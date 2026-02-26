@@ -355,11 +355,12 @@ export default function CustomerJobDetailPage(props: { params: Promise<{ id: str
           {job.signatureUrl && (
             <div className="pt-4 border-t">
               <p className="font-medium text-sm text-gray-900 mb-2">Müşteri İmzası</p>
-              <div className="border rounded-lg p-2 bg-white max-w-[300px]">
-                <img
+              <div className="border rounded-lg p-2 bg-white max-w-[300px] relative min-h-[150px]">
+                <Image
                   src={job.signatureUrl}
                   alt="Dijital İmza"
-                  className="w-full h-auto object-contain"
+                  fill
+                  className="object-contain"
                 />
               </div>
             </div>

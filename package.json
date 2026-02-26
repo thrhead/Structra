@@ -9,12 +9,11 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint . && cd apps/mobile && npm run lint",
-    "test": "vitest && cd apps/mobile && npm run test",
+    "test": "vitest",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "db:sync": "prisma generate && prisma db push",
-    "test": "vitest",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
@@ -91,7 +90,7 @@
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-react": "^5.18.0",
     "@types/uuid": "^10.0.0",
-    "@vitejs/plugin-react": "^4.3.1",
+    "@vitejs/plugin-react": "^4.7.0",
     "@vitest/coverage-v8": "^2.0.5",
     "eslint": "^9",
     "eslint-config-next": "^14.2.15",

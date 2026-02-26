@@ -1,4 +1,10 @@
-import Calendar from '@/components/admin/Calendar'
+import dynamic from 'next/dynamic'
+import { Skeleton } from '@/components/ui/skeleton'
+
+const Calendar = dynamic(() => import('@/components/admin/Calendar'), {
+    ssr: false,
+    loading: () => <Skeleton className="w-full h-full min-h-[600px] rounded-xl" />
+})
 import { auth } from '@/lib/auth'
 import { redirect } from '@/lib/navigation'
 

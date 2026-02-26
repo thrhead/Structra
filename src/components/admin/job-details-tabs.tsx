@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import dynamic from 'next/dynamic'
+import Image from 'next/image'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -370,11 +371,12 @@ export function AdminJobDetailsTabs({ job, workers, teams }: AdminJobDetailsTabs
                                     <CardTitle className="text-base">Müşteri İmzası</CardTitle>
                                 </CardHeader>
                                 <CardContent className="flex flex-col items-center">
-                                    <div className="border rounded-lg p-2 bg-white max-w-md w-full">
-                                        <img
+                                    <div className="border rounded-lg p-2 bg-white max-w-md w-full relative min-h-[200px]">
+                                        <Image
                                             src={job.signatureUrl}
                                             alt="Customer Signature"
-                                            className="w-full h-auto object-contain"
+                                            fill
+                                            className="object-contain"
                                         />
                                     </div>
                                     <div className="mt-4 flex flex-col items-center gap-2">
