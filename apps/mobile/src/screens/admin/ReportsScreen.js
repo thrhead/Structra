@@ -5,6 +5,8 @@ import { BarChart3, TrendingUp, DollarSign, Briefcase, Users, CheckCircle2, Cale
 import { useTheme } from '../../context/ThemeContext';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 import { API_URL } from '../../config';
 import GlassCard from '../../components/ui/GlassCard';
 
@@ -16,7 +18,8 @@ const ReportsScreen = () => {
     const [perfData, setPerfData] = useState(null);
     const [costData, setCostData] = useState(null);
     const [teamsData, setTeamsData] = useState(null);
-    const [activeTab, setActiveTab] = useState('performance'); // 'performance', 'costs', 'teams'
+    const [exportsData, setExportsData] = useState([]);
+    const [activeTab, setActiveTab] = useState('performance'); // 'performance', 'costs', 'teams', 'exports'
     const [selectedTemplate, setSelectedTemplate] = useState('standard');
     const [selectedDay, setSelectedDay] = useState(null);
 
@@ -40,18 +43,20 @@ const ReportsScreen = () => {
             setLoading(true);
             const token = await AsyncStorage.getItem('authToken');
             const headers = { Authorization: `Bearer ${token}` };
-            
-            const [perfRes, costRes, teamsRes] = await Promise.all([
+
+            const [perfRes, costRes, teamsRes, exportsRes] = await Promise.all([
                 axios.get(`${API_URL}/api/admin/reports/performance`, { headers }),
                 axios.get(`${API_URL}/api/admin/reports/costs`, { headers }),
-                axios.get(`${API_URL}/api/admin/reports/teams`, { headers }).catch(() => ({ data: { reports: [], globalStats: {} } }))
+                axios.get(`${API_URL}/api/admin/reports/teams`, { headers }).catch(() => ({ data: { reports: [], globalStats: {} } })),
+                axios.get(`${API_URL}/api/admin/reports/list`, { headers }).catch(() => ({ data: [] }))
             ]);
-            
+
             if (!isMounted) return;
 
             setPerfData(perfRes.data);
             setCostData(costRes.data);
             setTeamsData(teamsRes.data);
+            setExportsData(exportsRes.data);
 
             if (perfRes.data.weeklySteps?.currentWeek?.length > 0) {
                 setSelectedDay(perfRes.data.weeklySteps.currentWeek[perfRes.data.weeklySteps.currentWeek.length - 1]);
@@ -68,6 +73,36 @@ const ReportsScreen = () => {
         setActiveTab(temp.tab);
     };
 
+    const downloadReport = async (report) => {
+        try {
+            setLoading(true);
+            const token = await AsyncStorage.getItem('authToken');
+            const fileUri = FileSystem.documentDirectory + report.filename;
+
+            const downloadRes = await FileSystem.downloadAsync(
+                `${API_URL}/api/admin/reports/export/${report.id}`,
+                fileUri,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            if (downloadRes.status !== 200) {
+                alert('Rapor indirilemedi.');
+                return;
+            }
+
+            if (await Sharing.isAvailableAsync()) {
+                await Sharing.shareAsync(downloadRes.uri);
+            } else {
+                alert(`Dosya kaydedildi: ${downloadRes.uri}`);
+            }
+        } catch (error) {
+            console.error('Download error:', error);
+            alert('İndirme sırasında bir sorun oluştu.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     if (loading) {
         return (
             <View style={[styles.center, { backgroundColor: theme.colors.background }]}>
@@ -79,7 +114,7 @@ const ReportsScreen = () => {
     // Chart Data Preparation
     const getFilteredStackData = () => {
         if (!perfData?.weeklySteps?.currentWeek) return [];
-        
+
         return perfData.weeklySteps.currentWeek.map((day) => {
             const date = new Date(day.date);
             const label = date.toLocaleDateString('tr-TR', { weekday: 'short' });
@@ -117,7 +152,7 @@ const ReportsScreen = () => {
                     </Text>
                 </View>
             </View>
-            
+
             <View style={styles.teamStatsRow}>
                 <View style={styles.teamStat}>
                     <Text style={styles.teamStatLabel}>İŞLER</Text>
@@ -180,19 +215,22 @@ const ReportsScreen = () => {
 
             {/* Sekme Seçimi */}
             <View style={styles.tabContainer}>
-                {[
-                    { id: 'performance', label: 'Performans', icon: TrendingUp },
-                    { id: 'costs', label: 'Maliyetler', icon: DollarSign },
-                    { id: 'teams', label: 'Ekipler', icon: Users }
-                ].map((tab) => (
-                    <TouchableOpacity
-                        key={tab.id}
-                        style={[styles.tab, activeTab === tab.id && { borderBottomColor: theme.colors.primary, borderBottomWidth: 3 }]}
-                        onPress={() => setActiveTab(tab.id)}
-                    >
-                        <Text style={[styles.tabText, { color: activeTab === tab.id ? theme.colors.primary : theme.colors.subText }]}>{tab.label}</Text>
-                    </TouchableOpacity>
-                ))}
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 24, paddingRight: 40 }}>
+                    {[
+                        { id: 'performance', label: 'Performans', icon: TrendingUp },
+                        { id: 'costs', label: 'Maliyetler', icon: DollarSign },
+                        { id: 'teams', label: 'Ekipler', icon: Users },
+                        { id: 'exports', label: 'İndirmeler', icon: FileIcon }
+                    ].map((tab) => (
+                        <TouchableOpacity
+                            key={tab.id}
+                            style={[styles.tab, activeTab === tab.id && { borderBottomColor: theme.colors.primary, borderBottomWidth: 3, marginRight: 0 }]}
+                            onPress={() => setActiveTab(tab.id)}
+                        >
+                            <Text style={[styles.tabText, { color: activeTab === tab.id ? theme.colors.primary : theme.colors.subText }]}>{tab.label}</Text>
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
             </View>
 
             <View style={styles.content}>
@@ -292,6 +330,35 @@ const ReportsScreen = () => {
                                 {renderTeamItem({ item: team })}
                             </View>
                         ))}
+                    </View>
+                )}
+
+                {activeTab === 'exports' && (
+                    <View style={styles.animateContent}>
+                        {exportsData && exportsData.length > 0 ? (
+                            exportsData.map((report) => (
+                                <GlassCard key={report.id} style={[styles.teamCard, { flexDirection: 'row', alignItems: 'center' }]} theme={theme}>
+                                    <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(239,68,68,0.1)', alignItems: 'center', justifyContent: 'center', marginRight: 16 }}>
+                                        <FileIcon size={20} color="#ef4444" />
+                                    </View>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={{ fontSize: 16, fontWeight: 'bold', color: theme.colors.text }}>{report.title}</Text>
+                                        <Text style={{ fontSize: 12, color: theme.colors.subText }}>{report.customer} • {new Date(report.createdAt).toLocaleDateString('tr-TR')}</Text>
+                                    </View>
+                                    <TouchableOpacity
+                                        style={{ padding: 10, borderRadius: 12, backgroundColor: theme.colors.primary }}
+                                        onPress={() => downloadReport(report)}
+                                    >
+                                        <ArrowRight size={18} color="#fff" />
+                                    </TouchableOpacity>
+                                </GlassCard>
+                            ))
+                        ) : (
+                            <View style={{ padding: 40, alignItems: 'center' }}>
+                                <FileIcon size={48} color={theme.colors.subText} style={{ opacity: 0.5, marginBottom: 16 }} />
+                                <Text style={{ color: theme.colors.subText, fontSize: 16 }}>İndirilebilir rapor bulunamadı.</Text>
+                            </View>
+                        )}
                     </View>
                 )}
             </View>

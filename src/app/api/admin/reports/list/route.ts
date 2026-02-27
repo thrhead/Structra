@@ -1,11 +1,10 @@
-
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { auth } from '@/lib/auth';
+import { verifyAdminOrManager } from '@/lib/auth-helper';
 
-export async function GET() {
-    const session = await auth();
-    if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
+export async function GET(req: Request) {
+    const session = await verifyAdminOrManager(req);
+    if (!session) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

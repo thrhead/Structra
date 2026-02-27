@@ -1,28 +1,26 @@
-# Raporlar "Dışa Aktar" ve "500 Internal Server Error" Çözümü (Issue #16)
+# Web ve Mobil Raporlama Bölümlerinin Eşitlenmesi (Issue #12)
 
-Bu belge, Github Issue #16 kapsamında belirtilen `api/admin/reports/list` ve dışa aktarma (export) işlemlerinde meydana gelen 500 (Internal Server Error) hatasını gidermek için kurgulanmış Orkestrasyon Planıdır.
+Bu belge, Github Issue #12 kapsamında belirtilen "Her iki uygulamada da (Web & Mobil) raporların aynı olması" talebini gidermek üzere kurgulanmış Orkestrasyon Planıdır. Issue #16 kapsamında Web uygulaması için hazırlanan Dinamik Rapor İndirme (`api/admin/reports/export/[id]`) altyapısının Mobil uygulamaya (React Native) entegrasyonunu hedefler.
 
-## Hatanın Kök Nedeni (Root Cause)
-Hata incelendiğinde `src/lib/reports-storage.ts` dosyasında `fs.readdirSync`, `fs.mkdirSync` gibi yerel diske (Local disk) direkt olarak dosya yazma/okuma operasyonları yapıldığı tespit edilmiştir:
-- Rapor sistemleri **Vercel** gibi tamamen sunucusuz (Serverless) mimarilere dağıtıldığında yerel işletim sistemi belleğine (storage/reports) erişim yoktur (Read-only disk) ve bu nedenle klasör açılamaz (ENOENT hatası). 
+## Kök Nedenler ve Teknik Analiz
+1. Mobil uygulamanın `ReportsScreen.js` sayfasında şu an sadece İstatistik grafikleri (Performans, Ekipler vb.) bulunmaktadır. Dışa aktarılabilen "İndirilebilir Raporlar" listesi mevcut değildir.
+2. Web için yeni yazdığımız `/api/admin/reports/list` ve `/api/admin/reports/export/[id]` uç noktaları sadecce `NextAuth` Session Çerezleri (Cookie) ile doğrulama yapmaktadır. Oysa Mobil uygulama `Authorization: Bearer <Token>` yapısıyla API sorgusu atmaktadır. Bu durum Mobilden istek atıldığında **401 Unauthorized** hatasına sebep olacaktır.
+3. Web üzerinde çalışan `window.open` indirme mantığı mobilde geçersizdir. PDF'in indirilip telefonda gösterilmesi için expo/react-native dosya sistemi işlevleri (`expo-file-system` veya `expo-sharing` ile HTTP Header'lı indirme) kullanılmalıdır.
 
-## Çözüm Planı (Kullanılacak Ajanlar: backend-specialist, frontend-specialist, devops-engineer, test-engineer)
+## Çözüm Planı (Kullanılacak Ajanlar: backend-specialist, mobile-developer, test-engineer)
 
-### 1. BACKEND: Rapor Depolama Mekanizmasının Revizyonu (`backend-specialist`)
-* `src/lib/reports-storage.ts` modülü yeniden yazılacak.
-* Sunucu belleğine statik dosya yazmak (fs) yerine;
-  - Rapor oluştururken (Export butonuna basıldığında) veriyi **direkt bellekten Buffer** ile Base64 string'e çevirip Frontend'e `data:application/pdf;base64,...` veya binary octet-stream olarak indirmesi sağlanabilir. (Çünkü raporlar Job detayından "O anki güncel verilerle" taze oluşturulmak üzere tasarlanmıştır.)
-  - Mevcut "Daha önceden üretilen raporlar" (Stored Reports) yapısı devre dışı bırakılacak; liste ve tablo görünümü `jobs` (iş emirleri) listesi üzerinden dinamik "Rapor İndir" butonuna dönüştürülecek.
-  - `api/admin/reports/list` temizlenecek veya aktif olan ve indirilebilir iş emirlerini (jobs) getirecek şekilde ayarlanacak. 
+### 1. BACKEND: Token Uyumlu Auth Denetimi (`backend-specialist`)
+* `src/app/api/admin/reports/list/route.ts` ve `src/app/api/admin/reports/export/[id]/route.ts` API'lerinde yer alan `auth()` metoduna ek olarak; **eğer mobil token gelirse `verifyAuth()` üzerinden** de session'ın çözülmesi sağlanacak. Böylece API hem mobilden (Bearer token) hem de web'den (Cookie) gelen isteklerle eşit derecede çalışabilecek.
 
-### 2. FRONTEND: Raporlar Arayüzünün Onarımı (`frontend-specialist`)
-* `src/components/admin/report-table.tsx` veya rapor listeleme componentleri bulunup incelenecek. Eskiden kalan "Local Files (`listStoredReports`)" beklentisi düzeltilecek.
-* Eski (çalışmayan) "Dışa aktar" (`Export`) butonu Vercel serverless ortamında statik diske erişemediği için UI katmanında Buffer base64'lü formata (`pdf-make` vb) uydurulacak. Export edildiğinde `blob:` linkiyle anında `download` tetiklenecek.
+### 2. FRONTEND (MOBILE): Raporlar Ekranının Geliştirilmesi (`mobile-developer`)
+* `apps/mobile/src/screens/admin/ReportsScreen.js` dosyasına "Rapor İndirmeleri (Export)" isimli 4. bir Tab eklenecek.
+* Bu Tab aktifleştiğinde Web ile birebir aynı listeyi veren `/api/admin/reports/list` endpointine `Bearer <Token>` ile bağlanıp Tamamlanmış iş dosyalarını listeleyecek.
+* **İndirme (Download):** Herhangi bir listenin indirme ikonuna basıldığında, dosyayı indirmek için token'lı bir fetch operasyonu (veya `expo-file-system.downloadAsync` header destekli opsiyonları) yapılarak tarayıcı ihtiyacı olmadan direkt telefonun paylaşım ekranında veya önizlemesinde PDF sunulacak. 
 
-### 3. VERIFICATION & DEVOPS (`devops-engineer`, `test-engineer`)
-* Derleme testleri yapılacak (`tsc --noEmit`).
-* Vercel deploymentına hazırlık amacıyla `.agent/skills/vulnerability-scanner/scripts/security_scan.py` koşturularak bu yerel disk yazma açıkları (FS Injection) tamamen temizlenmiş mi kontrol edilecek.
+### 3. VERIFICATION (`test-engineer`, `devops-engineer`)
+* Typescript derleme testleri yapılacak (`tsc --noEmit`).
+* Security script'in zafiyete neden olmadan geçtiği test edilecek.
 
 ---
 
-**Onay Bekleniyor:** Plan incelenip onaylandığı takdirde bu adımlar (`Phase 2: Implementation`) dahilinde ilgili ajanlar (minimum 3 farklı) çağrılarak uygulanmaya başlanacaktır.
+**Onay Bekleniyor:** Plan incelenip onaylandığı takdirde bu adımlar (`Phase 2: Implementation`) dahilinde ilgili ajanlar eş zamanlı (paralel) uygulanmaya başlanacaktır.
