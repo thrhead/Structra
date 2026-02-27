@@ -208,14 +208,41 @@ export function AdvancedFilter({ teams }: AdvancedFilterProps) {
 
                     {/* Date Range Section */}
                     <div className="space-y-3 pb-4">
-                        <Label className="text-sm font-semibold">Tarih Aralığı</Label>
-                        <div className="border rounded-xl p-3 bg-white dark:bg-slate-900 shadow-inner">
+                        <div className="flex items-center justify-between">
+                            <Label className="text-sm font-semibold">Tarih Aralığı</Label>
+                            {dateRange?.from && (
+                                <button 
+                                    onClick={() => setDateRange(undefined)}
+                                    className="text-[10px] font-bold text-red-500 uppercase hover:underline"
+                                >
+                                    Sıfırla
+                                </button>
+                            )}
+                        </div>
+                        
+                        {/* Date Summary Badge */}
+                        <div className={cn(
+                            "flex items-center gap-2 p-3 rounded-lg border text-sm font-medium transition-colors",
+                            dateRange?.from ? "bg-primary/5 border-primary text-primary" : "bg-muted/30 border-transparent text-muted-foreground"
+                        )}>
+                            <CalendarIcon className="h-4 w-4" />
+                            {dateRange?.from ? (
+                                <span>
+                                    {format(dateRange.from, 'd MMM yyyy', { locale: tr })}
+                                    {dateRange.to && ` - ${format(dateRange.to, 'd MMM yyyy', { locale: tr })}`}
+                                </span>
+                            ) : (
+                                <span>Tarih seçilmedi</span>
+                            )}
+                        </div>
+
+                        <div className="border rounded-xl bg-white dark:bg-slate-900 shadow-sm overflow-hidden flex justify-center">
                             <Calendar
                                 mode="range"
                                 selected={dateRange}
                                 onSelect={setDateRange as any}
                                 locale={tr}
-                                className="w-full"
+                                className="scale-95 sm:scale-100"
                             />
                         </div>
                     </div>

@@ -68,7 +68,9 @@ export default function WorkerJobsScreen() {
         selectedFilter,
         setSelectedFilter,
         searchQuery,
-        setSearchQuery
+        setSearchQuery,
+        dateFilter,
+        setDateFilter
     } = useJobFiltering(jobs);
 
     const onRefresh = async () => {
@@ -109,7 +111,10 @@ export default function WorkerJobsScreen() {
             <JobSearchHeader
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
-                theme={theme}
+                selectedFilter={selectedFilter}
+                setSelectedFilter={setSelectedFilter}
+                dateFilter={dateFilter}
+                setDateFilter={setDateFilter}
             />
 
             <JobFilterTabs

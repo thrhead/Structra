@@ -1,8 +1,10 @@
 import { useState, useMemo } from 'react';
+import { isToday, isTomorrow, isThisWeek, parseISO } from 'date-fns';
 
 export const useJobFiltering = (jobs) => {
     const [selectedFilter, setSelectedFilter] = useState('Tümü');
     const [searchQuery, setSearchQuery] = useState('');
+    const [dateFilter, setDateFilter] = useState('Tümü'); // Tümü, Bugün, Yarın, Bu Hafta
 
     const filteredJobs = useMemo(() => {
         let result = [...(jobs || [])];
@@ -14,10 +16,20 @@ export const useJobFiltering = (jobs) => {
             result = result.filter(j => j.status === 'PENDING');
         } else if (selectedFilter === 'Onay Bekleyen') {
             result = result.filter(j => j.status === 'PENDING_APPROVAL');
-        } else if (selectedFilter === 'Onaylanan') {
-            result = result.filter(j => j.status === 'COMPLETED' && j.acceptanceStatus === 'ACCEPTED');
         } else if (selectedFilter === 'Tamamlanan') {
-            result = result.filter(j => j.status === 'COMPLETED' || j.status === 'PENDING_APPROVAL');
+            result = result.filter(j => j.status === 'COMPLETED');
+        }
+
+        // Date Filter
+        if (dateFilter !== 'Tümü') {
+            result = result.filter(j => {
+                if (!j.scheduledDate) return false;
+                const date = parseISO(j.scheduledDate);
+                if (dateFilter === 'Bugün') return isToday(date);
+                if (dateFilter === 'Yarın') return isTomorrow(date);
+                if (dateFilter === 'Bu Hafta') return isThisWeek(date, { weekStartsOn: 1 });
+                return true;
+            });
         }
 
         // Search Filter
@@ -46,13 +58,15 @@ export const useJobFiltering = (jobs) => {
         });
 
         return result;
-    }, [jobs, selectedFilter, searchQuery]);
+    }, [jobs, selectedFilter, searchQuery, dateFilter]);
 
     return {
         filteredJobs,
         selectedFilter,
         setSelectedFilter,
         searchQuery,
-        setSearchQuery
+        setSearchQuery,
+        dateFilter,
+        setDateFilter
     };
 };
