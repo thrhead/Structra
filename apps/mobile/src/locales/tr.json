@@ -117,7 +117,10 @@
       "totalJobs": "Toplam İş",
       "activeTeams": "Aktif Ekip",
       "completedJobs": "Tamamlanan",
-      "pendingJobs": "Bekleyen"
+      "pendingJobs": "Bekleyen",
+      "todayCost": "Bugün Harcanan",
+      "pendingCost": "Bekleyen Maliyet",
+      "approvedCost": "Onaylanan Maliyet"
     }
   },
   "jobs": {

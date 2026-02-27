@@ -117,7 +117,10 @@
       "totalJobs": "Total Jobs",
       "activeTeams": "Active Teams",
       "completedJobs": "Completed",
-      "pendingJobs": "Pending"
+      "pendingJobs": "Pending",
+      "todayCost": "Today's Cost",
+      "pendingCost": "Pending Cost",
+      "approvedCost": "Approved Cost"
     }
   },
   "jobs": {
