@@ -122,6 +122,23 @@ export async function getJobs({ page = 1, limit = 20, filter }: GetJobsParams = 
               worker: { select: { name: true } }
             }
           },
+          steps: {
+            select: {
+              isCompleted: true,
+              subSteps: {
+                select: {
+                  approvalStatus: true
+                }
+              }
+            }
+          },
+          costs: {
+            select: {
+              id: true,
+              amount: true,
+              status: true
+            }
+          },
           _count: {
             select: {
               steps: true

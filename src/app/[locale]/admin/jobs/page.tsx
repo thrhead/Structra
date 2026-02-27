@@ -202,18 +202,18 @@ export default async function JobsPage(props: {
           </TableHeader>
           <TableBody>
             {jobs.map((job) => {
-              const totalSteps = job.steps.length;
-              const completedSteps = job.steps.filter(s => s.isCompleted).length;
+              const totalSteps = job.steps?.length || 0;
+              const completedSteps = job.steps?.filter(s => s.isCompleted).length || 0;
               const progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
 
-              const pendingCosts = job.costs.filter(c => c.status === 'PENDING');
-              const approvedCosts = job.costs.filter(c => c.status === 'APPROVED');
+              const pendingCosts = job.costs?.filter(c => c.status === 'PENDING') || [];
+              const approvedCosts = job.costs?.filter(c => c.status === 'APPROVED') || [];
               const totalApprovedAmount = approvedCosts.reduce((sum, c) => sum + c.amount, 0);
               const totalPendingAmount = pendingCosts.reduce((sum, c) => sum + c.amount, 0);
 
               const hasPendingApprovals =
                 pendingCosts.length > 0 ||
-                job.steps.some(s => s.subSteps.some(ss => ss.approvalStatus === 'PENDING'));
+                (job.steps?.some(s => s.subSteps?.some(ss => ss.approvalStatus === 'PENDING')) || false);
 
               return (
                 <TableRow key={job.id}>
