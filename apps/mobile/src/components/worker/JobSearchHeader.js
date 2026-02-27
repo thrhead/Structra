@@ -11,6 +11,8 @@ const JobSearchHeader = ({
     setSelectedFilter,
     dateFilter,
     setDateFilter,
+    isAdmin,
+    onAddNewJob,
     title = "Görevler" 
 }) => {
     const { theme, isDark } = useTheme();
@@ -50,6 +52,15 @@ const JobSearchHeader = ({
             )}
 
             <View style={styles.headerRight}>
+                {isAdmin && !showSearch && (
+                    <TouchableOpacity
+                        style={[styles.actionButton, { backgroundColor: theme.colors.primary }]}
+                        onPress={onAddNewJob}
+                    >
+                        <MaterialIcons name="add" size={24} color="#fff" />
+                    </TouchableOpacity>
+                )}
+
                 <TouchableOpacity
                     style={styles.actionButton}
                     onPress={toggleSearch}

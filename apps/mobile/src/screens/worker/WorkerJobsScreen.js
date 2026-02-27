@@ -115,6 +115,8 @@ export default function WorkerJobsScreen() {
                 setSelectedFilter={setSelectedFilter}
                 dateFilter={dateFilter}
                 setDateFilter={setDateFilter}
+                isAdmin={isAdmin}
+                onAddNewJob={() => setModalVisible(true)}
             />
 
             <JobFilterTabs
@@ -139,11 +141,8 @@ export default function WorkerJobsScreen() {
 
             {isAdmin && (
                 <View style={styles.fabContainer}>
-                    <TouchableOpacity style={[styles.fab, { backgroundColor: '#3b82f6', marginBottom: 16 }]} onPress={() => setUploadModalVisible(true)}>
+                    <TouchableOpacity style={[styles.fab, { backgroundColor: '#3b82f6' }]} onPress={() => setUploadModalVisible(true)}>
                         <MaterialCommunityIcons name="file-excel-box" size={28} color="#fff" />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.fab, { backgroundColor: theme.colors.primary, shadowColor: theme.colors.primary }]} onPress={() => setModalVisible(true)}>
-                        <MaterialIcons name="add" size={30} color={theme.colors.textInverse || '#fff'} />
                     </TouchableOpacity>
                 </View>
             )}
