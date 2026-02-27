@@ -1,0 +1,140 @@
+{
+  "catalogue": [
+    {
+      "title": "🚀 Onboarding",
+      "name": "onboarding",
+      "prompt": "New to Structra? Start here. This section provides a high-level overview for senior engineers and a detailed learning path for newcomers.",
+      "children": [
+        {
+          "title": "Principal-Level Guide",
+          "name": "principal_guide",
+          "prompt": "A dense, opinionated guide for senior engineers. Focuses on core architecture, design tradeoffs, and strategic direction. Assumes expertise in full-stack development. Key files: package.json, next.config.js, prisma/schema.prisma.",
+          "children": [
+            {
+              "title": "Core Architectural Insight",
+              "name": "core_insight",
+              "prompt": "Structra operates as a pseudo-monorepo with two primary frontends (Next.js Web App and React Native/Expo Mobile App) sharing a single backend and database schema. The core insight is the data layer abstraction via Prisma, allowing both frontends to consume a consistent API surface. The backend is built using Next.js API Routes, providing serverless functions for data access. Real-time communication is handled by Socket.IO, integrated with the Next.js server. The mobile app is a PWA, built with Expo Web, which allows for a single codebase for web, iOS, and Android. Key files: server.ts, src/lib/data/jobs.ts, apps/mobile/src/services/job.service.js"
+            },
+            {
+              "title": "System Architecture Diagram",
+              "name": "architecture_diagram",
+              "prompt": "Visualize the system architecture with this Mermaid diagram. It shows the flow of data from the Next.js Web App and React Native Mobile App through the Next.js API layer to the PostgreSQL database, and the real-time communication via Socket.IO. \n\n```mermaid\ngraph TD\n    A[Next.js Web App] --> B{Next.js API Routes}\n    C[React Native Mobile App] --> B\n    B --> D[Prisma ORM]\n    D --> E[(PostgreSQL DB)]\n    B --> F[Socket.IO Server]\n    F --> A\n    F --> C\n```"
+            },
+            {
+              "title": "Design Tradeoffs",
+              "name": "design_tradeoffs",
+              "prompt": "Discusses key design decisions and their implications. \n\n- **Monorepo vs. Separate Repos:** The current structure is a 'pseudo-monorepo' which simplifies dependency management but can lead to a more complex build process. A full monorepo with tools like Turborepo could further optimize this. \n- **Serverless vs. Dedicated Server:** Using Next.js API Routes provides a serverless backend, which is cost-effective and scalable but can have limitations with long-running processes. A dedicated Node.js server (like in server.ts) is used for Socket.IO to overcome this. \n- **PWA vs. Native Mobile:** The mobile app is a PWA built with Expo Web, which allows for fast iteration and cross-platform compatibility, but may lack the performance and native feel of a true native app. Key files: next.config.js, apps/mobile/app.json, server.ts"
+            }
+          ]
+        },
+        {
+          "title": "Zero-to-Hero Learning Path",
+          "name": "learning_path",
+          "prompt": "A progressive learning path for newcomers to the Structra project. Starts with foundational technologies and moves to codebase specifics.",
+          "children": [
+            {
+              "title": "Part I: Technology Foundations",
+              "name": "tech_foundations",
+              "prompt": "Understand the core technologies used in Structra. \n\n- **Next.js:** A React framework for building server-side rendered and static web applications. Compare it to vanilla React to understand its benefits in SEO and performance. \n- **React Native & Expo:** A framework for building native mobile apps with React. Expo simplifies the development process. Compare it to native Android (Java/Kotlin) or iOS (Swift) development. \n- **Prisma:** A modern ORM for Node.js and TypeScript. Compare it to traditional query builders or other ORMs like TypeORM. Key files: package.json, apps/mobile/package.json, prisma/schema.prisma"
+            },
+            {
+              "title": "Part II: Codebase Architecture",
+              "name": "codebase_architecture",
+              "prompt": "Deep dive into the Structra codebase structure. \n\n- **Web App:** Located in 'src/', built with Next.js App Router. Key folders: 'src/app' (pages and layouts), 'src/components', 'src/lib/data' (Prisma queries). \n- **Mobile App:** Located in 'apps/mobile', built with Expo. Key folders: 'apps/mobile/src' (screens, components, services). \n- **Shared Logic:** 'prisma/' (database schema), 'src/lib/constants' (shared constants). Key files: src/app/[locale]/layout.tsx, apps/mobile/App.js, prisma/schema.prisma"
+            },
+            {
+              "title": "Part III: Development & Contribution",
+              "name": "dev_contribution",
+              "prompt": "How to set up your development environment, run tests, and contribute to the project. Follow the instructions in the README.md for setup. Run tests with 'npm test' for the web app and 'cd apps/mobile && npm test' for the mobile app. Key files: README.md, package.json, vitest.config.ts"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "🏁 Getting Started",
+      "name": "getting_started",
+      "prompt": "Quick start guide for setting up and running the Structra project. This section is derived from the project's README.md.",
+      "children": [
+        {
+          "title": "Installation",
+          "name": "installation",
+          "prompt": "Clone the repository and install dependencies for both the web and mobile apps. \n\n```bash\ngit clone https://github.com/thrhead/Structra.git\ncd Structra\nnpm install\ncd apps/mobile && npm install\n``` \nKey file: package.json"
+        },
+        {
+          "title": "Database & Environment Setup",
+          "name": "db_setup",
+          "prompt": "Set up your environment variables and prepare the database. Create a '.env' file in the root directory with the necessary variables. \n\n```env\nDATABASE_URL='postgresql://...'\nNEXTAUTH_SECRET='your-secret'\nNEXTAUTH_URL='http://localhost:3000'\n``` \n\nThen run the database commands: \n\n```bash\nnpx prisma db push\nnpx prisma db seed\n``` \nKey files: .env.example, prisma/schema.prisma, prisma/seed.ts"
+        },
+        {
+          "title": "Running the Application",
+          "name": "running_the_app",
+          "prompt": "Start the development servers for the web and mobile applications. \n\n- **Web App:** `npm run dev` \n- **Mobile App:** `cd apps/mobile && npx expo start` \nKey file: package.json"
+        }
+      ]
+    },
+    {
+      "title": "🔎 Deep Dive",
+      "name": "deep_dive",
+      "prompt": "A detailed exploration of the Structra codebase, broken down by architecture, subsystems, and components.",
+      "children": [
+        {
+          "title": "Web Application Architecture (src/)",
+          "name": "web_architecture",
+          "prompt": "The web application is a Next.js 14 project using the App Router. It serves as the admin and manager dashboard.",
+          "children": [
+            {
+              "title": "UI Layer (src/components/)",
+              "name": "web_ui_layer",
+              "prompt": "Reusable React components. Uses Radix UI and Tailwind CSS for styling. Key components: 'src/components/admin/job-dialog.tsx', 'src/components/admin/advanced-filter.tsx'."
+            },
+            {
+              "title": "Business Logic (src/lib/data/)",
+              "name": "web_business_logic",
+              "prompt": "Core data fetching and manipulation logic. Uses Prisma to interact with the database. Key file: 'src/lib/data/jobs.ts' containing 'getJobs'."
+            },
+            {
+              "title": "API Layer (src/app/api/)",
+              "name": "web_api_layer",
+              "prompt": "Next.js API Routes that expose the business logic to the frontends. Key file: 'src/app/api/admin/jobs/[jobId]/route.ts'."
+            }
+          ]
+        },
+        {
+          "title": "Mobile Application Architecture (apps/mobile/)",
+          "name": "mobile_architecture",
+          "prompt": "The mobile application is a React Native project managed with Expo. It is designed for field workers.",
+          "children": [
+            {
+              "title": "UI Layer (apps/mobile/src/screens/ & components/)",
+              "name": "mobile_ui_layer",
+              "prompt": "Screens and reusable components for the mobile app. Key files: 'apps/mobile/src/screens/worker/WorkerJobsScreen.js', 'apps/mobile/src/components/worker/JobSearchHeader.js'."
+            },
+            {
+              "title": "Business Logic (apps/mobile/src/hooks/ & services/)",
+              "name": "mobile_business_logic",
+              "prompt": "Hooks and services for managing state and data fetching. Key files: 'apps/mobile/src/hooks/useJobFiltering.js', 'apps/mobile/src/services/job.service.js'."
+            }
+          ]
+        },
+        {
+          "title": "Shared Core",
+          "name": "shared_core",
+          "prompt": "Code and configuration shared across both web and mobile applications.",
+          "children": [
+            {
+              "title": "Database Schema (prisma/)",
+              "name": "shared_db_schema",
+              "prompt": "The single source of truth for the database schema, defined using Prisma. Key file: 'prisma/schema.prisma'."
+            },
+            {
+              "title": "Constants (src/lib/constants/)",
+              "name": "shared_constants",
+              "prompt": "Shared constants like job statuses and priorities. Key file: 'src/lib/constants/jobs.ts'."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

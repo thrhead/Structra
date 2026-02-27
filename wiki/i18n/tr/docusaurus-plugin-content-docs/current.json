@@ -1,0 +1,46 @@
+{
+  "version.label": {
+    "message": "Next",
+    "description": "The label for version current"
+  },
+  "sidebar.tutorialSidebar.category.Tutorial - Basics": {
+    "message": "Tutorial - Basics",
+    "description": "The label for category 'Tutorial - Basics' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.Tutorial - Extras": {
+    "message": "Tutorial - Extras",
+    "description": "The label for category 'Tutorial - Extras' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.deepdive": {
+    "message": "deepdive",
+    "description": "The label for category 'deepdive' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.mobilearchitecture": {
+    "message": "mobilearchitecture",
+    "description": "The label for category 'mobilearchitecture' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.sharedcore": {
+    "message": "sharedcore",
+    "description": "The label for category 'sharedcore' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.webarchitecture": {
+    "message": "webarchitecture",
+    "description": "The label for category 'webarchitecture' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.gettingstarted": {
+    "message": "gettingstarted",
+    "description": "The label for category 'gettingstarted' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.onboarding": {
+    "message": "onboarding",
+    "description": "The label for category 'onboarding' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.learningpath": {
+    "message": "learningpath",
+    "description": "The label for category 'learningpath' in sidebar 'tutorialSidebar'"
+  },
+  "sidebar.tutorialSidebar.category.principalguide": {
+    "message": "principalguide",
+    "description": "The label for category 'principalguide' in sidebar 'tutorialSidebar'"
+  }
+}
