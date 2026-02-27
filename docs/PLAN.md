@@ -1,44 +1,24 @@
-# Plan: Web & Mobil Uygulama Onaylar (Approvals) Mantığının Yeniden Kurgulanması
+# Orchestration Plan - Issue #27 (İş Detayları Görev Ağacı Görünümü)
 
-## 1. Problem Tanımı
-**Issue #28:** Mobil uygulamada "Onaylar" ekranında (örneğin iş onayı vb.) görünen veriler, web uygulamasındaki aynı iş (job) altındaki onay mekanizmasıyla örtüşmüyor. Mobilde onayda olan bir iş, web uygulamasında ilgili işin altında doğru bir onay eşleşmesine sahip değil.
+## Durum Analizi
+Kullanıcı, iş detayları sayfasında görevlerin (steps ve substeps) normal bir liste (timeline) yerine, "ağaç (tree) şeklinde açılan, proje yılı, ayı ve numarasına göre ayrılıp dallanan, alt ve üst iş emirlerinin tamamlanma yüzdelerini (%) gösteren" bir grafiksel yapıda sunulmasını talep etmektedir.
 
-**Hedef:** Onay mantığını web ve mobil arasında senkron, tutarlı ve anlaşılır bir yapıya kavuşturmak için veritabanı, backend API ve frontend arayüzlerinde düzeltmeler ve yeniden kurgulamalar yapmak.
+Sistemde halihazırda `JobTimeline` bileşeni ile liste formatında gösterim yapılmakta, ancak hiyerarşik (org-chart stili) bir ağaç şeması bulunmamaktadır. Ekstra ağır bir third-party kütüphane (react-flow vb.) yüklemek yerine, performans açısından doğrudan Tailwind CSS ve dikey/yatay flex yapılarıyla ya da SVG bağlaçlarıyla bu görünüm elde edilebilir.
 
-## 2. Kullanılacak Beceriler (Skills)
-Bu problem, çoklu platformlarda (Web ve Mobil) tutarlı bir özellik geliştirmeyi gerektirdiği için `@.agent/antigravity-awesome-skills/skills` klasöründeki aşağıdaki beceri planlamaya dahil edilmiştir:
-- **`multi-platform-apps-multi-platform`**: API öncelikli mimari ve paralel geliştirme stratejileri kullanarak aynı özelliğin web ve mobil platformlarda tutarlı bir şekilde oluşturulması ve dağıtılması.
+## Uygulanacak Çözüm Adımları
+Bu sorun, yeni bir "Görev Ağacı" (Job Task Tree) bileşeninin oluşturulup, İş Detayları sekmelerine entegre edilmesiyle çözülecektir.
 
-## 3. Mimari ve Mantık (Logic) Değişikliği
-1. **Verimli Onay Modeli (Database Level):**
-   - Prisma şemasındaki `Approval` ve `Job` (ya da varsa `JobStep`) arasındaki ilişkiler gözden geçirilecek.
-   - Onay kaynağının (Müşteri mi, Yönetici mi, İşçi mi?) tek bir statü (`approvalStatus`) yerine merkezi bir `Approval` kaydı üzerinden takip edilmesi sağlanacak.
-2. **API Endpoint'lerinin Aynılaştırılması (Backend Level):**
-   - Web'in de mobilin de onay verilerini çektiği servisler ortaklaştırılacak (`/api/approvals` veya `/api/jobs/[id]/approvals`).
-   - Web uygulamasındaki "Pending Approvals" mantığı ile mobil uygulamanın kullandığı veri formatı birebir aynı veritabanı sorgularından (örneğin `status: 'PENDING'`) beslenecek.
-3. **Arayüzlerin Güncellenmesi (Frontend & Mobile Level):**
-   - **Web Uygulama:** Mevcut `approvals-list-client.tsx` veya onaylar tablosunun verileri, yeni API yapısına göre güncellenecek.
-   - **Mobil Uygulama:** React Native uygulamasının attığı istekler güncellenerek web tarafındaki statü ile anlık eşleşmesi ve gerçek zamanlı yansıması sağlanacak.
+1. **frontend-specialist (UI/UX Geliştirici)**:
+   - `src/components/charts/job-task-tree.tsx` adında yeni bir bileşen tasarlanacaktır.
+   - Bu bileşenin en üst nodu (kökü): `[Yıl] [Ay] - [Proje No]` şeklinde isimlendirilecek ve o işin toplam tamamlanma yüzdesini (`completedSteps / totalSteps * 100`) gösterecektir.
+   - Kök nodun altında Ana Adımlar (Steps) dallanacaktır. Her Ana Adım da kendi ilerleme oranını (%) ve altında Alt Görevleri (SubSteps) gösterecek şekilde hiyerarşik bir ağaç CSS'i (Tailwind flex/border ile) yapılacaktır.
+   - `src/components/admin/job-details-tabs.tsx` dosyasına `Görev Ağacı` sekmesi eklenecek ve yeni bileşen buraya dinamik (lazy-load) olarak dahil edilecektir.
 
-## 4. Görev Dağılımı ve Aşamalar (Phase 2 için Paralel Agent Kurulumu)
+2. **test-engineer (Doğrulama Biyologu)**:
+   - TypeScript derleme testleri (`tsc --noEmit`) yapılarak oluşturulan yeni bileşenin type-safety tarafında mevcut projedeki `TimelineStep` arabirimiyle (interface) uyuşup uyuşmadığı test edilecektir.
 
-### Aşama 1: Veritabanı ve API (Backend)
-- **Agent:** `backend-specialist` (veya `database-architect`)
-- **Görev:** `schema.prisma` dosyasındaki `Approval` entity'sini incele. Eğer mobilden atılan isteklerin DB'deki karşılığı, web logiğindeki `JobStep.approvalStatus` ile uyuşmuyorsa, ikisini tek bir yapıda (Unified Approval System) birleştir ve API endpoint'lerini (`src/app/api/...`) buna göre güncelle.
+3. **devops-engineer / security-auditor (Dağıtım Hazırlığı)**:
+   - Eklenen ağaç yapısının güvenlik zafiyeti (XSS vs.) barındırmadığından emin olmak ve Orchestration kuralını tamamlamak için `security_scan.py` çalıştırılacaktır.
 
-### Aşama 2: Web Uygulaması Arayüzü (Frontend)
-- **Agent:** `frontend-specialist`
-- **Görev:** Backend'in sağladığı yeni Onay (Approval) verilerini alıp, gösterge panosunda (Dashboard) ve iş detay sayfasında (Job Details) tutarlı bir "Onaylar" modülü oluştur. 
-
-### Aşama 3: Mobil Uygulama Arayüzü (Mobile)
-- **Agent:** `mobile-developer`
-- **Görev:** Mobil uygulamadaki (React Native) onaylar sayfasını (veya iş onayı sayfasını) yeniden yazılan API üzerinden beslenecek şekilde değiştir. Web arayüzü ile aynı veri kaynaklarının render edildiğinden emin ol.
-
-### Aşama 4: Test ve Verifikasyon
-- **Agent:** `test-engineer` / `security-auditor`
-- **Görev:** Değişiklikleri test et, yetkilendirmeleri (müşteri kendi işini mi onaylıyor vb.) kontrol et ve `security_scan.py` ve `lint_runner.py` gibi doğrulama komut dosyalarını çalıştır.
-
-## 5. Çıktılar (Deliverables)
-- DB Schema ve ilgili servis güncellemeleri,
-- Uyarlanmış yeni Frontend ve Mobil kodları,
-- Hatasız çalışan bir Onay/Approval yaşam döngüsü.
+## Devam Etme Onayı
+Plan oluşturuldu. Kullanıcı onayladığı takdirde Phase 2 (Implementasyon) aşamasında görev ağacı kodlanarak iş detayları sayfasına entegre edilecektir.

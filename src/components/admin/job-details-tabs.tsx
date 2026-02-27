@@ -46,6 +46,11 @@ const Assembly3DViewer = dynamic(
     { ssr: false, loading: () => <div className="h-[500px] bg-gray-100 rounded-lg animate-pulse flex items-center justify-center"><span className="text-gray-400 text-sm">3D Model yükleniyor...</span></div> }
 )
 
+const JobTaskTree = dynamic(
+    () => import('@/components/charts/job-task-tree').then(mod => mod.JobTaskTree),
+    { ssr: false, loading: () => <div className="h-[400px] bg-gray-100 rounded-lg animate-pulse" /> }
+)
+
 interface AdminJobDetailsTabsProps {
     job: any
     workers: { id: string; name: string | null }[]
@@ -104,9 +109,10 @@ export function AdminJobDetailsTabs({ job, workers, teams }: AdminJobDetailsTabs
             </div>
 
             <Tabs defaultValue="overview" className="w-full">
-                <TabsList className="grid w-full grid-cols-7">
+                <TabsList className="grid w-full grid-cols-[repeat(auto-fit,minmax(80px,1fr))] md:grid-cols-8 overflow-x-auto h-auto min-h-10">
                     <TabsTrigger value="overview">Genel Bakış</TabsTrigger>
                     <TabsTrigger value="timeline">Zaman Çizelgesi</TabsTrigger>
+                    <TabsTrigger value="task-tree">Görev Ağacı</TabsTrigger>
                     <TabsTrigger value="analytics">Grafikler</TabsTrigger>
                     <TabsTrigger value="3d-assembly" className="flex items-center gap-1">3D Montaj</TabsTrigger>
                     <TabsTrigger value="map">Harita</TabsTrigger>
@@ -125,6 +131,10 @@ export function AdminJobDetailsTabs({ job, workers, teams }: AdminJobDetailsTabs
                         completedDate={job.completedDate}
                         jobId={job.id}
                     />
+                </TabsContent>
+
+                <TabsContent value="task-tree" className="space-y-6">
+                    <JobTaskTree job={job} />
                 </TabsContent>
 
                 <TabsContent value="analytics" className="space-y-6">
