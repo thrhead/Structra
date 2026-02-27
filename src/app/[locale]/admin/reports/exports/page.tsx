@@ -12,7 +12,10 @@ import { Link } from '@/lib/navigation'
 import { toast } from 'sonner'
 
 interface StoredReport {
+    id: string
     filename: string
+    title: string
+    customer: string
     createdAt: string
 }
 
@@ -49,22 +52,22 @@ export default function ExportsPage() {
         if (selected.length === filteredReports.length) {
             setSelected([])
         } else {
-            setSelected(filteredReports.map(r => r.filename))
+            setSelected(filteredReports.map(r => r.id))
         }
     }
 
     const filteredReports = reports.filter(r =>
-        r.filename.toLowerCase().includes(search.toLowerCase())
+        (r.title || "").toLowerCase().includes(search.toLowerCase()) ||
+        (r.customer || "").toLowerCase().includes(search.toLowerCase())
     )
 
     const downloadSelected = async () => {
         if (selected.length === 0) return
         toast.info(`${selected.length} dosya indiriliyor...`)
 
-        // Simple sequential download or ZIP (ZIP is better but requires jszip lib)
-        // For now, we'll open them or trigger download
-        for (const filename of selected) {
-            window.open(`/api/v1/reports/download/${filename}`, '_blank')
+        // Trigger dynamic PDF stream routes in new tabs
+        for (const id of selected) {
+            window.open(`/api/admin/reports/export/${id}`, '_blank')
         }
     }
 
@@ -125,26 +128,30 @@ export default function ExportsPage() {
                             <div className="p-12 text-center text-muted-foreground">Rapor bulunamadı.</div>
                         ) : (
                             filteredReports.map((report) => (
-                                <div key={report.filename} className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors">
+                                <div key={report.id} className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors">
                                     <div className="flex items-center gap-4">
                                         <Checkbox
-                                            checked={selected.includes(report.filename)}
-                                            onCheckedChange={() => toggleSelect(report.filename)}
+                                            checked={selected.includes(report.id)}
+                                            onCheckedChange={() => toggleSelect(report.id)}
                                         />
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
                                                 <FileIcon className="w-5 h-5 text-red-600" />
                                             </div>
                                             <div>
-                                                <p className="font-medium text-sm">{report.filename}</p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    {format(new Date(report.createdAt), 'dd MMMM yyyy, HH:mm', { locale: tr })}
-                                                </p>
+                                                <p className="font-medium text-sm">{report.title}</p>
+                                                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                                                    <span className="font-semibold text-slate-600">{report.customer}</span>
+                                                    <span>•</span>
+                                                    <span>{format(new Date(report.createdAt), 'dd MMMM yyyy, HH:mm', { locale: tr })}</span>
+                                                    <span>•</span>
+                                                    <span className="text-[10px] text-slate-400 font-mono">{report.filename}</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                     <div className="flex gap-2">
-                                        <Button variant="ghost" size="icon" onClick={() => window.open(`/api/v1/reports/download/${report.filename}`, '_blank')}>
+                                        <Button variant="ghost" size="icon" onClick={() => window.open(`/api/admin/reports/export/${report.id}`, '_blank')}>
                                             <DownloadIcon className="w-4 h-4" />
                                         </Button>
                                     </div>

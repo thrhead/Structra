@@ -1,33 +1,28 @@
-# Gelişmiş Planlama & Zeka - Rota Optimizasyonu Revizyonu (Issue #24)
+# Raporlar "Dışa Aktar" ve "500 Internal Server Error" Çözümü (Issue #16)
 
-Bu modül, Structra mobil ve web uygulamasında ekiplerin sahadaki iş sıralamalarını (rota optimizasyonu) yönetmek için kullanılmaktadır. Kullanıcı tarafından bölümün "çalışmadığı" ve "daha düzenli/anlaşılır" olması gerektiği bildirilmiştir.
+Bu belge, Github Issue #16 kapsamında belirtilen `api/admin/reports/list` ve dışa aktarma (export) işlemlerinde meydana gelen 500 (Internal Server Error) hatasını gidermek için kurgulanmış Orkestrasyon Planıdır.
 
-## Mevcut Sorunlar
-1. **Çalışmama Durumu (Bug):** `react-leaflet` kütüphanesi sayfaya yüklenirken `leaflet/dist/leaflet.css` dosyası component içine dahil edilmemiş. CSS olmadan harita tamamen kırık/görünmez olarak render edilmektedir.
-2. **Kargaşa:** Harita ile rota listesi sıkışık görünmekte, rotaların toplam mesafe veya zaman önizlemesi bulunmamaktadır. Hangi ekibe kaç adres düştüğü net değil.
-3. **Backend API Eksikliği:** Backend (`optimize-routes/route.ts`), Haversine mesafe formulü ile rotayı sıralamakta ancak bu hesaplanan mesafeyi veya optimizasyon oranını Frontend'e döndürmemektedir. UI üzerinde mesafe/uzunluk sunmak daha anlaşılır bir bilgi sağlayacaktır.
+## Hatanın Kök Nedeni (Root Cause)
+Hata incelendiğinde `src/lib/reports-storage.ts` dosyasında `fs.readdirSync`, `fs.mkdirSync` gibi yerel diske (Local disk) direkt olarak dosya yazma/okuma operasyonları yapıldığı tespit edilmiştir:
+- Rapor sistemleri **Vercel** gibi tamamen sunucusuz (Serverless) mimarilere dağıtıldığında yerel işletim sistemi belleğine (storage/reports) erişim yoktur (Read-only disk) ve bu nedenle klasör açılamaz (ENOENT hatası). 
 
-## Çözüm Planı (Kullanılacak Ajanlar: frontend-specialist, backend-specialist, test-engineer)
+## Çözüm Planı (Kullanılacak Ajanlar: backend-specialist, frontend-specialist, devops-engineer, test-engineer)
 
-### 1. FRONTEND: UI İyileştirmesi & Bug Fix (`frontend-specialist`)
-* `src/components/admin/route-optimizer.tsx`:
-  - En tepeye `import 'leaflet/dist/leaflet.css'` ile fix eklenecek.
-  - Kart tasarımı güncellenecek. Harita genişletilecek.
-  - "Ekip Rotaları" yan panelinde, toplam iş sayısı, toplam km tahmini gibi özet metrik (Summary Metrics) bilgiler içeren widget'lar eklenecek.
-  - Rota çizimlerindeki Marker ikonları ve Polyline animasyonları renklendirilecek/işlevsel hale getirilecek.
-  - (Opsiyonel): Default ikon problemi çözümü (`leaflet-defaulticon-compatibility` gibi bir patch veya custom Icon tanımlaması) Leaflet'in Next.js içindeki meşhur bug'ına karşı uygulanacak.
+### 1. BACKEND: Rapor Depolama Mekanizmasının Revizyonu (`backend-specialist`)
+* `src/lib/reports-storage.ts` modülü yeniden yazılacak.
+* Sunucu belleğine statik dosya yazmak (fs) yerine;
+  - Rapor oluştururken (Export butonuna basıldığında) veriyi **direkt bellekten Buffer** ile Base64 string'e çevirip Frontend'e `data:application/pdf;base64,...` veya binary octet-stream olarak indirmesi sağlanabilir. (Çünkü raporlar Job detayından "O anki güncel verilerle" taze oluşturulmak üzere tasarlanmıştır.)
+  - Mevcut "Daha önceden üretilen raporlar" (Stored Reports) yapısı devre dışı bırakılacak; liste ve tablo görünümü `jobs` (iş emirleri) listesi üzerinden dinamik "Rapor İndir" butonuna dönüştürülecek.
+  - `api/admin/reports/list` temizlenecek veya aktif olan ve indirilebilir iş emirlerini (jobs) getirecek şekilde ayarlanacak. 
 
-### 2. BACKEND: Rota Metriklerinin Eklenmesi (`backend-specialist`)
-* `src/app/api/admin/jobs/optimize-routes/route.ts`:
-  - Optimizasyon algoritmasındaki (`getDistance` fonksiyonu) sonuçlar toplanıp `totalDistanceKm` adında bir sonuç objesi Frontend tarafına gönderilecek.
-  - Yanıtsız (Unassigned) olan işlerin konumlarının hatasız hesaplanabilmesi sağlanacak.
-  - Daha ölçeklenebilir bir JSON dönüş yapısı hazırlanacak. (`{ teamId, teamName, jobs, metrics: { totalDistanceKm, jobCount } }`)
+### 2. FRONTEND: Raporlar Arayüzünün Onarımı (`frontend-specialist`)
+* `src/components/admin/report-table.tsx` veya rapor listeleme componentleri bulunup incelenecek. Eskiden kalan "Local Files (`listStoredReports`)" beklentisi düzeltilecek.
+* Eski (çalışmayan) "Dışa aktar" (`Export`) butonu Vercel serverless ortamında statik diske erişemediği için UI katmanında Buffer base64'lü formata (`pdf-make` vb) uydurulacak. Export edildiğinde `blob:` linkiyle anında `download` tetiklenecek.
 
-### 3. VERIFICATION: Test ve Security (`test-engineer`)
-* Typescript Hataları: Değiştirilen API türleri ve Frontend tipleri birbiriyle eşleşip compile olacak (`tsc --noEmit`).
-* Security Scan: Python güvenlik taraması (`security_scan.py`) yürütülerek API Injection engeli denetlenecek.
-* Layout Check: Harita DOM yapılarının doğru render edilip edilmediği local ortamda ve React component yapısında gözlemlenecek.
+### 3. VERIFICATION & DEVOPS (`devops-engineer`, `test-engineer`)
+* Derleme testleri yapılacak (`tsc --noEmit`).
+* Vercel deploymentına hazırlık amacıyla `.agent/skills/vulnerability-scanner/scripts/security_scan.py` koşturularak bu yerel disk yazma açıkları (FS Injection) tamamen temizlenmiş mi kontrol edilecek.
 
 ---
 
-**Onay Bekleniyor:** Plan incelenip onaylandığı takdirde `Phase 2: Implementation` (Çoklu Ajan Tetiklemesi) işlemine geçilecektir.
+**Onay Bekleniyor:** Plan incelenip onaylandığı takdirde bu adımlar (`Phase 2: Implementation`) dahilinde ilgili ajanlar (minimum 3 farklı) çağrılarak uygulanmaya başlanacaktır.

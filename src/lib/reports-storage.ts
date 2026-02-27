@@ -1,43 +1,28 @@
-
-import fs from 'fs';
-import path from 'path';
-
-const STORAGE_DIR = path.join(process.cwd(), 'storage', 'reports');
-
 /**
- * Ensures the storage directory exists.
- */
-function ensureDirectory() {
-    if (!fs.existsSync(STORAGE_DIR)) {
-        fs.mkdirSync(STORAGE_DIR, { recursive: true });
-    }
-}
-
-/**
- * Saves a PDF buffer to the local storage.
+ * Rapor üretimi (Client-side'a geri dönmek için)
+ * Vercel (serverless) ortamında "fs" ile static yazma desteklenmediğinden
+ * doğrudan buffer objesini Base64'e sarıp frontend'e paslıyoruz. Veya
+ * Nextjs Response.blob olarak dönebilir.
  */
 export async function saveReportToStorage(jobId: string, buffer: ArrayBuffer) {
-    ensureDirectory();
     const filename = `JobReport_${jobId}_${Date.now()}.pdf`;
-    const filePath = path.join(STORAGE_DIR, filename);
 
-    fs.writeFileSync(filePath, Buffer.from(buffer));
+    // Convert ArrayBuffer to Base64 String so frontend can create an anchor link easily
+    const base64Data = Buffer.from(buffer).toString('base64');
 
     return {
         filename,
-        path: filePath,
-        url: `/api/v1/reports/download/${filename}` // We'll need this route
+        base64: base64Data, // We deliver base64 to frontend directly instead of physical file URL
+        url: null // Deprecated local path storage
     };
 }
 
 /**
  * Lists all stored reports.
+ * [Deprecation Notice]: For serverless (Vercel) environments, local storage enumeration
+ * causes an 'ENOENT' error. The reporting model has been switched to download-on-demand 
+ * via jobs. We return an empty array here temporarily so old endpoints don't crash with 500.
  */
 export async function listStoredReports() {
-    ensureDirectory();
-    const files = fs.readdirSync(STORAGE_DIR);
-    return files.map(file => ({
-        filename: file,
-        createdAt: fs.statSync(path.join(STORAGE_DIR, file)).birthtime
-    }));
+    return [];
 }
