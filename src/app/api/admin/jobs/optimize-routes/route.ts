@@ -9,8 +9,8 @@ function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
 }
@@ -18,16 +18,18 @@ function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
 // OSRM Matrix API would be ideal, but for now we implement a robust grouping and multi-route logic
 // that can easily be extended to OSRM matrix calls.
 function optimizeRouteForTeam(jobs: any[], center: { lat: number, lon: number } | null) {
-    if (jobs.length === 0) return [];
-    
+    if (jobs.length === 0) return { route: [], distanceKm: 0 };
+
     const unvisited = [...jobs];
     const optimized: any[] = [];
-    
+
     // Start from center or the first job
-    let currentPos = center || { 
-        lat: unvisited[0].latitude || 0, 
-        lon: unvisited[0].longitude || 0 
+    let currentPos = center || {
+        lat: unvisited[0].latitude || 0,
+        lon: unvisited[0].longitude || 0
     };
+
+    let totalDistanceKm = 0;
 
     while (unvisited.length > 0) {
         let closestIdx = 0;
@@ -50,9 +52,10 @@ function optimizeRouteForTeam(jobs: any[], center: { lat: number, lon: number } 
         const nextJob = unvisited.splice(closestIdx, 1)[0];
         optimized.push(nextJob);
         currentPos = { lat: nextJob.latitude || 0, lon: nextJob.longitude || 0 };
+        totalDistanceKm += minDistance;
     }
 
-    return optimized;
+    return { route: optimized, distanceKm: parseFloat(totalDistanceKm.toFixed(2)) };
 }
 
 export async function POST(req: Request) {
@@ -114,30 +117,38 @@ export async function POST(req: Request) {
 
         // Optimize each team's route
         const results: any[] = [];
-        
+
         for (const tId in teamGroups) {
             const teamJobs = teamGroups[tId];
             const jobsWithCoords = teamJobs.filter(j => j.latitude !== null && j.longitude !== null);
-            const optimized = optimizeRouteForTeam(jobsWithCoords, center);
+            const optimizedResult = optimizeRouteForTeam(jobsWithCoords, center);
             const withoutCoords = teamJobs.filter(j => j.latitude === null || j.longitude === null);
-            
+
             results.push({
                 teamId: tId,
                 teamName: teamJobs[0].teamName,
-                jobs: [...optimized, ...withoutCoords]
+                jobs: [...optimizedResult.route, ...withoutCoords],
+                metrics: {
+                    totalDistanceKm: optimizedResult.distanceKm,
+                    jobCount: teamJobs.length
+                }
             });
         }
 
         // Handle unassigned
         if (unassignedJobs.length > 0) {
             const jobsWithCoords = unassignedJobs.filter(j => j.latitude !== null && j.longitude !== null);
-            const optimized = optimizeRouteForTeam(jobsWithCoords, center);
+            const optimizedResult = optimizeRouteForTeam(jobsWithCoords, center);
             const withoutCoords = unassignedJobs.filter(j => j.latitude === null || j.longitude === null);
-            
+
             results.push({
                 teamId: 'unassigned',
                 teamName: 'Atanmamış İşler',
-                jobs: [...optimized, ...withoutCoords]
+                jobs: [...optimizedResult.route, ...withoutCoords],
+                metrics: {
+                    totalDistanceKm: optimizedResult.distanceKm,
+                    jobCount: unassignedJobs.length
+                }
             });
         }
 
