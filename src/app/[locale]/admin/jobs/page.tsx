@@ -16,10 +16,22 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { SearchIcon, CalendarIcon, MapPinIcon, BriefcaseIcon, EditIcon, Ban, AlertTriangle, UserIcon } from "lucide-react"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs"
 import { Link } from "@/lib/navigation"
 import { format } from "date-fns"
 import { tr } from "date-fns/locale"
 import { getJobs } from "@/lib/data/jobs"
+import dynamic from 'next/dynamic'
+
+const GlobalJobsTree = dynamic(
+  () => import('@/components/admin/global-jobs-tree').then(mod => mod.GlobalJobsTree),
+  { ssr: false, loading: () => <div className="p-8 text-center text-gray-500 animate-pulse bg-gray-50 rounded-lg h-[400px] flex items-center justify-center">Ağaç Görünümü Yükleniyor...</div> }
+)
 
 const priorityColors: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   LOW: "secondary",
@@ -44,14 +56,14 @@ const statusLabels: Record<string, string> = {
 }
 
 export default async function JobsPage(props: {
-  searchParams: Promise<{ 
-    search?: string; 
+  searchParams: Promise<{
+    search?: string;
     jobNo?: string;
-    status?: string; 
-    teams?: string; 
-    from?: string; 
-    to?: string; 
-    page?: string 
+    status?: string;
+    teams?: string;
+    from?: string;
+    to?: string;
+    page?: string
   }>
 }) {
   const searchParams = await props.searchParams
@@ -72,7 +84,7 @@ export default async function JobsPage(props: {
   // Parallel data fetching
   const [jobsData, customers, teams, templates] = await Promise.all([
     getJobs({
-      filter: { 
+      filter: {
         search: searchParams.search,
         jobNo: searchParams.jobNo,
         status: statusFilter,
@@ -101,7 +113,7 @@ export default async function JobsPage(props: {
     name: t.name,
     steps: t.steps.map(s => ({
       title: s.title,
-      description: '', 
+      description: '',
       subSteps: s.subSteps.map(ss => ({ title: ss.title }))
     }))
   }))
@@ -109,7 +121,7 @@ export default async function JobsPage(props: {
   const mappedCustomers = customers.map(c => ({
     id: c.id,
     company: c.company,
-    user: { name: c.user.name || '' } 
+    user: { name: c.user.name || '' }
   }))
 
   return (
@@ -120,7 +132,7 @@ export default async function JobsPage(props: {
           <p className="text-gray-500 mt-2">Montaj ve servis işlerini yönetin.</p>
         </div>
         <div className="flex items-center gap-2">
-          <AdvancedFilter 
+          <AdvancedFilter
             teams={teams.map(t => ({ id: t.id, name: t.name }))}
           />
           <BulkUploadDialog />
@@ -162,7 +174,7 @@ export default async function JobsPage(props: {
             })}
             {searchParams.from && (
               <Badge variant="outline" className="bg-white">
-                Tarih: {format(new Date(searchParams.from), 'P', { locale: tr })} 
+                Tarih: {format(new Date(searchParams.from), 'P', { locale: tr })}
                 {searchParams.to ? ` - ${format(new Date(searchParams.to), 'P', { locale: tr })}` : ''}
               </Badge>
             )}
@@ -186,173 +198,189 @@ export default async function JobsPage(props: {
           </div>
         </div>
 
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>İş Başlığı</TableHead>
-              <TableHead>Müşteri</TableHead>
-              <TableHead>Atanan Ekip</TableHead>
-              <TableHead className="w-[150px]">İlerleme</TableHead>
-              <TableHead>Onaylanan Tutar</TableHead>
-              <TableHead>Öncelik</TableHead>
-              <TableHead>Durum</TableHead>
-              <TableHead>Tarih</TableHead>
-              <TableHead className="w-[50px]"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {jobs.map((job) => {
-              const totalSteps = job.steps?.length || 0;
-              const completedSteps = job.steps?.filter(s => s.isCompleted).length || 0;
-              const progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+        <Tabs defaultValue="list" className="w-full">
+          <div className="px-4 py-2 border-b bg-slate-50 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-slate-700">Görünüm Seçenekleri</h2>
+            <TabsList className="grid w-[300px] grid-cols-2">
+              <TabsTrigger value="list">Liste Görünümü</TabsTrigger>
+              <TabsTrigger value="tree">Ağaç Görünümü</TabsTrigger>
+            </TabsList>
+          </div>
 
-              const pendingCosts = job.costs?.filter(c => c.status === 'PENDING') || [];
-              const approvedCosts = job.costs?.filter(c => c.status === 'APPROVED') || [];
-              const totalApprovedAmount = approvedCosts.reduce((sum, c) => sum + c.amount, 0);
-              const totalPendingAmount = pendingCosts.reduce((sum, c) => sum + c.amount, 0);
+          <TabsContent value="list" className="m-0 border-none outline-none">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>İş Başlığı</TableHead>
+                  <TableHead>Müşteri</TableHead>
+                  <TableHead>Atanan Ekip</TableHead>
+                  <TableHead className="w-[150px]">İlerleme</TableHead>
+                  <TableHead>Onaylanan Tutar</TableHead>
+                  <TableHead>Öncelik</TableHead>
+                  <TableHead>Durum</TableHead>
+                  <TableHead>Tarih</TableHead>
+                  <TableHead className="w-[50px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {jobs.map((job) => {
+                  const totalSteps = job.steps?.length || 0;
+                  const completedSteps = job.steps?.filter(s => s.isCompleted).length || 0;
+                  const progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
 
-              const hasPendingApprovals =
-                pendingCosts.length > 0 ||
-                (job.steps?.some(s => s.subSteps?.some(ss => ss.approvalStatus === 'PENDING')) || false);
+                  const pendingCosts = job.costs?.filter(c => c.status === 'PENDING') || [];
+                  const approvedCosts = job.costs?.filter(c => c.status === 'APPROVED') || [];
+                  const totalApprovedAmount = approvedCosts.reduce((sum, c) => sum + c.amount, 0);
+                  const totalPendingAmount = pendingCosts.reduce((sum, c) => sum + c.amount, 0);
 
-              return (
-                <TableRow key={job.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className="p-2 bg-orange-50 rounded text-orange-600">
-                        <BriefcaseIcon className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <div className="text-[10px] font-bold text-orange-600 uppercase tracking-wider">
-                            {job.jobNo || 'NO-CODE'}
+                  const hasPendingApprovals =
+                    pendingCosts.length > 0 ||
+                    (job.steps?.some(s => s.subSteps?.some(ss => ss.approvalStatus === 'PENDING')) || false);
+
+                  return (
+                    <TableRow key={job.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <div className="p-2 bg-orange-50 rounded text-orange-600">
+                            <BriefcaseIcon className="h-4 w-4" />
                           </div>
-                          <div className="text-[10px] font-mono font-bold text-blue-600 bg-blue-50 px-1 rounded">
-                            #{job.id.slice(-6).toUpperCase()}
+                          <div>
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <div className="text-[10px] font-bold text-orange-600 uppercase tracking-wider">
+                                {job.jobNo || 'NO-CODE'}
+                              </div>
+                              <div className="text-[10px] font-mono font-bold text-blue-600 bg-blue-50 px-1 rounded">
+                                #{job.id.slice(-6).toUpperCase()}
+                              </div>
+                            </div>
+                            <Link href={`/admin/jobs/${job.id}`} className="font-medium text-gray-900 hover:underline hover:text-blue-600 block leading-tight">
+                              {job.title}
+                            </Link>
+                            {job.location && (
+                              <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+                                <MapPinIcon className="h-3 w-3" />
+                                <span className="truncate max-w-[150px]">{job.location}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
-                        <Link href={`/admin/jobs/${job.id}`} className="font-medium text-gray-900 hover:underline hover:text-blue-600 block leading-tight">
-                          {job.title}
-                        </Link>
-                        {job.location && (
-                          <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
-                            <MapPinIcon className="h-3 w-3" />
-                            <span className="truncate max-w-[150px]">{job.location}</span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="font-medium">{job.customer?.company || 'Bilinmeyen Müşteri'}</div>
+                        <div className="text-sm text-gray-500">{job.customer?.user?.name || ''}</div>
+                        {job._count?.steps === 0 && job.status === 'PENDING' && (
+                          <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                            <Ban className="h-3 w-3 mr-1" /> İşe Başlanmadı
                           </div>
                         )}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="font-medium">{job.customer?.company || 'Bilinmeyen Müşteri'}</div>
-                    <div className="text-sm text-gray-500">{job.customer?.user?.name || ''}</div>
-                    {job._count?.steps === 0 && job.status === 'PENDING' && (
-                      <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                        <Ban className="h-3 w-3 mr-1" /> İşe Başlanmadı
-                      </div>
-                    )}
-                    {hasPendingApprovals && (
-                      <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                        <AlertTriangle className="h-3 w-3 mr-1" /> Onay Bekliyor
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {job.assignments.length > 0 && job.assignments[0].team ? (
-                      <div className="space-y-1">
-                        <Badge variant="outline" className="font-normal">
-                          {job.assignments[0].team.name}
-                        </Badge>
-                        {job.assignments[0].team.lead && (
-                          <div className="text-xs text-gray-500 flex items-center">
-                            <UserIcon className="h-3 w-3 mr-1" /> Lider: {job.assignments[0].team.lead.name}
+                        {hasPendingApprovals && (
+                          <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                            <AlertTriangle className="h-3 w-3 mr-1" /> Onay Bekliyor
                           </div>
                         )}
-                      </div>
-                    ) : job.assignments.length > 0 && job.assignments[0].worker ? (
-                      <div className="space-y-1">
-                        <Badge variant="outline" className="font-normal bg-blue-50">
-                          {job.assignments[0].worker.name}
+                      </TableCell>
+                      <TableCell>
+                        {job.assignments.length > 0 && job.assignments[0].team ? (
+                          <div className="space-y-1">
+                            <Badge variant="outline" className="font-normal">
+                              {job.assignments[0].team.name}
+                            </Badge>
+                            {job.assignments[0].team.lead && (
+                              <div className="text-xs text-gray-500 flex items-center">
+                                <UserIcon className="h-3 w-3 mr-1" /> Lider: {job.assignments[0].team.lead.name}
+                              </div>
+                            )}
+                          </div>
+                        ) : job.assignments.length > 0 && job.assignments[0].worker ? (
+                          <div className="space-y-1">
+                            <Badge variant="outline" className="font-normal bg-blue-50">
+                              {job.assignments[0].worker.name}
+                            </Badge>
+                            <div className="text-xs text-gray-400">Bireysel Atama</div>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-gray-400 italic">Atanmamış</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="w-full max-w-[140px]">
+                          <div className="flex items-center justify-between text-xs mb-1">
+                            <span className="text-gray-500">{completedSteps}/{totalSteps} Adım</span>
+                            <span className="font-medium text-gray-700">%{progress}</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                            <div
+                              className="bg-blue-600 h-1.5 rounded-full transition-all duration-500"
+                              style={{ width: `${progress}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-gray-900">
+                            {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', minimumFractionDigits: 0 }).format(totalApprovedAmount)}
+                          </span>
+                          {totalPendingAmount > 0 && (
+                            <span className="text-xs text-yellow-600 font-medium">
+                              + {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', minimumFractionDigits: 0 }).format(totalPendingAmount)} Bekleyen
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={priorityColors[job.priority] || "default"}>
+                          {job.priority}
                         </Badge>
-                        <div className="text-xs text-gray-400">Bireysel Atama</div>
-                      </div>
-                    ) : (
-                      <span className="text-sm text-gray-400 italic">Atanmamış</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="w-full max-w-[140px]">
-                      <div className="flex items-center justify-between text-xs mb-1">
-                        <span className="text-gray-500">{completedSteps}/{totalSteps} Adım</span>
-                        <span className="font-medium text-gray-700">%{progress}</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-                        <div
-                          className="bg-blue-600 h-1.5 rounded-full transition-all duration-500"
-                          style={{ width: `${progress}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span className="font-bold text-gray-900">
-                        {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', minimumFractionDigits: 0 }).format(totalApprovedAmount)}
-                      </span>
-                      {totalPendingAmount > 0 && (
-                        <span className="text-xs text-yellow-600 font-medium">
-                          + {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', minimumFractionDigits: 0 }).format(totalPendingAmount)} Bekleyen
-                        </span>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={priorityColors[job.priority] || "default"}>
-                      {job.priority}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={statusColors[job.status] || "default"}>
-                      {statusLabels[job.status] || job.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1 text-sm text-gray-600">
-                      <CalendarIcon className="h-3 w-3" />
-                      {job.scheduledDate
-                        ? format(new Date(job.scheduledDate), 'd MMM', { locale: tr })
-                        : format(new Date(job.createdAt), 'd MMM', { locale: tr })
-                      }
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <JobDialog
-                        customers={mappedCustomers}
-                        teams={teams}
-                        templates={mappedTemplates}
-                        job={job}
-                        trigger={
-                          <button className="inline-flex items-center justify-center p-2 text-gray-400 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors">
-                            <EditIcon className="h-4 w-4" />
-                          </button>
-                        }
-                      />
-                      <DeleteJobButton jobId={job.id} jobTitle={job.title} />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )
-            })}
-            {jobs.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={9} className="text-center py-8 text-gray-500">
-                  Kayıtlı iş bulunamadı.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={statusColors[job.status] || "default"}>
+                          {statusLabels[job.status] || job.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1 text-sm text-gray-600">
+                          <CalendarIcon className="h-3 w-3" />
+                          {job.scheduledDate
+                            ? format(new Date(job.scheduledDate), 'd MMM', { locale: tr })
+                            : format(new Date(job.createdAt), 'd MMM', { locale: tr })
+                          }
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <JobDialog
+                            customers={mappedCustomers}
+                            teams={teams}
+                            templates={mappedTemplates}
+                            job={job}
+                            trigger={
+                              <button className="inline-flex items-center justify-center p-2 text-gray-400 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors">
+                                <EditIcon className="h-4 w-4" />
+                              </button>
+                            }
+                          />
+                          <DeleteJobButton jobId={job.id} jobTitle={job.title} />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+                {jobs.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={9} className="text-center py-8 text-gray-500">
+                      Kayıtlı iş bulunamadı.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TabsContent>
+
+          <TabsContent value="tree" className="m-0 border-none outline-none">
+            <GlobalJobsTree jobs={jobs as any} />
+          </TabsContent>
+        </Tabs>
       </div>
     </div >
   )

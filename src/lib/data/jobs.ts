@@ -117,6 +117,7 @@ export async function getJobs({ page = 1, limit = 20, filter }: GetJobsParams = 
           jobNo: true,
           projectNo: true,
           title: true,
+          location: true,
           status: true,
           priority: true,
           scheduledDate: true,
@@ -141,9 +142,14 @@ export async function getJobs({ page = 1, limit = 20, filter }: GetJobsParams = 
           },
           steps: {
             select: {
+              id: true,
+              title: true,
               isCompleted: true,
               subSteps: {
                 select: {
+                  id: true,
+                  title: true,
+                  isCompleted: true,
                   approvalStatus: true
                 }
               }

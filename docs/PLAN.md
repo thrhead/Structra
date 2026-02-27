@@ -1,24 +1,25 @@
-# Orchestration Plan - Issue #27 (İş Detayları Görev Ağacı Görünümü)
+# Orchestration Plan - Issue #27 (Global İşler Ağaç Görünümü)
 
 ## Durum Analizi
-Kullanıcı, iş detayları sayfasında görevlerin (steps ve substeps) normal bir liste (timeline) yerine, "ağaç (tree) şeklinde açılan, proje yılı, ayı ve numarasına göre ayrılıp dallanan, alt ve üst iş emirlerinin tamamlanma yüzdelerini (%) gösteren" bir grafiksel yapıda sunulmasını talep etmektedir.
+Kullanıcı, iş detayları sayfasındaki (Tab) ağacın aynen kalmasını ("bu yapı ayrıca dursun"), ancak asıl talebinin **tüm işleri kapsayan, yıla göre gruplandırılmış ve tıklanarak açılan "Global" bir ağaç diyagramı** olduğunu belirtti. 
+Örnek görsel: Solda veya üstte ikon, sağda metin içeren dikdörtgen kartlar, noktalı (dashed/dotted) bağlantı çizgileri ve kavşak (junction) ikonları içeren Mind-Map / Org-Chart tarzı bir UI.
 
-Sistemde halihazırda `JobTimeline` bileşeni ile liste formatında gösterim yapılmakta, ancak hiyerarşik (org-chart stili) bir ağaç şeması bulunmamaktadır. Ekstra ağır bir third-party kütüphane (react-flow vb.) yüklemek yerine, performans açısından doğrudan Tailwind CSS ve dikey/yatay flex yapılarıyla ya da SVG bağlaçlarıyla bu görünüm elde edilebilir.
+**Kullanıcı Akışı:**
+`Yıl (Örn: 2026)` --> `Tıklayınca` --> `O Yıla Ait İşler (Örn: AS-2026-0025)` --> `Tıklayınca` --> `İş Emirleri (Ana Adımlar)` --> `Tıklayınca` --> `Alt İş Emirleri (Substeps)`
 
 ## Uygulanacak Çözüm Adımları
-Bu sorun, yeni bir "Görev Ağacı" (Job Task Tree) bileşeninin oluşturulup, İş Detayları sekmelerine entegre edilmesiyle çözülecektir.
 
-1. **frontend-specialist (UI/UX Geliştirici)**:
-   - `src/components/charts/job-task-tree.tsx` adında yeni bir bileşen tasarlanacaktır.
-   - Bu bileşenin en üst nodu (kökü): `[Yıl] [Ay] - [Proje No]` şeklinde isimlendirilecek ve o işin toplam tamamlanma yüzdesini (`completedSteps / totalSteps * 100`) gösterecektir.
-   - Kök nodun altında Ana Adımlar (Steps) dallanacaktır. Her Ana Adım da kendi ilerleme oranını (%) ve altında Alt Görevleri (SubSteps) gösterecek şekilde hiyerarşik bir ağaç CSS'i (Tailwind flex/border ile) yapılacaktır.
-   - `src/components/admin/job-details-tabs.tsx` dosyasına `Görev Ağacı` sekmesi eklenecek ve yeni bileşen buraya dinamik (lazy-load) olarak dahil edilecektir.
+1. **backend-specialist (Veritabanı / API)**:
+   - `src/lib/data/jobs.ts` dosyasındaki `getJobs` fonksiyonu güncellenerek, sayfaya gönderilen `jobs` verisinin içerisinde `steps` ve `subSteps` modellerine ait `id` ve `title` alanları da SQL/Prisma sorgusuna eklenecektir. (Ağaçta başlıkları gösterebilmek için gereklidir).
 
-2. **test-engineer (Doğrulama Biyologu)**:
-   - TypeScript derleme testleri (`tsc --noEmit`) yapılarak oluşturulan yeni bileşenin type-safety tarafında mevcut projedeki `TimelineStep` arabirimiyle (interface) uyuşup uyuşmadığı test edilecektir.
+2. **frontend-specialist (UI/UX Geliştirici)**:
+   - `src/components/admin/global-jobs-tree.tsx` adında yeni bir istemci (client) bileşeni oluşturulacak.
+   - Bu bileşen, görseldeki gibi düğümleri (Node) temsil edecek. Hiyerarşik ve çok verili sistemlerde sağa doğru genişleyen (Left-to-Right) veya hizalanmış Tailwind Flex CSS yapıları kullanılarak okunaklı bir Mind-Map UI (Noktalı kenarlık, renkli ikon kutuları) tasarlanacaktır. Her düğüm `expanded` state'i ile açılıp kapanabilir olacaktır.
+   - `src/app/[locale]/admin/jobs/page.tsx` sayfasına Shadcn UI `Tabs` bileşeni eklenecek. Mevcut tablo `Liste Görünümü` sekmesinde, yeni ağaç bileşeni ise `Ağaç Görünümü` sekmesinde gösterilecek.
 
-3. **devops-engineer / security-auditor (Dağıtım Hazırlığı)**:
-   - Eklenen ağaç yapısının güvenlik zafiyeti (XSS vs.) barındırmadığından emin olmak ve Orchestration kuralını tamamlamak için `security_scan.py` çalıştırılacaktır.
+3. **test-engineer & devops-engineer (Doğrulama Biyologu)**:
+   - TypeScript derleme testleri (`tsc --noEmit`) yapılarak oluşturulan yeni bileşen test edilecek.
+   - Güvenlik analizi için `security_scan.py` çalıştırılacaktır.
 
 ## Devam Etme Onayı
-Plan oluşturuldu. Kullanıcı onayladığı takdirde Phase 2 (Implementasyon) aşamasında görev ağacı kodlanarak iş detayları sayfasına entegre edilecektir.
+Plan oluşturuldu. Kullanıcı onayladığı takdirde Phase 2 (Implementasyon) aşamasında yeni görsel tasarıma uygun Flexbox/SVG kodlamalarına geçilecektir.
