@@ -1,63 +1,67 @@
 import { useState, useMemo } from 'react';
 import { isToday, isTomorrow, isThisWeek, parseISO } from 'date-fns';
 
+/**
+ * Hook for managing job filtering logic in the mobile app.
+ * Extracts logic from UI components for better maintainability.
+ */
 export const useJobFiltering = (jobs) => {
     const [selectedFilter, setSelectedFilter] = useState('Tümü');
     const [searchQuery, setSearchQuery] = useState('');
-    const [dateFilter, setDateFilter] = useState('Tümü'); // Tümü, Bugün, Yarın, Bu Hafta
+    const [dateFilter, setDateFilter] = useState('Tümü');
 
     const filteredJobs = useMemo(() => {
-        let result = [...(jobs || [])];
+        if (!jobs) return [];
+        
+        let result = [...jobs];
 
-        // Status Filter
-        if (selectedFilter === 'Devam Eden') {
-            result = result.filter(j => j.status === 'IN_PROGRESS');
-        } else if (selectedFilter === 'Bekleyen') {
-            result = result.filter(j => j.status === 'PENDING');
-        } else if (selectedFilter === 'Onay Bekleyen') {
-            result = result.filter(j => j.status === 'PENDING_APPROVAL');
-        } else if (selectedFilter === 'Tamamlanan') {
-            result = result.filter(j => j.status === 'COMPLETED');
+        // 1. Status Filtering logic
+        const statusMap = {
+            'Devam Eden': 'IN_PROGRESS',
+            'Bekleyen': 'PENDING',
+            'Onay Bekleyen': 'PENDING_APPROVAL',
+            'Tamamlanan': 'COMPLETED'
+        };
+
+        if (selectedFilter !== 'Tümü' && statusMap[selectedFilter]) {
+            result = result.filter(j => j.status === statusMap[selectedFilter]);
         }
 
-        // Date Filter
+        // 2. Date Filtering logic
         if (dateFilter !== 'Tümü') {
             result = result.filter(j => {
                 if (!j.scheduledDate) return false;
                 const date = parseISO(j.scheduledDate);
-                if (dateFilter === 'Bugün') return isToday(date);
-                if (dateFilter === 'Yarın') return isTomorrow(date);
-                if (dateFilter === 'Bu Hafta') return isThisWeek(date, { weekStartsOn: 1 });
-                return true;
+                switch (dateFilter) {
+                    case 'Bugün': return isToday(date);
+                    case 'Yarın': return isTomorrow(date);
+                    case 'Bu Hafta': return isThisWeek(date, { weekStartsOn: 1 });
+                    default: return true;
+                }
             });
         }
 
-        // Search Filter
+        // 3. Search logic
         if (searchQuery) {
-            const lower = searchQuery.toLowerCase();
+            const term = searchQuery.toLowerCase();
             result = result.filter(j =>
-                (j.id && j.id.toLowerCase().includes(lower)) ||
-                (j.jobNo && j.jobNo.toLowerCase().includes(lower)) ||
-                (j.projectNo && j.projectNo.toLowerCase().includes(lower)) ||
-                (j.title && j.title.toLowerCase().includes(lower)) ||
-                (j.customer?.company && j.customer.company.toLowerCase().includes(lower))
+                j.id?.toLowerCase().includes(term) ||
+                j.jobNo?.toLowerCase().includes(term) ||
+                j.title?.toLowerCase().includes(term) ||
+                j.customer?.company?.toLowerCase().includes(term)
             );
         }
 
-        // Sort: High priority first, then date
-        result.sort((a, b) => {
+        // 4. Sorting logic (Priority then Date)
+        return result.sort((a, b) => {
             const priorityOrder = { URGENT: 3, HIGH: 2, MEDIUM: 1, LOW: 0 };
-            const priorityA = priorityOrder[a.priority] || 0;
-            const priorityB = priorityOrder[b.priority] || 0;
-            const pDiff = priorityB - priorityA;
+            const pDiff = (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0);
             if (pDiff !== 0) return pDiff;
 
-            const dateA = a.scheduledDate ? new Date(a.scheduledDate) : new Date(0);
-            const dateB = b.scheduledDate ? new Date(b.scheduledDate) : new Date(0);
+            const dateA = a.scheduledDate ? new Date(a.scheduledDate).getTime() : 0;
+            const dateB = b.scheduledDate ? new Date(b.scheduledDate).getTime() : 0;
             return dateA - dateB;
         });
-
-        return result;
     }, [jobs, selectedFilter, searchQuery, dateFilter]);
 
     return {

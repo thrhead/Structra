@@ -35,6 +35,16 @@ build/
 out/
 web-build/
 
+# Test artifacts
+coverage/
+playwright-report/
+test-results/
+
+# Database
+*.db
+*.db-journal
+*.db-shm
+
 # Expo
 .expo/
 expo-env.d.ts
