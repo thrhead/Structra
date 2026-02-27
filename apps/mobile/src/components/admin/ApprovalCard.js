@@ -83,11 +83,11 @@ const ApprovalCard = ({ item, onApprove, onReject, theme: propTheme }) => {
                         <>
                             <View style={styles.detailRow}>
                                 <Text style={[styles.detailLabel, { color: textSub }]}>Müşteri:</Text>
-                                <Text style={[styles.detailValue, { color: textMain }]}>{item.raw?.customer?.company || 'Bilinmiyor'}</Text>
+                                <Text style={[styles.detailValue, { color: textMain }]}>{item.raw?.job?.customer?.company || item.raw?.customer?.company || 'Bilinmiyor'}</Text>
                             </View>
                             <View style={styles.detailRow}>
                                 <Text style={[styles.detailLabel, { color: textSub }]}>Lokasyon:</Text>
-                                <Text style={[styles.detailValue, { color: textMain }]}>{item.raw?.customer?.address || 'Bilinmiyor'}</Text>
+                                <Text style={[styles.detailValue, { color: textMain }]}>{item.raw?.job?.customer?.address || item.raw?.customer?.address || 'Bilinmiyor'}</Text>
                             </View>
                         </>
                     )}

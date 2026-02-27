@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import jobService from '../services/job.service';
+import approvalService from '../services/approval.service';
 import costService from '../services/cost.service';
 import { useAlert } from '../context/AlertContext';
 
@@ -17,27 +17,33 @@ export const useApprovals = () => {
     const loadApprovals = async () => {
         try {
             setLoading(true);
-            const pendingCosts = await costService.getAll({ status: 'PENDING' });
-            const pendingJobs = await jobService.getAllJobs({ status: 'PENDING' });
-            // Using existing logic to format...
-            const formattedCosts = pendingCosts.map(c => ({
+            const [pendingCosts, approvalData] = await Promise.all([
+                costService.getAll({ status: 'PENDING' }),
+                approvalService.getAll('PENDING')
+            ]);
+
+            const pApprovals = approvalData?.approvals || [];
+
+            const formattedCosts = (pendingCosts || []).map(c => ({
                 id: c.id,
                 type: 'COST',
                 title: `${c.amount} ${c.currency} - ${c.category}`,
-                requester: c.createdBy?.name || 'Bilinmiyor',
+                requester: c.createdBy?.name || c.createdBy?.email || 'Bilinmiyor',
                 date: new Date(c.date).toLocaleDateString(),
                 status: c.status,
                 raw: c
             }));
 
-            const formattedJobs = pendingJobs.map(j => ({
-                id: j.id,
-                type: 'JOB',
-                title: j.title,
-                requester: j.assignee?.name || 'Atanmamış',
-                date: j.createdAt ? new Date(j.createdAt).toLocaleDateString() : 'Tarih Yok',
-                status: j.status,
-                raw: j
+            // Formatting proper approval records from the Approval table
+            const formattedJobs = pApprovals.map(a => ({
+                id: a.id,
+                type: 'JOB', // Can use a.type like JOB_COMPLETION also, but UI uses JOB
+                title: a.job?.title || 'Bilinmeyen İş',
+                requester: a.requester?.name || a.requester?.email || 'Bilinmiyor',
+                date: a.createdAt ? new Date(a.createdAt).toLocaleDateString() : 'Tarih Yok',
+                status: a.status,
+                jobId: a.job?.id, // Useful to link to job details
+                raw: a
             }));
 
             setApprovals([...formattedJobs, ...formattedCosts]);
@@ -60,7 +66,7 @@ export const useApprovals = () => {
             if (item.type === 'COST') {
                 await costService.updateStatus(item.id, 'APPROVED');
             } else if (item.type === 'JOB') {
-                await jobService.acceptJob(item.id);
+                await approvalService.updateStatus(item.id, 'APPROVED');
             }
             showAlert('Başarılı', 'Onaylandı.', [], 'success');
             loadApprovals();
@@ -75,8 +81,7 @@ export const useApprovals = () => {
             if (item.type === 'COST') {
                 await costService.updateStatus(item.id, 'REJECTED', 'Yönetici tarafından reddedildi.');
             } else if (item.type === 'JOB') {
-                showAlert('Bilgi', 'İş reddetme henüz aktif değil.', [], 'info');
-                return;
+                await approvalService.updateStatus(item.id, 'REJECTED', 'Yönetici tarafından reddedildi.');
             }
             showAlert('Başarılı', 'Reddedildi.', [], 'success');
             loadApprovals();
