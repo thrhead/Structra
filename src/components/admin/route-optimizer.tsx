@@ -4,7 +4,11 @@
 import React, { useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { MapPinIcon, NavigationIcon, RefreshCwIcon, HomeIcon, UsersIcon, RouteIcon } from 'lucide-react'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Calendar } from '@/components/ui/calendar'
+import { MapPinIcon, NavigationIcon, RefreshCwIcon, HomeIcon, UsersIcon, RouteIcon, CalendarIcon as CalendarIconLucide } from 'lucide-react'
+import { format } from 'date-fns'
+import { tr } from 'date-fns/locale'
 import { toast } from 'sonner'
 import dynamic from 'next/dynamic'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -60,17 +64,36 @@ const TEAM_COLORS = [
 export function RouteOptimizer() {
     const [teamRoutes, setTeamRoutes] = useState<TeamRoute[]>([])
     const [loading, setLoading] = useState(false)
-    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
+    const [selectedDate, setSelectedDate] = useState<Date>(new Date())
     const [fromCenter, setFromCenter] = useState(true)
+    const [calendarData, setCalendarData] = useState<Record<string, { total: number, completed: number }>>({})
+
+    // Fetch calendar data once
+    useEffect(() => {
+        const fetchCalendarData = async () => {
+            try {
+                const res = await fetch('/api/admin/jobs/calendar')
+                if (res.ok) {
+                    const data = await res.json()
+                    setCalendarData(data)
+                }
+            } catch (error) {
+                console.error("Calendar data fetch failed", error)
+            }
+        }
+        fetchCalendarData()
+    }, [])
 
     const fetchOptimizedRoute = async () => {
         setLoading(true)
         try {
+            // Local string is suitable to keep date aligned with UI
+            const formattedDate = format(selectedDate, 'yyyy-MM-dd')
             const res = await fetch('/api/admin/jobs/optimize-routes', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    date: selectedDate,
+                    date: formattedDate,
                     fromCenter: fromCenter,
                     centerLat: 41.0082, // Standard center
                     centerLon: 28.9784
@@ -109,12 +132,60 @@ export function RouteOptimizer() {
                             <HomeIcon className="w-3 h-3" /> Merkezden Başlat
                         </Label>
                     </div>
-                    <input
-                        type="date"
-                        value={selectedDate}
-                        onChange={(e) => setSelectedDate(e.target.value)}
-                        className="bg-background border rounded-md px-3 py-1 text-sm focus:ring-1 focus:ring-primary outline-none"
-                    />
+
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant="outline"
+                                className="w-[180px] justify-start text-left font-normal"
+                            >
+                                <CalendarIconLucide className="mr-2 h-4 w-4" />
+                                {selectedDate ? format(selectedDate, 'd MMMM yyyy', { locale: tr }) : "Tarih Seçin"}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                            <Calendar
+                                mode="single"
+                                selected={selectedDate}
+                                onSelect={(date) => date && setSelectedDate(date)}
+                                locale={tr}
+                                initialFocus
+                                modifiers={{
+                                    hasJobs: (date) => !!calendarData[format(date, 'yyyy-MM-dd')]?.total
+                                }}
+                                modifiersClassNames={{
+                                    hasJobs: 'font-bold'
+                                }}
+                                components={{
+                                    Day: (props) => {
+                                        // A custom Day component using DayButton underneath for v9
+                                        // React-day-picker v9 passes `date`, `displayMonth` inside props.day
+                                        const { day, modifiers } = props;
+                                        const pointStr = day.date ? format(day.date, 'yyyy-MM-dd') : '';
+                                        const countInfo = calendarData[pointStr];
+
+                                        return (
+                                            <div className="relative flex flex-col items-center justify-center p-0 m-0 w-9 h-9">
+                                                <Button
+                                                    variant="ghost"
+                                                    className={`h-9 w-9 p-0 font-normal aria-selected:opacity-100 ${modifiers.selected ? 'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground' : ''}`}
+                                                    onClick={() => day.date && setSelectedDate(day.date)}
+                                                >
+                                                    {day.date.getDate()}
+                                                </Button>
+                                                {countInfo && countInfo.total > 0 && (
+                                                    <div className="absolute bottom-1 flex gap-0.5 pointer-events-none">
+                                                        <span className="w-1.5 h-1.5 bg-orange-500 rounded-full" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )
+                                    }
+                                }}
+                            />
+                        </PopoverContent>
+                    </Popover>
+
                     <Button onClick={fetchOptimizedRoute} disabled={loading} size="sm">
                         {loading ? <RefreshCwIcon className="w-4 h-4 mr-2 animate-spin" /> : <NavigationIcon className="w-4 h-4 mr-2" />}
                         Hesapla & Optimize Et
