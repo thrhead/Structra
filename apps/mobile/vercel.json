@@ -4,5 +4,11 @@
     "installCommand": "npm install",
     "regions": [
         "arn1"
+    ],
+    "rewrites": [
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
+        }
     ]
 }
