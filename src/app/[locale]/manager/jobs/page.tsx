@@ -13,9 +13,21 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { SearchIcon, CalendarIcon, MapPinIcon, BriefcaseIcon } from "lucide-react"
+import {
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
+} from "@/components/ui/tabs"
 import { format } from "date-fns"
 import { tr, enUS } from "date-fns/locale"
 import { getTranslations } from "next-intl/server"
+import dynamic from 'next/dynamic'
+
+const GlobalJobsTree = dynamic(
+    () => import('@/components/admin/global-jobs-tree').then(mod => mod.GlobalJobsTree),
+    { ssr: false, loading: () => <div className="p-8 text-center text-gray-500 animate-pulse bg-gray-50 rounded-lg h-[400px] flex items-center justify-center">Ağaç Görünümü Yükleniyor...</div> }
+)
 
 async function getJobs(search?: string) {
     const where: any = {}
@@ -41,6 +53,21 @@ async function getJobs(search?: string) {
             assignments: {
                 include: {
                     team: true
+                }
+            },
+            steps: {
+                select: {
+                    id: true,
+                    title: true,
+                    isCompleted: true,
+                    subSteps: {
+                        select: {
+                            id: true,
+                            title: true,
+                            isCompleted: true,
+                            approvalStatus: true
+                        }
+                    }
                 }
             },
             _count: {
@@ -73,7 +100,7 @@ export default async function ManagerJobsPage(props: {
     const { locale } = await props.params
     const searchParams = await props.searchParams
     const session = await auth()
-    
+
     if (!session || session.user.role !== "MANAGER") {
         redirect("/login")
     }
@@ -81,7 +108,7 @@ export default async function ManagerJobsPage(props: {
     const t = await getTranslations("Manager.jobs")
     const tStatus = await getTranslations("Manager.status")
     const tCommon = await getTranslations("Common")
-    
+
     const dateLocale = locale === 'tr' ? tr : enUS
     const jobs = await getJobs(searchParams.search)
 
@@ -133,81 +160,97 @@ export default async function ManagerJobsPage(props: {
                     </div>
                 </div>
 
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>{t('table.title')}</TableHead>
-                            <TableHead>{t('table.customer')}</TableHead>
-                            <TableHead>{t('table.team')}</TableHead>
-                            <TableHead>{tCommon('priority')}</TableHead>
-                            <TableHead>{tCommon('status')}</TableHead>
-                            <TableHead>{tCommon('date')}</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {jobs.map((job) => (
-                            <TableRow key={job.id}>
-                                <TableCell>
-                                    <div className="flex items-center gap-2">
-                                        <div className="p-2 bg-orange-50 rounded text-orange-600">
-                                            <BriefcaseIcon className="h-4 w-4" />
-                                        </div>
-                                        <div>
-                                            <a href={`/manager/jobs/${job.id}`} className="font-medium text-gray-900 hover:underline hover:text-blue-600 block">
-                                                {job.title}
-                                            </a>
-                                            {job.location && (
-                                                <div className="flex items-center gap-1 text-xs text-gray-500">
-                                                    <MapPinIcon className="h-3 w-3" />
-                                                    <span className="truncate max-w-[150px]">{job.location}</span>
+                <Tabs defaultValue="list" className="w-full">
+                    <div className="px-4 py-2 border-b bg-slate-50 flex items-center justify-between">
+                        <h2 className="text-sm font-semibold text-slate-700">{t('viewOptions') || 'Görünüm Seçenekleri'}</h2>
+                        <TabsList className="grid w-[300px] grid-cols-2">
+                            <TabsTrigger value="list">{t('listView') || 'Liste Görünümü'}</TabsTrigger>
+                            <TabsTrigger value="tree">{t('treeView') || 'Ağaç Görünümü'}</TabsTrigger>
+                        </TabsList>
+                    </div>
+
+                    <TabsContent value="list" className="m-0 border-none outline-none">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>{t('table.title')}</TableHead>
+                                    <TableHead>{t('table.customer')}</TableHead>
+                                    <TableHead>{t('table.team')}</TableHead>
+                                    <TableHead>{tCommon('priority')}</TableHead>
+                                    <TableHead>{tCommon('status')}</TableHead>
+                                    <TableHead>{tCommon('date')}</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {jobs.map((job) => (
+                                    <TableRow key={job.id}>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                <div className="p-2 bg-orange-50 rounded text-orange-600">
+                                                    <BriefcaseIcon className="h-4 w-4" />
                                                 </div>
+                                                <div>
+                                                    <a href={`/manager/jobs/${job.id}`} className="font-medium text-gray-900 hover:underline hover:text-blue-600 block">
+                                                        {job.title}
+                                                    </a>
+                                                    {job.location && (
+                                                        <div className="flex items-center gap-1 text-xs text-gray-500">
+                                                            <MapPinIcon className="h-3 w-3" />
+                                                            <span className="truncate max-w-[150px]">{job.location}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="font-medium">{job.customer.company}</div>
+                                            <div className="text-sm text-gray-500">{job.customer.user.name}</div>
+                                        </TableCell>
+                                        <TableCell>
+                                            {job.assignments.length > 0 && job.assignments[0].team ? (
+                                                <Badge variant="outline" className="font-normal">
+                                                    {job.assignments[0].team.name}
+                                                </Badge>
+                                            ) : (
+                                                <span className="text-sm text-gray-400 italic">{t('table.unassigned')}</span>
                                             )}
-                                        </div>
-                                    </div>
-                                </TableCell>
-                                <TableCell>
-                                    <div className="font-medium">{job.customer.company}</div>
-                                    <div className="text-sm text-gray-500">{job.customer.user.name}</div>
-                                </TableCell>
-                                <TableCell>
-                                    {job.assignments.length > 0 && job.assignments[0].team ? (
-                                        <Badge variant="outline" className="font-normal">
-                                            {job.assignments[0].team.name}
-                                        </Badge>
-                                    ) : (
-                                        <span className="text-sm text-gray-400 italic">{t('table.unassigned')}</span>
-                                    )}
-                                </TableCell>
-                                <TableCell>
-                                    <Badge variant={priorityColors[job.priority]}>
-                                        {job.priority}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell>
-                                    <Badge variant={statusColors[job.status]}>
-                                        {tStatus(job.status as any)}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell>
-                                    <div className="flex items-center gap-1 text-sm text-gray-600">
-                                        <CalendarIcon className="h-3 w-3" />
-                                        {job.scheduledDate
-                                            ? format(new Date(job.scheduledDate), 'd MMM', { locale: dateLocale })
-                                            : format(new Date(job.createdAt), 'd MMM', { locale: dateLocale })
-                                        }
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                        {jobs.length === 0 && (
-                            <TableRow>
-                                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                                    {t('table.noRecords')}
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant={priorityColors[job.priority]}>
+                                                {job.priority}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant={statusColors[job.status]}>
+                                                {tStatus(job.status as any)}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-1 text-sm text-gray-600">
+                                                <CalendarIcon className="h-3 w-3" />
+                                                {job.scheduledDate
+                                                    ? format(new Date(job.scheduledDate), 'd MMM', { locale: dateLocale })
+                                                    : format(new Date(job.createdAt), 'd MMM', { locale: dateLocale })
+                                                }
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                                {jobs.length === 0 && (
+                                    <TableRow>
+                                        <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                                            {t('table.noRecords')}
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </TabsContent>
+
+                    <TabsContent value="tree" className="m-0 border-none outline-none">
+                        <GlobalJobsTree jobs={jobs as any} />
+                    </TabsContent>
+                </Tabs>
             </div>
         </div>
     )
