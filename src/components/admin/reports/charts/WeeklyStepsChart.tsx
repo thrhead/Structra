@@ -21,9 +21,11 @@ interface WeeklyStepsChartProps {
     data: any;
     categories: string[];
 }
-
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
-
+const COLORS = [
+    '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+    '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#14b8a6',
+    '#6366f1', '#fbbf24'
+];
 const WeeklyStepsChart = memo(({ data, categories }: WeeklyStepsChartProps) => {
     const [selectedDay, setSelectedDay] = useState<any>(null);
 
@@ -61,8 +63,8 @@ const WeeklyStepsChart = memo(({ data, categories }: WeeklyStepsChartProps) => {
                 <CardContent>
                     <div className="h-[350px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                            <ComposedChart 
-                                data={chartData} 
+                            <ComposedChart
+                                data={chartData}
                                 onClick={(e: any) => {
                                     if (e && e.activePayload && e.activePayload.length > 0) {
                                         handleBarClick(e.activePayload[0].payload);
@@ -70,44 +72,44 @@ const WeeklyStepsChart = memo(({ data, categories }: WeeklyStepsChartProps) => {
                                 }}
                             >
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                                <XAxis 
-                                    dataKey="displayDate" 
-                                    axisLine={false} 
-                                    tickLine={false} 
+                                <XAxis
+                                    dataKey="displayDate"
+                                    axisLine={false}
+                                    tickLine={false}
                                     tick={{ fill: '#64748b', fontSize: 12 }}
                                 />
-                                <YAxis 
-                                    axisLine={false} 
-                                    tickLine={false} 
+                                <YAxis
+                                    axisLine={false}
+                                    tickLine={false}
                                     tick={{ fill: '#64748b', fontSize: 12 }}
                                 />
-                                <Tooltip 
-                                    contentStyle={{ 
-                                        borderRadius: '12px', 
-                                        border: 'none', 
-                                        boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' 
+                                <Tooltip
+                                    contentStyle={{
+                                        borderRadius: '12px',
+                                        border: 'none',
+                                        boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'
                                     }}
                                 />
-                                <Legend verticalAlign="top" height={36}/>
-                                
+                                <Legend verticalAlign="top" height={36} />
+
                                 {categories.map((cat, index) => (
-                                    <Bar 
-                                        key={cat} 
-                                        dataKey={cat} 
-                                        stackId="a" 
-                                        fill={COLORS[index % COLORS.length]} 
+                                    <Bar
+                                        key={cat}
+                                        dataKey={cat}
+                                        stackId="a"
+                                        fill={COLORS[index % COLORS.length]}
                                         radius={[0, 0, 0, 0]}
                                         barSize={40}
                                     />
                                 ))}
-                                
+
                                 {/* Benchmark Line - Previous Week */}
-                                <Line 
-                                    type="monotone" 
-                                    dataKey="prevTotal" 
-                                    name="Geçen Hafta (BM)" 
-                                    stroke="#94a3b8" 
-                                    strokeWidth={2} 
+                                <Line
+                                    type="monotone"
+                                    dataKey="prevTotal"
+                                    name="Geçen Hafta (BM)"
+                                    stroke="#94a3b8"
+                                    strokeWidth={2}
                                     strokeDasharray="5 5"
                                     dot={{ r: 4, fill: '#94a3b8' }}
                                 />

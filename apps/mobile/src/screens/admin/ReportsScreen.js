@@ -119,7 +119,11 @@ const ReportsScreen = () => {
             const date = new Date(day.date);
             const label = date.toLocaleDateString('tr-TR', { weekday: 'short' });
             let categories = perfData.weeklySteps.categories;
-            const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+            const colors = [
+                '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+                '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#14b8a6',
+                '#6366f1', '#fbbf24'
+            ];
 
             // Template based filtering for the chart
             if (selectedTemplate === 'audit') {

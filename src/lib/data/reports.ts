@@ -375,7 +375,12 @@ export const getWeeklyCompletedSteps = unstable_cache(
             orderBy: { completedAt: 'asc' }
         });
 
-        const categories = ['Hazırlık', 'Montaj', 'Test', 'Paketleme', 'Diğer'];
+        // Gerçek veritabanından, filtre aralığındaki tamamlanmış adımların başlıklarını çeken Dinamik Kategori
+        const categoriesSet = new Set<string>();
+        steps.forEach(step => {
+            if (step.title) categoriesSet.add(step.title);
+        });
+        const categories = Array.from(categoriesSet);
 
         const formatData = (startDate: Date, endDate: Date) => {
             const days: Record<string, any> = {};
@@ -391,8 +396,10 @@ export const getWeeklyCompletedSteps = unstable_cache(
             steps.filter(s => s.completedAt! >= startDate && s.completedAt! <= endDate).forEach(step => {
                 const dateStr = step.completedAt!.toISOString().split('T')[0];
                 if (days[dateStr]) {
-                    const cat = categories.find(c => step.title.toLowerCase().includes(c.toLowerCase())) || 'Diğer';
-                    days[dateStr][cat]++;
+                    const cat = step.title;
+                    if (categories.includes(cat)) {
+                        days[dateStr][cat]++;
+                    }
                     days[dateStr].total++;
                     if (!days[dateStr].jobs.find((j: any) => j.id === step.jobId)) {
                         days[dateStr].jobs.push({ id: step.jobId, title: step.job.title });

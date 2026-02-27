@@ -1,25 +1,26 @@
-# Web ve Mobil Raporlama Bölümlerinin Eşitlenmesi (Issue #12)
+# Raporlama Grafiklerinde Mock Data (Hazırlık, Montaj vb.) Kaldırılması (Issue #13)
 
-Bu belge, Github Issue #12 kapsamında belirtilen "Her iki uygulamada da (Web & Mobil) raporların aynı olması" talebini gidermek üzere kurgulanmış Orkestrasyon Planıdır. Issue #16 kapsamında Web uygulaması için hazırlanan Dinamik Rapor İndirme (`api/admin/reports/export/[id]`) altyapısının Mobil uygulamaya (React Native) entegrasyonunu hedefler.
+Bu belge, Github Issue #13 kapsamında belirtilen "Haftalık Tamamlanan Adımlar grafiğindeki 'Hazırlık, Montaj, Paketleme' gibi verilerin gerçek veritabanı kayıtlarıyla değiştirilmesi" talebinin uygulanabilmesi için kurgulanan Orkestrasyon Çözüm Tasarısıdır. 
 
-## Kök Nedenler ve Teknik Analiz
-1. Mobil uygulamanın `ReportsScreen.js` sayfasında şu an sadece İstatistik grafikleri (Performans, Ekipler vb.) bulunmaktadır. Dışa aktarılabilen "İndirilebilir Raporlar" listesi mevcut değildir.
-2. Web için yeni yazdığımız `/api/admin/reports/list` ve `/api/admin/reports/export/[id]` uç noktaları sadecce `NextAuth` Session Çerezleri (Cookie) ile doğrulama yapmaktadır. Oysa Mobil uygulama `Authorization: Bearer <Token>` yapısıyla API sorgusu atmaktadır. Bu durum Mobilden istek atıldığında **401 Unauthorized** hatasına sebep olacaktır.
-3. Web üzerinde çalışan `window.open` indirme mantığı mobilde geçersizdir. PDF'in indirilip telefonda gösterilmesi için expo/react-native dosya sistemi işlevleri (`expo-file-system` veya `expo-sharing` ile HTTP Header'lı indirme) kullanılmalıdır.
+## Mevcut Durum Analizi (Kök Neden)
+* **explorer-agent** tespitleri: `src/lib/data/reports.ts` dosyasındaki `getWeeklyCompletedSteps` fonksiyonu 378. satırda:
+  `const categories = ['Hazırlık', 'Montaj', 'Test', 'Paketleme', 'Diğer'];`
+  şeklinde statik (mock/hardcode) bir veri dizisine sahiptir. Grafikler de sadece bu kelimeleri aramakta, bulamadıklarını 'Diğer' olarak isimlendirmektedir. 
+* Bu yaklaşım iş adımlarını dinamik kurgulayan Structra sistemine tamamen zıttır.
 
-## Çözüm Planı (Kullanılacak Ajanlar: backend-specialist, mobile-developer, test-engineer)
+## Çözüm Planı (Kullanılacak Ajanlar: backend-specialist, frontend-specialist, test-engineer)
 
-### 1. BACKEND: Token Uyumlu Auth Denetimi (`backend-specialist`)
-* `src/app/api/admin/reports/list/route.ts` ve `src/app/api/admin/reports/export/[id]/route.ts` API'lerinde yer alan `auth()` metoduna ek olarak; **eğer mobil token gelirse `verifyAuth()` üzerinden** de session'ın çözülmesi sağlanacak. Böylece API hem mobilden (Bearer token) hem de web'den (Cookie) gelen isteklerle eşit derecede çalışabilecek.
+### 1. BACKEND: Dinamik Kategori Sorgusu (`backend-specialist`)
+* `getWeeklyCompletedSteps()` isimli yapıdaki statik `categories` dizisi silinerek; aynı sorgu haftasında (`steps` değişkeni) hangi `title`'lar tamamlanmışsa (distinct), veya tüm geçerli job steplerin kategorileri *dinamik* olarak veritabanından çekilip "Gerçek Kategoriler" elde edilecektir.
+* `days[dateStr][cat]` değişken atamaları artık bu dinamik kategori kelimeleri üzerinden şekillenecektir. Veri gelmemiş olan günlere `0` ataması mevcut dinamizmle sağlanacaktır.
 
-### 2. FRONTEND (MOBILE): Raporlar Ekranının Geliştirilmesi (`mobile-developer`)
-* `apps/mobile/src/screens/admin/ReportsScreen.js` dosyasına "Rapor İndirmeleri (Export)" isimli 4. bir Tab eklenecek.
-* Bu Tab aktifleştiğinde Web ile birebir aynı listeyi veren `/api/admin/reports/list` endpointine `Bearer <Token>` ile bağlanıp Tamamlanmış iş dosyalarını listeleyecek.
-* **İndirme (Download):** Herhangi bir listenin indirme ikonuna basıldığında, dosyayı indirmek için token'lı bir fetch operasyonu (veya `expo-file-system.downloadAsync` header destekli opsiyonları) yapılarak tarayıcı ihtiyacı olmadan direkt telefonun paylaşım ekranında veya önizlemesinde PDF sunulacak. 
+### 2. FRONTEND: Renk Uzayı ve Render Kontrolü (`frontend-specialist`)
+* Web `Raporlar (Dashboard)` veya Component ekranlarındaki BarChart (Recharts veya React Native Gifted Charts) yapılarına gidecek veriler dinamik bir renk paletiyle (Çünkü artık kaç çeşit step title'ı geleceği belli değil, mock veri kalkacak) eşlenecektir.
+* Mock kalıntı olan "Diğer" ibaresi tamamiyle silinerek tüm süreçlerin şeffaf olarak "İsimleriyle" kategorize edilmesi sağlanır.
 
-### 3. VERIFICATION (`test-engineer`, `devops-engineer`)
-* Typescript derleme testleri yapılacak (`tsc --noEmit`).
-* Security script'in zafiyete neden olmadan geçtiği test edilecek.
+### 3. VERIFICATION (`test-engineer`)
+* Veritabanına ulaşıp ulaşmadığı güvenlik denetimi (`security_scan.py`) aracılığıyla denetlenecektir.
+* Statik arrayden dinamik `Set` veya obje dönüşümleri Typescript (`tsc`) hata taramasından geçirilecektir.
 
 ---
 
