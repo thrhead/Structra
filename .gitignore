@@ -75,3 +75,17 @@ assembly_tr_temp/
 
 .gemini/
 gha-creds-*.json
+
+# System Generated & Temps
+err*.html
+error.html
+verify.html
+.agent/
+temp-claude-skills/
+
+# Development Server Output
+public/sw.js
+public/workbox-*.js
+
+# Wiki Sub-project
+wiki/

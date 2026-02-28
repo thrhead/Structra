@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/auth' // Assuming we have auth helper, usually next-auth
+import { verifyAuth } from '@/lib/auth-helper'
 import { emitToJob, emitToUser } from '@/lib/socket'
 import { sanitizeHtml } from '@/lib/security'
 
@@ -9,9 +9,8 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
     try {
-        // Mock auth check - replace with real auth check
-        // const session = await auth()
-        // if (!session?.user) return new NextResponse('Unauthorized', { status: 401 })
+        const session = await verifyAuth(request)
+        if (!session?.user) return new NextResponse('Unauthorized', { status: 401 })
 
         const { searchParams } = new URL(request.url)
         const jobId = searchParams.get('jobId')
@@ -51,11 +50,10 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
     try {
-        // const session = await auth()
-        // if (!session?.user) return new NextResponse('Unauthorized', { status: 401 })
+        const session = await verifyAuth(request)
+        if (!session?.user) return new NextResponse('Unauthorized', { status: 401 })
 
-        // Mock user ID for now if auth is missing
-        const senderId = "user_id_placeholder"
+        const senderId = session.user.id
 
         const body = await request.json()
         let { content } = body

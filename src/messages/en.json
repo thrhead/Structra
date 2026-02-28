@@ -46,6 +46,42 @@
       "reporting": {
         "title": "Reporting",
         "desc": "Perform cost control with detailed reports and charts"
+      },
+      "web": {
+        "title": "Admin & Customer Portal",
+        "description": "Monitor the entire operation from a bird's-eye view in seconds. Manage costs and direct teams.",
+        "items": [
+          {
+            "title": "Real-time Map",
+            "desc": "Track your teams' live locations and job statuses on a live map."
+          },
+          {
+            "title": "Financial Analysis",
+            "desc": "Get job-based cost calculations and profitability reports with one click."
+          },
+          {
+            "title": "Customer Interface",
+            "desc": "Transparently present to your customers the exact stage of their jobs."
+          }
+        ]
+      },
+      "mobile": {
+        "title": "Built for Field Workers",
+        "description": "Uninterrupted assembly guide and task tracking even with zero internet connectivity.",
+        "items": [
+          {
+            "title": "3D Assembly Guide",
+            "desc": "Assemble complex products right from your phone with step-by-step 3D exploded views."
+          },
+          {
+            "title": "Issue Reporting",
+            "desc": "Instantly photograph and report encountered issues in the field to the headquarters."
+          },
+          {
+            "title": "Offline Mode",
+            "desc": "Data is kept on the device if the connection drops, automatically syncing when internet is restored."
+          }
+        ]
       }
     }
   },

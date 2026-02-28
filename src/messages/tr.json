@@ -46,6 +46,42 @@
       "reporting": {
         "title": "Raporlama",
         "desc": "Detaylı raporlar ve grafiklerle maliyet kontrolü yapın"
+      },
+      "web": {
+        "title": "Yönetici & Müşteri Paneli",
+        "description": "Tüm operasyonu saniyeler içinde kuş bakışı izleyin. Maliyetleri yönetin, ekipleri yönlendirin.",
+        "items": [
+          {
+            "title": "Gerçek Zamanlı Harita",
+            "desc": "Ekiplerinizin anlık konumlarını ve iş durumlarını harita üzerinden canlı takip edin."
+          },
+          {
+            "title": "Finansal Analiz",
+            "desc": "İş bazlı maliyet hesaplamaları ve karlılık raporlarını tek tuşla alın."
+          },
+          {
+            "title": "Müşteri Arayüzü",
+            "desc": "Müşterilerinize işlerinin hangi aşamada olduğunu şeffaf bir şekilde sunun."
+          }
+        ]
+      },
+      "mobile": {
+        "title": "Saha Ekipleri İçin Tasarlandı",
+        "description": "Sıfır internet bağlantısında bile kesintisiz montaj rehberi ve görev takibi.",
+        "items": [
+          {
+            "title": "3D Montaj Kılavuzu",
+            "desc": "Karmaşık ürünleri cep telefonundan 3 boyutlu ve adım adım patlatılmış görünümlerle kurun."
+          },
+          {
+            "title": "Hata Bildirimi",
+            "desc": "Sahada karşılaşılan sorunları anında fotoğraflayıp merkeze iletin."
+          },
+          {
+            "title": "Çevrimdışı Çalışma",
+            "desc": "Bağlantı kopsa bile veriler cihazda tutulur, internet gelince otomatik senkronize olur."
+          }
+        ]
       }
     }
   },

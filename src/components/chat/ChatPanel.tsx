@@ -38,6 +38,7 @@ export function ChatPanel({ jobId, title }: ChatPanelProps) {
     const [isTyping, setIsTyping] = useState(false)
     const [mounted, setMounted] = useState(false)
     const scrollRef = useRef<HTMLDivElement>(null)
+    const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
     useEffect(() => {
         setMounted(true)
@@ -46,7 +47,7 @@ export function ChatPanel({ jobId, title }: ChatPanelProps) {
     useEffect(() => {
         if (!mounted) return
         loadMessages()
-        
+
         if (socket && isConnected) {
             socket.emit('join:job', jobId)
 
@@ -91,7 +92,7 @@ export function ChatPanel({ jobId, title }: ChatPanelProps) {
                 .where('jobId')
                 .equals(jobId)
                 .sortBy('sentAt')
-            
+
             // Cast Dexie result to Message type for state (assuming structure match mostly)
             if (localMessages.length > 0) {
                 // Need to map LocalMessage to component's Message interface
@@ -103,9 +104,9 @@ export function ChatPanel({ jobId, title }: ChatPanelProps) {
             // 2. Fetch from API (Network)
             const response = await fetch(`/api/messages?jobId=${jobId}`)
             if (!response.ok) throw new Error('Failed to fetch')
-            
+
             const data = await response.json()
-            
+
             // 3. Process and Decrypt
             const processedMessages = await Promise.all(
                 data.map(async (msg: any) => {
@@ -116,7 +117,7 @@ export function ChatPanel({ jobId, title }: ChatPanelProps) {
                     return { ...msg, content, status: 'sent' }
                 })
             )
-            
+
             setMessages(processedMessages)
 
             // 4. Update Local DB
@@ -150,7 +151,7 @@ export function ChatPanel({ jobId, title }: ChatPanelProps) {
             })
 
             if (!response.ok) throw new Error('Send failed')
-            
+
             const sentMessage = await response.json()
             // The response will have encrypted content, but for UI we want plain
             setMessages((prev) => [...prev, { ...sentMessage, content }])
@@ -173,14 +174,15 @@ export function ChatPanel({ jobId, title }: ChatPanelProps) {
             {/* Header */}
             <div className="flex items-center justify-between border-bottom p-3 bg-muted/50">
                 <div className="flex items-center gap-2">
-                    <div className={cn("h-2 w-2 rounded-full", isConnected ? "bg-green-500" : "bg-red-500")} />
+                    <div className={cn("h-2 w-2 rounded-full", isConnected ? "bg-green-500" : "bg-red-500 animate-pulse")} />
                     <span className="text-sm font-semibold">{title || 'İş Sohbeti'}</span>
+                    {!isConnected && <span className="text-xs text-red-500 ml-2">Yeniden bağlanılıyor...</span>}
                 </div>
-                {!isConnected && <WifiOff className="h-4 w-4 text-muted-foreground" />}
+                {!isConnected ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : null}
             </div>
 
             {/* Messages Area */}
-            <div 
+            <div
                 ref={scrollRef}
                 className="flex-1 overflow-y-auto p-4 space-y-4"
             >
@@ -216,6 +218,7 @@ export function ChatPanel({ jobId, title }: ChatPanelProps) {
                                                     {new Date(msg.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                 </span>
                                                 {msg.isEncrypted && <Lock className="h-2 w-2" />}
+                                                {(msg as any).status === 'queued' && <WifiOff className="h-2 w-2 ml-1" />}
                                             </div>
                                         </div>
                                     </div>
@@ -226,8 +229,12 @@ export function ChatPanel({ jobId, title }: ChatPanelProps) {
                 )}
                 {isTyping && (
                     <div className="flex justify-start">
-                        <div className="bg-muted rounded-full px-4 py-2 text-[10px] animate-pulse">
-                            Yazıyor...
+                        <div className="flex items-center gap-2">
+                            <span className="bg-muted text-muted-foreground rounded-full px-3 py-1.5 text-xs flex gap-1 items-center">
+                                <span className="h-1.5 w-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                                <span className="h-1.5 w-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                                <span className="h-1.5 w-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                            </span>
                         </div>
                     </div>
                 )}
@@ -235,26 +242,28 @@ export function ChatPanel({ jobId, title }: ChatPanelProps) {
 
             {/* Input Area */}
             <div className="p-3 border-t bg-background">
-                <form 
+                <form
                     onSubmit={(e) => { e.preventDefault(); handleSend(); }}
                     className="flex gap-2"
                 >
-                    <Input 
+                    <Input
                         placeholder="Mesajınızı yazın..."
                         value={inputText}
                         onChange={(e) => setInputText(e.target.value)}
                         className="flex-1 h-9 bg-muted/30 focus-visible:ring-primary"
                         onKeyDown={(e) => {
-                            // Simple typing indicator logic
                             if (socket && isConnected) {
                                 socket.emit('typing:start', { jobId, userId: session?.user?.id })
-                                // This would need a debounce to emit stop
+                                if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
+                                typingTimeoutRef.current = setTimeout(() => {
+                                    socket.emit('typing:stop', { jobId, userId: session?.user?.id })
+                                }, 2000)
                             }
                         }}
                     />
-                    <Button 
-                        type="submit" 
-                        size="icon" 
+                    <Button
+                        type="submit"
+                        size="icon"
                         disabled={!inputText.trim() || !isConnected}
                         className="h-9 w-9 shrink-0"
                     >

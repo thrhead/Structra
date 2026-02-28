@@ -23,20 +23,20 @@ const ChatScreen = () => {
     const navigation = useNavigation();
     const route = useRoute();
     const { jobId, jobTitle } = route.params || {};
-    
+
     const [messages, setMessages] = useState([]);
     const [inputText, setInputText] = useState('');
     const [loading, setLoading] = useState(true);
     const [currentUser, setCurrentUser] = useState(null);
     const [isTyping, setIsTyping] = useState(false);
-    
+
     const socketRef = useRef(null);
     const flatListRef = useRef(null);
 
     useEffect(() => {
         loadInitialData();
         setupSocket();
-        
+
         return () => {
             if (socketRef.current) {
                 socketRef.current.disconnect();
@@ -62,7 +62,7 @@ const ChatScreen = () => {
 
     const setupSocket = async () => {
         const token = await AsyncStorage.getItem('authToken');
-        
+
         socketRef.current = io(API_BASE_URL, {
             path: '/api/socket',
             auth: { token }
@@ -75,16 +75,27 @@ const ChatScreen = () => {
 
         socketRef.current.on('receive:message', (newMessage) => {
             setMessages(prev => [...prev, newMessage]);
-            // Optional: Decrypt if needed, but service handles it usually
         });
 
         socketRef.current.on('typing:start', (data) => {
             if (data.userId !== currentUser?.id) setIsTyping(true);
         });
 
-        socketRef.current.on('typing:stop', () => {
-            setIsTyping(false);
+        socketRef.current.on('typing:stop', (data) => {
+            if (data.userId !== currentUser?.id) setIsTyping(false);
         });
+    };
+
+    const typingTimeoutRef = useRef(null);
+    const handleTyping = (text) => {
+        setInputText(text);
+        if (socketRef.current && currentUser?.id) {
+            socketRef.current.emit('typing:start', { jobId, userId: currentUser.id });
+            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+            typingTimeoutRef.current = setTimeout(() => {
+                socketRef.current.emit('typing:stop', { jobId, userId: currentUser.id });
+            }, 2000);
+        }
     };
 
     const handleSend = async () => {
@@ -92,6 +103,10 @@ const ChatScreen = () => {
 
         const messageContent = inputText.trim();
         setInputText('');
+
+        if (socketRef.current && currentUser?.id) {
+            socketRef.current.emit('typing:stop', { jobId, userId: currentUser.id });
+        }
 
         try {
             const newMessage = await MessageService.sendMessage({
@@ -104,7 +119,7 @@ const ChatScreen = () => {
                 ...newMessage,
                 sender: currentUser // Local display optimization
             }]);
-            
+
             // Scroll to bottom
             setTimeout(() => flatListRef.current?.scrollToEnd(), 100);
         } catch (error) {
@@ -114,7 +129,7 @@ const ChatScreen = () => {
 
     const renderMessage = ({ item }) => {
         const isMine = item.senderId === currentUser?.id || item.sender?.id === currentUser?.id;
-        
+
         return (
             <View style={[
                 styles.messageContainer,
@@ -195,13 +210,13 @@ const ChatScreen = () => {
                             <TextInput
                                 style={styles.input}
                                 value={inputText}
-                                onChangeText={setInputText}
+                                onChangeText={handleTyping}
                                 placeholder="Mesaj yazın..."
                                 multiline
                             />
                             <TouchableOpacity
                                 style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
-                                onPress={handleSendMessage}
+                                onPress={handleSend}
                                 disabled={!inputText.trim()}
                             >
                                 <Send size={24} color="#fff" />

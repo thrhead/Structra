@@ -55,15 +55,21 @@ export const initSocketServer = (httpServer: HTTPServer): SocketIOServer => {
             }
         })
 
-        // Typing Indicators
-        socket.on('typing:start', (data: { roomId: string, userId: string, isJob: boolean }) => {
-            const room = data.isJob ? `job:${data.roomId}` : `user:${data.roomId}`; // For direct, roomId is receiverId logic needs refinement usually, but keeping simple
-            socket.to(room).emit('typing:start', { userId: data.userId, roomId: data.roomId })
+        // Default senderId if we had to parse from token, but here we trust client userId for now
+        socket.on('typing:start', (data: { jobId?: string, receiverId?: string, userId: string }) => {
+            if (data.jobId) {
+                socket.to(`job:${data.jobId}`).emit('typing:start', { userId: data.userId })
+            } else if (data.receiverId) {
+                socket.to(`user:${data.receiverId}`).emit('typing:start', { userId: data.userId })
+            }
         })
 
-        socket.on('typing:stop', (data: { roomId: string, userId: string, isJob: boolean }) => {
-            const room = data.isJob ? `job:${data.roomId}` : `user:${data.roomId}`;
-            socket.to(room).emit('typing:stop', { userId: data.userId, roomId: data.roomId })
+        socket.on('typing:stop', (data: { jobId?: string, receiverId?: string, userId: string }) => {
+            if (data.jobId) {
+                socket.to(`job:${data.jobId}`).emit('typing:stop', { userId: data.userId })
+            } else if (data.receiverId) {
+                socket.to(`user:${data.receiverId}`).emit('typing:stop', { userId: data.userId })
+            }
         })
     })
 

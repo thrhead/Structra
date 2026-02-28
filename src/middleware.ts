@@ -59,7 +59,8 @@ export default auth((req) => {
 
   // 2. Auth & Role Based Redirection
   if (isLoggedIn) {
-    if (pathname === "/login" || pathname === "/") {
+    // ⚠️ Geliştirme (Preview) için "/" (Anasayfa) yönlendirmesi iptal edildi:
+    if (pathname === "/login") {
       return NextResponse.redirect(new URL(getDashboardUrl(userRole), req.url));
     }
     const pathWithoutLocale = pathname.replace(/^\/(tr|en)/, "") || "/";
