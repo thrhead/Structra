@@ -3,6 +3,7 @@
     "name": "Assembly Tracker",
     "slug": "mobile",
     "version": "2.0.0",
+    "newArchEnabled": false,
     "sdkVersion": "52.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -42,6 +43,23 @@
         "projectId": "7494834e-65b0-43bf-b568-1f47f73ada6a"
       }
     },
-    "owner": "thead"
+    "owner": "thead",
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "1.9.24",
+            "compileSdkVersion": 34,
+            "targetSdkVersion": 34,
+            "buildToolsVersion": "34.0.0",
+            "extraParams": [
+              "-Xmx4G",
+              "-Djava.util.concurrent.ForkJoinPool.common.parallelism=4"
+            ]
+          }
+        }
+      ]
+    ]
   }
 }
