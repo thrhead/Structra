@@ -38,4 +38,4 @@ yarn-error.*
 
 # generated native folders
 /ios
-/android
+# /android - temporarily included for EAS to use SDK 55 native files
