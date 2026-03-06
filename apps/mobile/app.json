@@ -3,6 +3,7 @@
     "name": "Assembly Tracker",
     "slug": "mobile",
     "version": "2.0.0",
+    "scheme": "assemblytracker",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
