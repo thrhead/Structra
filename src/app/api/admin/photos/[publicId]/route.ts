@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { verifyAdminOrManager } from '@/lib/auth-helper'
 import { deleteFromCloudinary, extractPublicIdFromUrl } from '@/lib/cloudinary'
 import { prisma } from '@/lib/db'
 
@@ -9,14 +9,9 @@ export async function DELETE(
 ) {
     const params = await props.params
     try {
-        const session = await auth()
-        if (!session?.user) {
+        const session = await verifyAdminOrManager(request)
+        if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        }
-
-        // Check if user is admin or manager
-        if (session.user.role !== 'ADMIN' && session.user.role !== 'MANAGER') {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
         }
 
         const photoId = params.publicId

@@ -1,12 +1,12 @@
-import { auth } from "@/lib/auth"
+import { verifyAdmin } from "@/lib/auth-helper"
 import { prisma } from "@/lib/db"
 import { NextResponse } from "next/server"
 import * as XLSX from "xlsx"
 
 export async function POST(req: Request) {
     try {
-        const session = await auth()
-        if (!session || (session.user.role !== "ADMIN" && session.user.role !== "TEAM_LEAD")) {
+        const session = await verifyAdmin(req)
+        if (!session) {
             return new NextResponse("Yetkisiz Erişim", { status: 401 })
         }
 

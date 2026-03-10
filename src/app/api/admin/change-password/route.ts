@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/auth'
+import { verifyAdmin } from '@/lib/auth-helper'
 import { hash, compare } from 'bcryptjs'
 import { z } from 'zod'
 
@@ -11,8 +11,8 @@ const passwordSchema = z.object({
 
 export async function POST(req: Request) {
   try {
-    const session = await auth()
-    if (!session || session.user.role !== 'ADMIN') {
+    const session = await verifyAdmin(req)
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -40,9 +40,9 @@ export async function POST(req: Request) {
       data: { passwordHash: newPasswordHash }
     })
 
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Şifreniz başarıyla değiştirildi' 
+    return NextResponse.json({
+      success: true,
+      message: 'Şifreniz başarıyla değiştirildi'
     })
   } catch (error) {
     if (error instanceof z.ZodError) {

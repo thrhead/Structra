@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/auth'
+import { verifyAdminOrManager } from '@/lib/auth-helper'
 import { startOfMonth, subMonths, format } from 'date-fns'
 import { tr } from 'date-fns/locale'
 
@@ -10,8 +10,8 @@ export async function GET(
 ) {
     const params = await props.params
     try {
-        const session = await auth()
-        if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
+        const session = await verifyAdminOrManager(req)
+        if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 

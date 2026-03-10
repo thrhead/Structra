@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/auth'
+import { verifyAdmin } from '@/lib/auth-helper'
 
 export async function GET(
     req: Request,
@@ -8,8 +8,8 @@ export async function GET(
 ) {
     const params = await props.params
     try {
-        const session = await auth()
-        if (!session || session.user.role !== 'ADMIN') {
+        const session = await verifyAdmin(req)
+        if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
@@ -41,8 +41,8 @@ export async function POST(
 ) {
     const params = await props.params
     try {
-        const session = await auth()
-        if (!session || session.user.role !== 'ADMIN') {
+        const session = await verifyAdmin(req)
+        if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
@@ -75,8 +75,8 @@ export async function DELETE(
 ) {
     const params = await props.params
     try {
-        const session = await auth()
-        if (!session || session.user.role !== 'ADMIN') {
+        const session = await verifyAdmin(req)
+        if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
