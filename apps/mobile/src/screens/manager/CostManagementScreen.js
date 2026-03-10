@@ -49,11 +49,18 @@ export default function CostManagementScreen({ navigation }) {
         <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
             {/* Header */}
             <View style={[styles.header, { backgroundColor: theme.colors.background, borderBottomColor: theme.colors.border }]}>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <MaterialIcons name="arrow-back-ios" size={24} color={theme.colors.text} />
+                <View style={styles.headerTitleContainer}>
+                    <TouchableOpacity onPress={() => navigation.goBack()}>
+                        <MaterialIcons name="arrow-back-ios" size={24} color={theme.colors.text} />
+                    </TouchableOpacity>
+                    <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Proje Masrafları</Text>
+                </View>
+                <TouchableOpacity style={styles.actionItem} onPress={() => showAlert('Yakında', 'Masraf ekleme özelliği yakında gelecek', [], 'warning')}>
+                    <View style={[styles.actionButton, { backgroundColor: theme.colors.primary }]}>
+                        <MaterialIcons name="add" size={22} color="#fff" />
+                    </View>
+                    <Text style={[styles.actionLabel, { color: theme.colors.subText }]}>Yeni Masraf</Text>
                 </TouchableOpacity>
-                <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Proje Masrafları</Text>
-                <View style={{ width: 48 }} />
             </View>
 
             <ScrollView
@@ -107,15 +114,6 @@ export default function CostManagementScreen({ navigation }) {
 
                 <ExpenseList costs={filteredCosts} theme={theme} />
             </ScrollView>
-
-            {/* FAB */}
-            <TouchableOpacity
-                style={[styles.fab, { backgroundColor: theme.colors.primary }]}
-                onPress={() => showAlert('Yakında', 'Masraf ekleme özelliği yakında gelecek', [], 'warning')}
-                activeOpacity={0.8}
-            >
-                <MaterialIcons name="add" size={28} color={theme.colors.textInverse} />
-            </TouchableOpacity>
         </View>
     );
 }
@@ -140,11 +138,29 @@ const styles = StyleSheet.create({
         paddingBottom: 12,
         borderBottomWidth: 1,
     },
+    headerTitleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        flex: 1,
-        textAlign: 'center',
+    },
+    actionItem: {
+        alignItems: 'center',
+        gap: 4,
+    },
+    actionButton: {
+        width: 38,
+        height: 38,
+        borderRadius: 19,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    actionLabel: {
+        fontSize: 10,
+        fontWeight: '600',
     },
     scrollView: {
         flex: 1,
@@ -163,20 +179,5 @@ const styles = StyleSheet.create({
         flex: 1,
         marginLeft: 12,
         fontSize: 16,
-    },
-    fab: {
-        position: 'absolute',
-        bottom: 24,
-        right: 24,
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        alignItems: 'center',
-        justifyContent: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 8,
     },
 });

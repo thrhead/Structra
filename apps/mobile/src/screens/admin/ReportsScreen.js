@@ -261,20 +261,27 @@ const ReportsScreen = () => {
                                 </View>
                             </View>
                             <View style={{ marginTop: 20, alignItems: 'center' }}>
-                                <BarChart
-                                    stackData={getFilteredStackData()}
-                                    height={200}
-                                    width={width - 80}
-                                    barWidth={28}
-                                    spacing={15}
-                                    barBorderRadius={4}
-                                    xAxisThickness={0}
-                                    yAxisThickness={0}
-                                    yAxisTextStyle={{ color: theme.colors.subText, fontSize: 10 }}
-                                    xAxisLabelTextStyle={{ color: theme.colors.subText, fontSize: 10 }}
-                                    hideRules
-                                    isAnimated
-                                />
+                                {getFilteredStackData().length > 0 ? (
+                                    <BarChart
+                                        stackData={getFilteredStackData()}
+                                        height={200}
+                                        width={width - 80}
+                                        barWidth={28}
+                                        spacing={15}
+                                        barBorderRadius={4}
+                                        xAxisThickness={0}
+                                        yAxisThickness={0}
+                                        yAxisTextStyle={{ color: theme.colors.subText, fontSize: 10 }}
+                                        xAxisLabelTextStyle={{ color: theme.colors.subText, fontSize: 10 }}
+                                        hideRules
+                                        isAnimated
+                                    />
+                                ) : (
+                                    <View style={{ height: 200, justifyContent: 'center', alignItems: 'center' }}>
+                                        <TrendingUp size={48} color={theme.colors.subText} style={{ opacity: 0.5, marginBottom: 16 }} />
+                                        <Text style={{ color: theme.colors.subText, fontSize: 14 }}>Haftalık veri bulunmuyor</Text>
+                                    </View>
+                                )}
                             </View>
                         </GlassCard>
                     </View>

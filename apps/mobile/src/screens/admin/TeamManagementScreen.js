@@ -92,6 +92,21 @@ const TeamManagementScreen = ({ navigation }) => {
 
     const renderHeader = () => (
         <View style={styles.header}>
+            {isAdmin && (
+                <View style={styles.headerTopRow}>
+                    <View style={styles.headerTitleContainer}>
+                        <Users size={28} color={theme.colors.primary} />
+                        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Ekipler</Text>
+                    </View>
+                    <TouchableOpacity style={styles.headerActionItem} onPress={handleAddTeam}>
+                        <View style={[styles.headerActionButton, { backgroundColor: theme.colors.primary }]}>
+                            <Plus size={22} color="#fff" />
+                        </View>
+                        <Text style={[styles.headerActionLabel, { color: theme.colors.subText }]}>Yeni Ekip</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
+
             <View style={styles.statsRow}>
                 <View style={[styles.statCard, { backgroundColor: theme.colors.card }]}>
                     <Text style={[styles.statValue, { color: theme.colors.text }]}>{stats.total}</Text>
@@ -198,15 +213,6 @@ const TeamManagementScreen = ({ navigation }) => {
                 }
             />
 
-            {isAdmin && (
-                <TouchableOpacity
-                    style={[styles.fab, { backgroundColor: theme.colors.primary }]}
-                    onPress={handleAddTeam}
-                >
-                    <Plus size={24} color={isDark ? '#000' : '#FFF'} />
-                </TouchableOpacity>
-            )}
-
             <TeamFormModal
                 visible={modalVisible}
                 onClose={() => setModalVisible(false)}
@@ -254,6 +260,36 @@ const styles = StyleSheet.create({
     container: { flex: 1 },
     centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     header: { padding: 16 },
+    headerTopRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 16,
+    },
+    headerTitleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    headerTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    headerActionItem: {
+        alignItems: 'center',
+        gap: 4,
+    },
+    headerActionButton: {
+        width: 38,
+        height: 38,
+        borderRadius: 19,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    headerActionLabel: {
+        fontSize: 10,
+        fontWeight: '600',
+    },
     statsRow: { flexDirection: 'row', gap: 12, marginBottom: 16 },
     statCard: {
         flex: 1,
@@ -325,21 +361,6 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
     },
     actionText: { fontSize: 14, fontWeight: '600' },
-    fab: {
-        position: 'absolute',
-        bottom: 24,
-        right: 24,
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        justifyContent: 'center',
-        alignItems: 'center',
-        elevation: 5,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.3,
-        shadowRadius: 5,
-    },
     emptyContainer: { alignItems: 'center', marginTop: 40 },
     emptyText: { fontSize: 16, fontStyle: 'italic' },
     modalOverlay: {

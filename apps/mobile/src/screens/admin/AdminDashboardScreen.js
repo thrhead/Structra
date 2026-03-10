@@ -162,22 +162,29 @@ export default function AdminDashboardScreen({ navigation }) {
                                 <View style={styles.section}>
                                     <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Haftalık Tamamlanan Adımlar</Text>
                                     <View style={[styles.chartContainer, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder }]}>
-                                        <BarChart
-                                            data={chartData}
-                                            width={width - 80}
-                                            height={180}
-                                            barWidth={24}
-                                            spacing={12}
-                                            noOfSections={3}
-                                            barBorderRadius={6}
-                                            hideRules
-                                            xAxisThickness={0}
-                                            yAxisThickness={0}
-                                            yAxisTextStyle={{ color: theme.colors.subText, fontSize: 10 }}
-                                            xAxisLabelTextStyle={{ color: theme.colors.subText, fontSize: 10 }}
-                                            showGradient
-                                            isAnimated
-                                        />
+                                        {chartData.length > 0 ? (
+                                            <BarChart
+                                                data={chartData}
+                                                width={width - 80}
+                                                height={180}
+                                                barWidth={24}
+                                                spacing={12}
+                                                noOfSections={3}
+                                                barBorderRadius={6}
+                                                hideRules
+                                                xAxisThickness={0}
+                                                yAxisThickness={0}
+                                                yAxisTextStyle={{ color: theme.colors.subText, fontSize: 10 }}
+                                                xAxisLabelTextStyle={{ color: theme.colors.subText, fontSize: 10 }}
+                                                showGradient
+                                                isAnimated
+                                            />
+                                        ) : (
+                                            <View style={{ height: 180, justifyContent: 'center', alignItems: 'center' }}>
+                                                <TrendingUp size={48} color={theme.colors.subText} style={{ opacity: 0.5, marginBottom: 16 }} />
+                                                <Text style={{ color: theme.colors.subText, fontSize: 14 }}>{t('common.noData') || 'Veri bulunmuyor'}</Text>
+                                            </View>
+                                        )}
                                     </View>
                                 </View>
 

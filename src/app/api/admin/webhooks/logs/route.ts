@@ -1,12 +1,12 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { auth } from '@/lib/auth';
+import { verifyAdminOrManager } from '@/lib/auth-helper';
 
 export async function GET(req: NextRequest) {
-    const session = await auth();
+    const session = await verifyAdminOrManager(req);
 
-    if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
+    if (!session) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -38,9 +38,9 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
     // Manual retry endpoint
-    const session = await auth();
+    const session = await verifyAdminOrManager(req);
 
-    if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
+    if (!session) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
