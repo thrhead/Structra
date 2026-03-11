@@ -71,7 +71,7 @@ export const useCostManagement = () => {
             end.setHours(23, 59, 59, 999);
 
             filtered = filtered.filter(c => {
-                const costDate = new Date(c.date);
+                const costDate = new Date(c.date || c.createdAt);
                 return costDate >= start && costDate <= end;
             });
         }
@@ -88,18 +88,28 @@ export const useCostManagement = () => {
     }, [costs, selectedJob, selectedCategory, selectedUserId, startDate, endDate, searchQuery]);
 
     const budgetStats = useMemo(() => {
-        const totalUsed = costs
-            .filter(c => c.status === 'APPROVED' && (!selectedJob || c.jobId === selectedJob.id))
+        // Respecting all active filters for the usage calculation
+        const totalUsed = filteredCosts
+            .filter(c => c.status === 'APPROVED')
             .reduce((sum, c) => sum + parseFloat(c.amount || 0), 0);
 
-        const totalBudget = selectedJob?.budget || 20000;
+        let totalBudget = 0;
+        if (selectedJob) {
+            totalBudget = selectedJob.budget || 0;
+        } else {
+            // Dynamic total budget: Sum of budgets of all projects
+            totalBudget = jobs.reduce((sum, job) => sum + (parseFloat(job.budget) || 0), 0);
+            
+            // Reasonable fallback if no budgets are defined in any job
+            if (totalBudget === 0) totalBudget = 20000;
+        }
 
         return {
             used: totalUsed,
             total: totalBudget,
             remaining: totalBudget - totalUsed
         };
-    }, [costs, selectedJob]);
+    }, [filteredCosts, selectedJob, jobs]);
 
     const onRefresh = () => {
         setRefreshing(true);

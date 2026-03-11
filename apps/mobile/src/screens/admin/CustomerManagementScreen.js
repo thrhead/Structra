@@ -110,24 +110,33 @@ export default function CustomerManagementScreen({ navigation, route }) {
 
     const renderHeader = React.useCallback(() => (
         <View style={[styles.headerContainer, { backgroundColor: theme.colors.card, borderBottomColor: theme.colors.border }]}>
-            {/* Search Bar */}
-            <View style={[styles.searchContainer, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
-                <MaterialIcons name="search" size={20} color={theme.colors.primary} style={{ marginRight: 8 }} />
-                <TextInput
-                    style={[styles.searchInput, { color: theme.colors.text }]}
-                    placeholder="Müşteri ara..."
-                    placeholderTextColor={theme.colors.subText}
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                />
-                {searchQuery.length > 0 && (
-                    <TouchableOpacity onPress={() => setSearchQuery('')}>
-                        <MaterialIcons name="close" size={20} color={theme.colors.subText} />
-                    </TouchableOpacity>
-                )}
+            <View style={styles.topActionsContainer}>
+                {/* Search Bar */}
+                <View style={[styles.searchContainer, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, flex: 1 }]}>
+                    <MaterialIcons name="search" size={20} color={theme.colors.primary} style={{ marginRight: 8 }} />
+                    <TextInput
+                        style={[styles.searchInput, { color: theme.colors.text }]}
+                        placeholder="Müşteri ara..."
+                        placeholderTextColor={theme.colors.subText}
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                    />
+                    {searchQuery.length > 0 && (
+                        <TouchableOpacity onPress={() => setSearchQuery('')}>
+                            <MaterialIcons name="close" size={20} color={theme.colors.subText} />
+                        </TouchableOpacity>
+                    )}
+                </View>
+
+                <TouchableOpacity 
+                    style={[styles.addButton, { backgroundColor: theme.colors.primary }]} 
+                    onPress={handleAddCustomer}
+                >
+                    <MaterialIcons name="add-business" size={24} color={theme.colors.textInverse} />
+                </TouchableOpacity>
             </View>
         </View>
-    ), [theme, searchQuery, setSearchQuery]);
+    ), [theme, searchQuery, setSearchQuery, handleAddCustomer]);
 
     if (loading) {
         return (
@@ -197,16 +206,30 @@ const styles = StyleSheet.create({
         paddingBottom: 12,
         borderBottomWidth: 1,
     },
+    topActionsContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingRight: 16,
+    },
     searchContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginHorizontal: 16,
+        marginLeft: 16,
+        marginRight: 8,
         marginTop: 16,
         marginBottom: 12,
         paddingHorizontal: 12,
         paddingVertical: 8,
         borderRadius: 8,
         borderWidth: 1,
+    },
+    addButton: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 4,
     },
     searchInput: {
         flex: 1,

@@ -80,7 +80,6 @@ gha-creds-*.json
 err*.html
 error.html
 verify.html
-.agent/
 temp-claude-skills/
 
 # Development Server Output

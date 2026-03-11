@@ -111,6 +111,8 @@ export async function GET(req: Request) {
                     priority: job.priority || 'MEDIUM',
                     location: job.location || '',
                     scheduledDate: job.scheduledDate ? new Date(job.scheduledDate).toISOString() : null,
+                    budget: job.budget || null,
+                    estimatedDuration: job.estimatedDuration || null,
                     createdAt: job.createdAt ? new Date(job.createdAt).toISOString() : new Date().toISOString(),
                     customer: job.customer ? {
                         id: job.customer.id,
