@@ -82,9 +82,22 @@ export const ThemeProvider = ({ children }) => {
         }
     };
 
-    // Get current theme object
+    // Get current theme object, now including constants
     const theme = useMemo(() => {
-        return themeId === 'dark' ? darkTheme : lightTheme;
+        const baseTheme = themeId === 'dark' ? darkTheme : lightTheme;
+        return {
+            ...baseTheme,
+            shadows: SHADOWS,
+            radius: RADIUS,
+            spacing: SPACING,
+            zIndex: Z_INDEX,
+            breakpoints: BREAKPOINTS,
+            // Expose COLORS directly under theme for convenience if needed, though primary use is theme.colors
+            colors: {
+                ...baseTheme.colors,
+                ...COLORS // Merge COLORS constants directly for easier access if preferred
+            }
+        };
     }, [themeId]);
 
     // Context value
@@ -97,7 +110,7 @@ export const ThemeProvider = ({ children }) => {
         setTheme,
         isLoading,
         prefersReducedMotion,
-        // Expose shared constants
+        // Expose shared constants explicitly as well, for direct access where theme.xxx is not desired
         COLORS,
         SHADOWS,
         RADIUS,
