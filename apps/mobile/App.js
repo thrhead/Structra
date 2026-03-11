@@ -71,11 +71,12 @@ function getInitialRoute(user) {
 function AppNavigator() {
   const { user, loading } = useAuth();
   const { t } = useTranslation();
+  const { theme, isDark } = useTheme();
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={theme?.colors?.primary || COLORS.primary} />
       </View>
     );
   }
@@ -91,6 +92,17 @@ function AppNavigator() {
           screenOptions={({ navigation, route }) => ({
             animationEnabled: false,
             headerShown: true,
+            headerStyle: {
+              backgroundColor: theme.colors.card,
+              elevation: 0,
+              shadowOpacity: 0,
+              borderBottomWidth: 1,
+              borderBottomColor: theme.colors.border,
+            },
+            headerTintColor: theme.colors.text,
+            headerTitleStyle: {
+              fontWeight: 'bold',
+            },
             headerLeft: (props) => {
               // Don't show back button on dashboard screens
               if (dashboardScreens.includes(route.name)) return null;
@@ -107,7 +119,7 @@ function AppNavigator() {
                   }}
                   style={{ marginLeft: 16, padding: 4 }}
                 >
-                  <MaterialIcons name="arrow-back" size={24} color={COLORS.primary} />
+                  <MaterialIcons name="arrow-back" size={24} color={theme.colors.primary} />
                 </TouchableOpacity>
               );
             }
@@ -120,7 +132,7 @@ function AppNavigator() {
               <Stack.Screen
                 name="WorkerDashboard"
                 component={WorkerDashboardScreen}
-                options={{ title: t('navigation.home') }}
+                options={{ title: t('navigation.home'), headerShown: false }}
               />
               <Stack.Screen
                 name="Jobs"
@@ -147,7 +159,7 @@ function AppNavigator() {
               <Stack.Screen
                 name="ManagerDashboard"
                 component={ManagerDashboardScreen}
-                options={{ title: 'Manager Dashboard' }}
+                options={{ title: 'Manager Dashboard', headerShown: false }}
               />
               <Stack.Screen
                 name="TeamList"
@@ -168,7 +180,7 @@ function AppNavigator() {
               <Stack.Screen
                 name="AdminDashboard"
                 component={AdminDashboardScreen}
-                options={{ title: 'Admin Dashboard' }}
+                options={{ title: 'Admin Dashboard', headerShown: false }}
               />
               <Stack.Screen
                 name="UserManagement"
