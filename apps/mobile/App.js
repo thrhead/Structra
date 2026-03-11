@@ -82,11 +82,23 @@ function AppNavigator() {
     );
   }
 
+  const navTheme = {
+    dark: isDark,
+    colors: {
+      primary: theme.colors.primary,
+      background: theme.colors.background,
+      card: theme.colors.card,
+      text: theme.colors.text,
+      border: theme.colors.border,
+      notification: theme.colors.primary,
+    },
+  };
+
   const dashboardScreens = ['AdminDashboard', 'ManagerDashboard', 'WorkerDashboard', 'Login'];
 
   return (
     <View style={{ flex: 1, height: '100%' }}>
-      <NavigationContainer linking={linking}>
+      <NavigationContainer linking={linking} theme={navTheme}>
         <Stack.Navigator
           initialRouteName={getInitialRoute(user)}
           detachInactiveScreens={true}

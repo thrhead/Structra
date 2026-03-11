@@ -86,13 +86,13 @@ export const darkTheme = {
         primary: COLORS.electricBlue, // Aligned with light theme for brand consistency
         secondary: COLORS.emeraldStatus,
         tertiary: COLORS.amber500,
-        card: "rgba(255, 255, 255, 0.05)",
+        card: COLORS.cardDark,
         cardBorder: "rgba(255, 255, 255, 0.1)", // Legacy key
         border: "rgba(255, 255, 255, 0.1)",      // New key used in refactor
         icon: COLORS.white,
         tab: "rgba(255,255,255,0.05)",
         tabActive: COLORS.primary,
-        headerBg: "transparent",
+        headerBg: COLORS.cardDark,
         gradient: [COLORS.backgroundDark, '#1e1b4b'], // Deep Blue
         gradientStart: { x: 0.5, y: 0 },
         gradientEnd: { x: 0.5, y: 1 },
