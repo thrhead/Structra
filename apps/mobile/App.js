@@ -50,6 +50,7 @@ import { linking } from './src/utils/linking';
 import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import { useTheme } from './src/context/ThemeContext';
 
 // Web specific styles injection
 // ... (rest of web styles)
