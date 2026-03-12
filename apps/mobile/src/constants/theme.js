@@ -43,8 +43,9 @@ export const COLORS = {
     shadowLight: "rgba(31, 38, 135, 0.07)",
 };
 
-export const lightTheme = {
+export const modernLightTheme = {
     id: 'light',
+    name: 'Modern Light',
     colors: {
         background: COLORS.modernBg,
         text: COLORS.slate900,
@@ -59,7 +60,7 @@ export const lightTheme = {
         tab: COLORS.white,
         tabActive: COLORS.electricBlue,
         headerBg: "rgba(248, 249, 250, 0.9)",
-        gradient: [COLORS.modernBg, COLORS.modernBg], // No gradient for light mode background in this design
+        gradient: [COLORS.modernBg, COLORS.modernBg],
         gradientStart: { x: 0, y: 0 },
         gradientEnd: { x: 0, y: 0 },
         textInverse: COLORS.white,
@@ -68,40 +69,70 @@ export const lightTheme = {
         warning: COLORS.amber500,
         surface: COLORS.white,
 
-        // Status & Action Backgrounds (Opacity Tokens)
-        primaryBg: "rgba(45, 91, 255, 0.1)", // Electric Blue 0.1
-        warningBg: "rgba(245, 158, 11, 0.1)", // Amber 0.1
+        // Status & Action Backgrounds
+        primaryBg: "rgba(45, 91, 255, 0.1)",
+        warningBg: "rgba(245, 158, 11, 0.1)",
         cyanBg: "rgba(6, 182, 212, 0.1)",
         pinkBg: "rgba(236, 72, 153, 0.1)",
         tealBg: "rgba(20, 184, 166, 0.1)"
     },
     fonts: {
-        regular: {
-            fontFamily: 'System',
-            fontWeight: 'normal',
-        },
-        medium: {
-            fontFamily: 'System',
-            fontWeight: '500',
-        },
-        bold: {
-            fontFamily: 'System',
-            fontWeight: 'bold',
-        },
-        heavy: {
-            fontFamily: 'System',
-            fontWeight: '900',
-        },
+        regular: { fontFamily: 'System', fontWeight: 'normal' },
+        medium: { fontFamily: 'System', fontWeight: '500' },
+        bold: { fontFamily: 'System', fontWeight: 'bold' },
+        heavy: { fontFamily: 'System', fontWeight: '900' },
+    }
+};
+
+export const classicLightTheme = {
+    id: 'classic',
+    name: 'Classic Light',
+    colors: {
+        background: "#f8f8f5",
+        text: COLORS.textDark,
+        subText: COLORS.textGray,
+        primary: COLORS.primary, // Neon Green (#CCFF04)
+        secondary: COLORS.green500,
+        tertiary: COLORS.amber500,
+        card: COLORS.white,
+        cardBorder: "#e2e8f0",
+        border: "#e2e8f0",
+        icon: COLORS.primary,
+        tab: COLORS.white,
+        tabActive: COLORS.primary,
+        headerBg: COLORS.white,
+        gradient: ["#f8f8f5", "#f8f8f5"],
+        gradientStart: { x: 0, y: 0 },
+        gradientEnd: { x: 0, y: 0 },
+        textInverse: COLORS.black,
+        error: COLORS.red500,
+        success: COLORS.green500,
+        warning: COLORS.amber500,
+        surface: COLORS.white,
+
+        // Status & Action Backgrounds
+        primaryBg: "rgba(204, 255, 4, 0.1)",
+        warningBg: "rgba(245, 158, 11, 0.1)",
+        cyanBg: "rgba(6, 182, 212, 0.1)",
+        pinkBg: "rgba(236, 72, 153, 0.1)",
+        tealBg: "rgba(20, 184, 166, 0.1)"
+    },
+    fonts: {
+        regular: { fontFamily: 'System', fontWeight: 'normal' },
+        medium: { fontFamily: 'System', fontWeight: '500' },
+        bold: { fontFamily: 'System', fontWeight: 'bold' },
+        heavy: { fontFamily: 'System', fontWeight: '900' },
     }
 };
 
 export const darkTheme = {
     id: 'dark',
+    name: 'Dark Mode',
     colors: {
         background: COLORS.backgroundDark,
         text: COLORS.white,
         subText: COLORS.slate400,
-        primary: COLORS.electricBlue, // Aligned with light theme for brand consistency
+        primary: COLORS.electricBlue,
         secondary: COLORS.emeraldStatus,
         tertiary: COLORS.amber500,
         card: COLORS.cardDark,
@@ -120,7 +151,7 @@ export const darkTheme = {
         warning: COLORS.amber500,
         surface: COLORS.slate900,
 
-        // Status & Action Backgrounds (Opacity Tokens)
+        // Status & Action Backgrounds
         primaryBg: "rgba(204, 255, 4, 0.1)", // Neon Green 0.1
         warningBg: "rgba(245, 158, 11, 0.1)", // Amber 0.1
         cyanBg: "rgba(6, 182, 212, 0.1)",
@@ -128,22 +159,10 @@ export const darkTheme = {
         tealBg: "rgba(20, 184, 166, 0.1)"
     },
     fonts: {
-        regular: {
-            fontFamily: 'System',
-            fontWeight: 'normal',
-        },
-        medium: {
-            fontFamily: 'System',
-            fontWeight: '500',
-        },
-        bold: {
-            fontFamily: 'System',
-            fontWeight: 'bold',
-        },
-        heavy: {
-            fontFamily: 'System',
-            fontWeight: '900',
-        },
+        regular: { fontFamily: 'System', fontWeight: 'normal' },
+        medium: { fontFamily: 'System', fontWeight: '500' },
+        bold: { fontFamily: 'System', fontWeight: 'bold' },
+        heavy: { fontFamily: 'System', fontWeight: '900' },
     }
 };
 

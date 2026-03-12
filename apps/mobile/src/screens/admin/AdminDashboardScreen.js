@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, S
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     Users, Building2, UsersRound, Briefcase, ClipboardCheck, Banknote,
-    Calendar, TrendingUp, BarChart3, Sun, Moon, PlusCircle, UserPlus, ChevronRight, ShieldCheck
+    Calendar, TrendingUp, BarChart3, Sun, Moon, Palette, PlusCircle, UserPlus, ChevronRight, ShieldCheck
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
@@ -24,7 +24,7 @@ const { width } = Dimensions.get('window');
 export default function AdminDashboardScreen({ navigation }) {
     const { t } = useTranslation();
     const { user, logout } = useAuth();
-    const { theme, toggleTheme, isDark } = useTheme();
+    const { theme, themeId, toggleTheme, isDark } = useTheme();
     const { showAlert } = useAlert();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
@@ -140,7 +140,13 @@ export default function AdminDashboardScreen({ navigation }) {
                                             style={[styles.iconButton, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder }]}
                                             onPress={toggleTheme}
                                         >
-                                            {isDark ? <Sun size={24} color={theme.colors.icon} /> : <Moon size={24} color={theme.colors.icon} />}
+                                            {themeId === 'light' ? (
+                                                <Sun size={24} color={theme.colors.icon} />
+                                            ) : themeId === 'classic' ? (
+                                                <Palette size={24} color={theme.colors.icon} />
+                                            ) : (
+                                                <Moon size={24} color={theme.colors.icon} />
+                                            )}
                                         </TouchableOpacity>
 
                                         <TouchableOpacity

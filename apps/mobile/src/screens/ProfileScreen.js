@@ -15,7 +15,7 @@ import LanguageSwitcher from '../components/LanguageSwitcher';
 export default function ProfileScreen({ navigation }) {
     const { t } = useTranslation();
     const { user, logout } = useAuth();
-    const { theme, isDark, toggleTheme } = useTheme();
+    const { theme, themeId, isDark, setTheme, toggleTheme } = useTheme();
     const { showAlert } = useAlert();
     const [oldPassword, setOldPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -189,17 +189,61 @@ export default function ProfileScreen({ navigation }) {
             <View style={styles.section}>
                 <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('profile.appSettings')}</Text>
                 <GlassCard style={styles.card} theme={theme}>
-                    <View style={styles.settingRow}>
+                    <View style={styles.settingRowVertical}>
                         <View style={styles.settingInfo}>
-                            <Text style={[styles.settingTitle, { color: theme.colors.text }]}>{t('profile.darkMode')}</Text>
-                            <Text style={[styles.settingDescription, { color: theme.colors.subText }]}>{t('profile.darkModeDesc')}</Text>
+                            <Text style={[styles.settingTitle, { color: theme.colors.text }]}>{t('profile.theme')}</Text>
+                            <Text style={[styles.settingDescription, { color: theme.colors.subText }]}>{t('profile.themeDesc')}</Text>
                         </View>
-                        <Switch
-                            value={isDark}
-                            onValueChange={toggleTheme}
-                            trackColor={{ false: '#D1D5DB', true: theme.colors.primary }}
-                            thumbColor={'#fff'}
-                        />
+                        
+                        <View style={[styles.themeSelector, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
+                            <TouchableOpacity 
+                                style={[
+                                    styles.themeOption, 
+                                    themeId === 'light' && { backgroundColor: theme.colors.primary }
+                                ]}
+                                onPress={() => setTheme('light')}
+                            >
+                                <Text style={[
+                                    styles.themeOptionText, 
+                                    { color: theme.colors.text },
+                                    themeId === 'light' && { color: '#000', fontWeight: 'bold' }
+                                ]}>
+                                    {t('profile.themeModern')}
+                                </Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity 
+                                style={[
+                                    styles.themeOption, 
+                                    themeId === 'classic' && { backgroundColor: theme.colors.primary }
+                                ]}
+                                onPress={() => setTheme('classic')}
+                            >
+                                <Text style={[
+                                    styles.themeOptionText, 
+                                    { color: theme.colors.text },
+                                    themeId === 'classic' && { color: '#000', fontWeight: 'bold' }
+                                ]}>
+                                    {t('profile.themeClassic')}
+                                </Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity 
+                                style={[
+                                    styles.themeOption, 
+                                    themeId === 'dark' && { backgroundColor: theme.colors.primary }
+                                ]}
+                                onPress={() => setTheme('dark')}
+                            >
+                                <Text style={[
+                                    styles.themeOptionText, 
+                                    { color: theme.colors.text },
+                                    themeId === 'dark' && { color: '#000', fontWeight: 'bold' }
+                                ]}>
+                                    {t('profile.themeDark')}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
 
                     <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
@@ -365,5 +409,24 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 16,
         fontWeight: 'bold',
+    },
+    settingRowVertical: {
+        paddingVertical: 8,
+    },
+    themeSelector: {
+        flexDirection: 'row',
+        marginTop: 12,
+        borderRadius: 12,
+        padding: 4,
+    },
+    themeOption: {
+        flex: 1,
+        paddingVertical: 10,
+        alignItems: 'center',
+        borderRadius: 10,
+    },
+    themeOptionText: {
+        fontSize: 13,
+        fontWeight: '600',
     },
 });

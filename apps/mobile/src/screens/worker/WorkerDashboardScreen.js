@@ -53,7 +53,7 @@ const GlassCard = ({ children, style, onPress, theme }) => (
 
 export default function WorkerDashboardScreen({ navigation }) {
     const { user, logout } = useAuth();
-    const { theme, toggleTheme, isDark, prefersReducedMotion } = useTheme();
+    const { theme, themeId, toggleTheme, isDark, prefersReducedMotion } = useTheme();
     const { showAlert } = useAlert();
 
     // State
@@ -153,7 +153,11 @@ export default function WorkerDashboardScreen({ navigation }) {
                             style={[styles.iconButton, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder }]}
                             onPress={toggleTheme}
                         >
-                            <MaterialIcons name={isDark ? "light-mode" : "dark-mode"} size={24} color={theme.colors.icon} />
+                            <MaterialIcons 
+                                name={themeId === 'light' ? "wb-sunny" : themeId === 'classic' ? "palette" : "nightlight-round"} 
+                                size={24} 
+                                color={theme.colors.icon} 
+                            />
                         </TouchableOpacity>
 
                         <TouchableOpacity style={[styles.iconButton, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder }]} onPress={() => navigation.navigate('Calendar')}>

@@ -11,7 +11,7 @@ import { useAlert } from '../../context/AlertContext';
 
 export default function ManagerDashboardScreen({ navigation }) {
     const { user, logout } = useAuth();
-    const { theme, toggleTheme, isDark } = useTheme();
+    const { theme, themeId, toggleTheme, isDark } = useTheme();
     const { showAlert } = useAlert();
     const { statsData, fetchStats, loading } = useManagerDashboardStats();
 
@@ -70,7 +70,11 @@ export default function ManagerDashboardScreen({ navigation }) {
                             style={[styles.headerButton, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder, borderWidth: 1, borderRadius: 20 }]}
                             onPress={toggleTheme}
                         >
-                            <MaterialIcons name={isDark ? "light-mode" : "dark-mode"} size={20} color={theme.colors.icon} />
+                            <MaterialIcons 
+                                name={themeId === 'light' ? "wb-sunny" : themeId === 'classic' ? "palette" : "nightlight-round"} 
+                                size={20} 
+                                color={theme.colors.icon} 
+                            />
                         </TouchableOpacity>
 
                         <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('Notifications')}>

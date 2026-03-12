@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { AccessibilityInfo } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { lightTheme, darkTheme, COLORS, SHADOWS, RADIUS, SPACING, Z_INDEX, BREAKPOINTS } from '../constants/theme';
+import { modernLightTheme, classicLightTheme, darkTheme, COLORS, SHADOWS, RADIUS, SPACING, Z_INDEX, BREAKPOINTS } from '../constants/theme';
 
 const THEME_STORAGE_KEY = '@app_theme';
 
@@ -10,7 +10,7 @@ const ThemeContext = createContext(null);
 
 // Provider Component
 export const ThemeProvider = ({ children }) => {
-    const [themeId, setThemeId] = useState('light'); // default to light
+    const [themeId, setThemeId] = useState('light'); // default to light (modern)
     const [isLoading, setIsLoading] = useState(true);
     const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
@@ -19,7 +19,7 @@ export const ThemeProvider = ({ children }) => {
         const loadTheme = async () => {
             try {
                 const savedTheme = await AsyncStorage.getItem(THEME_STORAGE_KEY);
-                if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
+                if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'classic')) {
                     setThemeId(savedTheme);
                 }
             } catch (e) {
@@ -59,9 +59,13 @@ export const ThemeProvider = ({ children }) => {
         };
     }, []);
 
-    // Toggle theme function
+    // Toggle theme function - Cycles through Light -> Classic -> Dark
     const toggleTheme = async () => {
-        const newTheme = themeId === 'light' ? 'dark' : 'light';
+        let newTheme;
+        if (themeId === 'light') newTheme = 'classic';
+        else if (themeId === 'classic') newTheme = 'dark';
+        else newTheme = 'light';
+
         setThemeId(newTheme);
         try {
             await AsyncStorage.setItem(THEME_STORAGE_KEY, newTheme);
@@ -72,7 +76,7 @@ export const ThemeProvider = ({ children }) => {
 
     // Set specific theme
     const setTheme = async (newThemeId) => {
-        if (newThemeId === 'light' || newThemeId === 'dark') {
+        if (['light', 'classic', 'dark'].includes(newThemeId)) {
             setThemeId(newThemeId);
             try {
                 await AsyncStorage.setItem(THEME_STORAGE_KEY, newThemeId);
@@ -84,7 +88,11 @@ export const ThemeProvider = ({ children }) => {
 
     // Get current theme object, now including constants
     const theme = useMemo(() => {
-        const baseTheme = themeId === 'dark' ? darkTheme : lightTheme;
+        let baseTheme;
+        if (themeId === 'dark') baseTheme = darkTheme;
+        else if (themeId === 'classic') baseTheme = classicLightTheme;
+        else baseTheme = modernLightTheme;
+
         return {
             ...baseTheme,
             shadows: SHADOWS,
@@ -105,7 +113,9 @@ export const ThemeProvider = ({ children }) => {
         theme,
         themeId,
         isDark: themeId === 'dark',
-        isLight: themeId === 'light',
+        isLight: themeId === 'light' || themeId === 'classic',
+        isModern: themeId === 'light',
+        isClassic: themeId === 'classic',
         toggleTheme,
         setTheme,
         isLoading,
