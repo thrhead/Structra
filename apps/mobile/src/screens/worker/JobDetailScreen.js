@@ -254,7 +254,7 @@ export default function JobDetailScreen({ route, navigation }) {
                 if (!hasPhotos) {
                     showAlert(
                         t('common.warning'),
-                        "bu iş emrini kapatabilmeniz için öncelikle en az 1 adet fotoğraf yüklemeniz gerekmektedir",
+                        "bu alt adımı kapatabilmeniz için öncelikle en az 1 adet fotoğraf yüklemeniz gerekmektedir",
                         [],
                         'warning'
                     );
@@ -267,7 +267,8 @@ export default function JobDetailScreen({ route, navigation }) {
             loadJobDetails();
         } catch (error) {
             console.error('[MOBILE] Error toggling substep:', error);
-            showAlert(t('common.error'), t('alerts.processError'), [], 'error');
+            const errorMessage = error.message || error.error || t('alerts.processError');
+            showAlert(t('common.error'), errorMessage, [], 'error');
         }
     };
 

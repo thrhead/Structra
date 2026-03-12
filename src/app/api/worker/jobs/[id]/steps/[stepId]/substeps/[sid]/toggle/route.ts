@@ -37,7 +37,7 @@ export async function POST(
 
             if (photoCount === 0) {
                 return NextResponse.json(
-                    { error: 'bu iş emrini kapatabilmeniz için öncelikle en az 1 adet fotoğraf yüklemeniz gerekmektedir' },
+                    { error: 'bu alt adımı kapatabilmeniz için öncelikle en az 1 adet fotoğraf yüklemeniz gerekmektedir' },
                     { status: 400 }
                 )
             }
