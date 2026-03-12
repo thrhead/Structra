@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, S
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     Users, Building2, UsersRound, Briefcase, ClipboardCheck, Banknote,
-    Calendar, TrendingUp, BarChart3, Sun, Moon, Palette, PlusCircle, UserPlus, ChevronRight, ShieldCheck
+    Calendar, TrendingUp, BarChart3, Sun, Moon, Palette, PlusCircle, UserPlus, ChevronRight, ShieldCheck, Zap
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
@@ -41,7 +41,6 @@ export default function AdminDashboardScreen({ navigation }) {
         setRefreshing(false);
     };
 
-    // Prepare chart data from statsData.weeklyStats
     const chartData = (statsData?.weeklyStats || []).map(stat => ({
         value: stat.count,
         label: stat.name,
@@ -73,22 +72,33 @@ export default function AdminDashboardScreen({ navigation }) {
             'question'
         );
     };
+
     const navItems = [
         { id: 'users', title: t('navigation.userManagement'), icon: Users, route: 'UserManagement', color: theme.colors.primary },
         { id: 'customers', title: t('navigation.customers'), icon: Building2, route: 'CustomerManagement', color: theme.colors.tertiary },
         { id: 'teams', title: t('navigation.teams'), icon: UsersRound, route: 'TeamManagement', color: theme.colors.secondary },
-        { id: 'jobs', title: t('navigation.jobs'), icon: Briefcase, route: 'Jobs', color: '#f97316' }, // Orange
-        { id: 'approvals', title: t('navigation.approvals'), icon: ClipboardCheck, route: 'Approvals', color: '#14b8a6' }, // Teal
-        { id: 'costs', title: t('worker.expenses'), icon: Banknote, route: 'CostManagement', color: '#22c55e' }, // Green
-        { id: 'calendar', title: t('navigation.calendar') || 'Calendar', icon: Calendar, route: 'Calendar', color: '#a855f7' }, // Purple
+        { id: 'jobs', title: t('navigation.jobs'), icon: Briefcase, route: 'Jobs', color: '#f97316' },
+        { id: 'approvals', title: t('navigation.approvals'), icon: ClipboardCheck, route: 'Approvals', color: '#14b8a6' },
+        { id: 'costs', title: t('worker.expenses'), icon: Banknote, route: 'CostManagement', color: '#22c55e' },
+        { id: 'calendar', title: t('navigation.calendar') || 'Calendar', icon: Calendar, route: 'Calendar', color: '#a855f7' },
         { id: 'planning', title: t('navigation.planning') || 'Planning', icon: TrendingUp, route: 'AdvancedPlanning', color: theme.colors.primary },
-        { id: 'reports', title: t('navigation.reports') || 'Reports', icon: BarChart3, route: 'Reports', color: '#3b82f6' }, // Blue
-        { id: 'webhooks', title: 'Webhook Monitoring', icon: ShieldCheck, route: 'Webhooks', color: '#6366f1' }, // Indigo
+        { id: 'reports', title: t('navigation.reports') || 'Reports', icon: BarChart3, route: 'Reports', color: '#3b82f6' },
+        { id: 'webhooks', title: 'Webhook Monitoring', icon: ShieldCheck, route: 'Webhooks', color: '#6366f1' },
     ];
 
     const handleNavPress = (route) => {
         setIsDrawerOpen(false);
         navigation.navigate(route);
+    };
+
+    const renderThemeIcon = () => {
+        switch(themeId) {
+            case 'modern_neon': return <Sun size={24} color={theme.colors.icon} />;
+            case 'classic_neon': return <Palette size={24} color={theme.colors.icon} />;
+            case 'retro_blue': return <Zap size={24} color={theme.colors.icon} />;
+            case 'retro_dark': return <Moon size={24} color={theme.colors.icon} />;
+            default: return <Sun size={24} color={theme.colors.icon} />;
+        }
     };
 
     return (
@@ -121,13 +131,8 @@ export default function AdminDashboardScreen({ navigation }) {
                     showsVerticalScrollIndicator={false}
                     data={recentJobs}
                     keyExtractor={(item) => item.id.toString()}
-                    initialNumToRender={10}
-                    maxToRenderPerBatch={10}
-                    windowSize={5}
-                    removeClippedSubviews={Platform.OS === 'android'}
                     ListHeaderComponent={
                         <>
-                            {/* Header Container */}
                             <View style={styles.headerContainer}>
                                 <View style={styles.headerContent}>
                                     <View style={styles.userInfo}>
@@ -140,13 +145,7 @@ export default function AdminDashboardScreen({ navigation }) {
                                             style={[styles.iconButton, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder }]}
                                             onPress={toggleTheme}
                                         >
-                                            {themeId === 'light' ? (
-                                                <Sun size={24} color={theme.colors.icon} />
-                                            ) : themeId === 'classic' ? (
-                                                <Palette size={24} color={theme.colors.icon} />
-                                            ) : (
-                                                <Moon size={24} color={theme.colors.icon} />
-                                            )}
+                                            {renderThemeIcon()}
                                         </TouchableOpacity>
 
                                         <TouchableOpacity
@@ -154,7 +153,7 @@ export default function AdminDashboardScreen({ navigation }) {
                                             onPress={() => navigation.navigate('Profile')}
                                         >
                                             <View style={[styles.avatarCircle, { backgroundColor: theme.colors.primary }]}>
-                                                <Text style={[styles.avatarText, { color: isDark ? '#000' : '#fff' }]}>
+                                                <Text style={[styles.avatarText, { color: themeId === 'retro_blue' || themeId === 'modern_neon' || themeId === 'classic_neon' ? '#fff' : '#000' }]}>
                                                     {user?.name?.charAt(0) || 'A'}
                                                 </Text>
                                             </View>
@@ -164,7 +163,6 @@ export default function AdminDashboardScreen({ navigation }) {
                             </View>
 
                             <View style={styles.mainContent}>
-                                {/* Weekly Performance Chart (WEB PARITY) */}
                                 <View style={styles.section}>
                                     <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Haftalık Tamamlanan Adımlar</Text>
                                     <View style={[styles.chartContainer, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder }]}>
@@ -196,7 +194,6 @@ export default function AdminDashboardScreen({ navigation }) {
 
                                 <DashboardStatsGrid statsData={statsData} />
 
-                                {/* Active Workers (WEB PARITY) */}
                                 {statsData?.activeWorkers?.length > 0 && (
                                     <View style={styles.section}>
                                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -219,7 +216,6 @@ export default function AdminDashboardScreen({ navigation }) {
                                     </View>
                                 )}
 
-                                {/* Navigation Grid */}
                                 <View style={styles.section}>
                                     <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Menu</Text>
                                     <View style={styles.navGrid}>
@@ -241,7 +237,6 @@ export default function AdminDashboardScreen({ navigation }) {
                                     </View>
                                 </View>
 
-                                {/* Quick Actions */}
                                 <View style={styles.section}>
                                     <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Quick Actions</Text>
                                     <View style={styles.quickActions}>
@@ -268,7 +263,6 @@ export default function AdminDashboardScreen({ navigation }) {
                                     </View>
                                 </View>
 
-                                {/* List Header Section Title */}
                                 <View style={[styles.section, { paddingBottom: 0 }]}>
                                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <Text style={[styles.sectionTitle, { color: theme.colors.text, marginBottom: 0 }]}>{t('admin.recentJobs') || 'Recent Jobs'}</Text>
@@ -331,132 +325,28 @@ export default function AdminDashboardScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    scrollView: {
-        flex: 1,
-    },
-    scrollContent: {
-        paddingBottom: 80,
-    },
-    headerContainer: {
-        padding: 20,
-        paddingTop: 24,
-        paddingBottom: 24,
-    },
-    headerContent: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    userInfo: {
-        gap: 4,
-    },
-    welcomeLabel: {
-        fontSize: 14,
-        fontWeight: '500',
-    },
-    userName: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        letterSpacing: -0.5,
-    },
-    profileButton: {
-        padding: 4,
-    },
-    iconButton: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 1,
-    },
-    avatarCircle: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        justifyContent: 'center',
-        alignItems: 'center',
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-        elevation: 4,
-    },
-    avatarText: {
-        fontSize: 20,
-        fontWeight: 'bold',
-    },
-    mainContent: {
-        flex: 1,
-        zIndex: 2,
-    },
-    section: {
-        padding: 16,
-        paddingTop: 4,
-        gap: 12,
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        marginBottom: 8,
-    },
-    navGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        marginHorizontal: -6,
-    },
-    navItemWrapper: {
-        width: '50%',
-        padding: 6,
-    },
-    navActionCard: {
-        height: 110,
-        justifyContent: 'center',
-        alignItems: 'center',
-        gap: 12,
-        padding: 16,
-    },
-    navActionLabel: {
-        fontSize: 14,
-        fontWeight: '600',
-    },
-    quickActions: {
-        flexDirection: 'row',
-        gap: 12,
-    },
-    chartContainer: {
-        padding: 20,
-        borderRadius: 24,
-        borderWidth: 1,
-        alignItems: 'center',
-    },
-    workerBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 10,
-        paddingRight: 16,
-        borderRadius: 100,
-        borderWidth: 1,
-        gap: 10,
-    },
-    badgeAvatar: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        justifyContent: 'center',
-        alignItems: 'center',
-        position: 'relative',
-    },
-    onlineIndicator: {
-        position: 'absolute',
-        bottom: 0,
-        right: 0,
-        width: 10,
-        height: 10,
-        borderRadius: 5,
-        backgroundColor: '#22c55e',
-        borderWidth: 2,
-        borderColor: '#fff',
-    },
+    container: { flex: 1 },
+    scrollView: { flex: 1 },
+    scrollContent: { paddingBottom: 80 },
+    headerContainer: { padding: 20, paddingTop: 24, paddingBottom: 24 },
+    headerContent: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    userInfo: { gap: 4 },
+    welcomeLabel: { fontSize: 14, fontWeight: '500' },
+    userName: { fontSize: 24, fontWeight: 'bold', letterSpacing: -0.5 },
+    profileButton: { padding: 4 },
+    iconButton: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', borderWidth: 1 },
+    avatarCircle: { width: 48, height: 48, borderRadius: 24, justifyContent: 'center', alignItems: 'center', shadowOpacity: 0.2, shadowRadius: 8, elevation: 4 },
+    avatarText: { fontSize: 20, fontWeight: 'bold' },
+    mainContent: { flex: 1, zIndex: 2 },
+    section: { padding: 16, paddingTop: 4, gap: 12 },
+    sectionTitle: { fontSize: 18, fontWeight: '600', marginBottom: 8 },
+    navGrid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -6 },
+    navItemWrapper: { width: '50%', padding: 6 },
+    navActionCard: { height: 110, justifyContent: 'center', alignItems: 'center', gap: 12, padding: 16 },
+    navActionLabel: { fontSize: 14, fontWeight: '600' },
+    quickActions: { flexDirection: 'row', gap: 12 },
+    chartContainer: { padding: 20, borderRadius: 24, borderWidth: 1, alignItems: 'center' },
+    workerBadge: { flexDirection: 'row', alignItems: 'center', padding: 10, paddingRight: 16, borderRadius: 100, borderWidth: 1, gap: 10 },
+    badgeAvatar: { width: 32, height: 32, borderRadius: 16, justifyContent: 'center', alignItems: 'center', position: 'relative' },
+    onlineIndicator: { position: 'absolute', bottom: 0, right: 0, width: 10, height: 10, borderRadius: 5, backgroundColor: '#22c55e', borderWidth: 2, borderColor: '#fff' },
 });

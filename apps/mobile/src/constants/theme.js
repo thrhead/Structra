@@ -33,75 +33,35 @@ export const COLORS = {
     orange500: "#f97316",
     teal500: "#14b8a6",
 
-    // New Modern Light Theme Colors (Requested)
+    // Theme Colors
     modernBg: "#F8F9FA",
     electricBlue: "#2D5BFF",
     emeraldStatus: "#10B981",
     amberStatus: "#F59E0B",
-    glassCardLight: "rgba(255, 255, 255, 0.9)", // Increased opacity for better visibility
+    glassCardLight: "rgba(255, 255, 255, 0.9)",
     glassBorderLight: "rgba(255, 255, 255, 0.4)",
     shadowLight: "rgba(31, 38, 135, 0.07)",
 };
 
-export const modernLightTheme = {
-    id: 'light',
-    name: 'Modern Light',
+// 1. MODERN NEON (Yeni Tip - Neon Yeşil)
+export const modernNeonTheme = {
+    id: 'modern_neon',
+    name: 'Modern Neon',
     colors: {
         background: COLORS.modernBg,
         text: COLORS.slate900,
         subText: COLORS.slate500,
-        primary: COLORS.electricBlue,
+        primary: COLORS.neonGreen,
         secondary: COLORS.emeraldStatus,
         tertiary: COLORS.amberStatus,
         card: COLORS.glassCardLight,
-        cardBorder: COLORS.glassBorderLight, // Legacy key
-        border: COLORS.glassBorderLight,     // New key used in refactor
-        icon: COLORS.electricBlue,
+        cardBorder: COLORS.glassBorderLight,
+        border: COLORS.glassBorderLight,
+        icon: COLORS.neonGreen,
         tab: COLORS.white,
-        tabActive: COLORS.electricBlue,
+        tabActive: COLORS.neonGreen,
         headerBg: "rgba(248, 249, 250, 0.9)",
         gradient: [COLORS.modernBg, COLORS.modernBg],
-        gradientStart: { x: 0, y: 0 },
-        gradientEnd: { x: 0, y: 0 },
-        textInverse: COLORS.white,
-        error: COLORS.red500,
-        success: COLORS.green500,
-        warning: COLORS.amber500,
-        surface: COLORS.white,
-
-        // Status & Action Backgrounds
-        primaryBg: "rgba(45, 91, 255, 0.1)",
-        warningBg: "rgba(245, 158, 11, 0.1)",
-        cyanBg: "rgba(6, 182, 212, 0.1)",
-        pinkBg: "rgba(236, 72, 153, 0.1)",
-        tealBg: "rgba(20, 184, 166, 0.1)"
-    },
-    fonts: {
-        regular: { fontFamily: 'System', fontWeight: 'normal' },
-        medium: { fontFamily: 'System', fontWeight: '500' },
-        bold: { fontFamily: 'System', fontWeight: 'bold' },
-        heavy: { fontFamily: 'System', fontWeight: '900' },
-    }
-};
-
-export const classicLightTheme = {
-    id: 'classic',
-    name: 'Classic Light',
-    colors: {
-        background: "#f8f8f5",
-        text: COLORS.textDark,
-        subText: COLORS.textGray,
-        primary: COLORS.primary, // Neon Green (#CCFF04)
-        secondary: COLORS.green500,
-        tertiary: COLORS.amber500,
-        card: COLORS.white,
-        cardBorder: "#e2e8f0",
-        border: "#e2e8f0",
-        icon: COLORS.primary,
-        tab: COLORS.white,
-        tabActive: COLORS.primary,
-        headerBg: COLORS.white,
-        gradient: ["#f8f8f5", "#f8f8f5"],
         gradientStart: { x: 0, y: 0 },
         gradientEnd: { x: 0, y: 0 },
         textInverse: COLORS.black,
@@ -109,8 +69,6 @@ export const classicLightTheme = {
         success: COLORS.green500,
         warning: COLORS.amber500,
         surface: COLORS.white,
-
-        // Status & Action Backgrounds
         primaryBg: "rgba(204, 255, 4, 0.1)",
         warningBg: "rgba(245, 158, 11, 0.1)",
         cyanBg: "rgba(6, 182, 212, 0.1)",
@@ -125,9 +83,90 @@ export const classicLightTheme = {
     }
 };
 
-export const darkTheme = {
-    id: 'dark',
-    name: 'Dark Mode',
+// 2. CLASSIC NEON (Yeni Tip - Neon Yeşil - Fildişi Arkaplan)
+export const classicNeonTheme = {
+    id: 'classic_neon',
+    name: 'Classic Neon',
+    colors: {
+        background: "#f8f8f5",
+        text: COLORS.textDark,
+        subText: COLORS.textGray,
+        primary: COLORS.neonGreen,
+        secondary: COLORS.green500,
+        tertiary: COLORS.amber500,
+        card: COLORS.white,
+        cardBorder: "#e2e8f0",
+        border: "#e2e8f0",
+        icon: COLORS.neonGreen,
+        tab: COLORS.white,
+        tabActive: COLORS.neonGreen,
+        headerBg: COLORS.white,
+        gradient: ["#f8f8f5", "#f8f8f5"],
+        gradientStart: { x: 0, y: 0 },
+        gradientEnd: { x: 0, y: 0 },
+        textInverse: COLORS.black,
+        error: COLORS.red500,
+        success: COLORS.green500,
+        warning: COLORS.amber500,
+        surface: COLORS.white,
+        primaryBg: "rgba(204, 255, 4, 0.1)",
+        warningBg: "rgba(245, 158, 11, 0.1)",
+        cyanBg: "rgba(6, 182, 212, 0.1)",
+        pinkBg: "rgba(236, 72, 153, 0.1)",
+        tealBg: "rgba(20, 184, 166, 0.1)"
+    },
+    fonts: {
+        regular: { fontFamily: 'System', fontWeight: 'normal' },
+        medium: { fontFamily: 'System', fontWeight: '500' },
+        bold: { fontFamily: 'System', fontWeight: 'bold' },
+        heavy: { fontFamily: 'System', fontWeight: '900' },
+    }
+};
+
+// 3. RETRO BLUE (Eski Tip - 8ac9e7b - Mavi)
+export const retroBlueTheme = {
+    id: 'retro_blue',
+    name: 'Retro Blue',
+    colors: {
+        background: COLORS.modernBg,
+        text: COLORS.slate900,
+        subText: COLORS.slate500,
+        primary: COLORS.electricBlue,
+        secondary: COLORS.emeraldStatus,
+        tertiary: COLORS.amberStatus,
+        card: COLORS.glassCardLight,
+        cardBorder: COLORS.glassBorderLight,
+        border: COLORS.glassBorderLight,
+        icon: COLORS.electricBlue,
+        tab: COLORS.white,
+        tabActive: COLORS.electricBlue,
+        headerBg: "rgba(248, 249, 250, 0.9)",
+        gradient: [COLORS.modernBg, COLORS.modernBg],
+        gradientStart: { x: 0, y: 0 },
+        gradientEnd: { x: 0, y: 0 },
+        textInverse: COLORS.white,
+        error: COLORS.red500,
+        success: COLORS.green500,
+        warning: COLORS.amber500,
+        surface: COLORS.white,
+        primaryBg: "rgba(45, 91, 255, 0.1)",
+        warningBg: "rgba(245, 158, 11, 0.1)",
+        cyanBg: "rgba(6, 182, 212, 0.1)",
+        pinkBg: "rgba(236, 72, 153, 0.1)",
+        tealBg: "rgba(20, 184, 166, 0.1)"
+    },
+    fonts: {
+        regular: { fontFamily: 'System', fontWeight: 'normal' },
+        medium: { fontFamily: 'System', fontWeight: '500' },
+        bold: { fontFamily: 'System', fontWeight: 'bold' },
+        heavy: { fontFamily: 'System', fontWeight: '900' },
+    }
+};
+
+// 4. RETRO DARK (Eski Tip - 8ac9e7b - Mavi Transparan)
+export const retroDarkTheme = {
+    id: 'retro_dark',
+    name: 'Retro Dark',
     colors: {
         background: COLORS.backgroundDark,
         text: COLORS.white,
@@ -135,14 +174,14 @@ export const darkTheme = {
         primary: COLORS.electricBlue,
         secondary: COLORS.emeraldStatus,
         tertiary: COLORS.amber500,
-        card: COLORS.cardDark,
-        cardBorder: "rgba(255, 255, 255, 0.1)", // Legacy key
-        border: "rgba(255, 255, 255, 0.1)",      // New key used in refactor
+        card: "rgba(255, 255, 255, 0.05)",
+        cardBorder: "rgba(255, 255, 255, 0.1)",
+        border: "rgba(255, 255, 255, 0.1)",
         icon: COLORS.white,
         tab: "rgba(255,255,255,0.05)",
         tabActive: COLORS.primary,
-        headerBg: COLORS.cardDark,
-        gradient: [COLORS.backgroundDark, '#1e1b4b'], // Deep Blue
+        headerBg: "transparent",
+        gradient: [COLORS.backgroundDark, '#1e1b4b'],
         gradientStart: { x: 0.5, y: 0 },
         gradientEnd: { x: 0.5, y: 1 },
         textInverse: COLORS.black,
@@ -150,10 +189,8 @@ export const darkTheme = {
         success: COLORS.green500,
         warning: COLORS.amber500,
         surface: COLORS.slate900,
-
-        // Status & Action Backgrounds
-        primaryBg: "rgba(204, 255, 4, 0.1)", // Neon Green 0.1
-        warningBg: "rgba(245, 158, 11, 0.1)", // Amber 0.1
+        primaryBg: "rgba(204, 255, 4, 0.1)",
+        warningBg: "rgba(245, 158, 11, 0.1)",
         cyanBg: "rgba(6, 182, 212, 0.1)",
         pinkBg: "rgba(236, 72, 153, 0.1)",
         tealBg: "rgba(20, 184, 166, 0.1)"
@@ -186,16 +223,16 @@ export const SHADOWS = {
 export const RADIUS = {
     s: 8,
     m: 12,
-    l: 22, // Updated to match HTML rounded-[22px]
+    l: 22,
     xl: 32,
 };
 
 export const SPACING = {
-    xs: 4,  // New: Extra Small for tight gaps
+    xs: 4,
     s: 8,
-    sm: 12, // New: Small-Medium for gaps/padding
+    sm: 12,
     m: 16,
-    ml: 20, // New: Medium-Large for card padding
+    ml: 20,
     l: 24,
     xl: 32,
 };

@@ -83,17 +83,8 @@ export default function WorkerDashboardScreen({ navigation }) {
     const loadDashboardData = async () => {
         try {
             setLoading(true);
-            console.log('[Dashboard] Fetching jobs...');
             const jobs = await jobService.getMyJobs();
-            console.log('[Dashboard] Jobs received:', jobs ? jobs.length : 0);
-
-            console.log('[Dashboard] Fetching costs...');
             const costs = await costService.getMyCosts();
-            console.log('[Dashboard] Costs received:', costs ? costs.length : 0);
-
-            if (!jobs || jobs.length === 0) {
-                console.warn('[Dashboard] No jobs returned from server');
-            }
 
             const active = jobs ? jobs.filter(j => ['PENDING', 'IN_PROGRESS'].includes(j.status)) : [];
             const completed = jobs ? jobs.filter(j => j.status === 'COMPLETED') : [];
@@ -131,6 +122,16 @@ export default function WorkerDashboardScreen({ navigation }) {
 
     const onRefresh = () => { setRefreshing(true); loadDashboardData(); };
 
+    const getThemeIcon = () => {
+        switch(themeId) {
+            case 'modern_neon': return 'wb-sunny';
+            case 'classic_neon': return 'palette';
+            case 'retro_blue': return 'auto-awesome';
+            case 'retro_dark': return 'nightlight-round';
+            default: return 'wb-sunny';
+        }
+    };
+
     const renderHeader = () => (
         <View style={styles.header}>
             <View style={styles.headerContent}>
@@ -140,9 +141,9 @@ export default function WorkerDashboardScreen({ navigation }) {
                             <Text style={[styles.profileInitials, { color: theme.colors.primary }]}>{user?.name ? user.name.charAt(0).toUpperCase() : 'Ç'}</Text>
                         </View>
                         <View>
-                            <Text style={[styles.greetingText, { color: isDark ? 'rgba(255,255,255,0.6)' : theme.colors.text }]}>Merhaba,</Text>
+                            <Text style={[styles.greetingText, { color: theme.colors.subText }]}>Merhaba,</Text>
                             <Text style={[styles.userName, { color: theme.colors.text }]}>{user?.name || 'Çalışan'}</Text>
-                            <View style={[styles.roleContainer, { backgroundColor: isDark ? 'rgba(99, 102, 241, 0.2)' : 'rgba(99, 102, 241, 0.1)' }]}>
+                            <View style={[styles.roleContainer, { backgroundColor: theme.colors.primaryBg }]}>
                                 <Text style={[styles.roleText, { color: theme.colors.primary }]}>{user?.role || 'Bilinmiyor'}</Text>
                             </View>
                         </View>
@@ -154,7 +155,7 @@ export default function WorkerDashboardScreen({ navigation }) {
                             onPress={toggleTheme}
                         >
                             <MaterialIcons 
-                                name={themeId === 'light' ? "wb-sunny" : themeId === 'classic' ? "palette" : "nightlight-round"} 
+                                name={getThemeIcon()} 
                                 size={24} 
                                 color={theme.colors.icon} 
                             />
@@ -165,7 +166,7 @@ export default function WorkerDashboardScreen({ navigation }) {
                         </TouchableOpacity>
                         <TouchableOpacity style={[styles.iconButton, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder }]} onPress={() => navigation.navigate('Notifications')}>
                             <MaterialIcons name="notifications-none" size={24} color={theme.colors.icon} />
-                            <View style={styles.notificationBadge} />
+                            <View style={[styles.notificationBadge, { backgroundColor: theme.colors.error }]} />
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={[styles.iconButton, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder }]}
@@ -195,7 +196,7 @@ export default function WorkerDashboardScreen({ navigation }) {
                         </TouchableOpacity>
                     </View>
                 </View>
-                <Text style={[styles.dateText, { color: isDark ? 'rgba(255,255,255,0.5)' : theme.colors.text }]}>
+                <Text style={[styles.dateText, { color: theme.colors.subText }]}>
                     {new Date().toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                 </Text>
             </View>
@@ -234,7 +235,7 @@ export default function WorkerDashboardScreen({ navigation }) {
                         <Text style={[
                             styles.filterText,
                             {
-                                color: activeFilter === filter ? (isDark ? '#000' : '#fff') : (isDark ? 'rgba(255,255,255,0.6)' : theme.colors.text),
+                                color: activeFilter === filter ? theme.colors.textInverse : theme.colors.text,
                                 fontWeight: activeFilter === filter ? 'bold' : '600'
                             }
                         ]}>
@@ -274,10 +275,6 @@ export default function WorkerDashboardScreen({ navigation }) {
                         </Text>
                     </View>
                 }
-                initialNumToRender={5}
-                maxToRenderPerBatch={5}
-                windowSize={3}
-                removeClippedSubviews={Platform.OS === 'android'}
             />
         </View>
     );
@@ -287,21 +284,14 @@ export default function WorkerDashboardScreen({ navigation }) {
             colors={theme.colors.gradient}
             start={theme.colors.gradientStart}
             end={theme.colors.gradientEnd}
-            style={{ flex: 1, minHeight: 0 }}
+            style={{ flex: 1 }}
         >
-            <SafeAreaView style={{ flex: 1, minHeight: 0 }}>
+            <SafeAreaView style={{ flex: 1 }}>
                 <StatusBar
                     barStyle={isDark ? "light-content" : "dark-content"}
                     backgroundColor="transparent"
                     translucent
                 />
-
-                {/* Hero Circle Effect for Light Mode */}
-                {!isDark && (
-                    <View style={styles.heroCircleContainer}>
-                        {/* Optional decorative circles can go here if needed to match HTML exactly */}
-                    </View>
-                )}
 
                 <ScrollView
                     style={{ flex: 1 }}
@@ -362,7 +352,6 @@ export default function WorkerDashboardScreen({ navigation }) {
 const styles = StyleSheet.create({
     scrollContent: { paddingBottom: 40 },
     header: { marginBottom: 24, paddingHorizontal: 16, paddingTop: 16, paddingBottom: 24 },
-    headerContent: {},
     headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
     profileSection: { flexDirection: 'row', alignItems: 'center' },
     profileImageContainer: { width: 50, height: 50, borderRadius: 25, marginRight: 12, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
@@ -373,7 +362,7 @@ const styles = StyleSheet.create({
     roleText: { fontSize: 11, fontWeight: '600', letterSpacing: 0.5 },
     headerIcons: { flexDirection: 'row', gap: 12 },
     iconButton: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center', borderWidth: 1 },
-    notificationBadge: { position: 'absolute', top: 12, right: 12, width: 8, height: 8, borderRadius: 4, backgroundColor: '#ef4444', borderWidth: 1, borderColor: '#fff' },
+    notificationBadge: { position: 'absolute', top: 12, right: 12, width: 8, height: 8, borderRadius: 4, borderWidth: 1, borderColor: '#fff' },
     dateText: { fontSize: 13, marginTop: 4, fontWeight: '500' },
     sectionContainer: { marginBottom: 28, paddingHorizontal: 16 },
     sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
@@ -396,133 +385,4 @@ const styles = StyleSheet.create({
     emptyStateContainer: { width: width * 0.75, height: 160, borderRadius: 24, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderStyle: 'dashed' },
     emptyStateIconContainer: { width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
     emptyStateText: { fontSize: 14, fontWeight: '500' },
-    heroCircleContainer: { position: 'absolute', top: 0, left: 0, right: 0, height: 300, overflow: 'hidden' }, // Placeholder for HTML circle decorations
-    tasksList: {
-        gap: 16,
-    },
-    taskCard: {
-        padding: 0, // Reset padding for custom layout
-        borderRadius: 22,
-        marginBottom: 8,
-    },
-    leftBorderStrip: {
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        bottom: 0,
-        width: 4,
-        zIndex: 1,
-    },
-    taskCardContent: {
-        flexDirection: 'row',
-        padding: 16,
-        paddingLeft: 20, // Account for border strip
-        alignItems: 'center',
-        gap: 16,
-    },
-    taskIconBox: {
-        width: 48,
-        height: 48,
-        borderRadius: 16,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    taskCardHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: 4,
-    },
-    taskTitle: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        flex: 1,
-        marginRight: 8,
-    },
-    priorityBadge: {
-        paddingHorizontal: 8,
-        paddingVertical: 2,
-        borderRadius: 6,
-    },
-    priorityText: {
-        fontSize: 10,
-        fontWeight: 'bold',
-        textTransform: 'uppercase',
-    },
-    taskMeta: {
-        fontSize: 13,
-        marginBottom: 12,
-    },
-    taskFooter: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    avatarGroup: {
-        flexDirection: 'row',
-    },
-    miniAvatar: {
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        borderWidth: 2,
-    },
-    teamName: {
-        fontSize: 11,
-        fontWeight: '500',
-    },
-    labelSmall: {
-        fontSize: 12,
-        fontWeight: '600',
-        textTransform: 'uppercase',
-        marginBottom: 4,
-        letterSpacing: 0.5,
-    },
-    bigAmount: {
-        fontSize: 30,
-        fontWeight: '800',
-        letterSpacing: -1,
-    },
-    trendBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 8,
-    },
-    progressLabel: {
-        fontSize: 12,
-        fontWeight: '600',
-    },
-    progressBarBg: {
-        height: 8,
-        width: '100%',
-        borderRadius: 4,
-        overflow: 'hidden',
-    },
-    progressBarFill: {
-        height: '100%',
-        borderRadius: 4,
-    },
-    costFooter: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingTop: 16,
-        borderTopWidth: 1,
-    },
-    labelTiny: {
-        fontSize: 10,
-        fontWeight: 'bold',
-        textTransform: 'uppercase',
-    },
-    amountSmall: {
-        fontSize: 14,
-        fontWeight: 'bold',
-    },
-    smallButton: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 12,
-    },
 });

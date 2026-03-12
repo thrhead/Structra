@@ -1,16 +1,16 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { AccessibilityInfo } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { modernLightTheme, classicLightTheme, darkTheme, COLORS, SHADOWS, RADIUS, SPACING, Z_INDEX, BREAKPOINTS } from '../constants/theme';
+import { modernNeonTheme, classicNeonTheme, retroBlueTheme, retroDarkTheme, COLORS, SHADOWS, RADIUS, SPACING, Z_INDEX, BREAKPOINTS } from '../constants/theme';
 
-const THEME_STORAGE_KEY = '@app_theme';
+const THEME_STORAGE_KEY = '@app_theme_v2';
 
 // Create Context
 const ThemeContext = createContext(null);
 
 // Provider Component
 export const ThemeProvider = ({ children }) => {
-    const [themeId, setThemeId] = useState('light'); // default to light (modern)
+    const [themeId, setThemeId] = useState('modern_neon'); // default to modern neon
     const [isLoading, setIsLoading] = useState(true);
     const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
@@ -19,7 +19,8 @@ export const ThemeProvider = ({ children }) => {
         const loadTheme = async () => {
             try {
                 const savedTheme = await AsyncStorage.getItem(THEME_STORAGE_KEY);
-                if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'classic')) {
+                const validThemes = ['modern_neon', 'classic_neon', 'retro_blue', 'retro_dark'];
+                if (savedTheme && validThemes.includes(savedTheme)) {
                     setThemeId(savedTheme);
                 }
             } catch (e) {
@@ -50,7 +51,6 @@ export const ThemeProvider = ({ children }) => {
         );
 
         return () => {
-             // Clean up subscription if method exists (older RN versions might differ)
              if (subscription && subscription.remove) {
                  subscription.remove();
              } else if (AccessibilityInfo.removeEventListener) {
@@ -59,12 +59,13 @@ export const ThemeProvider = ({ children }) => {
         };
     }, []);
 
-    // Toggle theme function - Cycles through Light -> Classic -> Dark
+    // Toggle theme function - Cycles through 4 themes
     const toggleTheme = async () => {
         let newTheme;
-        if (themeId === 'light') newTheme = 'classic';
-        else if (themeId === 'classic') newTheme = 'dark';
-        else newTheme = 'light';
+        if (themeId === 'modern_neon') newTheme = 'classic_neon';
+        else if (themeId === 'classic_neon') newTheme = 'retro_blue';
+        else if (themeId === 'retro_blue') newTheme = 'retro_dark';
+        else newTheme = 'modern_neon';
 
         setThemeId(newTheme);
         try {
@@ -76,7 +77,8 @@ export const ThemeProvider = ({ children }) => {
 
     // Set specific theme
     const setTheme = async (newThemeId) => {
-        if (['light', 'classic', 'dark'].includes(newThemeId)) {
+        const validThemes = ['modern_neon', 'classic_neon', 'retro_blue', 'retro_dark'];
+        if (validThemes.includes(newThemeId)) {
             setThemeId(newThemeId);
             try {
                 await AsyncStorage.setItem(THEME_STORAGE_KEY, newThemeId);
@@ -86,12 +88,13 @@ export const ThemeProvider = ({ children }) => {
         }
     };
 
-    // Get current theme object, now including constants
+    // Get current theme object
     const theme = useMemo(() => {
         let baseTheme;
-        if (themeId === 'dark') baseTheme = darkTheme;
-        else if (themeId === 'classic') baseTheme = classicLightTheme;
-        else baseTheme = modernLightTheme;
+        if (themeId === 'classic_neon') baseTheme = classicNeonTheme;
+        else if (themeId === 'retro_blue') baseTheme = retroBlueTheme;
+        else if (themeId === 'retro_dark') baseTheme = retroDarkTheme;
+        else baseTheme = modernNeonTheme;
 
         return {
             ...baseTheme,
@@ -100,10 +103,9 @@ export const ThemeProvider = ({ children }) => {
             spacing: SPACING,
             zIndex: Z_INDEX,
             breakpoints: BREAKPOINTS,
-            // Expose COLORS directly under theme for convenience if needed, though primary use is theme.colors
             colors: {
                 ...baseTheme.colors,
-                ...COLORS // Merge COLORS constants directly for easier access if preferred
+                ...COLORS
             }
         };
     }, [themeId]);
@@ -112,15 +114,15 @@ export const ThemeProvider = ({ children }) => {
     const value = useMemo(() => ({
         theme,
         themeId,
-        isDark: themeId === 'dark',
-        isLight: themeId === 'light' || themeId === 'classic',
-        isModern: themeId === 'light',
-        isClassic: themeId === 'classic',
+        isDark: themeId === 'retro_dark',
+        isLight: themeId !== 'retro_dark',
+        isModern: themeId === 'modern_neon' || themeId === 'retro_blue',
+        isClassic: themeId === 'classic_neon',
+        isRetro: themeId === 'retro_blue' || themeId === 'retro_dark',
         toggleTheme,
         setTheme,
         isLoading,
         prefersReducedMotion,
-        // Expose shared constants explicitly as well, for direct access where theme.xxx is not desired
         COLORS,
         SHADOWS,
         RADIUS,

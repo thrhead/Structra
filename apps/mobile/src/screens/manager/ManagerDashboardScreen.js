@@ -41,6 +41,16 @@ export default function ManagerDashboardScreen({ navigation }) {
         );
     };
 
+    const getThemeIcon = () => {
+        switch(themeId) {
+            case 'modern_neon': return 'wb-sunny';
+            case 'classic_neon': return 'palette';
+            case 'retro_blue': return 'auto-awesome';
+            case 'retro_dark': return 'nightlight-round';
+            default: return 'wb-sunny';
+        }
+    };
+
     return (
         <LinearGradient
             colors={theme.colors.gradient}
@@ -71,7 +81,7 @@ export default function ManagerDashboardScreen({ navigation }) {
                             onPress={toggleTheme}
                         >
                             <MaterialIcons 
-                                name={themeId === 'light' ? "wb-sunny" : themeId === 'classic' ? "palette" : "nightlight-round"} 
+                                name={getThemeIcon()} 
                                 size={20} 
                                 color={theme.colors.icon} 
                             />
@@ -90,8 +100,7 @@ export default function ManagerDashboardScreen({ navigation }) {
                     </View>
                 </View>
 
-                {/* Quick Stats - Wrapped in GlassCards or using updated StatCard if we had one. 
-                    For now, creating a custom Stat View using GlassCard to ensure styling match */}
+                {/* Quick Stats */}
                 <View style={styles.statsContainer}>
                     <GlassCard theme={theme} style={{ flex: 1, margin: 6, padding: 16 }}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -238,7 +247,7 @@ const styles = StyleSheet.create({
     },
     header: {
         padding: 20,
-        paddingTop: 45, // approx StatusBar height + padding
+        paddingTop: 45,
         borderBottomWidth: 1,
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -278,39 +287,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         paddingHorizontal: 10,
         marginBottom: 0,
-    },
-    comingSoonContainer: {
-        margin: 16,
-        padding: 32,
-        alignItems: 'center',
-    },
-    comingSoonTitle: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 12,
-        textAlign: 'center',
-    },
-    comingSoonText: {
-        fontSize: 16,
-        marginBottom: 16,
-        textAlign: 'center',
-    },
-    featureList: {
-        alignSelf: 'stretch',
-        paddingHorizontal: 20,
-    },
-    featureItemRow: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        marginBottom: 8,
-        gap: 8,
-    },
-    featureItem: {
-        fontSize: 14,
-    },
-    featureItemActive: {
-        fontSize: 14,
-        fontWeight: '600',
     },
     section: {
         padding: 16,

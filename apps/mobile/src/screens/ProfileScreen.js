@@ -85,35 +85,19 @@ export default function ProfileScreen({ navigation }) {
             }
         };
 
-        if (Platform.OS === 'web') {
-            showAlert(
-                t('profile.logoutConfirmTitle'),
-                t('profile.logoutConfirmDesc'),
-                [
-                    { text: t('common.cancel'), style: 'cancel' },
-                    {
-                        text: t('navigation.logout'),
-                        style: 'destructive',
-                        onPress: performLogout
-                    }
-                ],
-                'question'
-            );
-        } else {
-            showAlert(
-                t('profile.logoutConfirmTitle'),
-                t('profile.logoutConfirmDesc'),
-                [
-                    { text: t('common.cancel'), style: 'cancel' },
-                    {
-                        text: t('navigation.logout'),
-                        style: 'destructive',
-                        onPress: performLogout
-                    }
-                ],
-                'question'
-            );
-        }
+        showAlert(
+            t('profile.logoutConfirmTitle'),
+            t('profile.logoutConfirmDesc'),
+            [
+                { text: t('common.cancel'), style: 'cancel' },
+                {
+                    text: t('navigation.logout'),
+                    style: 'destructive',
+                    onPress: performLogout
+                }
+            ],
+            'question'
+        );
     };
 
     return (
@@ -172,7 +156,7 @@ export default function ProfileScreen({ navigation }) {
                         />
                     </View>
                     <TouchableOpacity style={[styles.changePasswordButton, { backgroundColor: theme.colors.primary }]} onPress={handlePasswordChange}>
-                        <Text style={styles.changePasswordButtonText}>{t('profile.updatePassword')}</Text>
+                        <Text style={[styles.changePasswordButtonText, { color: theme.colors.textInverse }]}>{t('profile.updatePassword')}</Text>
                     </TouchableOpacity>
                 </GlassCard>
             </View>
@@ -196,53 +180,73 @@ export default function ProfileScreen({ navigation }) {
                         </View>
                         
                         <View style={[styles.themeSelector, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
-                            <TouchableOpacity 
-                                style={[
-                                    styles.themeOption, 
-                                    themeId === 'light' && { backgroundColor: theme.colors.primary }
-                                ]}
-                                onPress={() => setTheme('light')}
-                            >
-                                <Text style={[
-                                    styles.themeOptionText, 
-                                    { color: theme.colors.text },
-                                    themeId === 'light' && { color: '#000', fontWeight: 'bold' }
-                                ]}>
-                                    {t('profile.themeModern')}
-                                </Text>
-                            </TouchableOpacity>
+                            <View style={styles.themeRow}>
+                                <TouchableOpacity 
+                                    style={[
+                                        styles.themeOption, 
+                                        themeId === 'modern_neon' && { backgroundColor: theme.colors.primary }
+                                    ]}
+                                    onPress={() => setTheme('modern_neon')}
+                                >
+                                    <Text style={[
+                                        styles.themeOptionText, 
+                                        { color: theme.colors.text },
+                                        themeId === 'modern_neon' && { color: theme.colors.textInverse, fontWeight: 'bold' }
+                                    ]}>
+                                        Modern Neon
+                                    </Text>
+                                </TouchableOpacity>
 
-                            <TouchableOpacity 
-                                style={[
-                                    styles.themeOption, 
-                                    themeId === 'classic' && { backgroundColor: theme.colors.primary }
-                                ]}
-                                onPress={() => setTheme('classic')}
-                            >
-                                <Text style={[
-                                    styles.themeOptionText, 
-                                    { color: theme.colors.text },
-                                    themeId === 'classic' && { color: '#000', fontWeight: 'bold' }
-                                ]}>
-                                    {t('profile.themeClassic')}
-                                </Text>
-                            </TouchableOpacity>
+                                <TouchableOpacity 
+                                    style={[
+                                        styles.themeOption, 
+                                        themeId === 'classic_neon' && { backgroundColor: theme.colors.primary }
+                                    ]}
+                                    onPress={() => setTheme('classic_neon')}
+                                >
+                                    <Text style={[
+                                        styles.themeOptionText, 
+                                        { color: theme.colors.text },
+                                        themeId === 'classic_neon' && { color: theme.colors.textInverse, fontWeight: 'bold' }
+                                    ]}>
+                                        Classic Neon
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
 
-                            <TouchableOpacity 
-                                style={[
-                                    styles.themeOption, 
-                                    themeId === 'dark' && { backgroundColor: theme.colors.primary }
-                                ]}
-                                onPress={() => setTheme('dark')}
-                            >
-                                <Text style={[
-                                    styles.themeOptionText, 
-                                    { color: theme.colors.text },
-                                    themeId === 'dark' && { color: '#000', fontWeight: 'bold' }
-                                ]}>
-                                    {t('profile.themeDark')}
-                                </Text>
-                            </TouchableOpacity>
+                            <View style={[styles.themeRow, { marginTop: 8 }]}>
+                                <TouchableOpacity 
+                                    style={[
+                                        styles.themeOption, 
+                                        themeId === 'retro_blue' && { backgroundColor: theme.colors.primary }
+                                    ]}
+                                    onPress={() => setTheme('retro_blue')}
+                                >
+                                    <Text style={[
+                                        styles.themeOptionText, 
+                                        { color: theme.colors.text },
+                                        themeId === 'retro_blue' && { color: theme.colors.textInverse, fontWeight: 'bold' }
+                                    ]}>
+                                        Retro Blue
+                                    </Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity 
+                                    style={[
+                                        styles.themeOption, 
+                                        themeId === 'retro_dark' && { backgroundColor: theme.colors.primary }
+                                    ]}
+                                    onPress={() => setTheme('retro_dark')}
+                                >
+                                    <Text style={[
+                                        styles.themeOptionText, 
+                                        { color: theme.colors.text },
+                                        themeId === 'retro_dark' && { color: theme.colors.textInverse, fontWeight: 'bold' }
+                                    ]}>
+                                        Retro Dark
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
                     </View>
 
@@ -359,7 +363,6 @@ const styles = StyleSheet.create({
         marginTop: 8,
     },
     changePasswordButtonText: {
-        color: '#fff',
         fontSize: 16,
         fontWeight: 'bold',
     },
@@ -414,10 +417,13 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
     },
     themeSelector: {
-        flexDirection: 'row',
         marginTop: 12,
         borderRadius: 12,
         padding: 4,
+    },
+    themeRow: {
+        flexDirection: 'row',
+        gap: 8,
     },
     themeOption: {
         flex: 1,
@@ -426,7 +432,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
     },
     themeOptionText: {
-        fontSize: 13,
+        fontSize: 12,
         fontWeight: '600',
     },
 });
