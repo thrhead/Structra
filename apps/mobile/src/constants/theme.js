@@ -74,6 +74,24 @@ export const lightTheme = {
         cyanBg: "rgba(6, 182, 212, 0.1)",
         pinkBg: "rgba(236, 72, 153, 0.1)",
         tealBg: "rgba(20, 184, 166, 0.1)"
+    },
+    fonts: {
+        regular: {
+            fontFamily: 'System',
+            fontWeight: 'normal',
+        },
+        medium: {
+            fontFamily: 'System',
+            fontWeight: '500',
+        },
+        bold: {
+            fontFamily: 'System',
+            fontWeight: 'bold',
+        },
+        heavy: {
+            fontFamily: 'System',
+            fontWeight: '900',
+        },
     }
 };
 
@@ -108,6 +126,24 @@ export const darkTheme = {
         cyanBg: "rgba(6, 182, 212, 0.1)",
         pinkBg: "rgba(236, 72, 153, 0.1)",
         tealBg: "rgba(20, 184, 166, 0.1)"
+    },
+    fonts: {
+        regular: {
+            fontFamily: 'System',
+            fontWeight: 'normal',
+        },
+        medium: {
+            fontFamily: 'System',
+            fontWeight: '500',
+        },
+        bold: {
+            fontFamily: 'System',
+            fontWeight: 'bold',
+        },
+        heavy: {
+            fontFamily: 'System',
+            fontWeight: '900',
+        },
     }
 };
 
