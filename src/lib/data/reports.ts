@@ -216,6 +216,146 @@ export async function getPendingCostsList(startDate: Date, endDate: Date, jobSta
     });
 }
 
+/**
+ * Yeni Rapor Fonksiyonları
+ */
+
+// 1. Kârlılık Raporu Verisi
+export async function getProfitabilityData(startDate: Date, endDate: Date, customerId?: string) {
+    const where: any = {
+        status: 'COMPLETED',
+        completedDate: { gte: startDate, lte: endDate }
+    };
+    if (customerId && customerId !== 'all') where.customerId = customerId;
+
+    const jobs = await prisma.job.findMany({
+        where,
+        include: {
+            costs: { where: { status: 'APPROVED' } },
+            customer: true
+        }
+    });
+
+    return jobs.map(job => {
+        const totalCost = job.costs.reduce((sum, c) => sum + c.amount, 0);
+        const budget = job.budget || 0;
+        return {
+            jobNo: job.jobNo || job.id.substring(0, 8),
+            title: job.title,
+            customer: job.customer.company,
+            budget,
+            totalCost,
+            profit: budget - totalCost,
+            profitMargin: budget > 0 ? ((budget - totalCost) / budget) * 100 : 0
+        };
+    });
+}
+
+// 2. Gecikme ve Darboğaz Analizi Verisi
+export async function getDelayAnalysisData(startDate: Date, endDate: Date) {
+    const jobs = await prisma.job.findMany({
+        where: {
+            status: 'COMPLETED',
+            completedDate: { gte: startDate, lte: endDate },
+            startedAt: { not: null }
+        },
+        include: {
+            steps: {
+                where: { blockedAt: { not: null } }
+            }
+        }
+    });
+
+    return jobs.map(job => {
+        const actualDuration = job.startedAt && job.completedDate
+            ? (job.completedDate.getTime() - job.startedAt.getTime()) / (1000 * 60)
+            : 0;
+        const estimatedDuration = job.estimatedDuration || 0;
+        const delay = actualDuration - estimatedDuration;
+
+        return {
+            jobNo: job.jobNo || job.id.substring(0, 8),
+            title: job.title,
+            estimatedDuration,
+            actualDuration,
+            delay: delay > 0 ? delay : 0,
+            blockedStepsCount: job.steps.length,
+            bottleneckCount: job.steps.length
+        };
+    });
+}
+
+// 3. Ekip Kapasite ve İş Yükü Verisi
+export async function getTeamCapacityData() {
+    const teams = await prisma.team.findMany({
+        include: {
+            assignments: {
+                where: { job: { status: { in: ['PENDING', 'IN_PROGRESS'] } } },
+                include: { job: true }
+            },
+            members: true
+        }
+    });
+
+    return teams.map(team => ({
+        teamName: team.name,
+        activeJobsCount: team.assignments.length,
+        memberCount: team.members.length,
+        loadFactor: team.members.length > 0 ? (team.assignments.length / team.members.length) * 100 : 0
+    }));
+}
+
+// 4. Personel Performans Verisi
+export async function getPersonnelPerformanceData(startDate: Date, endDate: Date) {
+    const workers = await prisma.user.findMany({
+        where: { role: { in: ['WORKER', 'MANAGER'] } },
+        include: {
+            completedSteps: {
+                where: { completedAt: { gte: startDate, lte: endDate } }
+            },
+            teamMember: {
+                include: { team: true }
+            }
+        }
+    });
+
+    return workers.map(worker => ({
+        name: worker.name || worker.email,
+        teamName: worker.teamMember[0]?.team.name || 'Bağımsız',
+        completedStepsCount: worker.completedSteps.length,
+    })).sort((a, b) => b.completedStepsCount - a.completedStepsCount);
+}
+
+// 5. Finansal Özet Tablo Verisi
+export async function getFinancialSummaryData(startDate: Date, endDate: Date) {
+    const costs = await prisma.costTracking.findMany({
+        where: {
+            date: { gte: startDate, lte: endDate },
+            status: 'APPROVED'
+        },
+        include: {
+            job: true
+        }
+    });
+
+    const categoryBreakdown = costs.reduce((acc: any, cost) => {
+        const cat = cost.category || 'Diğer';
+        acc[cat] = (acc[cat] || 0) + cost.amount;
+        return acc;
+    }, {});
+
+    return {
+        totalApproved: costs.reduce((sum, c) => sum + c.amount, 0),
+        categoryBreakdown: Object.entries(categoryBreakdown).map(([name, value]) => ({ name, value })),
+        recentCosts: costs.slice(0, 10).map(c => ({
+            date: c.date,
+            description: c.description,
+            amount: c.amount,
+            jobTitle: c.job.title
+        }))
+    };
+}
+
 export const getJobsListForFilter = unstable_cache(
     async (jobStatus?: string) => {
         const where: any = {};

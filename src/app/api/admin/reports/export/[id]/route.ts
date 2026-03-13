@@ -19,7 +19,10 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
             where: { id: jobId },
             include: {
                 customer: { include: { user: true } },
-                steps: { orderBy: { order: 'asc' } },
+                steps: {
+                    orderBy: { order: 'asc' },
+                    include: { completedBy: true }
+                },
                 costs: true,
                 assignments: { include: { team: true } }
             }

@@ -2,6 +2,7 @@ import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { format } from 'date-fns'
 import { tr } from 'date-fns/locale'
+import { DEJAVU_SANS_NORMAL, DEJAVU_SANS_BOLD } from './fonts/dejavu-fonts'
 
 export interface ProformaData {
     id: string
@@ -22,7 +23,15 @@ export interface ProformaData {
 
 export function generateProformaPDF(data: ProformaData) {
     const doc = new jsPDF()
-    const currencySymbol = data.currency === 'TRY' ? 'tl' : '$'
+
+    // Add Turkish font support
+    doc.addFileToVFS('DejaVuSans.ttf', DEJAVU_SANS_NORMAL)
+    doc.addFont('DejaVuSans.ttf', 'DejaVuSans', 'normal')
+    doc.addFileToVFS('DejaVuSans-Bold.ttf', DEJAVU_SANS_BOLD)
+    doc.addFont('DejaVuSans-Bold.ttf', 'DejaVuSans', 'bold')
+    doc.setFont('DejaVuSans')
+
+    const currencySymbol = data.currency === 'TRY' ? '₺' : '$'
     const locale = data.currency === 'TRY' ? 'tr-TR' : 'en-US'
 
     // Header Background
@@ -31,11 +40,11 @@ export function generateProformaPDF(data: ProformaData) {
 
     doc.setFontSize(22)
     doc.setTextColor(255, 255, 255)
-    doc.setFont('helvetica', 'bold')
+    doc.setFont('DejaVuSans', 'bold')
     doc.text('PROFORMA FATURA', 20, 30)
 
     doc.setFontSize(10)
-    doc.setFont('helvetica', 'normal')
+    doc.setFont('DejaVuSans', 'normal')
     doc.text(`Tarih: ${format(new Date(), 'dd MMMM yyyy', { locale: tr })}`, 190, 25, { align: 'right' })
     doc.text(`Fatura No: #${data.id.slice(-8).toUpperCase()}`, 190, 32, { align: 'right' })
 
@@ -44,33 +53,33 @@ export function generateProformaPDF(data: ProformaData) {
     // Seller & Buyer info columns
     doc.setTextColor(30, 41, 59)
     doc.setFontSize(11)
-    doc.setFont('helvetica', 'bold')
-    doc.text('HIZMET SAGLAYICI', 20, yPos)
-    doc.text('MUSTERI (ALICI)', 120, yPos)
+    doc.setFont('DejaVuSans', 'bold')
+    doc.text('HİZMET SAĞLAYICI', 20, yPos)
+    doc.text('MÜŞTERİ (ALICI)', 120, yPos)
 
     doc.setDrawColor(203, 213, 225)
     doc.line(20, yPos + 2, 90, yPos + 2)
     doc.line(120, yPos + 2, 190, yPos + 2)
 
     doc.setFontSize(9)
-    doc.setFont('helvetica', 'normal')
+    doc.setFont('DejaVuSans', 'normal')
     doc.setTextColor(71, 85, 105)
     yPos += 10
 
     // Seller details
-    doc.setFont('helvetica', 'bold')
-    doc.text('Assembly Tracker Teknoloji A.S.', 20, yPos)
-    doc.setFont('helvetica', 'normal')
-    doc.text('Yazilim Vadisi No:101, Kat:4', 20, yPos + 5)
-    doc.text('34000 Sisli / Istanbul / Turkiye', 20, yPos + 10)
-    doc.text('Vergi Dairesi: Bogazici V.D.', 20, yPos + 15)
+    doc.setFont('DejaVuSans', 'bold')
+    doc.text('Assembly Tracker Teknoloji A.Ş.', 20, yPos)
+    doc.setFont('DejaVuSans', 'normal')
+    doc.text('Yazılım Vadisi No:101, Kat:4', 20, yPos + 5)
+    doc.text('34000 Şişli / İstanbul / Türkiye', 20, yPos + 10)
+    doc.text('Vergi Dairesi: Boğaziçi V.D.', 20, yPos + 15)
     doc.text('Vergi No: 9876543210', 20, yPos + 20)
 
     // Buyer details
-    doc.setFont('helvetica', 'bold')
+    doc.setFont('DejaVuSans', 'bold')
     doc.setTextColor(30, 41, 59)
     doc.text(data.customer.company, 120, yPos)
-    doc.setFont('helvetica', 'normal')
+    doc.setFont('DejaVuSans', 'normal')
     doc.setTextColor(71, 85, 105)
     doc.text(data.customer.address || '-', 120, yPos + 5, { maxWidth: 70 })
     if (data.customer.taxId) {
@@ -95,17 +104,17 @@ export function generateProformaPDF(data: ProformaData) {
 
     autoTable(doc, {
         startY: yPos,
-        head: [['#', 'HIZMET/URUN ACIKLAMASI', 'ADET', 'BIRIM FIYAT', 'TOPLAM']],
+        head: [['#', 'HİZMET/ÜRÜN AÇIKLAMASI', 'ADET', 'BİRİM FİYAT', 'TOPLAM']],
         body: tableData,
         theme: 'grid',
-        headStyles: { fillColor: [15, 23, 42], fontSize: 9, halign: 'center' },
+        headStyles: { font: 'DejaVuSans', fontStyle: 'bold', fillColor: [15, 23, 42], fontSize: 9, halign: 'center' },
         columnStyles: {
             0: { halign: 'center', cellWidth: 10 },
             2: { halign: 'center', cellWidth: 20 },
             3: { halign: 'right', cellWidth: 35 },
             4: { halign: 'right', cellWidth: 35 }
         },
-        styles: { fontSize: 8, cellPadding: 4, lineColor: [226, 232, 240] }
+        styles: { font: 'DejaVuSans', fontSize: 8, cellPadding: 4, lineColor: [226, 232, 240] }
     })
 
     yPos = (doc as any).lastAutoTable.finalY + 10
@@ -124,7 +133,7 @@ export function generateProformaPDF(data: ProformaData) {
     doc.setFillColor(248, 250, 252)
     doc.rect(130, yPos - 6, 65, 12, 'F')
     doc.setFontSize(11)
-    doc.setFont('helvetica', 'bold')
+    doc.setFont('DejaVuSans', 'bold')
     doc.setTextColor(15, 23, 42)
     doc.text('GENEL TOPLAM:', 155, yPos + 2, { align: 'right' })
     doc.text(`${grandTotal.toLocaleString(locale, { minimumFractionDigits: 2 })} ${currencySymbol}`, 190, yPos + 2, { align: 'right' })
@@ -134,27 +143,27 @@ export function generateProformaPDF(data: ProformaData) {
     // Bank & Notes
     doc.setTextColor(30, 41, 59)
     doc.setFontSize(10)
-    doc.setFont('helvetica', 'bold')
-    doc.text('ODEME VE BANKA BILGILERI', 20, yPos)
+    doc.setFont('DejaVuSans', 'bold')
+    doc.text('ÖDEME VE BANKA BİLGİLERİ', 20, yPos)
     doc.setDrawColor(15, 23, 42)
     doc.line(20, yPos + 2, 80, yPos + 2)
 
-    doc.setFont('helvetica', 'normal')
+    doc.setFont('DejaVuSans', 'normal')
     doc.setTextColor(71, 85, 105)
     doc.setFontSize(9)
     yPos += 10
-    doc.text('Banka: GLOBAL TECH BANKASI A.S.', 20, yPos)
-    doc.text('Sube: ISTANBUL TICARI SUBE (Kod: 1234)', 20, yPos + 5)
-    doc.text('Hesap Adi: Assembly Tracker Teknoloji A.S.', 20, yPos + 10)
+    doc.text('Banka: GLOBAL TECH BANKASI A.Ş.', 20, yPos)
+    doc.text('Şube: İSTANBUL TİCARİ ŞUBE (Kod: 1234)', 20, yPos + 5)
+    doc.text('Hesap Adı: Assembly Tracker Teknoloji A.Ş.', 20, yPos + 10)
     doc.text('IBAN: TR56 0006 2000 1234 5678 9012 34', 20, yPos + 15)
 
     yPos += 25
-    doc.setFont('helvetica', 'italic')
+    doc.setFont('DejaVuSans', 'italic')
     doc.setFontSize(8)
-    doc.text('* Odeme yaparken aciklama kismina fatura numarasini yazmaniz rica olunur.', 20, yPos)
+    doc.text('* Ödeme yaparken açıklama kısmına fatura numarasını yazmanız rica olunur.', 20, yPos)
 
     // Footer
-    doc.setFont('helvetica', 'normal')
+    doc.setFont('DejaVuSans', 'normal')
     doc.setFontSize(8)
     doc.setTextColor(148, 163, 184)
     const footerText = 'Bu belge dijital olarak Assembly Tracker uzerinden olusturulmustur ve imzaya gerek yoktur.'

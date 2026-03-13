@@ -2,6 +2,7 @@ import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { format } from 'date-fns'
 import { tr } from 'date-fns/locale'
+import { DEJAVU_SANS_NORMAL, DEJAVU_SANS_BOLD } from './fonts/dejavu-fonts'
 
 export interface JobReportData {
     id: string
@@ -24,10 +25,13 @@ export interface JobReportData {
     steps: Array<{
         title: string
         isCompleted: boolean
+        completedAt?: Date | null
+        completedBy?: { name: string | null } | null
         order: number
         subSteps?: Array<{
             title: string
             isCompleted: boolean
+            completedAt?: Date | null
         }>
     }>
     costs: Array<{
@@ -51,6 +55,13 @@ export interface JobReportData {
 export function generateJobPDF(data: JobReportData) {
     const doc = new jsPDF()
 
+    // Add Turkish font support
+    doc.addFileToVFS('DejaVuSans.ttf', DEJAVU_SANS_NORMAL)
+    doc.addFont('DejaVuSans.ttf', 'DejaVuSans', 'normal')
+    doc.addFileToVFS('DejaVuSans-Bold.ttf', DEJAVU_SANS_BOLD)
+    doc.addFont('DejaVuSans-Bold.ttf', 'DejaVuSans', 'bold')
+    doc.setFont('DejaVuSans')
+
     // Professional branding tokens
     const BRAND_COLOR = [15, 23, 42] // Slate-900 for enterprise feel
     const ACCENT_COLOR = [22, 163, 74] // Green-600 for status
@@ -63,12 +74,12 @@ export function generateJobPDF(data: JobReportData) {
     doc.setFillColor(248, 250, 252)
     doc.rect(0, 0, 210, 45, 'F')
 
-    doc.setFont('helvetica', 'bold')
+    doc.setFont('DejaVuSans', 'bold')
     doc.setFontSize(22)
     doc.setTextColor(BRAND_COLOR[0], BRAND_COLOR[1], BRAND_COLOR[2])
     doc.text(companyName, 20, 25)
 
-    doc.setFont('helvetica', 'normal')
+    doc.setFont('DejaVuSans', 'normal')
     doc.setFontSize(10)
     doc.setTextColor(100, 100, 100)
     doc.text(companySlogan, 20, 32)
@@ -95,10 +106,10 @@ export function generateJobPDF(data: JobReportData) {
 
     // Summary Section with nested tables for alignment
     const summaryData: any[][] = [
-        [{ content: 'MUSTERI BILGILERI', colSpan: 2, styles: { halign: 'left', fontStyle: 'bold', fillColor: [241, 245, 249] } },
-        { content: 'IS DETAYLARI', colSpan: 2, styles: { halign: 'left', fontStyle: 'bold', fillColor: [241, 245, 249] } }],
-        ['Sirket', data.customer.company, 'Durum', data.status === 'COMPLETED' ? 'TAMAMLANDI' : 'ISLEMDE'],
-        ['Ilgili', data.customer.user.name, 'Oncelik', data.priority],
+        [{ content: 'MÜŞTERİ BİLGİLERİ', colSpan: 2, styles: { halign: 'left', fontStyle: 'bold', fillColor: [241, 245, 249] } },
+        { content: 'İŞ DETAYLARI', colSpan: 2, styles: { halign: 'left', fontStyle: 'bold', fillColor: [241, 245, 249] } }],
+        ['Şirket', data.customer.company, 'Durum', data.status === 'COMPLETED' ? 'TAMAMLANDI' : 'İŞLEMDE'],
+        ['İlgili', data.customer.user.name, 'Öncelik', data.priority],
         ['Konum', data.location || '-', 'Tamamlanma', data.completedDate ? format(new Date(data.completedDate), 'dd.MM.yyyy') : '-']
     ]
 
@@ -106,7 +117,7 @@ export function generateJobPDF(data: JobReportData) {
         startY: yPos,
         body: summaryData,
         theme: 'grid',
-        styles: { fontSize: 8, cellPadding: 3, lineColor: [226, 232, 240] },
+        styles: { font: 'DejaVuSans', fontSize: 8, cellPadding: 3, lineColor: [226, 232, 240] },
         columnStyles: {
             0: { fontStyle: 'bold', cellWidth: 30 },
             1: { cellWidth: 60 },
@@ -120,26 +131,29 @@ export function generateJobPDF(data: JobReportData) {
     // Steps Section
     doc.setFontSize(12)
     doc.setTextColor(BRAND_COLOR[0], BRAND_COLOR[1], BRAND_COLOR[2])
-    doc.text('TEKNIK ISLEM ADIMLARI', 20, yPos)
+    doc.text('TEKNİK İŞLEM ADIMLARI', 20, yPos)
     yPos += 6
 
     const stepsData = data.steps.map(step => [
         step.order.toString(),
-        step.title,
-        step.isCompleted ? '✓ TAMAM' : '○ BEKLIYOR'
+        {
+            content: `${step.title}${step.isCompleted ? `\nTamamlayan: ${step.completedBy?.name || 'Belirtilmemiş'}\nZaman: ${step.completedAt ? format(new Date(step.completedAt), 'dd.MM.yyyy HH:mm') : '-'}` : ''}`,
+            styles: { halign: 'left' }
+        },
+        step.isCompleted ? '✓ TAMAM' : '○ BEKLİYOR'
     ])
 
     autoTable(doc, {
         startY: yPos,
-        head: [['SIRA', 'ACIKLAMA', 'DURUM']],
-        body: stepsData,
+        head: [['SIRA', 'AÇIKLAMA VE AYRINTILAR', 'DURUM']],
+        body: stepsData as any,
         theme: 'striped',
-        headStyles: { fillColor: BRAND_COLOR as [number, number, number], fontSize: 9, halign: 'center' },
+        headStyles: { font: 'DejaVuSans', fontStyle: 'bold', fillColor: BRAND_COLOR as [number, number, number], fontSize: 9, halign: 'center' },
         columnStyles: {
             0: { halign: 'center', cellWidth: 15 },
-            2: { halign: 'center', cellWidth: 30 }
+            2: { halign: 'center', cellWidth: 35 }
         },
-        styles: { fontSize: 8 }
+        styles: { font: 'DejaVuSans', fontSize: 8, cellPadding: 3 }
     })
 
     yPos = (doc as any).lastAutoTable.finalY + 15
@@ -147,7 +161,7 @@ export function generateJobPDF(data: JobReportData) {
     // Costs Section
     if (data.costs && data.costs.length > 0) {
         doc.setFontSize(12)
-        doc.text('MALIYET VE EKLEME DETAYLARI', 20, yPos)
+        doc.text('MALİYET VE EKLEME DETAYLARI', 20, yPos)
         yPos += 6
 
         const costsData = data.costs.map(c => [
@@ -159,11 +173,11 @@ export function generateJobPDF(data: JobReportData) {
 
         autoTable(doc, {
             startY: yPos,
-            head: [['TARIH', 'ACIKLAMA', 'KATEGORI', 'TUTAR']],
+            head: [['TARİH', 'AÇIKLAMA', 'KATEGORİ', 'TUTAR']],
             body: costsData,
             theme: 'grid',
-            headStyles: { fillColor: [71, 85, 105], fontSize: 9 },
-            styles: { fontSize: 8 },
+            headStyles: { font: 'DejaVuSans', fontStyle: 'bold', fillColor: [71, 85, 105], fontSize: 9 },
+            styles: { font: 'DejaVuSans', fontSize: 8 },
             columnStyles: { 3: { halign: 'right', fontStyle: 'bold' } }
         })
 
@@ -179,12 +193,12 @@ export function generateJobPDF(data: JobReportData) {
 
     doc.setFontSize(10)
     doc.setTextColor(100, 100, 100)
-    doc.text('DIJITAL ONAY VE IMZA', 20, yPos)
+    doc.text('DİJİTAL ONAY VE İMZA', 20, yPos)
 
     yPos += 10
     doc.setFontSize(9)
     doc.setTextColor(0, 0, 0)
-    doc.text('Musteri Yetkilisi:', 20, yPos)
+    doc.text('Müşteri Yetkilisi:', 20, yPos)
     doc.text('Saha Personeli:', 110, yPos)
 
     yPos += 5
@@ -200,7 +214,7 @@ export function generateJobPDF(data: JobReportData) {
     doc.text('____________________', 110, yPos + 10)
 
     yPos += 30
-    doc.setFont('helvetica', 'bold')
+    doc.setFont('DejaVuSans', 'bold')
     doc.text(data.customer.user.name, 20, yPos)
     doc.text(data.team?.name || 'Yetkili Personel', 110, yPos)
 
@@ -215,7 +229,7 @@ export function generateJobPDF(data: JobReportData) {
         doc.setDrawColor(241, 245, 249)
         doc.line(20, 280, 190, 280)
 
-        doc.text(`Bu rapor Assembly Tracker tarafindan guvenli bir sekilde olusturulmustur. Tum haklari saklidir.`, 20, 285)
+        doc.text(`Bu rapor Assembly Tracker tarafından güvenli bir şekilde oluşturulmuştur. Tüm hakları saklıdır.`, 20, 285)
         doc.text(`SAYFA ${i} / ${pageCount}`, 190, 285, { align: 'right' })
     }
 
@@ -233,8 +247,12 @@ export function generateCostReportPDF(costs: Array<{
 }>) {
     const doc = new jsPDF()
 
-    // Set font
-    doc.setFont('helvetica')
+    // Add Turkish font support
+    doc.addFileToVFS('DejaVuSans.ttf', DEJAVU_SANS_NORMAL)
+    doc.addFont('DejaVuSans.ttf', 'DejaVuSans', 'normal')
+    doc.addFileToVFS('DejaVuSans-Bold.ttf', DEJAVU_SANS_BOLD)
+    doc.addFont('DejaVuSans-Bold.ttf', 'DejaVuSans', 'bold')
+    doc.setFont('DejaVuSans')
 
     let yPos = 20
 
@@ -270,9 +288,9 @@ export function generateCostReportPDF(costs: Array<{
         body: costsData,
         foot: [['', '', '', 'Toplam Onaylı:', `₺${totalCost.toFixed(2)}`, '', '']],
         theme: 'striped',
-        styles: { fontSize: 8, cellPadding: 2 },
-        headStyles: { fillColor: [22, 163, 74] },
-        footStyles: { fillColor: [248, 250, 252], fontStyle: 'bold' }
+        styles: { font: 'DejaVuSans', fontSize: 8, cellPadding: 2 },
+        headStyles: { font: 'DejaVuSans', fontStyle: 'bold', fillColor: [22, 163, 74] },
+        footStyles: { font: 'DejaVuSans', fillColor: [248, 250, 252], fontStyle: 'bold' }
     })
 
     // Footer with page numbers
@@ -291,4 +309,169 @@ export function generateCostReportPDF(costs: Array<{
 
     const filename = `Maliyet_Raporu_${format(new Date(), 'yyyyMMdd')}.pdf`
     doc.save(filename)
+}
+
+// 1. Kârlılık Raporu PDF
+export function generateProfitabilityPDF(data: any[]) {
+    const doc = new jsPDF();
+    setupPDF(doc);
+    let yPos = 20;
+
+    doc.setFontSize(18);
+    doc.text('KÂRLILIK RAPORU', 105, yPos, { align: 'center' });
+    yPos += 10;
+    doc.setFontSize(10);
+    doc.text(`Tarih: ${format(new Date(), 'dd.MM.yyyy')}`, 105, yPos, { align: 'center' });
+    yPos += 10;
+
+    const tableData = data.map(item => [
+        item.jobNo,
+        item.title,
+        item.customer,
+        `₺${item.budget.toLocaleString('tr-TR')}`,
+        `₺${item.totalCost.toLocaleString('tr-TR')}`,
+        `₺${item.profit.toLocaleString('tr-TR')}`,
+        `%${item.profitMargin.toFixed(1)}`
+    ]);
+
+    autoTable(doc, {
+        startY: yPos,
+        head: [['İş No', 'Başlık', 'Müşteri', 'Bütçe', 'Maliyet', 'Kâr', 'Marj']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: { font: 'DejaVuSans', fontStyle: 'bold', fillColor: [15, 23, 42] },
+        styles: { font: 'DejaVuSans', fontSize: 8 }
+    });
+
+    return doc;
+}
+
+// 4. Gecikme Analizi PDF
+export function generateDelayPDF(data: any[]) {
+    const doc = new jsPDF();
+    setupPDF(doc);
+    let yPos = 20;
+
+    doc.setFontSize(18);
+    doc.text('GECİKME VE DARBOĞAZ ANALİZİ', 105, yPos, { align: 'center' });
+    yPos += 15;
+
+    const tableData = data.map(item => [
+        item.jobNo,
+        item.title,
+        Math.round(item.estimatedDuration).toString(),
+        Math.round(item.actualDuration).toString(),
+        Math.round(item.delay).toString(),
+        item.blockedStepsCount.toString()
+    ]);
+
+    autoTable(doc, {
+        startY: yPos,
+        head: [['İş No', 'Başlık', 'Tahmini (dk)', 'Gerçek (dk)', 'Gecikme (dk)', 'Blokajlar']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: { font: 'DejaVuSans', fontStyle: 'bold', fillColor: [15, 23, 42] },
+        styles: { font: 'DejaVuSans', fontSize: 8 }
+    });
+
+    return doc;
+}
+
+// 5. Ekip Kapasite PDF
+export function generateCapacityPDF(data: any[]) {
+    const doc = new jsPDF();
+    setupPDF(doc);
+    let yPos = 20;
+
+    doc.setFontSize(18);
+    doc.text('EKİP KAPASİTE VE İŞ YÜKÜ RAPORU', 105, yPos, { align: 'center' });
+    yPos += 15;
+
+    const tableData = data.map(item => [
+        item.teamName,
+        item.activeJobsCount.toString(),
+        item.memberCount.toString(),
+        `%${item.loadFactor.toFixed(1)}`
+    ]);
+
+    autoTable(doc, {
+        startY: yPos,
+        head: [['Ekip Adı', 'Aktif İşler', 'Üye Sayısı', 'Doluluk Oranı']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: { font: 'DejaVuSans', fontStyle: 'bold', fillColor: [71, 85, 105] },
+        styles: { font: 'DejaVuSans', fontSize: 9 }
+    });
+
+    return doc;
+}
+
+// 2. Personel Performans PDF
+export function generatePersonnelPDF(data: any[]) {
+    const doc = new jsPDF();
+    setupPDF(doc);
+    let yPos = 20;
+
+    doc.setFontSize(18);
+    doc.text('PERSONEL PERFORMANS RAPORU', 105, yPos, { align: 'center' });
+    yPos += 10;
+
+    const tableData = data.map(item => [
+        item.name,
+        item.teamName,
+        item.completedStepsCount.toString()
+    ]);
+
+    autoTable(doc, {
+        startY: yPos,
+        head: [['Personel', 'Ekip', 'Tamamlanan Adım']],
+        body: tableData,
+        theme: 'striped',
+        headStyles: { font: 'DejaVuSans', fontStyle: 'bold', fillColor: [22, 163, 74] },
+        styles: { font: 'DejaVuSans', fontSize: 9 }
+    });
+
+    return doc;
+}
+
+// 3. Finansal Özet PDF
+export function generateFinancialPDF(summary: any) {
+    const doc = new jsPDF();
+    setupPDF(doc);
+    let yPos = 20;
+
+    doc.setFontSize(18);
+    doc.text('FİNANSAL ÖZET RAPORU', 105, yPos, { align: 'center' });
+    yPos += 15;
+
+    doc.setFontSize(12);
+    doc.text(`Toplam Onaylı Harcama: ₺${summary.totalApproved.toLocaleString('tr-TR')}`, 20, yPos);
+    yPos += 15;
+
+    const tableData = summary.recentCosts.map((c: any) => [
+        format(new Date(c.date), 'dd.MM.yyyy'),
+        c.jobTitle,
+        c.description,
+        `₺${c.amount.toLocaleString('tr-TR')}`
+    ]);
+
+    autoTable(doc, {
+        startY: yPos,
+        head: [['Tarih', 'İş', 'Açıklama', 'Tutar']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: { font: 'DejaVuSans', fontStyle: 'bold', fillColor: [71, 85, 105] },
+        styles: { font: 'DejaVuSans', fontSize: 8 }
+    });
+
+    return doc;
+}
+
+// Helper to setup PDF fonts
+function setupPDF(doc: jsPDF) {
+    doc.addFileToVFS('DejaVuSans.ttf', DEJAVU_SANS_NORMAL);
+    doc.addFont('DejaVuSans.ttf', 'DejaVuSans', 'normal');
+    doc.addFileToVFS('DejaVuSans-Bold.ttf', DEJAVU_SANS_BOLD);
+    doc.addFont('DejaVuSans-Bold.ttf', 'DejaVuSans', 'bold');
+    doc.setFont('DejaVuSans');
 }
