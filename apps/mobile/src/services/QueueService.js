@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as FileSystem from 'expo-file-system/legacy';
+import * as FileSystem from 'expo-file-system';
 
 const STORAGE_KEY = 'OFFLINE_QUEUE';
 const MEDIA_DIR = `${FileSystem.documentDirectory}offline_media/`;
