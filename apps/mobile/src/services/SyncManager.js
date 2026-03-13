@@ -4,7 +4,7 @@ import api from './api';
 import NetInfo from '@react-native-community/netinfo';
 import { AppState } from 'react-native';
 import { ToastService } from './ToastService';
-import * as FileSystem from 'expo-file-system/legacy';
+import * as FileSystem from 'expo-file-system';
 
 export const SyncManager = {
   isSyncing: false,

@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
 import LoginForm from '../../components/LoginForm';
 import { AuthProvider } from '../../context/AuthContext';
 import { ThemeProvider } from '../../context/ThemeContext';
@@ -9,20 +8,18 @@ import authService from '../../services/auth.service';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Mock Dependencies
-vi.mock('../../services/auth.service');
-vi.mock('@react-native-async-storage/async-storage', () => ({
-    default: {
-        getItem: vi.fn(),
-        setItem: vi.fn(),
-        removeItem: vi.fn(),
-    },
+jest.mock('../../services/auth.service');
+jest.mock('@react-native-async-storage/async-storage', () => ({
+    getItem: jest.fn(),
+    setItem: jest.fn(),
+    removeItem: jest.fn(),
 }));
 
-vi.mock('@expo/vector-icons', () => ({
+jest.mock('@expo/vector-icons', () => ({
     MaterialIcons: 'MaterialIcons',
 }));
 
-vi.mock('react-i18next', () => ({
+jest.mock('react-i18next', () => ({
     useTranslation: () => ({
         t: (key) => key,
     }),
@@ -40,7 +37,7 @@ const Wrapper = ({ children }) => (
 
 describe('AuthFlow Integration', () => {
     beforeEach(() => {
-        vi.clearAllMocks();
+        jest.clearAllMocks();
         AsyncStorage.getItem.mockResolvedValue(null);
     });
 
@@ -53,8 +50,8 @@ describe('AuthFlow Integration', () => {
             token: mockToken
         });
 
-        const onLoginSuccess = vi.fn();
-        const { getByPlaceholderText, getByText } = render(
+        const onLoginSuccess = jest.fn();
+        const { getByPlaceholderText, getAllByText } = render(
             <Wrapper>
                 <LoginForm onLoginSuccess={onLoginSuccess} />
             </Wrapper>
@@ -65,7 +62,8 @@ describe('AuthFlow Integration', () => {
         fireEvent.changeText(getByPlaceholderText('auth.password'), 'password123');
 
         // Submit
-        fireEvent.press(getByText('auth.login'));
+        const loginButtons = getAllByText('auth.login');
+        fireEvent.press(loginButtons[loginButtons.length - 1]);
 
         await waitFor(() => {
             expect(authService.login).toHaveBeenCalledWith('test@example.com', 'password123');
@@ -77,7 +75,7 @@ describe('AuthFlow Integration', () => {
     it('should show error on login failure', async () => {
         authService.login.mockRejectedValue(new Error('Invalid credentials'));
 
-        const { getByPlaceholderText, getByText } = render(
+        const { getByPlaceholderText, getAllByText } = render(
             <Wrapper>
                 <LoginForm />
             </Wrapper>
@@ -85,7 +83,8 @@ describe('AuthFlow Integration', () => {
 
         fireEvent.changeText(getByPlaceholderText('auth.email'), 'wrong@example.com');
         fireEvent.changeText(getByPlaceholderText('auth.password'), 'wrongpass');
-        fireEvent.press(getByText('auth.login'));
+        const loginButtons = getAllByText('auth.login');
+        fireEvent.press(loginButtons[loginButtons.length - 1]);
 
         await waitFor(() => {
             expect(authService.login).toHaveBeenCalled();
