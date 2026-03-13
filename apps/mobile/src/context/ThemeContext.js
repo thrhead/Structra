@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { AccessibilityInfo } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { modernNeonTheme, classicNeonTheme, retroBlueTheme, retroDarkTheme, COLORS, SHADOWS, RADIUS, SPACING, Z_INDEX, BREAKPOINTS } from '../constants/theme';
+import { modernNeonTheme, classicNeonTheme, lightTheme, darkTheme, COLORS, SHADOWS, RADIUS, SPACING, Z_INDEX, BREAKPOINTS } from '../constants/theme';
 
 const THEME_STORAGE_KEY = '@app_theme_v2';
 
@@ -19,7 +19,7 @@ export const ThemeProvider = ({ children }) => {
         const loadTheme = async () => {
             try {
                 const savedTheme = await AsyncStorage.getItem(THEME_STORAGE_KEY);
-                const validThemes = ['modern_neon', 'classic_neon', 'retro_blue', 'retro_dark'];
+                const validThemes = ['modern_neon', 'classic_neon', 'light', 'dark'];
                 if (savedTheme && validThemes.includes(savedTheme)) {
                     setThemeId(savedTheme);
                 }
@@ -63,8 +63,8 @@ export const ThemeProvider = ({ children }) => {
     const toggleTheme = async () => {
         let newTheme;
         if (themeId === 'modern_neon') newTheme = 'classic_neon';
-        else if (themeId === 'classic_neon') newTheme = 'retro_blue';
-        else if (themeId === 'retro_blue') newTheme = 'retro_dark';
+        else if (themeId === 'classic_neon') newTheme = 'light';
+        else if (themeId === 'light') newTheme = 'dark';
         else newTheme = 'modern_neon';
 
         setThemeId(newTheme);
@@ -77,7 +77,7 @@ export const ThemeProvider = ({ children }) => {
 
     // Set specific theme
     const setTheme = async (newThemeId) => {
-        const validThemes = ['modern_neon', 'classic_neon', 'retro_blue', 'retro_dark'];
+        const validThemes = ['modern_neon', 'classic_neon', 'light', 'dark'];
         if (validThemes.includes(newThemeId)) {
             setThemeId(newThemeId);
             try {
@@ -92,8 +92,8 @@ export const ThemeProvider = ({ children }) => {
     const theme = useMemo(() => {
         let baseTheme;
         if (themeId === 'classic_neon') baseTheme = classicNeonTheme;
-        else if (themeId === 'retro_blue') baseTheme = retroBlueTheme;
-        else if (themeId === 'retro_dark') baseTheme = retroDarkTheme;
+        else if (themeId === 'light') baseTheme = lightTheme;
+        else if (themeId === 'dark') baseTheme = darkTheme;
         else baseTheme = modernNeonTheme;
 
         return {
@@ -114,11 +114,8 @@ export const ThemeProvider = ({ children }) => {
     const value = useMemo(() => ({
         theme,
         themeId,
-        isDark: themeId === 'retro_dark',
-        isLight: themeId !== 'retro_dark',
-        isModern: themeId === 'modern_neon' || themeId === 'retro_blue',
-        isClassic: themeId === 'classic_neon',
-        isRetro: themeId === 'retro_blue' || themeId === 'retro_dark',
+        isDark: themeId === 'dark',
+        isLight: themeId !== 'dark',
         toggleTheme,
         setTheme,
         isLoading,

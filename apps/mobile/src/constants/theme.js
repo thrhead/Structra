@@ -123,10 +123,10 @@ export const classicNeonTheme = {
     }
 };
 
-// 3. RETRO BLUE (Eski Tip - 8ac9e7b - Mavi)
-export const retroBlueTheme = {
-    id: 'retro_blue',
-    name: 'Retro Blue',
+// 3. LIGHT THEME (From External)
+export const lightTheme = {
+    id: 'light',
+    name: 'Light',
     colors: {
         background: COLORS.modernBg,
         text: COLORS.slate900,
@@ -163,10 +163,10 @@ export const retroBlueTheme = {
     }
 };
 
-// 4. RETRO DARK (Eski Tip - 8ac9e7b - Mavi Transparan)
-export const retroDarkTheme = {
-    id: 'retro_dark',
-    name: 'Retro Dark',
+// 4. DARK THEME (From External)
+export const darkTheme = {
+    id: 'dark',
+    name: 'Dark',
     colors: {
         background: COLORS.backgroundDark,
         text: COLORS.white,
@@ -179,7 +179,7 @@ export const retroDarkTheme = {
         border: "rgba(255, 255, 255, 0.1)",
         icon: COLORS.white,
         tab: "rgba(255,255,255,0.05)",
-        tabActive: COLORS.primary,
+        tabActive: COLORS.electricBlue,
         headerBg: "transparent",
         gradient: [COLORS.backgroundDark, '#1e1b4b'],
         gradientStart: { x: 0.5, y: 0 },
