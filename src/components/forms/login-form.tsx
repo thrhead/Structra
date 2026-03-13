@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { signIn } from "next-auth/react"
+import { signIn, getSession } from "next-auth/react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
@@ -51,8 +51,16 @@ export function LoginForm() {
         return
       }
 
-      // Başarılı giriş - yönlendirme middleware tarafından yapılacak
-      router.push("/")
+      // Başarılı giriş - kullanıcıyı rolüne göre yönlendir
+      const session = await getSession();
+      const role = session?.user?.role?.toLowerCase() || "";
+      
+      if (role) {
+        router.push(`/${role}`)
+      } else {
+        router.push("/")
+      }
+      
       router.refresh()
     } catch (err) {
       setError("Bir hata oluştu. Lütfen tekrar deneyin.")
