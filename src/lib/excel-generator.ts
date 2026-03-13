@@ -88,7 +88,7 @@ const priorityLabels: Record<string, string> = {
 }
 
 // Generate single job Excel report
-export function generateJobExcel(jobData: JobData) {
+export function generateJobWorkbook(jobData: JobData) {
     const wb = XLSX.utils.book_new()
 
     // Job Info Sheet
@@ -170,13 +170,17 @@ export function generateJobExcel(jobData: JobData) {
         XLSX.utils.book_append_sheet(wb, ws3, 'Maliyetler')
     }
 
-    // Generate filename and download
+    return wb
+}
+
+export function generateJobExcel(jobData: JobData) {
+    const wb = generateJobWorkbook(jobData)
     const filename = `Is_Raporu_${jobData.title.replace(/\s+/g, '_')}_${format(new Date(), 'yyyyMMdd')}.xlsx`
     XLSX.writeFile(wb, filename)
 }
 
 // Generate jobs list Excel
-export function generateJobsListExcel(jobs: JobListItem[]) {
+export function generateJobsListWorkbook(jobs: JobListItem[]) {
     const wb = XLSX.utils.book_new()
 
     const data = [
@@ -213,13 +217,17 @@ export function generateJobsListExcel(jobs: JobListItem[]) {
     ]
 
     XLSX.utils.book_append_sheet(wb, ws, 'İşler')
+    return wb
+}
 
+export function generateJobsListExcel(jobs: JobListItem[]) {
+    const wb = generateJobsListWorkbook(jobs)
     const filename = `Is_Listesi_${format(new Date(), 'yyyyMMdd')}.xlsx`
     XLSX.writeFile(wb, filename)
 }
 
 // Generate cost report Excel
-export function generateCostExcel(costs: CostData[]) {
+export function generateCostWorkbook(costs: CostData[]) {
     const wb = XLSX.utils.book_new()
 
     const data = [
@@ -263,7 +271,59 @@ export function generateCostExcel(costs: CostData[]) {
     ]
 
     XLSX.utils.book_append_sheet(wb, ws, 'Maliyetler')
+    return wb
+}
 
+export function generateCostExcel(costs: CostData[]) {
+    const wb = generateCostWorkbook(costs)
     const filename = `Maliyet_Raporu_${format(new Date(), 'yyyyMMdd')}.xlsx`
     XLSX.writeFile(wb, filename)
+}
+
+// 1. Kârlılık Raporu Excel
+export function generateProfitabilityWorkbook(data: any[]) {
+    const wb = XLSX.utils.book_new();
+    const headers = [['İŞ NO', 'BAŞLIK', 'MÜŞTERİ', 'BÜTÇE', 'TOPLAM MALİYET', 'KÂR', 'KÂR MARJI (%)']];
+    const rows = data.map(d => [d.jobNo, d.title, d.customer, d.budget, d.totalCost, d.profit, d.profitMargin]);
+
+    const ws = XLSX.utils.aoa_to_sheet([...headers, ...rows]);
+    XLSX.utils.book_append_sheet(wb, ws, 'Kârlılık');
+    return wb;
+}
+
+export function generateProfitabilityExcel(data: any[]) {
+    const wb = generateProfitabilityWorkbook(data);
+    XLSX.writeFile(wb, `Karlilik_Raporu_${format(new Date(), 'yyyyMMdd')}.xlsx`);
+}
+
+// 2. Gecikme Analizi Excel
+export function generateDelayWorkbook(data: any[]) {
+    const wb = XLSX.utils.book_new();
+    const headers = [['İŞ NO', 'BAŞLIK', 'PLANLANAN (DK)', 'GERÇEKLEŞEN (DK)', 'GECİKME (DK)', 'BLOKE ADIMLAR']];
+    const rows = data.map(d => [d.jobNo, d.title, d.estimatedDuration, d.actualDuration, d.delay, d.blockedStepsCount]);
+
+    const ws = XLSX.utils.aoa_to_sheet([...headers, ...rows]);
+    XLSX.utils.book_append_sheet(wb, ws, 'Gecikme Analizi');
+    return wb;
+}
+
+export function generateDelayExcel(data: any[]) {
+    const wb = generateDelayWorkbook(data);
+    XLSX.writeFile(wb, `Gecikme_Analizi_${format(new Date(), 'yyyyMMdd')}.xlsx`);
+}
+
+// 3. Ekip Kapasite Excel
+export function generateTeamCapacityWorkbook(data: any[]) {
+    const wb = XLSX.utils.book_new();
+    const headers = [['EKİP ADI', 'AKTİF İŞ SAYISI', 'ÜYE SAYISI', 'DOLULUK ORANI (%)']];
+    const rows = data.map(d => [d.teamName, d.activeJobsCount, d.memberCount, d.loadFactor]);
+
+    const ws = XLSX.utils.aoa_to_sheet([...headers, ...rows]);
+    XLSX.utils.book_append_sheet(wb, ws, 'Ekip Kapasite');
+    return wb;
+}
+
+export function generateTeamCapacityExcel(data: any[]) {
+    const wb = generateTeamCapacityWorkbook(data);
+    XLSX.writeFile(wb, `Ekip_Kapasite_${format(new Date(), 'yyyyMMdd')}.xlsx`);
 }
