@@ -40,7 +40,7 @@ export async function POST(
                     title: 'İş Adımı Onaylandı ✅',
                     message: `"${step.job.title}" işindeki "${step.title}" adımı onaylandı.`,
                     type: 'SUCCESS',
-                    link: `/jobs/${step.jobId}`
+                    link: `/worker/jobs/${step.jobId}`
                 }
             })
         }

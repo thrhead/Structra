@@ -51,7 +51,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ job
             'Montaj Kabul Edildi',
             `"${updatedJob.title}" montajı başarıyla kabul edildi.`,
             'SUCCESS',
-            `/jobs/${updatedJob.id}`
+            `/worker/jobs/${updatedJob.id}`
         );
 
         return NextResponse.json(updatedJob);
