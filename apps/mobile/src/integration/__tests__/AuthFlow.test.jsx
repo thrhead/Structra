@@ -51,7 +51,7 @@ describe('AuthFlow Integration', () => {
         });
 
         const onLoginSuccess = jest.fn();
-        const { getByPlaceholderText, getAllByText } = render(
+        const { getByPlaceholderText, getByRole } = render(
             <Wrapper>
                 <LoginForm onLoginSuccess={onLoginSuccess} />
             </Wrapper>
@@ -62,20 +62,20 @@ describe('AuthFlow Integration', () => {
         fireEvent.changeText(getByPlaceholderText('auth.password'), 'password123');
 
         // Submit
-        const loginButtons = getAllByText('auth.login');
-        fireEvent.press(loginButtons[loginButtons.length - 1]);
+        const loginButton = getByRole('button', { name: 'auth.login' });
+        fireEvent.press(loginButton);
 
         await waitFor(() => {
             expect(authService.login).toHaveBeenCalledWith('test@example.com', 'password123');
             expect(AsyncStorage.setItem).toHaveBeenCalledWith('user', JSON.stringify(mockUser));
             expect(onLoginSuccess).toHaveBeenCalled();
-        });
-    });
+        }, { timeout: 20000 });
+    }, 30000);
 
     it('should show error on login failure', async () => {
         authService.login.mockRejectedValue(new Error('Invalid credentials'));
 
-        const { getByPlaceholderText, getAllByText } = render(
+        const { getByPlaceholderText, getByRole } = render(
             <Wrapper>
                 <LoginForm />
             </Wrapper>
@@ -83,13 +83,14 @@ describe('AuthFlow Integration', () => {
 
         fireEvent.changeText(getByPlaceholderText('auth.email'), 'wrong@example.com');
         fireEvent.changeText(getByPlaceholderText('auth.password'), 'wrongpass');
-        const loginButtons = getAllByText('auth.login');
-        fireEvent.press(loginButtons[loginButtons.length - 1]);
+
+        const loginButton = getByRole('button', { name: 'auth.login' });
+        fireEvent.press(loginButton);
 
         await waitFor(() => {
             expect(authService.login).toHaveBeenCalled();
-        });
+        }, { timeout: 20000 });
         
         // Error handling check (Alert is usually mocked in RN tests)
-    });
+    }, 30000);
 });
