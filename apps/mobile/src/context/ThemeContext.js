@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { AccessibilityInfo } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { modernNeonTheme, classicNeonTheme, retroBlueTheme, retroDarkTheme, COLORS, SHADOWS, RADIUS, SPACING, Z_INDEX, BREAKPOINTS } from '../constants/theme';
+import { lightTheme, darkTheme, COLORS, SHADOWS, RADIUS, SPACING, Z_INDEX, BREAKPOINTS } from '../constants/theme';
 
 const THEME_STORAGE_KEY = '@app_theme_v2';
 
@@ -10,7 +10,7 @@ const ThemeContext = createContext(null);
 
 // Provider Component
 export const ThemeProvider = ({ children }) => {
-    const [themeId, setThemeId] = useState('modern_neon'); // default to modern neon
+    const [themeId, setThemeId] = useState('light'); // default to light theme
     const [isLoading, setIsLoading] = useState(true);
     const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
@@ -19,7 +19,7 @@ export const ThemeProvider = ({ children }) => {
         const loadTheme = async () => {
             try {
                 const savedTheme = await AsyncStorage.getItem(THEME_STORAGE_KEY);
-                const validThemes = ['modern_neon', 'classic_neon', 'retro_blue', 'retro_dark'];
+                const validThemes = ['light', 'dark'];
                 if (savedTheme && validThemes.includes(savedTheme)) {
                     setThemeId(savedTheme);
                 }
@@ -59,14 +59,9 @@ export const ThemeProvider = ({ children }) => {
         };
     }, []);
 
-    // Toggle theme function - Cycles through 4 themes
+    // Toggle theme function - Cycles between light and dark
     const toggleTheme = async () => {
-        let newTheme;
-        if (themeId === 'modern_neon') newTheme = 'classic_neon';
-        else if (themeId === 'classic_neon') newTheme = 'retro_blue';
-        else if (themeId === 'retro_blue') newTheme = 'retro_dark';
-        else newTheme = 'modern_neon';
-
+        const newTheme = themeId === 'light' ? 'dark' : 'light';
         setThemeId(newTheme);
         try {
             await AsyncStorage.setItem(THEME_STORAGE_KEY, newTheme);
@@ -77,7 +72,7 @@ export const ThemeProvider = ({ children }) => {
 
     // Set specific theme
     const setTheme = async (newThemeId) => {
-        const validThemes = ['modern_neon', 'classic_neon', 'retro_blue', 'retro_dark'];
+        const validThemes = ['light', 'dark'];
         if (validThemes.includes(newThemeId)) {
             setThemeId(newThemeId);
             try {
@@ -90,11 +85,7 @@ export const ThemeProvider = ({ children }) => {
 
     // Get current theme object
     const theme = useMemo(() => {
-        let baseTheme;
-        if (themeId === 'classic_neon') baseTheme = classicNeonTheme;
-        else if (themeId === 'retro_blue') baseTheme = retroBlueTheme;
-        else if (themeId === 'retro_dark') baseTheme = retroDarkTheme;
-        else baseTheme = modernNeonTheme;
+        let baseTheme = themeId === 'dark' ? darkTheme : lightTheme;
 
         return {
             ...baseTheme,
@@ -114,11 +105,11 @@ export const ThemeProvider = ({ children }) => {
     const value = useMemo(() => ({
         theme,
         themeId,
-        isDark: themeId === 'retro_dark',
-        isLight: themeId !== 'retro_dark',
-        isModern: themeId === 'modern_neon' || themeId === 'retro_blue',
-        isClassic: themeId === 'classic_neon',
-        isRetro: themeId === 'retro_blue' || themeId === 'retro_dark',
+        isDark: themeId === 'dark',
+        isLight: themeId === 'light',
+        isModern: false, // Simplified, keeping keys for compatibility if used elsewhere
+        isClassic: false,
+        isRetro: false,
         toggleTheme,
         setTheme,
         isLoading,

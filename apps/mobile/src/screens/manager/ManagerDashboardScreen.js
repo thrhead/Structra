@@ -42,13 +42,7 @@ export default function ManagerDashboardScreen({ navigation }) {
     };
 
     const getThemeIcon = () => {
-        switch(themeId) {
-            case 'modern_neon': return 'wb-sunny';
-            case 'classic_neon': return 'palette';
-            case 'retro_blue': return 'auto-awesome';
-            case 'retro_dark': return 'nightlight-round';
-            default: return 'wb-sunny';
-        }
+        return isDark ? 'nightlight-round' : 'wb-sunny';
     };
 
     return (

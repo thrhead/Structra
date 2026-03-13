@@ -184,66 +184,32 @@ export default function ProfileScreen({ navigation }) {
                                 <TouchableOpacity 
                                     style={[
                                         styles.themeOption, 
-                                        themeId === 'modern_neon' && { backgroundColor: theme.colors.primary }
+                                        themeId === 'light' && { backgroundColor: theme.colors.primary }
                                     ]}
-                                    onPress={() => setTheme('modern_neon')}
+                                    onPress={() => setTheme('light')}
                                 >
                                     <Text style={[
                                         styles.themeOptionText, 
                                         { color: theme.colors.text },
-                                        themeId === 'modern_neon' && { color: theme.colors.textInverse, fontWeight: 'bold' }
+                                        themeId === 'light' && { color: theme.colors.textInverse, fontWeight: 'bold' }
                                     ]}>
-                                        Modern Neon
+                                        {t('profile.themeLight') || 'Light'}
                                     </Text>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity 
                                     style={[
                                         styles.themeOption, 
-                                        themeId === 'classic_neon' && { backgroundColor: theme.colors.primary }
+                                        themeId === 'dark' && { backgroundColor: theme.colors.primary }
                                     ]}
-                                    onPress={() => setTheme('classic_neon')}
+                                    onPress={() => setTheme('dark')}
                                 >
                                     <Text style={[
                                         styles.themeOptionText, 
                                         { color: theme.colors.text },
-                                        themeId === 'classic_neon' && { color: theme.colors.textInverse, fontWeight: 'bold' }
+                                        themeId === 'dark' && { color: theme.colors.textInverse, fontWeight: 'bold' }
                                     ]}>
-                                        Classic Neon
-                                    </Text>
-                                </TouchableOpacity>
-                            </View>
-
-                            <View style={[styles.themeRow, { marginTop: 8 }]}>
-                                <TouchableOpacity 
-                                    style={[
-                                        styles.themeOption, 
-                                        themeId === 'retro_blue' && { backgroundColor: theme.colors.primary }
-                                    ]}
-                                    onPress={() => setTheme('retro_blue')}
-                                >
-                                    <Text style={[
-                                        styles.themeOptionText, 
-                                        { color: theme.colors.text },
-                                        themeId === 'retro_blue' && { color: theme.colors.textInverse, fontWeight: 'bold' }
-                                    ]}>
-                                        Retro Blue
-                                    </Text>
-                                </TouchableOpacity>
-
-                                <TouchableOpacity 
-                                    style={[
-                                        styles.themeOption, 
-                                        themeId === 'retro_dark' && { backgroundColor: theme.colors.primary }
-                                    ]}
-                                    onPress={() => setTheme('retro_dark')}
-                                >
-                                    <Text style={[
-                                        styles.themeOptionText, 
-                                        { color: theme.colors.text },
-                                        themeId === 'retro_dark' && { color: theme.colors.textInverse, fontWeight: 'bold' }
-                                    ]}>
-                                        Retro Dark
+                                        {t('profile.themeDark') || 'Dark'}
                                     </Text>
                                 </TouchableOpacity>
                             </View>

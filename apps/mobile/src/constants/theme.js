@@ -43,90 +43,9 @@ export const COLORS = {
     shadowLight: "rgba(31, 38, 135, 0.07)",
 };
 
-// 1. MODERN NEON (Yeni Tip - Neon Yeşil)
-export const modernNeonTheme = {
-    id: 'modern_neon',
-    name: 'Modern Neon',
-    colors: {
-        background: COLORS.modernBg,
-        text: COLORS.slate900,
-        subText: COLORS.slate500,
-        primary: COLORS.neonGreen,
-        secondary: COLORS.emeraldStatus,
-        tertiary: COLORS.amberStatus,
-        card: COLORS.glassCardLight,
-        cardBorder: COLORS.glassBorderLight,
-        border: COLORS.glassBorderLight,
-        icon: COLORS.neonGreen,
-        tab: COLORS.white,
-        tabActive: COLORS.neonGreen,
-        headerBg: "rgba(248, 249, 250, 0.9)",
-        gradient: [COLORS.modernBg, COLORS.modernBg],
-        gradientStart: { x: 0, y: 0 },
-        gradientEnd: { x: 0, y: 0 },
-        textInverse: COLORS.black,
-        error: COLORS.red500,
-        success: COLORS.green500,
-        warning: COLORS.amber500,
-        surface: COLORS.white,
-        primaryBg: "rgba(204, 255, 4, 0.1)",
-        warningBg: "rgba(245, 158, 11, 0.1)",
-        cyanBg: "rgba(6, 182, 212, 0.1)",
-        pinkBg: "rgba(236, 72, 153, 0.1)",
-        tealBg: "rgba(20, 184, 166, 0.1)"
-    },
-    fonts: {
-        regular: { fontFamily: 'System', fontWeight: 'normal' },
-        medium: { fontFamily: 'System', fontWeight: '500' },
-        bold: { fontFamily: 'System', fontWeight: 'bold' },
-        heavy: { fontFamily: 'System', fontWeight: '900' },
-    }
-};
-
-// 2. CLASSIC NEON (Yeni Tip - Neon Yeşil - Fildişi Arkaplan)
-export const classicNeonTheme = {
-    id: 'classic_neon',
-    name: 'Classic Neon',
-    colors: {
-        background: "#f8f8f5",
-        text: COLORS.textDark,
-        subText: COLORS.textGray,
-        primary: COLORS.neonGreen,
-        secondary: COLORS.green500,
-        tertiary: COLORS.amber500,
-        card: COLORS.white,
-        cardBorder: "#e2e8f0",
-        border: "#e2e8f0",
-        icon: COLORS.neonGreen,
-        tab: COLORS.white,
-        tabActive: COLORS.neonGreen,
-        headerBg: COLORS.white,
-        gradient: ["#f8f8f5", "#f8f8f5"],
-        gradientStart: { x: 0, y: 0 },
-        gradientEnd: { x: 0, y: 0 },
-        textInverse: COLORS.black,
-        error: COLORS.red500,
-        success: COLORS.green500,
-        warning: COLORS.amber500,
-        surface: COLORS.white,
-        primaryBg: "rgba(204, 255, 4, 0.1)",
-        warningBg: "rgba(245, 158, 11, 0.1)",
-        cyanBg: "rgba(6, 182, 212, 0.1)",
-        pinkBg: "rgba(236, 72, 153, 0.1)",
-        tealBg: "rgba(20, 184, 166, 0.1)"
-    },
-    fonts: {
-        regular: { fontFamily: 'System', fontWeight: 'normal' },
-        medium: { fontFamily: 'System', fontWeight: '500' },
-        bold: { fontFamily: 'System', fontWeight: 'bold' },
-        heavy: { fontFamily: 'System', fontWeight: '900' },
-    }
-};
-
-// 3. RETRO BLUE (Eski Tip - 8ac9e7b - Mavi)
-export const retroBlueTheme = {
-    id: 'retro_blue',
-    name: 'Retro Blue',
+export const lightTheme = {
+    id: 'light',
+    name: 'Light',
     colors: {
         background: COLORS.modernBg,
         text: COLORS.slate900,
@@ -163,10 +82,9 @@ export const retroBlueTheme = {
     }
 };
 
-// 4. RETRO DARK (Eski Tip - 8ac9e7b - Mavi Transparan)
-export const retroDarkTheme = {
-    id: 'retro_dark',
-    name: 'Retro Dark',
+export const darkTheme = {
+    id: 'dark',
+    name: 'Dark',
     colors: {
         background: COLORS.backgroundDark,
         text: COLORS.white,
@@ -174,13 +92,13 @@ export const retroDarkTheme = {
         primary: COLORS.electricBlue,
         secondary: COLORS.emeraldStatus,
         tertiary: COLORS.amber500,
-        card: "rgba(255, 255, 255, 0.05)",
+        card: COLORS.cardDark,
         cardBorder: "rgba(255, 255, 255, 0.1)",
         border: "rgba(255, 255, 255, 0.1)",
         icon: COLORS.white,
         tab: "rgba(255,255,255,0.05)",
         tabActive: COLORS.primary,
-        headerBg: "transparent",
+        headerBg: COLORS.cardDark,
         gradient: [COLORS.backgroundDark, '#1e1b4b'],
         gradientStart: { x: 0.5, y: 0 },
         gradientEnd: { x: 0.5, y: 1 },

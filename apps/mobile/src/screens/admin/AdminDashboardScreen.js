@@ -92,13 +92,7 @@ export default function AdminDashboardScreen({ navigation }) {
     };
 
     const renderThemeIcon = () => {
-        switch(themeId) {
-            case 'modern_neon': return <Sun size={24} color={theme.colors.icon} />;
-            case 'classic_neon': return <Palette size={24} color={theme.colors.icon} />;
-            case 'retro_blue': return <Zap size={24} color={theme.colors.icon} />;
-            case 'retro_dark': return <Moon size={24} color={theme.colors.icon} />;
-            default: return <Sun size={24} color={theme.colors.icon} />;
-        }
+        return isDark ? <Moon size={24} color={theme.colors.icon} /> : <Sun size={24} color={theme.colors.icon} />;
     };
 
     return (
@@ -153,7 +147,7 @@ export default function AdminDashboardScreen({ navigation }) {
                                             onPress={() => navigation.navigate('Profile')}
                                         >
                                             <View style={[styles.avatarCircle, { backgroundColor: theme.colors.primary }]}>
-                                                <Text style={[styles.avatarText, { color: themeId === 'retro_blue' || themeId === 'modern_neon' || themeId === 'classic_neon' ? '#fff' : '#000' }]}>
+                                                <Text style={[styles.avatarText, { color: '#fff' }]}>
                                                     {user?.name?.charAt(0) || 'A'}
                                                 </Text>
                                             </View>
