@@ -62,7 +62,7 @@ describe('AuthFlow Integration', () => {
         fireEvent.changeText(getByPlaceholderText('auth.password'), 'password123');
 
         // Submit
-        fireEvent.press(getAllByTextLocal('auth.login')[1]);
+        fireEvent.press(getAllByTextLocal('auth.login')[getAllByTextLocal('auth.login').length - 1]);
 
         await waitFor(() => {
             expect(authService.login).toHaveBeenCalledWith('test@example.com', 'password123');
@@ -82,7 +82,7 @@ describe('AuthFlow Integration', () => {
 
         fireEvent.changeText(getByPlaceholderText('auth.email'), 'wrong@example.com');
         fireEvent.changeText(getByPlaceholderText('auth.password'), 'wrongpass');
-        fireEvent.press(getAllByTextLocal('auth.login')[1]);
+        fireEvent.press(getAllByTextLocal('auth.login')[getAllByTextLocal('auth.login').length - 1]);
 
         await waitFor(() => {
             expect(authService.login).toHaveBeenCalled();
