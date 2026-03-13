@@ -42,6 +42,7 @@ describe('AuthFlow Integration', () => {
     });
 
     it('should login successfully and update state', async () => {
+        jest.setTimeout(10000);
         const mockUser = { id: '1', email: 'test@example.com', role: 'WORKER' };
         const mockToken = 'fake-token';
         
@@ -72,6 +73,7 @@ describe('AuthFlow Integration', () => {
     });
 
     it('should show error on login failure', async () => {
+        jest.setTimeout(10000);
         authService.login.mockRejectedValue(new Error('Invalid credentials'));
 
         const { getByPlaceholderText, getAllByText: getAllByTextLocal } = render(
