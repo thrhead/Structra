@@ -92,12 +92,6 @@ function AppNavigator() {
       border: theme.colors.border,
       notification: theme.colors.primary,
     },
-    fonts: theme.fonts || {
-      regular: { fontFamily: 'System', fontWeight: 'normal' },
-      medium: { fontFamily: 'System', fontWeight: '500' },
-      bold: { fontFamily: 'System', fontWeight: 'bold' },
-      heavy: { fontFamily: 'System', fontWeight: '900' },
-    },
   };
 
   const dashboardScreens = ['AdminDashboard', 'ManagerDashboard', 'WorkerDashboard', 'Login'];
