@@ -37,6 +37,7 @@ export default async function HomePage() {
   }
 
   const t = await getTranslations('Home');
+  const t_nav = await getTranslations('Navigation');
 
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-50 selection:bg-cyan-500/30 font-sans tracking-tight overflow-x-hidden">
@@ -48,8 +49,8 @@ export default async function HomePage() {
         {/* Top Navbar */}
         <header className="absolute top-0 left-0 right-0 p-6 md:p-12 flex justify-between items-center z-50">
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
             className="flex items-center gap-3"
           >
@@ -57,6 +58,28 @@ export default async function HomePage() {
               <div className="w-4 h-4 bg-zinc-950 -rotate-45" />
             </div>
             <span className="font-bold text-xl tracking-tighter text-white uppercase">Structra</span>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.1 }}
+          >
+            {session ? (
+              <Link
+                href={`/${session.user.role.toLowerCase()}`}
+                className="text-xs font-mono uppercase tracking-widest text-zinc-400 hover:text-cyan-400 transition-colors border border-zinc-800 px-4 py-2 rounded-full bg-zinc-900/50 backdrop-blur-sm shadow-[0_0_20px_rgba(0,0,0,0.3)]"
+              >
+                [ {t_nav('dashboard')} ]
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="text-xs font-mono uppercase tracking-widest text-zinc-400 hover:text-cyan-400 transition-colors border border-zinc-800 px-4 py-2 rounded-full bg-zinc-900/50 backdrop-blur-sm shadow-[0_0_20px_rgba(0,0,0,0.3)]"
+              >
+                [ {t('loginButton')} ]
+              </Link>
+            )}
           </motion.div>
         </header>
 
