@@ -1,38 +1,32 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LoggerService, LogLevel } from '../LoggerService';
 import api from '../api';
 import NetInfo from '@react-native-community/netinfo';
 
-vi.mock('@react-native-async-storage/async-storage', () => ({
-  default: {
-    getItem: vi.fn(),
-    setItem: vi.fn(),
-    removeItem: vi.fn(),
-  },
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
 }));
 
-vi.mock('../api', () => ({
-  default: {
-    post: vi.fn(),
-  },
+jest.mock('../api', () => ({
+  post: jest.fn(),
 }));
 
-vi.mock('@react-native-community/netinfo', () => ({
-  default: {
-    fetch: vi.fn(),
-  },
+jest.mock('@react-native-community/netinfo', () => ({
+  fetch: jest.fn(),
 }));
 
 // Mock global ErrorUtils
 global.ErrorUtils = {
-  getGlobalHandler: vi.fn(),
-  setGlobalHandler: vi.fn(),
+  getGlobalHandler: jest.fn(),
+  setGlobalHandler: jest.fn(),
 };
 
 describe('LoggerService', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
+    LoggerService.destroy();
     LoggerService._interval = null;
     AsyncStorage.getItem.mockResolvedValue('[]');
   });
@@ -41,10 +35,12 @@ describe('LoggerService', () => {
     LoggerService.init();
     expect(LoggerService._interval).not.toBeNull();
     expect(global.ErrorUtils.setGlobalHandler).toHaveBeenCalled();
+    LoggerService.destroy();
   });
 
   it('should clear interval on destroy', () => {
     LoggerService.init();
+    LoggerService.destroy();
     LoggerService.destroy();
     expect(LoggerService._interval).toBeNull();
   });
@@ -61,7 +57,7 @@ describe('LoggerService', () => {
   it('should trigger sync when batch size reached', async () => {
     // Mock 4 logs already in storage
     AsyncStorage.getItem.mockResolvedValue(JSON.stringify([{}, {}, {}, {}]));
-    const syncSpy = vi.spyOn(LoggerService, 'sync');
+    const syncSpy = jest.spyOn(LoggerService, 'sync');
     
     await LoggerService.log(LogLevel.INFO, '5th message');
     

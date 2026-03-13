@@ -1,8 +1,16 @@
 import '@testing-library/jest-native/extend-expect';
 
-jest.mock('@react-native-async-storage/async-storage', () =>
-  require('@react-native-async-storage/async-storage/jest/async-storage-mock')
-);
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  setItem: jest.fn(),
+  getItem: jest.fn(),
+  removeItem: jest.fn(),
+  clear: jest.fn(),
+  getAllKeys: jest.fn(),
+  multiGet: jest.fn(),
+  multiSet: jest.fn(),
+  multiRemove: jest.fn(),
+  multiMerge: jest.fn(),
+}));
 
 jest.mock('@react-native-community/netinfo', () => ({
   fetch: jest.fn(),
