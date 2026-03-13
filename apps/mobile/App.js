@@ -92,6 +92,7 @@ function AppNavigator() {
       border: theme.colors.border,
       notification: theme.colors.primary,
     },
+    fonts: theme.fonts,
   };
 
   const dashboardScreens = ['AdminDashboard', 'ManagerDashboard', 'WorkerDashboard', 'Login'];
