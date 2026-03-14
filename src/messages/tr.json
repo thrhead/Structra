@@ -83,6 +83,26 @@
           }
         ]
       }
+    },
+    "trust": {
+      "title": "Görünmezlik Problemini Çözün",
+      "description": "Saha operasyonlarının en büyük sorunu iletişim kopukluğu ve veri eksikliğidir. Structra ile her adım dijital kanıtlarla doğrulanır.",
+      "cards": [
+        {
+          "title": "Dijital Kanıt",
+          "desc": "\"Yapıldı\" demek yetmez. Her adım için fotoğraf ve GPS konumu zorunludur."
+        },
+        {
+          "title": "Kesintisiz Veri",
+          "desc": "Yer altında veya şantiyede internet mi yok? Sorun değil. Verileriniz güvende ve senkronize."
+        }
+      ]
+    },
+    "workflow": {
+      "title": "Kusursuz İş Akışı",
+      "step1": { "title": "İş Atama", "desc": "Merkezden ekibe iş emri saniyeler içinde iletilir." },
+      "step2": { "title": "Saha Montajı", "desc": "3D rehberler ve checklistler ile hata payı sıfıra iner." },
+      "step3": { "title": "Doğrulama", "desc": "Yönetici onayı ile kalite standartları korunur." }
     }
   },
   "CustomerDashboard": {
@@ -111,7 +131,7 @@
       "stats": {
         "totalJobs": "Toplam İş",
         "activeTeams": "Aktif Ekipler",
-        "completed": "Tamamlanan",
+        "completed": "Tamamlandı",
         "pendingApproval": "Bekleyen Onay",
         "allTime": "Tüm zamanlar",
         "onField": "Sahada",
