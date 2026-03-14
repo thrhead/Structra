@@ -132,7 +132,10 @@ model Job {
 
   @@index([status, createdAt])
   @@index([status, completedDate])
-  @@index([customerId, status, scheduledDate])
+  @@index([customerId, status, createdAt])
+  @@index([creatorId, createdAt])
+  @@index([jobLeadId, createdAt])
+  @@index([createdAt])
   @@map("jobs")
 }
 
@@ -280,6 +283,9 @@ model CostTracking {
 
   @@index([status, date])
   @@index([jobId, status])
+  @@index([category, date])
+  @@index([createdById, date])
+  @@index([date])
   @@map("cost_tracking")
 }
 

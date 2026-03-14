@@ -269,24 +269,56 @@ export async function getTeamDetailedReports(teamId: string) {
     };
 }
 
-export async function getAllTeamsReports() {
+
+export async function getAllTeamsSummary() {
     const teams = await prisma.team.findMany({
         where: { isActive: true },
-        select: { id: true, name: true, lead: { select: { name: true } }, _count: { select: { members: true } } }
+        select: {
+            id: true,
+            name: true,
+            lead: { select: { name: true } },
+            members: { select: { userId: true } },
+            assignments: {
+                select: {
+                    job: {
+                        select: {
+                            status: true,
+                            costs: {
+                                where: { status: 'APPROVED' },
+                                select: { amount: true }
+                            },
+                        }
+                    }
+                }
+            }
+        }
     });
 
-    const reports = await Promise.all(teams.map(async (team) => {
-        const details = await getTeamDetailedReports(team.id);
+    const reports = teams.map(team => {
+        const jobs = team.assignments.map(a => a.job);
+        const totalJobs = jobs.length;
+        const completedJobs = jobs.filter(j => j.status === 'COMPLETED').length;
+        const successRate = totalJobs > 0 ? Math.round((completedJobs / totalJobs) * 100) : 0;
+        const totalExpenses = jobs.reduce((sum, j) => sum + j.costs.reduce((s, c) => s + c.amount, 0), 0);
+
+        // Efficiency Score placeholder for summary (can be refined)
+        const efficiencyScore = successRate;
+
         return {
             id: team.id,
             name: team.name,
             leadName: team.lead?.name || 'Atanmamış',
-            memberCount: team._count.members,
-            stats: details.stats
+            memberCount: team.members.length,
+            stats: {
+                completedJobs,
+                totalJobs,
+                successRate,
+                totalExpenses,
+                efficiencyScore
+            }
         };
-    }));
+    });
 
-    // Calculate Global Stats
     const globalStats = {
         totalTeams: teams.length,
         totalEmployees: reports.reduce((sum, r) => sum + r.memberCount, 0),
