@@ -106,8 +106,8 @@ const STATUS_COLORS: Record<string, string> = {
   CANCELLED: 'bg-red-100 text-red-800'
 }
 
-export default function CustomerJobDetailPage(props: { params: Promise<{ id: string }> }) {
-  const params = use(props.params)
+export default function CustomerJobDetailPage(props: { params: { id: string } }) {
+  const params = props.params
   const router = useRouter()
   const [job, setJob] = useState<JobDetail | null>(null)
   const [loading, setLoading] = useState(true)

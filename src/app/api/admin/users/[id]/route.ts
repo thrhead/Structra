@@ -16,7 +16,7 @@ const updateUserSchema = z.object({
 
 export async function PUT(
     req: Request,
-    props: { params: Promise<{ id: string }> }
+    props: { params: { id: string } }
 ) {
     const params = await props.params
     try {
@@ -78,7 +78,7 @@ export async function PUT(
 
 export async function DELETE(
     req: Request,
-    props: { params: Promise<{ id: string }> }
+    props: { params: { id: string } }
 ) {
     const params = await props.params
     try {

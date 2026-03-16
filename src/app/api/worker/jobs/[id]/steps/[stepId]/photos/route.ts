@@ -5,7 +5,7 @@ import cloudinary from '@/lib/cloudinary'
 
 export async function POST(
     req: Request,
-    props: { params: Promise<{ id: string; stepId: string }> }
+    props: { params: { id: string; stepId: string } }
 ) {
     const params = await props.params
 

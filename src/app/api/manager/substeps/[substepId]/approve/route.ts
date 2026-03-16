@@ -4,7 +4,7 @@ import { verifyAuth } from '@/lib/auth-helper';
 import { sendJobNotification } from '@/lib/notification-helper';
 import { z } from 'zod';
 
-export async function POST(request: Request, { params }: { params: Promise<{ substepId: string }> }) {
+export async function POST(request: Request, { params }: { params: { substepId: string } }) {
     try {
         const session = await verifyAuth(request);
 
@@ -12,7 +12,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ sub
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const paramsValue = await params;
+        const paramsValue = params;
         console.log('Approve Substep Params:', paramsValue);
         const { substepId } = paramsValue;
         console.log('Substep ID:', substepId);

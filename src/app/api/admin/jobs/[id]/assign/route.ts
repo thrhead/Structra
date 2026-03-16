@@ -9,7 +9,7 @@ const assignSchema = z.object({
 
 export async function POST(
     req: Request,
-    props: { params: Promise<{ id: string }> }
+    props: { params: { id: string } }
 ) {
     const params = await props.params
     try {

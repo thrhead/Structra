@@ -4,7 +4,7 @@ import { markNotificationAsRead } from '@/lib/notifications'
 
 export async function PATCH(
   req: Request,
-  props: { params: Promise<{ id: string }> }
+  props: { params: { id: string } }
 ) {
   try {
     const session = await auth()

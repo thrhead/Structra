@@ -21,7 +21,7 @@ import { Link } from "@/lib/navigation"
 import { cn } from "@/lib/utils"
 
 export default async function UsersPage(props: {
-  searchParams: Promise<{ search?: string }>
+  searchParams: { search?: string }
 }) {
   const searchParams = await props.searchParams
   const session = await auth()

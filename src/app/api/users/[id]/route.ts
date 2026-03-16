@@ -15,18 +15,18 @@ const updateUserSchema = z.object({
 
 export async function PUT(
     req: Request,
-    { params }: { params: Promise<{ id: string }> }
+    { params }: { params: { id: string } }
 ) {
     try {
-        console.log(`[API] PUT /api/users/${(await params).id} started`)
+        console.log(`[API] PUT /api/users/${(params).id} started`)
         const session = await verifyAuth(req)
-        console.log(`[API] PUT /api/users/${(await params).id} auth check done. Role: ${session?.user?.role}`)
+        console.log(`[API] PUT /api/users/${(params).id} auth check done. Role: ${session?.user?.role}`)
 
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const { id } = await params
+        const { id } = params
         const body = await req.json()
         const validatedData = updateUserSchema.parse(body)
 
@@ -69,14 +69,14 @@ export async function PUT(
 
 export async function GET(
     req: Request,
-    { params }: { params: Promise<{ id: string }> }
+    { params }: { params: { id: string } }
 ) {
     try {
         const session = await verifyAuth(req)
         // Admin can view anyone. Users can view themselves.
         // Manager/TeamLead logic might be needed but for now:
 
-        const { id } = await params;
+        const { id } = params;
 
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -113,11 +113,11 @@ export async function GET(
 
 export async function DELETE(
     req: Request,
-    { params }: { params: Promise<{ id: string }> }
+    { params }: { params: { id: string } }
 ) {
     try {
         const session = await verifyAuth(req)
-        const { id } = await params;
+        const { id } = params;
 
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

@@ -6,7 +6,7 @@ import { tr } from 'date-fns/locale'
 
 export async function GET(
     req: Request,
-    props: { params: Promise<{ id: string }> }
+    props: { params: { id: string } }
 ) {
     const params = await props.params
     try {

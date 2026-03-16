@@ -10,7 +10,7 @@ const addAssignmentSchema = z.object({
 
 export async function POST(
     req: Request,
-    props: { params: Promise<{ id: string }> }
+    props: { params: { id: string } }
 ) {
     try {
         const session = await verifyAuth(req)
@@ -39,7 +39,7 @@ export async function POST(
 
 export async function DELETE(
     req: Request,
-    props: { params: Promise<{ id: string }> }
+    props: { params: { id: string } }
 ) {
     try {
         const session = await verifyAuth(req)

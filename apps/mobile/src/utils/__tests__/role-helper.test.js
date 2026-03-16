@@ -1,3 +1,4 @@
+
 import { getRoleBadgeColor, getRoleText } from '../role-helper';
 
 describe('role-helper utilities', () => {

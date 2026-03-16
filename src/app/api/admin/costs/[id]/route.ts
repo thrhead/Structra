@@ -11,7 +11,7 @@ const updateCostSchema = z.object({
 
 export async function PATCH(
     req: Request,
-    props: { params: Promise<{ id: string }> }
+    props: { params: { id: string } }
 ) {
     const params = await props.params
     try {
@@ -63,7 +63,7 @@ export async function PATCH(
 
 export async function DELETE(
     req: Request,
-    props: { params: Promise<{ id: string }> }
+    props: { params: { id: string } }
 ) {
     const params = await props.params
     try {

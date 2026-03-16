@@ -12,7 +12,7 @@ import { tr } from "date-fns/locale"
 import { DeleteUserButton } from "@/components/admin/delete-user-button"
 
 export default async function UserDetailsPage(props: {
-    params: Promise<{ id: string }>
+    params: { id: string }
 }) {
     const params = await props.params
     const session = await auth()

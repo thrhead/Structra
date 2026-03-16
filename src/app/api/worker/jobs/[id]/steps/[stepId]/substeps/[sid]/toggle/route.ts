@@ -6,7 +6,7 @@ import { broadcast } from '@/lib/socket'
 
 export async function POST(
     req: Request,
-    props: { params: Promise<{ id: string; stepId: string; sid: string }> }
+    props: { params: { id: string; stepId: string; sid: string } }
 ) {
     const params = await props.params
     try {

@@ -10,7 +10,7 @@ const blockSchema = z.object({
 
 export async function POST(
     req: Request,
-    props: { params: Promise<{ id: string; stepId: string }> }
+    props: { params: { id: string; stepId: string } }
 ) {
     const params = await props.params
     try {
@@ -52,7 +52,7 @@ export async function POST(
 // Unblock endpoint
 export async function DELETE(
     req: Request,
-    props: { params: Promise<{ id: string; stepId: string }> }
+    props: { params: { id: string; stepId: string } }
 ) {
     const params = await props.params
     try {

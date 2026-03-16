@@ -9,14 +9,14 @@ const updateSchema = z.object({
     scopes: z.array(z.string()).optional()
 })
 
-export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(req: Request, { params }: { params: { id: string } }) {
     try {
         const session = await verifyAdmin(req)
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const { id } = await params
+        const { id } = params
         const body = await req.json()
         const data = updateSchema.parse(body)
 
@@ -36,14 +36,14 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     }
 }
 
-export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: Request, { params }: { params: { id: string } }) {
     try {
         const session = await verifyAdmin(req)
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const { id } = await params
+        const { id } = params
 
         await prisma.apiKey.delete({
             where: { id, userId: session.user.id }

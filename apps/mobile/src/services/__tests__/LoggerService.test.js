@@ -1,20 +1,27 @@
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LoggerService, LogLevel } from '../LoggerService';
 import api from '../api';
 import NetInfo from '@react-native-community/netinfo';
 
 jest.mock('@react-native-async-storage/async-storage', () => ({
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
+  default: {
+    getItem: jest.fn(),
+    setItem: jest.fn(),
+    removeItem: jest.fn(),
+  },
 }));
 
 jest.mock('../api', () => ({
-  post: jest.fn(),
+  default: {
+    post: jest.fn(),
+  },
 }));
 
 jest.mock('@react-native-community/netinfo', () => ({
-  fetch: jest.fn(),
+  default: {
+    fetch: jest.fn(),
+  },
 }));
 
 // Mock global ErrorUtils

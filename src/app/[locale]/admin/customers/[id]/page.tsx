@@ -10,7 +10,7 @@ import { format } from "date-fns"
 import { tr } from "date-fns/locale"
 
 export default async function CustomerDetailsPage(props: {
-    params: Promise<{ id: string }>
+    params: { id: string }
 }) {
     const params = await props.params
     const session = await auth()

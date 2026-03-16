@@ -1,10 +1,13 @@
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { QueueService } from '../QueueService';
 
 jest.mock('@react-native-async-storage/async-storage', () => ({
-  setItem: jest.fn(),
-  getItem: jest.fn(),
-  removeItem: jest.fn(),
+  default: {
+    setItem: jest.fn(),
+    getItem: jest.fn(),
+    removeItem: jest.fn(),
+  },
 }));
 
 // Mock expo-file-system

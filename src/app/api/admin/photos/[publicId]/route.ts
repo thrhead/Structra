@@ -5,7 +5,7 @@ import { prisma } from '@/lib/db'
 
 export async function DELETE(
     request: NextRequest,
-    props: { params: Promise<{ publicId: string }> }
+    props: { params: { publicId: string } }
 ) {
     const params = await props.params
     try {

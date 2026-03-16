@@ -22,6 +22,7 @@ import { tr } from "date-fns/locale"
 import { Link } from "@/lib/navigation"
 import { apiClient } from '@/lib/api-client'
 import { toast } from 'sonner'
+import { WorkerStats } from '@/components/worker/worker-stats'
 
 // Local storage key for caching jobs
 const CACHE_KEY_JOBS = 'worker_dashboard_jobs_cache'
@@ -46,8 +47,6 @@ const statusLabels: Record<string, string> = {
   COMPLETED: "Tamamlandı",
   CANCELLED: "İptal"
 }
-
-import { WorkerStats } from '@/components/worker/worker-stats'
 
 export default function WorkerDashboard() {
   const { data: session, status } = useSession()
@@ -104,7 +103,7 @@ export default function WorkerDashboard() {
   }
 
   const filteredJobs = jobs.filter(j => {
-    if (filter === 'ALL') return j.status !== 'COMPLETED' // Don't show completed by default if it's "Jobs" view
+    if (filter === 'ALL') return j.status !== 'COMPLETED'
     if (filter === 'IN_PROGRESS') return j.status === 'IN_PROGRESS'
     if (filter === 'PENDING') return j.status === 'PENDING'
     return true
@@ -165,7 +164,7 @@ export default function WorkerDashboard() {
                     </CardTitle>
                     <div className="flex items-center gap-1 text-sm text-gray-500">
                       <Building2Icon className="h-3 w-3" />
-                      {job.customer.company}
+                      {job.customer?.company || "Bilinmeyen Şirket"}
                     </div>
                   </div>
                   <Badge variant={priorityColors[job.priority] || "default"}>
@@ -176,7 +175,7 @@ export default function WorkerDashboard() {
               <CardContent className="pb-3 space-y-3">
                 <div className="flex items-start gap-2 text-sm text-gray-600">
                   <MapPinIcon className="h-4 w-4 mt-0.5 shrink-0 text-gray-400" />
-                  <span className="line-clamp-2">{job.location || job.customer.address || "Adres belirtilmemiş"}</span>
+                  <span className="line-clamp-2">{job.location || job.customer?.address || "Adres belirtilmemiş"}</span>
                 </div>
 
                 <div className="flex items-center gap-2 text-sm text-gray-600">

@@ -94,8 +94,8 @@ const statusColors: Record<string, "default" | "secondary" | "destructive" | "ou
 }
 
 export default async function ManagerJobsPage(props: {
-    params: Promise<{ locale: string }>;
-    searchParams: Promise<{ search?: string }>
+    params: { locale: string };
+    searchParams: { search?: string }
 }) {
     const { locale } = await props.params
     const searchParams = await props.searchParams

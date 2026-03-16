@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { verifyAuth } from '@/lib/auth-helper';
 
-export async function POST(request: Request, props: { params: Promise<{ id: string; stepId: string; sid: string }> }) {
+export async function POST(request: Request, props: { params: { id: string; stepId: string; sid: string } }) {
     try {
         console.log('[DEBUG] POST request received');
         const params = await props.params;

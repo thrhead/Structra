@@ -6,7 +6,7 @@ import cloudinary from '@/lib/cloudinary'
 
 export async function DELETE(
     req: Request,
-    props: { params: Promise<{ id: string; stepId: string; photoId: string }> }
+    props: { params: { id: string; stepId: string; photoId: string } }
 ) {
     const params = await props.params;
     try {

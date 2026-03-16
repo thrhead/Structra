@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(
   req: Request,
-  props: { params: Promise<{ id: string }> }
+  props: { params: { id: string } }
 ) {
   const params = await props.params
   try {
@@ -96,7 +96,7 @@ export async function GET(
 
 export async function PATCH(
   req: Request,
-  props: { params: Promise<{ id: string }> }
+  props: { params: { id: string } }
 ) {
   const params = await props.params
   try {

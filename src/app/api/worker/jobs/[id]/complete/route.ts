@@ -11,7 +11,7 @@ import { checkConflict } from '@/lib/conflict-check'
 
 export async function POST(
   req: Request,
-  props: { params: Promise<{ id: string }> }
+  props: { params: { id: string } }
 ) {
   try {
     const session = await verifyAuth(req)

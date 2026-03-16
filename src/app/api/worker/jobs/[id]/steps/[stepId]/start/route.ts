@@ -4,14 +4,14 @@ import { verifyAuth } from '@/lib/auth-helper';
 import { sendAdminNotification } from '@/lib/notification-helper';
 import { broadcast } from '@/lib/socket';
 
-export async function POST(request: Request, { params }: { params: Promise<{ id: string; stepId: string }> }) {
+export async function POST(request: Request, { params }: { params: { id: string; stepId: string } }) {
     try {
         const session = await verifyAuth(request);
         if (!session || !['WORKER', 'TEAM_LEAD', 'ADMIN', 'MANAGER'].includes(session.user.role)) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { id, stepId } = await params;
+        const { id, stepId } = params;
 
         const step = await prisma.jobStep.findUnique({
             where: { id: stepId, jobId: id },

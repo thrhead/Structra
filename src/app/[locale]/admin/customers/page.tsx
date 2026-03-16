@@ -18,7 +18,7 @@ import { tr } from "date-fns/locale"
 import { getCustomers } from "@/lib/data/customers"
 
 export default async function CustomersPage(props: {
-  searchParams: Promise<{ search?: string }>
+  searchParams: { search?: string }
 }) {
   const searchParams = await props.searchParams
   const session = await auth()

@@ -84,7 +84,7 @@ async function getReportsData(locale: string) {
 }
 
 export default async function ReportsPage(props: {
-    params: Promise<{ locale: string }>
+    params: { locale: string }
 }) {
     const { locale } = await props.params
     const session = await auth()

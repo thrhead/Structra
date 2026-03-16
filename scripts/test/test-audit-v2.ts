@@ -1,5 +1,5 @@
-import { prisma } from './src/lib/db';
-import { logAudit, AuditAction } from './src/lib/audit';
+import { prisma } from '../../src/lib/db';
+import { logAudit, AuditAction } from '../../src/lib/audit';
 
 async function testAuditLogging() {
     console.log('--- Audit Logging Test Started ---');
@@ -56,8 +56,7 @@ async function testAuditLogging() {
         }
 
         // 4. Test JOB_STATUS_CHANGE
-        console.log('
-Testing JOB_STATUS_CHANGE log...');
+        console.log('Testing JOB_STATUS_CHANGE log...');
         await logAudit(userId, AuditAction.JOB_STATUS_CHANGE, {
             jobId: testJobId,
             title: testTitle,

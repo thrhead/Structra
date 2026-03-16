@@ -64,8 +64,8 @@ interface JobDetail {
   }[]
 }
 
-export default function JobDetailPage(props: { params: Promise<{ id: string }> }) {
-  const params = use(props.params)
+export default function JobDetailPage(props: { params: { id: string } }) {
+  const params = props.params
   const [job, setJob] = useState<JobDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [expandedSteps, setExpandedSteps] = useState<Record<string, boolean>>({})

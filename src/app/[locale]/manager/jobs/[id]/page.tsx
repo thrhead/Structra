@@ -55,7 +55,7 @@ async function getJob(id: string) {
 }
 
 export default async function ManagerJobDetailsPage(props: {
-    params: Promise<{ id: string }>
+    params: { id: string }
 }) {
     const params = await props.params
     const session = await auth()

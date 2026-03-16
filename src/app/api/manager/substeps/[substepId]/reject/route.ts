@@ -8,7 +8,7 @@ const rejectSchema = z.object({
     reason: z.string().min(1, "Red sebebi gereklidir"),
 });
 
-export async function POST(request: Request, { params }: { params: Promise<{ substepId: string }> }) {
+export async function POST(request: Request, { params }: { params: { substepId: string } }) {
     try {
         const session = await verifyAuth(request);
 
@@ -16,7 +16,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ sub
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const paramsValue = await params;
+        const paramsValue = params;
         console.log('Reject Substep Params:', paramsValue);
         const { substepId } = paramsValue;
         console.log('Substep ID:', substepId);

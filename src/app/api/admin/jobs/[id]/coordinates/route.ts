@@ -10,7 +10,7 @@ const coordinatesSchema = z.object({
 
 export async function PATCH(
     req: Request,
-    props: { params: Promise<{ id: string }> }
+    props: { params: { id: string } }
 ) {
     const params = await props.params
     try {

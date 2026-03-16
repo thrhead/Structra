@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 import { verifyAuth } from '@/lib/auth-helper';
 import { sendJobNotification } from '@/lib/notification-helper';
 
-export async function POST(request: Request, { params }: { params: Promise<{ jobId: string }> }) {
+export async function POST(request: Request, { params }: { params: { jobId: string } }) {
     try {
         const session = await verifyAuth(request);
 
@@ -11,7 +11,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ job
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { jobId } = await params;
+        const { jobId } = params;
 
         // Verify all steps are completed/approved before accepting
         const job = await prisma.job.findUnique({

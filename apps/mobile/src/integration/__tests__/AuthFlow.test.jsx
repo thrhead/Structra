@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
+
 import LoginForm from '../../components/LoginForm';
 import { AuthProvider } from '../../context/AuthContext';
 import { ThemeProvider } from '../../context/ThemeContext';
@@ -10,9 +11,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Mock Dependencies
 jest.mock('../../services/auth.service');
 jest.mock('@react-native-async-storage/async-storage', () => ({
-    getItem: jest.fn(),
-    setItem: jest.fn(),
-    removeItem: jest.fn(),
+    default: {
+        getItem: jest.fn(),
+        setItem: jest.fn(),
+        removeItem: jest.fn(),
+    },
 }));
 
 jest.mock('@expo/vector-icons', () => ({
@@ -46,13 +49,12 @@ describe('AuthFlow Integration', () => {
         const mockToken = 'fake-token';
         
         authService.login.mockResolvedValue({
-            success: true,
             user: mockUser,
             token: mockToken
         });
 
         const onLoginSuccess = jest.fn();
-        const { getByPlaceholderText, getByLabelText } = render(
+        const { getByPlaceholderText, getByText } = render(
             <Wrapper>
                 <LoginForm onLoginSuccess={onLoginSuccess} />
             </Wrapper>
@@ -63,9 +65,7 @@ describe('AuthFlow Integration', () => {
         fireEvent.changeText(getByPlaceholderText('auth.password'), 'password123');
 
         // Submit
-        await act(async () => {
-            fireEvent.press(getByLabelText('auth.login'));
-        });
+        fireEvent.press(getByText('auth.login'));
 
         await waitFor(() => {
             expect(authService.login).toHaveBeenCalledWith('test@example.com', 'password123');
@@ -77,7 +77,7 @@ describe('AuthFlow Integration', () => {
     it('should show error on login failure', async () => {
         authService.login.mockRejectedValue(new Error('Invalid credentials'));
 
-        const { getByPlaceholderText, getByLabelText } = render(
+        const { getByPlaceholderText, getByText } = render(
             <Wrapper>
                 <LoginForm />
             </Wrapper>
@@ -85,13 +85,12 @@ describe('AuthFlow Integration', () => {
 
         fireEvent.changeText(getByPlaceholderText('auth.email'), 'wrong@example.com');
         fireEvent.changeText(getByPlaceholderText('auth.password'), 'wrongpass');
-
-        await act(async () => {
-            fireEvent.press(getByLabelText('auth.login'));
-        });
+        fireEvent.press(getByText('auth.login'));
 
         await waitFor(() => {
             expect(authService.login).toHaveBeenCalled();
         });
+
+        // Error handling check (Alert is usually mocked in RN tests)
     });
 });

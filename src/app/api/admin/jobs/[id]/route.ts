@@ -32,7 +32,7 @@ const fullUpdateJobSchema = z.object({
 
 export async function PUT(
     req: Request,
-    props: { params: Promise<{ id: string }> }
+    props: { params: { id: string } }
 ) {
     try {
         const session = await verifyAuth(req)
@@ -106,7 +106,7 @@ export async function PUT(
 
 export async function PATCH(
     req: Request,
-    props: { params: Promise<{ id: string }> }
+    props: { params: { id: string } }
 ) {
     try {
         const session = await verifyAuth(req)
@@ -169,7 +169,7 @@ export async function PATCH(
 
 export async function DELETE(
     req: Request,
-    props: { params: Promise<{ id: string }> }
+    props: { params: { id: string } }
 ) {
     try {
         const session = await verifyAuth(req)

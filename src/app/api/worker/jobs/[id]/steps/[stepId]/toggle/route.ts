@@ -6,7 +6,7 @@ import { emitToJob } from '@/lib/socket'
 
 export async function POST(
   req: Request,
-  props: { params: Promise<{ id: string; stepId: string }> }
+  props: { params: { id: string; stepId: string } }
 ) {
   const params = await props.params
   try {

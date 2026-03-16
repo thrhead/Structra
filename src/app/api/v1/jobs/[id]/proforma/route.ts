@@ -45,7 +45,7 @@ import { getApiKeyFromRequest } from '@/lib/api-key-helper'
  *       404:
  *         description: [TR] İş bulunamadı [EN] Job not found
  */
-export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: Request, { params }: { params: { id: string } }) {
     try {
         const apiKeyData = await getApiKeyFromRequest(req)
         // If no API Key, check for session (admin/manager)
@@ -54,7 +54,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const { id } = await params
+        const { id } = params
         const job = await prisma.job.findUnique({
             where: { id },
             include: {

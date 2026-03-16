@@ -15,7 +15,7 @@ import { getManagerDashboardData } from "@/lib/data/manager-dashboard"
 import { getTranslations } from "next-intl/server"
 
 export default async function ManagerDashboard(props: {
-    params: Promise<{ locale: string }>
+    params: { locale: string }
 }) {
     const { locale } = await props.params
     const session = await auth()

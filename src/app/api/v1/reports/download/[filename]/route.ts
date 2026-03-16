@@ -4,13 +4,13 @@ import fs from 'fs';
 import path from 'path';
 import { auth } from '@/lib/auth';
 
-export async function GET(req: NextRequest, { params }: { params: Promise<{ filename: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: { filename: string } }) {
     const session = await auth();
     if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { filename } = await params;
+    const { filename } = params;
     const filePath = path.join(process.cwd(), 'storage', 'reports', filename);
 
     if (!fs.existsSync(filePath)) {

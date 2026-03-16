@@ -6,14 +6,14 @@ import { triggerWebhook } from '@/lib/webhook-service';
 import { checkConflict } from '@/lib/conflict-check';
 import { emitToJob } from '@/lib/socket';
 
-export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(request: Request, { params }: { params: { id: string } }) {
     try {
         const session = await verifyAuth(request);
         if (!session || !['WORKER', 'TEAM_LEAD', 'ADMIN', 'MANAGER'].includes(session.user.role)) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { id } = await params;
+        const { id } = params;
 
         const job = await prisma.job.findUnique({
             where: { id }

@@ -1,12 +1,15 @@
+
 import jobService from '../job.service';
 import api from '../api';
 
 jest.mock('../api', () => ({
-  post: jest.fn(),
-  put: jest.fn(),
-  get: jest.fn(),
-  patch: jest.fn(),
-  delete: jest.fn(),
+  default: {
+    post: jest.fn(),
+    put: jest.fn(),
+    get: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
+  }
 }));
 
 describe('JobService (Offline Support)', () => {

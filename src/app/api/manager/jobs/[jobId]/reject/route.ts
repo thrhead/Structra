@@ -9,7 +9,7 @@ const rejectSchema = z.object({
     reason: z.string().min(1, "Red sebebi gereklidir"),
 });
 
-export async function POST(request: Request, { params }: { params: Promise<{ jobId: string }> }) {
+export async function POST(request: Request, { params }: { params: { jobId: string } }) {
     try {
         const session = await verifyAuth(request);
 
@@ -17,7 +17,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ job
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const paramsValue = await params;
+        const paramsValue = params;
         const { jobId } = paramsValue;
         const body = await request.json();
         const { reason } = rejectSchema.parse(body);

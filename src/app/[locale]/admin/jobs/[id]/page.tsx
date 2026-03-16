@@ -20,7 +20,7 @@ import { tr } from "date-fns/locale"
 export const dynamicParams = true
 
 export default async function AdminJobDetailsPage(props: {
-    params: Promise<{ id: string }>
+    params: { id: string }
 }) {
     const params = await props.params
     const session = await auth()

@@ -4,14 +4,14 @@ import { prisma } from '@/lib/db'
 import { verifyAdmin } from '@/lib/auth-helper'
 import { z } from 'zod'
 
-export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(req: Request, { params }: { params: { id: string } }) {
     try {
         const session = await verifyAdmin(req)
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const { id } = await params
+        const { id } = params
         const body = await req.json()
         const { isActive } = z.object({ isActive: z.boolean() }).parse(body)
 
@@ -27,14 +27,14 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     }
 }
 
-export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: Request, { params }: { params: { id: string } }) {
     try {
         const session = await verifyAdmin(req)
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const { id } = await params
+        const { id } = params
 
         await prisma.webhook.delete({
             where: { id }

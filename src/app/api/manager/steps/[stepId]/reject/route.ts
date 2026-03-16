@@ -4,7 +4,7 @@ import { verifyAuth } from '@/lib/auth-helper'
 
 export async function POST(
     req: Request,
-    props: { params: Promise<{ stepId: string }> }
+    props: { params: { stepId: string } }
 ) {
     const params = await props.params
     try {
