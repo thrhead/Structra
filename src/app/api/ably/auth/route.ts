@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import Ably from 'ably'
 import { NextResponse } from 'next/server'
 import { verifyAuth } from '@/lib/auth-helper'
