@@ -41,11 +41,11 @@ const DashboardBottomNav = ({ navigation, activeTab = 'Dashboard' }) => {
         <View style={[
             styles.container,
             {
-                backgroundColor: theme.colors.card,
-                borderTopColor: theme.colors.border,
+                backgroundColor: '#1E293B',
+                borderTopColor: 'rgba(250, 204, 21, 0.2)',
                 shadowColor: "#000",
                 shadowOffset: { width: 0, height: -6 },
-                shadowOpacity: isDark ? 0.4 : 0.12,
+                shadowOpacity: 0.4,
                 shadowRadius: 16,
                 elevation: 24
             }
@@ -58,7 +58,7 @@ const DashboardBottomNav = ({ navigation, activeTab = 'Dashboard' }) => {
                                 key={item.id}
                                 style={[
                                     styles.centerButton, 
-                                    { backgroundColor: theme.colors.primary },
+                                    { backgroundColor: '#FACC15' },
                                     focusedTab === item.id && {
                                         borderColor: theme.colors.textInverse || '#fff',
                                         borderWidth: 2,
@@ -72,7 +72,7 @@ const DashboardBottomNav = ({ navigation, activeTab = 'Dashboard' }) => {
                                 accessibilityRole="button"
                                 accessibilityLabel="Quick Add Job"
                             >
-                                <item.icon size={32} color={isDark ? '#000' : '#fff'} />
+                                <item.icon size={32} color="#000" />
                             </TouchableOpacity>
                         );
                     }
@@ -101,16 +101,17 @@ const DashboardBottomNav = ({ navigation, activeTab = 'Dashboard' }) => {
                             <Animated.View style={{ transform: [{ scale: animatedValues[item.id] || 1 }] }}>
                                 <Icon
                                     size={24}
-                                    color={isActive ? theme.colors.primary : theme.colors.subText}
+                                    color={isActive ? '#FACC15' : 'rgba(255, 255, 255, 0.5)'}
                                     strokeWidth={isActive ? 2.5 : 2}
                                 />
                             </Animated.View>
                             <Text style={[
                                 styles.navText,
                                 {
-                                    color: isActive ? theme.colors.primary : theme.colors.subText,
-                                    fontWeight: isActive ? '700' : '500',
-                                    fontSize: isActive ? 10.5 : 10
+                                    color: isActive ? '#FACC15' : 'rgba(255, 255, 255, 0.5)',
+                                    fontWeight: isActive ? '800' : '500',
+                                    fontSize: isActive ? 10.5 : 10,
+                                    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
                                 }
                             ]}>
                                 {item.title}
@@ -120,10 +121,10 @@ const DashboardBottomNav = ({ navigation, activeTab = 'Dashboard' }) => {
                                     style={[
                                         styles.activeIndicator,
                                         {
-                                            backgroundColor: theme.colors.primary,
-                                            width: 16,
-                                            height: 3,
-                                            borderRadius: 1.5,
+                                            backgroundColor: '#FACC15',
+                                            width: 12,
+                                            height: 2,
+                                            borderRadius: 0,
                                             marginTop: 6
                                         }
                                     ]}

@@ -169,10 +169,14 @@ const styles = StyleSheet.create({
         padding: 24,
         alignItems: 'center',
         borderWidth: 1,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.3,
-        shadowRadius: 20,
+        ...(Platform.OS === 'web' ? {
+            boxShadow: '0 10px 20px rgba(0, 0, 0, 0.3)'
+        } : {
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 10 },
+            shadowOpacity: 0.3,
+            shadowRadius: 20,
+        }),
         elevation: 10,
     },
     iconContainer: {

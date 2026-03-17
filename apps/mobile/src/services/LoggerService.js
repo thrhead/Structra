@@ -1,9 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import api from './api';
+// import api from './api'; // Circular dependency: api -> LoggerService -> api
 import NetInfo from '@react-native-community/netinfo';
 
 const STORAGE_KEY = 'SYSTEM_LOGS';
-const BATCH_SIZE = 5; // Reduced from 20 for faster testing
+const BATCH_SIZE = 5; 
+const MAX_LOGS = 50; // Cap to prevent QuotaExceededError
 
 export const LogLevel = {
     DEBUG: 'DEBUG',
@@ -70,7 +71,10 @@ export const LoggerService = {
             };
 
             logs.push(newLog);
-            await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
+            
+            // Limit the number of logs stored to avoid quota issues
+            const truncatedLogs = logs.slice(-MAX_LOGS);
+            await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(truncatedLogs));
 
             // Also log to console in development
             if (__DEV__) {
@@ -114,6 +118,8 @@ export const LoggerService = {
             if (logs.length === 0) return;
 
             // Use the batch endpoint
+            // Dynamic import to avoid circular dependency
+            const api = require('./api').default;
             const response = await api.post('/api/logs/batch', logs);
 
             if (response.status === 201) {

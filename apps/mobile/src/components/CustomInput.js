@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { View, TextInput, StyleSheet, Text, TouchableOpacity, Platform } from 'react-native';
 import { COLORS } from '../constants/theme';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
@@ -80,43 +80,48 @@ const CustomInput = ({
 
 const styles = StyleSheet.create({
     container: {
-        marginBottom: 16,
+        marginBottom: 20,
     },
     label: {
-        color: COLORS.slate400,
-        marginBottom: 8,
-        fontSize: 14,
-        fontWeight: '500',
+        marginBottom: 6,
+        fontSize: 10,
+        fontWeight: '900',
+        textTransform: 'uppercase',
+        letterSpacing: 2,
+        fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     },
     inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        borderWidth: 1,
-        borderColor: COLORS.slate700,
-        borderRadius: 8,
-        height: 48,
+        backgroundColor: '#1E293B',
+        borderWidth: 1.5,
+        borderColor: '#334155',
+        borderRadius: 4,
+        height: 56,
     },
     errorBorder: {
-        borderColor: COLORS.red500,
+        borderColor: '#EF4444',
     },
     icon: {
-        marginLeft: 12,
+        marginLeft: 16,
     },
     rightIcon: {
-        marginRight: 12,
+        marginRight: 16,
     },
     input: {
         flex: 1,
-        color: COLORS.white,
-        paddingHorizontal: 12,
+        color: '#F8FAFC',
+        paddingHorizontal: 16,
         height: '100%',
+        fontSize: 16,
+        fontWeight: '500',
     },
     errorText: {
-        color: COLORS.red500,
-        fontSize: 12,
-        marginTop: 4,
-        marginLeft: 4,
+        fontSize: 11,
+        marginTop: 6,
+        fontWeight: '700',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
     },
 });
 

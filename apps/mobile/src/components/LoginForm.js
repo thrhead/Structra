@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
@@ -41,8 +41,8 @@ const LoginForm = ({ onBack, onLoginSuccess }) => {
     return (
         <View style={styles.loginFormContainer}>
             <TouchableOpacity onPress={onBack} style={styles.backButton}>
-                <MaterialIcons name="arrow-back" size={24} color={theme.colors.primary} />
-                <Text style={{ color: theme.colors.primary, marginLeft: 5 }}>{t('common.back')}</Text>
+                <MaterialIcons name="arrow-back" size={24} color="#FACC15" />
+                <Text style={{ color: "#FACC15", marginLeft: 8, fontWeight: 'bold', textTransform: 'uppercase', fontSize: 12 }}>{t('common.back')}</Text>
             </TouchableOpacity>
 
             <Text style={[styles.loginTitle, { color: isDark ? theme.colors.text : theme.colors.primary }]}>{t('auth.login')}</Text>
@@ -89,36 +89,52 @@ const LoginForm = ({ onBack, onLoginSuccess }) => {
 const styles = StyleSheet.create({
     loginFormContainer: {
         flex: 1,
-        padding: 20,
+        padding: 24,
         justifyContent: 'center',
+        backgroundColor: '#0F172A',
     },
     backButton: {
         position: 'absolute',
-        top: 20,
+        top: 40,
         left: 20,
         flexDirection: 'row',
         alignItems: 'center',
         zIndex: 10,
+        padding: 8,
     },
     loginTitle: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        marginBottom: 30,
-        textAlign: 'center',
+        fontSize: 32,
+        fontWeight: '900',
+        marginBottom: 40,
+        textAlign: 'left',
+        textTransform: 'uppercase',
+        letterSpacing: 2,
+        color: '#F8FAFC',
+        borderLeftWidth: 4,
+        borderLeftColor: '#FACC15',
+        paddingLeft: 16,
     },
     debugText: {
-        color: 'gray',
+        color: '#475569',
         textAlign: 'center',
         fontSize: 10,
-        marginBottom: 10
+        marginBottom: 20,
+        fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     },
     hintContainer: {
-        marginTop: 20,
-        alignItems: 'center',
+        marginTop: 32,
+        padding: 16,
+        backgroundColor: '#1E293B',
+        borderRadius: 4,
+        borderWidth: 1,
+        borderColor: '#334155',
     },
     hint: {
-        textAlign: 'center',
-        fontSize: 12,
+        textAlign: 'left',
+        fontSize: 11,
+        marginBottom: 4,
+        color: '#94A3B8',
+        fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     },
 });
 

@@ -101,17 +101,21 @@ const CustomButton = ({
 
 const styles = StyleSheet.create({
     button: {
-        height: 48,
-        borderRadius: 8,
+        height: 56,
+        borderRadius: 4,
         justifyContent: 'center',
         alignItems: 'center',
         flexDirection: 'row',
-        gap: 8,
-        paddingHorizontal: 16,
+        gap: 12,
+        paddingHorizontal: 24,
+        borderWidth: 1.5,
     },
     text: {
-        fontSize: 16,
-        fontWeight: 'bold',
+        fontSize: 14,
+        fontWeight: '900',
+        textTransform: 'uppercase',
+        letterSpacing: 2,
+        fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     },
 });
 

@@ -92,18 +92,19 @@ export default function AdminDashboardScreen({ navigation }) {
     };
 
     return (
-        <LinearGradient
-            colors={theme.colors.gradient}
-            start={theme.colors.gradientStart}
-            end={theme.colors.gradientEnd}
-            style={{ flex: 1 }}
-        >
+        <View style={{ flex: 1, backgroundColor: '#0F172A' }}>
             <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
                 <StatusBar
-                    barStyle={isDark ? "light-content" : "dark-content"}
+                    barStyle="light-content"
                     backgroundColor="transparent"
                     translucent
                 />
+                
+                {/* Technical HUD Grid Overlay */}
+                <View style={StyleSheet.absoluteFill} pointerEvents="none">
+                    <View style={styles.gridOverlay} />
+                    <View style={styles.scanline} />
+                </View>
 
                 <CustomDrawer
                     visible={isDrawerOpen}
@@ -131,8 +132,8 @@ export default function AdminDashboardScreen({ navigation }) {
                             <View style={styles.headerContainer}>
                                 <View style={styles.headerContent}>
                                     <View style={styles.userInfo}>
-                                        <Text style={[styles.welcomeLabel, { color: theme.colors.subText }]}>{t('auth.welcome')},</Text>
-                                        <Text style={[styles.userName, { color: theme.colors.text }]}>{user?.name || 'Admin'}</Text>
+                                        <Text style={[styles.welcomeLabel, { color: '#FACC15' }]}>SYSTEM://ADMIN_OS</Text>
+                                        <Text style={[styles.userName, { color: '#FFF' }]}>{user?.name?.toUpperCase() || 'OPERATOR'}</Text>
                                     </View>
 
                                     <View style={{ flexDirection: 'row', gap: 12 }}>
@@ -147,8 +148,8 @@ export default function AdminDashboardScreen({ navigation }) {
                                             style={styles.profileButton}
                                             onPress={() => navigation.navigate('Profile')}
                                         >
-                                            <View style={[styles.avatarCircle, { backgroundColor: theme.colors.primary }]}>
-                                                <Text style={[styles.avatarText, { color: isDark ? '#000' : '#fff' }]}>
+                                            <View style={[styles.avatarCircle, { backgroundColor: '#FACC15' }]}>
+                                                <Text style={[styles.avatarText, { color: '#000' }]}>
                                                     {user?.name?.charAt(0) || 'A'}
                                                 </Text>
                                             </View>
@@ -158,10 +159,13 @@ export default function AdminDashboardScreen({ navigation }) {
                             </View>
 
                             <View style={styles.mainContent}>
-                                {/* Weekly Performance Chart (WEB PARITY) */}
+                                {/* Weekly Performance Chart */}
                                 <View style={styles.section}>
-                                    <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Haftalık Tamamlanan Adımlar</Text>
-                                    <View style={[styles.chartContainer, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder }]}>
+                                    <View style={styles.sectionHeader}>
+                                        <View style={styles.sectionHeaderLine} />
+                                        <Text style={[styles.sectionTitle, { color: '#FACC15' }]}>WEEKLY_PERFORMANCE.log</Text>
+                                    </View>
+                                    <View style={[styles.chartContainer, { backgroundColor: '#1E293B', borderColor: 'rgba(250, 204, 21, 0.1)' }]}>
                                         {chartData.length > 0 ? (
                                             <BarChart
                                                 data={chartData}
@@ -215,7 +219,10 @@ export default function AdminDashboardScreen({ navigation }) {
 
                                 {/* Navigation Grid */}
                                 <View style={styles.section}>
-                                    <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Menu</Text>
+                                    <View style={styles.sectionHeader}>
+                                        <View style={styles.sectionHeaderLine} />
+                                        <Text style={[styles.sectionTitle, { color: '#FACC15' }]}>CORE_NAV_SYSTEM</Text>
+                                    </View>
                                     <View style={styles.navGrid}>
                                         {navItems.map((item) => {
                                             const IconComponent = item.icon;
@@ -224,7 +231,7 @@ export default function AdminDashboardScreen({ navigation }) {
                                                     <GlassCard
                                                         theme={theme}
                                                         onPress={() => handleNavPress(item.route)}
-                                                        style={styles.navActionCard}
+                                                        style={[styles.navActionCard, { borderRadius: 4, backgroundColor: '#1E293B', borderColor: 'rgba(250, 204, 21, 0.1)' }]}
                                                     >
                                                         <IconComponent size={32} color={item.color} />
                                                         <Text style={[styles.navActionLabel, { color: theme.colors.text }]}>{item.title}</Text>
@@ -237,27 +244,30 @@ export default function AdminDashboardScreen({ navigation }) {
 
                                 {/* Quick Actions */}
                                 <View style={styles.section}>
-                                    <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Quick Actions</Text>
+                                    <View style={styles.sectionHeader}>
+                                        <View style={styles.sectionHeaderLine} />
+                                        <Text style={[styles.sectionTitle, { color: '#FACC15' }]}>QUICK_CMD_PANEL</Text>
+                                    </View>
                                     <View style={styles.quickActions}>
-                                        <GlassCard theme={theme} style={{ flex: 1, padding: 16, alignItems: 'center', gap: 8 }} onPress={() => navigation.navigate('CreateJob')}>
-                                            <View style={{ padding: 12, borderRadius: 12, backgroundColor: theme.colors.cyanBg }}>
+                                        <GlassCard theme={theme} style={{ flex: 1, padding: 16, alignItems: 'center', gap: 8, borderRadius: 4, backgroundColor: '#1E293B', borderColor: 'rgba(250, 204, 21, 0.1)' }} onPress={() => navigation.navigate('CreateJob')}>
+                                            <View style={{ padding: 12, borderRadius: 4, backgroundColor: 'rgba(6, 182, 212, 0.1)' }}>
                                                 <PlusCircle size={28} color="#06b6d4" />
                                             </View>
-                                            <Text style={{ color: theme.colors.text, fontWeight: '600' }}>{t('navigation.createJob')}</Text>
+                                            <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 10, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }}>{t('navigation.createJob').toUpperCase()}</Text>
                                         </GlassCard>
 
-                                        <GlassCard theme={theme} style={{ flex: 1, padding: 16, alignItems: 'center', gap: 8 }} onPress={() => navigation.navigate('UserManagement', { openCreate: true })}>
-                                            <View style={{ padding: 12, borderRadius: 12, backgroundColor: theme.colors.pinkBg }}>
+                                        <GlassCard theme={theme} style={{ flex: 1, padding: 16, alignItems: 'center', gap: 8, borderRadius: 4, backgroundColor: '#1E293B', borderColor: 'rgba(250, 204, 21, 0.1)' }} onPress={() => navigation.navigate('UserManagement', { openCreate: true })}>
+                                            <View style={{ padding: 12, borderRadius: 4, backgroundColor: 'rgba(236, 72, 153, 0.1)' }}>
                                                 <UserPlus size={28} color="#ec4899" />
                                             </View>
-                                            <Text style={{ color: theme.colors.text, fontWeight: '600' }}>{t('navigation.userManagement')}</Text>
+                                            <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 10, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }}>{t('navigation.userManagement').toUpperCase()}</Text>
                                         </GlassCard>
 
-                                        <GlassCard theme={theme} style={{ flex: 1, padding: 16, alignItems: 'center', gap: 8 }} onPress={() => navigation.navigate('CustomerManagement', { openCreate: true })}>
-                                            <View style={{ padding: 12, borderRadius: 12, backgroundColor: theme.colors.tealBg }}>
+                                        <GlassCard theme={theme} style={{ flex: 1, padding: 16, alignItems: 'center', gap: 8, borderRadius: 4, backgroundColor: '#1E293B', borderColor: 'rgba(250, 204, 21, 0.1)' }} onPress={() => navigation.navigate('CustomerManagement', { openCreate: true })}>
+                                            <View style={{ padding: 12, borderRadius: 4, backgroundColor: 'rgba(20, 184, 166, 0.1)' }}>
                                                 <Building2 size={28} color="#14b8a6" />
                                             </View>
-                                            <Text style={{ color: theme.colors.text, fontWeight: '600' }}>{t('navigation.customers')}</Text>
+                                            <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 10, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' }}>{t('navigation.customers').toUpperCase()}</Text>
                                         </GlassCard>
                                     </View>
                                 </View>
@@ -276,39 +286,51 @@ export default function AdminDashboardScreen({ navigation }) {
                     }
                     renderItem={({ item }) => (
                         <View style={{ paddingHorizontal: 16, marginBottom: 8 }}>
-                            <TouchableOpacity
-                                style={{
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                    padding: 12,
-                                    borderRadius: 12,
-                                    borderWidth: 1,
-                                    backgroundColor: theme.colors.card,
-                                    borderColor: theme.colors.cardBorder
-                                }}
-                                onPress={() => navigation.navigate('JobDetail', { jobId: item.id })}
-                            >
-                                <View style={{
-                                    width: 36,
-                                    height: 36,
-                                    borderRadius: 18,
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    marginRight: 12,
-                                    backgroundColor: theme.colors.primaryBg
-                                }}>
-                                    <Briefcase size={20} color={theme.colors.primary} />
-                                </View>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={{ fontSize: 14, fontWeight: '600', marginBottom: 2, color: theme.colors.text }} numberOfLines={1}>
-                                        {item.customer?.company ? `${item.customer.company} - ` : ''}{item.title}
-                                    </Text>
-                                    <Text style={{ fontSize: 12, color: theme.colors.subText }}>
-                                        {item.status} • {new Date(item.createdAt).toLocaleDateString('tr-TR')}
-                                    </Text>
-                                </View>
-                                <ChevronRight size={20} color={theme.colors.subText} />
-                            </TouchableOpacity>
+                    <TouchableOpacity
+                        style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            padding: 12,
+                            borderRadius: 4,
+                            borderWidth: 1,
+                            backgroundColor: '#1E293B',
+                            borderColor: 'rgba(250, 204, 21, 0.1)'
+                        }}
+                        onPress={() => navigation.navigate('JobDetail', { jobId: item.id })}
+                    >
+                        <View style={{
+                            width: 36,
+                            height: 36,
+                            borderRadius: 4,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginRight: 12,
+                            backgroundColor: 'rgba(250, 204, 21, 0.1)',
+                            borderWidth: 1,
+                            borderColor: 'rgba(250, 204, 21, 0.2)'
+                        }}>
+                            <Briefcase size={20} color="#FACC15" />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <Text style={{ 
+                                fontSize: 13, 
+                                fontWeight: 'bold', 
+                                marginBottom: 2, 
+                                color: '#FFF',
+                                fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace'
+                            }} numberOfLines={1}>
+                                {item.customer?.company ? `${item.customer.company}::` : ''}{item.title.toUpperCase()}
+                            </Text>
+                            <Text style={{ 
+                                fontSize: 10, 
+                                color: 'rgba(255, 255, 255, 0.5)',
+                                fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace'
+                            }}>
+                                STATUS://{item.status.toUpperCase()} • {new Date(item.createdAt).toLocaleDateString('tr-TR')}
+                            </Text>
+                        </View>
+                        <ChevronRight size={18} color="#FACC15" />
+                    </TouchableOpacity>
                         </View>
                     )}
                     ListEmptyComponent={
@@ -320,7 +342,7 @@ export default function AdminDashboardScreen({ navigation }) {
 
                 <DashboardBottomNav navigation={navigation} />
             </SafeAreaView>
-        </LinearGradient>
+        </View>
     );
 }
 
@@ -348,13 +370,17 @@ const styles = StyleSheet.create({
         gap: 4,
     },
     welcomeLabel: {
-        fontSize: 14,
-        fontWeight: '500',
+        fontSize: 10,
+        fontWeight: 'bold',
+        fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+        letterSpacing: 1,
+        opacity: 0.8,
     },
     userName: {
-        fontSize: 24,
-        fontWeight: 'bold',
+        fontSize: 20,
+        fontWeight: '900',
         letterSpacing: -0.5,
+        fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     },
     profileButton: {
         padding: 4,
@@ -391,9 +417,39 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     sectionTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        marginBottom: 8,
+        fontSize: 12,
+        fontWeight: 'bold',
+        fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+    },
+    sectionHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginBottom: 12,
+    },
+    sectionHeaderLine: {
+        width: 4,
+        height: 14,
+        backgroundColor: '#FACC15',
+    },
+    gridOverlay: {
+        flex: 1,
+        opacity: 0.05,
+        backgroundColor: 'transparent',
+        borderWidth: 1,
+        borderColor: '#FACC15',
+        margin: -1,
+    },
+    scanline: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 1,
+        backgroundColor: 'rgba(250, 204, 21, 0.1)',
+        zIndex: 10,
     },
     navGrid: {
         flexDirection: 'row',
@@ -412,8 +468,10 @@ const styles = StyleSheet.create({
         padding: 16,
     },
     navActionLabel: {
-        fontSize: 14,
-        fontWeight: '600',
+        fontSize: 11,
+        fontWeight: '800',
+        fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+        textAlign: 'center',
     },
     quickActions: {
         flexDirection: 'row',
@@ -421,7 +479,7 @@ const styles = StyleSheet.create({
     },
     chartContainer: {
         padding: 20,
-        borderRadius: 24,
+        borderRadius: 4,
         borderWidth: 1,
         alignItems: 'center',
     },

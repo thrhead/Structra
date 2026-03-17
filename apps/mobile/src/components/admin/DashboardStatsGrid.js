@@ -46,7 +46,10 @@ const DashboardStatsGrid = ({ statsData }) => {
 
     return (
         <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('common.info')}</Text>
+            <View style={styles.sectionHeader}>
+                <View style={styles.sectionHeaderLine} />
+                <Text style={[styles.sectionTitle, { color: '#FACC15' }]}>SYSTEM_METRICS.raw</Text>
+            </View>
             <View style={styles.statsGrid}>
                 {generalStats.map((stat) => (
                     <StatCard
@@ -60,7 +63,10 @@ const DashboardStatsGrid = ({ statsData }) => {
                 ))}
             </View>
 
-            <Text style={[styles.sectionTitle, { color: theme.colors.text, marginTop: 12 }]}>Maliyet Özet</Text>
+            <View style={[styles.sectionHeader, { marginTop: 12 }]}>
+                <View style={styles.sectionHeaderLine} />
+                <Text style={[styles.sectionTitle, { color: '#FACC15' }]}>COST_ANALYSIS.exec</Text>
+            </View>
             <View style={styles.statsGrid}>
                 {costStats.map((stat, idx) => (
                     <StatCard
@@ -103,9 +109,22 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     sectionTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        marginBottom: 8,
+        fontSize: 12,
+        fontWeight: 'bold',
+        fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+    },
+    sectionHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginBottom: 12,
+    },
+    sectionHeaderLine: {
+        width: 4,
+        height: 14,
+        backgroundColor: '#FACC15',
     },
     statsGrid: {
         flexDirection: 'row',
@@ -120,8 +139,10 @@ const styles = StyleSheet.create({
     budgetContainer: {
         marginTop: 16,
         padding: 16,
-        borderRadius: 20,
+        borderRadius: 4,
         borderWidth: 1,
+        borderColor: 'rgba(250, 204, 21, 0.2)',
+        backgroundColor: '#1E293B',
     },
     progressBg: {
         height: 8,

@@ -31,64 +31,55 @@ export default function LoginScreen({ navigation }) {
   const { showAlert } = useAlert();
 
   const renderLanding = () => (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor="transparent" translucent />
+    <View style={[styles.container, { backgroundColor: '#0F172A' }]}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
-      {/* 45% Height Hero Gradient Section */}
+      {/* Hero Section with Industrial Grid */}
       <View style={styles.heroContainer}>
         <LinearGradient
-          colors={isDark ? ['#312e81', '#581c87'] : ['#6366F1', '#A855F7']} // Darker purple in dark mode
+          colors={['#0F172A', '#1E293B']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.heroGradient}
         >
-          {/* Background Circular Decorations (SVG-like) */}
+          {/* Technical Decorations */}
           <View style={{ position: 'absolute', top: 50, right: 20, zIndex: 100 }}>
             <LanguageSwitcher compact />
           </View>
+          
           <View style={styles.decorationContainer}>
-            {/* Large Outer Circle */}
-            <View style={[styles.circleOutline, { width: 300, height: 300, borderRadius: 150, opacity: 0.1 }]} />
-            {/* Medium Circle */}
-            <View style={[styles.circleOutline, { width: 200, height: 200, borderRadius: 100, opacity: 0.2 }]} />
-            {/* Small Inner Circle */}
-            <View style={[styles.circleOutline, { width: 100, height: 100, borderRadius: 50, borderWidth: 1, opacity: 0.3 }]} />
+            {/* Grid Lines */}
+            {[...Array(6)].map((_, i) => (
+              <View key={`v-${i}`} style={[styles.line, { width: 1, height: height, left: (width / 6) * i, opacity: 0.05, backgroundColor: '#FACC15' }]} />
+            ))}
+            {[...Array(10)].map((_, i) => (
+              <View key={`h-${i}`} style={[styles.line, { height: 1, width: width, top: (height / 10) * i, opacity: 0.05, backgroundColor: '#FACC15' }]} />
+            ))}
 
-            {/* Connecting Lines (Simulated with absolute views) */}
-            <View style={[styles.line, { width: 150, top: 150, left: 50, transform: [{ rotate: '45deg' }] }]} />
-            <View style={[styles.line, { width: 150, top: 150, left: 100, transform: [{ rotate: '-45deg' }] }]} />
-
-            {/* Small Dots */}
-            <View style={[styles.dot, { top: 100, left: 150 }]} />
-            <View style={[styles.dot, { bottom: 100, right: 150 }]} />
+            <View style={[styles.circleOutline, { width: 400, height: 400, borderRadius: 200, opacity: 0.03, borderColor: '#FACC15' }]} />
           </View>
 
-          {/* Glass Panel Centered */}
+          {/* Industrial Panel */}
           <View style={styles.glassPanelContainer}>
-            <View style={[styles.glassPanel, { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.25)' }]}>
-              {/* Floating Icons */}
-              <View style={[styles.floatingIconRight, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)' }]}>
-                <MaterialIcons name="hub" size={32} color="#fff" />
-              </View>
-              <View style={[styles.floatingIconLeft, { backgroundColor: 'rgba(99, 102, 241, 0.5)' }]}>
-                <MaterialIcons name="monitor-heart" size={24} color="#fff" />
-              </View>
+            <View style={[styles.glassPanel, { backgroundColor: 'rgba(30, 41, 59, 0.7)', borderColor: 'rgba(250, 204, 21, 0.2)' }]}>
+              {/* Corner Accents */}
+              <View style={{ position: 'absolute', top: 0, left: 0, width: 20, height: 20, borderTopWidth: 2, borderLeftWidth: 2, borderColor: '#FACC15' }} />
+              <View style={{ position: 'absolute', bottom: 0, right: 0, width: 20, height: 20, borderBottomWidth: 2, borderRightWidth: 2, borderColor: '#FACC15' }} />
 
               {/* Center Content */}
               <View style={styles.glassCenterContent}>
                 <View style={styles.appIconSquare}>
-                  <MaterialIcons name="analytics" size={40} color="#6366F1" />
+                  <MaterialIcons name="settings_input_component" size={48} color="#FACC15" />
                 </View>
-                <Text style={styles.appName}>SyncPro</Text>
-                <Text style={styles.appTagline}>{t('auth.globalOperations')}</Text>
+                <Text style={styles.appName}>Structra</Text>
+                <Text style={styles.appTagline}>Industrial OS // v4.0</Text>
               </View>
             </View>
           </View>
 
-          {/* Fade to bottom */}
           <LinearGradient
-            colors={['transparent', theme.colors.background]}
-            style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 60 }}
+            colors={['transparent', '#0F172A']}
+            style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 80 }}
           />
         </LinearGradient>
       </View>
@@ -96,58 +87,41 @@ export default function LoginScreen({ navigation }) {
       {/* Bottom Content Section */}
       <View style={styles.bottomSection}>
         <View style={styles.textSection}>
-          <Text style={[styles.mainTitle, { color: theme.colors.text }]}>
-            {t('auth.mainTitle')}
+          <Text style={styles.mainTitle}>
+            {t('auth.adminAccess')}
           </Text>
-          <Text style={[styles.subTitle, { color: theme.colors.subText }]}>
-            {t('auth.subTitle')}
+          <Text style={styles.subTitle}>
+            Industrial-grade management system. Secure auth required.
           </Text>
         </View>
 
         <View style={styles.buttonSection}>
           <TouchableOpacity
-            style={[styles.primaryButton, { backgroundColor: theme.colors.primary }]}
-            onPress={() => showAlert(t('common.info'), t('auth.registerNotActive'), [], 'info')}
+            style={[styles.primaryButton, { backgroundColor: '#FACC15' }]}
+            onPress={() => setShowLoginForm(true)}
           >
-            <Text style={[styles.primaryButtonText, { color: '#fff' }]}>{t('auth.getStarted')}</Text>
-            <MaterialIcons name="arrow-forward" size={20} color="#fff" />
+            <Text style={[styles.primaryButtonText, { color: '#0F172A' }]}>AUTH PROTOCOL</Text>
+            <MaterialIcons name="security" size={24} color="#0F172A" />
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.googleButton, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}
-            onPress={() => showAlert(t('common.info'), t('auth.googleLoginNotActive'), [], 'info')}
+            style={[styles.googleButton, { backgroundColor: 'transparent', borderColor: '#334155' }]}
+            onPress={() => showAlert(t('common.info'), "Worker terminal not active.")}
           >
-            <View style={{ marginRight: 10 }}>
-              {/* Simple Google G icon representation or placeholder */}
-              <MaterialIcons name="public" size={20} color={theme.colors.subText} />
-            </View>
-            <Text style={[styles.googleButtonText, { color: theme.colors.text }]}>{t('auth.continueWithGoogle')}</Text>
+            <Text style={[styles.googleButtonText, { color: '#94A3B8' }]}>WORKER TERMINAL</Text>
           </TouchableOpacity>
 
-          <View style={styles.signInContainer}>
-            <Text style={[styles.signInText, { color: theme.colors.subText }]}>{t('auth.alreadyHaveAccount')}</Text>
-            <TouchableOpacity onPress={() => setShowLoginForm(true)}>
-              <Text style={[styles.signInLink, { color: theme.colors.primary }]}>{t('auth.login')}</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Footer Features */}
           <View style={styles.footerFeatures}>
             <View style={styles.featureItem}>
-              <MaterialIcons name="verified-user" size={20} color={theme.colors.subText} />
-              <Text style={[styles.featureText, { color: theme.colors.subText }]}>{t('auth.secure').toUpperCase()}</Text>
+              <MaterialIcons name="shield" size={16} color="#475569" />
+              <Text style={[styles.featureText, { color: '#475569' }]}>SECURE</Text>
             </View>
-            <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
+            <View style={{ width: 1, height: 12, backgroundColor: '#334155' }} />
             <View style={styles.featureItem}>
-              <MaterialIcons name="cloud-done" size={20} color={theme.colors.subText} />
-              <Text style={[styles.featureText, { color: theme.colors.subText }]}>{t('auth.realtime').toUpperCase()}</Text>
+              <MaterialIcons name="memory" size={16} color="#475569" />
+              <Text style={[styles.featureText, { color: '#475569' }]}>OPTIMIZED</Text>
             </View>
           </View>
-        </View>
-
-        {/* Bottom Handle Indicator */}
-        <View style={{ alignItems: 'center', paddingBottom: 8 }}>
-          <View style={{ width: 120, height: 5, backgroundColor: theme.colors.border, borderRadius: 2.5 }} />
         </View>
       </View>
     </View>
@@ -276,51 +250,67 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   appIconSquare: {
-    width: 70,
-    height: 70,
-    backgroundColor: '#fff',
-    borderRadius: 18,
+    width: 80,
+    height: 80,
+    backgroundColor: '#1E293B',
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#FACC15',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 0 10px rgba(250, 204, 21, 0.3)'
+    } : {
+      shadowColor: "#FACC15",
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.3,
+      shadowRadius: 10,
+    }),
+    elevation: 10,
   },
   appName: {
     color: '#fff',
-    fontSize: 22,
-    fontWeight: '800',
-    letterSpacing: 0.5,
+    fontSize: 28,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontWeight: '900',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
   },
   appTagline: {
-    color: 'rgba(255,255,255,0.9)',
-    fontSize: 12,
+    color: '#94A3B8',
+    fontSize: 10,
     marginTop: 4,
-    fontWeight: '500',
+    fontWeight: '700',
+    letterSpacing: 4,
+    textTransform: 'uppercase',
   },
   bottomSection: {
     flex: 1,
-    paddingHorizontal: 32,
-    paddingTop: 24,
+    paddingHorizontal: 24,
+    paddingTop: 32,
     paddingBottom: 20,
-    justifyContent: 'space-between',
+    backgroundColor: '#0F172A',
   },
   textSection: {
-    marginBottom: 20,
+    marginBottom: 32,
+    borderLeftWidth: 4,
+    borderLeftColor: '#FACC15',
+    paddingLeft: 16,
   },
   mainTitle: {
-    fontSize: 34,
-    fontWeight: '800',
-    lineHeight: 40,
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#F8FAFC',
+    lineHeight: 38,
+    textTransform: 'uppercase',
   },
   subTitle: {
-    marginTop: 12,
-    fontSize: 16,
+    marginTop: 8,
+    fontSize: 14,
     fontWeight: '500',
-    lineHeight: 24,
+    color: '#94A3B8',
+    lineHeight: 20,
   },
   buttonSection: {
     gap: 16,
@@ -328,37 +318,44 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   primaryButton: {
-    height: 56,
-    borderRadius: 16,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 15,
-    elevation: 8,
-  },
-  primaryButtonText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginRight: 8,
-  },
-  googleButton: {
-    height: 56,
-    borderRadius: 16,
+    height: 64,
+    borderRadius: 4,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    borderColor: '#FACC15',
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0 4px 10px rgba(250, 204, 21, 0.4)'
+    } : {
+      shadowColor: "#FACC15",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.4,
+      shadowRadius: 10,
+    }),
+    elevation: 12,
+  },
+  primaryButtonText: {
+    fontSize: 20,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontWeight: '900',
+    marginRight: 12,
+    letterSpacing: 2,
+  },
+  googleButton: {
+    height: 56,
+    borderRadius: 4,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#334155',
   },
   googleButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 14,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontWeight: '700',
+    letterSpacing: 2,
   },
   signInContainer: {
     flexDirection: 'row',

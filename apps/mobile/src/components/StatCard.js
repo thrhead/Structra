@@ -15,16 +15,24 @@ const StatCard = ({
     const activeIconColor = iconColor || theme.colors.primary;
 
     return (
-        <GlassCard theme={theme} style={[styles.container, style]}>
+        <GlassCard theme={theme} style={[
+            styles.container, 
+            { 
+                backgroundColor: '#1E293B', 
+                borderColor: 'rgba(250, 204, 21, 0.1)',
+                borderRadius: 4 
+            }, 
+            style
+        ]}>
             <View style={styles.contentContainer}>
-                <View style={[styles.iconBox, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : `${activeIconColor}15` }]}>
-                    <MaterialIcons name={icon} size={24} color={activeIconColor} />
+                <View style={[styles.iconBox, { backgroundColor: 'rgba(250, 204, 21, 0.05)' }]}>
+                    <MaterialIcons name={icon} size={24} color="#FACC15" />
                 </View>
                 <View style={styles.textContainer}>
-                    <Text style={[styles.number, { color: theme.colors.text }]}>
+                    <Text style={[styles.number, { color: '#FFF' }]}>
                         {value}
                     </Text>
-                    <Text style={[styles.label, { color: theme.colors.subText }]} numberOfLines={1}>{label}</Text>
+                    <Text style={[styles.label, { color: '#FACC15' }]} numberOfLines={1}>{label}</Text>
                 </View>
             </View>
         </GlassCard>
@@ -54,16 +62,18 @@ const styles = StyleSheet.create({
     },
     number: {
         fontSize: 24,
-        fontWeight: '800',
+        fontWeight: '900',
         lineHeight: 28,
         letterSpacing: -0.5,
         marginBottom: 4,
+        fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     },
     label: {
-        fontSize: 12,
-        fontWeight: '600',
+        fontSize: 9,
+        fontWeight: 'bold',
         textTransform: 'uppercase',
         letterSpacing: 0.5,
+        fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     },
 });
 

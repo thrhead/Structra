@@ -19,15 +19,15 @@ const CustomDrawer = ({ visible, onClose, user, navItems, onNavigate, onLogout }
                 activeOpacity={1}
                 onPress={onClose}
             >
-                <View style={[styles.drawerContainer, { backgroundColor: theme.colors.card, borderRightColor: theme.colors.cardBorder }]}>
-                    <View style={[styles.drawerHeader, { borderBottomColor: theme.colors.cardBorder }]}>
+                <View style={[styles.drawerContainer, { backgroundColor: '#1E293B', borderRightColor: 'rgba(250, 204, 21, 0.2)' }]}>
+                    <View style={[styles.drawerHeader, { borderBottomColor: 'rgba(250, 204, 21, 0.1)' }]}>
                         <View style={styles.drawerAvatarContainer}>
                             <Text style={styles.drawerAvatarText}>
                                 {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
                             </Text>
                         </View>
-                        <Text style={styles.drawerName}>{user?.name || 'Admin'}</Text>
-                        <Text style={styles.drawerRole}>Yönetici</Text>
+                        <Text style={[styles.drawerName, { color: '#FFF' }]}>{user?.name?.toUpperCase() || 'OPERATOR'}</Text>
+                        <Text style={[styles.drawerRole, { color: '#FACC15' }]}>SYSTEM_ADMIN</Text>
                     </View>
                     <View style={styles.drawerItems}>
                         {navItems.map((item) => {
@@ -38,8 +38,8 @@ const CustomDrawer = ({ visible, onClose, user, navItems, onNavigate, onLogout }
                                     style={styles.drawerItem}
                                     onPress={() => onNavigate(item.route)}
                                 >
-                                    <IconComponent size={24} color={item.color} />
-                                    <Text style={styles.drawerItemText}>{item.title}</Text>
+                                    <IconComponent size={24} color={item.color || '#FACC15'} />
+                                    <Text style={[styles.drawerItemText, { color: '#FFF' }]}>{item.title.toUpperCase()}</Text>
                                 </TouchableOpacity>
                             );
                         })}
@@ -76,27 +76,29 @@ const styles = StyleSheet.create({
     drawerAvatarContainer: {
         width: 80,
         height: 80,
-        borderRadius: 40,
-        backgroundColor: COLORS.slate800,
+        borderRadius: 4,
+        backgroundColor: '#FACC15',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 12,
-        borderWidth: 2,
-        borderColor: COLORS.primary,
+        borderWidth: 1,
+        borderColor: 'rgba(250, 204, 21, 0.5)',
     },
     drawerAvatarText: {
         fontSize: 32,
         fontWeight: 'bold',
-        color: COLORS.primary,
+        color: '#000',
     },
     drawerName: {
-        color: COLORS.textLight,
-        fontSize: 18,
-        fontWeight: 'bold',
+        fontSize: 16,
+        fontWeight: '900',
+        fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+        marginTop: 8,
     },
     drawerRole: {
-        color: COLORS.primary,
-        fontSize: 14,
+        fontSize: 10,
+        fontWeight: 'bold',
+        fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     },
     drawerItems: {
         gap: 8,
@@ -109,9 +111,9 @@ const styles = StyleSheet.create({
         gap: 16,
     },
     drawerItemText: {
-        color: COLORS.textLight,
-        fontSize: 16,
-        fontWeight: '500',
+        fontSize: 12,
+        fontWeight: 'bold',
+        fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     },
     logoutButton: {
         flexDirection: 'row',
