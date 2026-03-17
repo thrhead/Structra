@@ -64,9 +64,11 @@ interface JobDetail {
   }[]
 }
 
-export default function JobDetailPage(props: { params: Promise<{ id: string }> }) {
-  const unwrappedParams = use(props.params)
-  const id = unwrappedParams.id
+export default function JobDetailPage(props: { params: any }) {
+  // Safe params unwrapping: handles both Next.js 15 Promise params and older/wrapped object params
+  const resolvedParams = props.params instanceof Promise ? use(props.params) : props.params
+  const id = resolvedParams?.id
+  
   const [job, setJob] = useState<JobDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [expandedSteps, setExpandedSteps] = useState<Record<string, boolean>>({})
@@ -82,6 +84,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
   }, [id])
 
   const fetchJob = async () => {
+    if (!id) return
     try {
       const res = await fetch(`/api/worker/jobs/${id}`)
       if (!res.ok) throw new Error('Failed to fetch job')
@@ -95,6 +98,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
   }
 
   const toggleStep = async (stepId: string, currentStatus: boolean) => {
+    if (!id) return
     // ...
     const step = job?.steps.find(s => s.id === stepId)
     if (!step) return
@@ -135,6 +139,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
   }
 
   const toggleSubStep = async (stepId: string, subStepId: string) => {
+    if (!id) return
     // ...
     try {
       const res = await apiClient.post(`/api/worker/jobs/${id}/steps/${stepId}/substeps/${subStepId}/toggle`, {})
@@ -157,7 +162,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
   }
 
   const handleBlockTask = async (reason: string, note: string) => {
-    if (!blockingTask) return
+    if (!blockingTask || !id) return
 
     try {
       const url = blockingTask.type === 'step'
@@ -180,6 +185,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
   }
 
   const handlePhotoUpload = async (stepId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!id) return
     // ...
     const url = prompt("Lütfen fotoğraf URL'sini girin (veya boş bırakıp test için rastgele bir resim kullanın):")
     const finalUrl = url || `https://picsum.photos/seed/${Date.now()}/800/600`
@@ -201,6 +207,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
   }
 
   const completeJob = async () => {
+    if (!id) return
     // ...
     const allSubStepsCompleted = job?.steps.every(step => 
       step.subSteps.length === 0 || step.subSteps.every(ss => ss.isCompleted)
@@ -236,6 +243,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
   }
 
   const updateStatus = async (newStatus: string) => {
+    if (!id) return
     try {
       const res = await apiClient.patch(`/api/worker/jobs/${id}`, { status: newStatus })
 
