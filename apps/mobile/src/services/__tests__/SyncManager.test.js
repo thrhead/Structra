@@ -3,6 +3,8 @@ import { QueueService } from '../QueueService';
 import api from '../api';
 import NetInfo from '@react-native-community/netinfo';
 
+const getNetInfo = () => NetInfo.fetch ? NetInfo : (NetInfo.default || NetInfo);
+const getAsyncStorage = () => AsyncStorage.getItem ? AsyncStorage : (AsyncStorage.default || AsyncStorage);
 jest.mock('../QueueService');
 jest.mock('../api');
 jest.mock('@react-native-community/netinfo');
@@ -10,7 +12,7 @@ jest.mock('@react-native-community/netinfo');
 describe('SyncManager', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    NetInfo.fetch.mockResolvedValue({ isConnected: true });
+    getNetInfo().fetch.mockResolvedValue({ isConnected: true });
   });
 
   it('should process queue when connection is restored', async () => {
@@ -19,8 +21,8 @@ describe('SyncManager', () => {
       { id: '2', type: 'PUT', url: '/users/1', payload: {}, retryCount: 0 }
     ];
     QueueService.getItems.mockResolvedValue(mockQueue);
-    api.post.mockResolvedValue({ status: 200 });
-    api.put.mockResolvedValue({ status: 200 });
+    (api.post || api.default.post).mockResolvedValue({ status: 200 });
+    (api.put || api.default.put).mockResolvedValue({ status: 200 });
 
     await SyncManager.sync();
 
@@ -30,7 +32,7 @@ describe('SyncManager', () => {
   });
 
   it('should not process queue if offline', async () => {
-    NetInfo.fetch.mockResolvedValue({ isConnected: false });
+    getNetInfo().fetch.mockResolvedValue({ isConnected: false });
     const result = await SyncManager.sync();
     expect(result).toBe(false);
     expect(QueueService.getItems).not.toHaveBeenCalled();
@@ -39,7 +41,7 @@ describe('SyncManager', () => {
   it('should handle failed requests by increasing retry count', async () => {
     const mockItem = { id: '1', type: 'POST', url: '/test', payload: {}, retryCount: 0 };
     QueueService.getItems.mockResolvedValue([mockItem]);
-    api.post.mockRejectedValue(new Error('Network Error'));
+    (api.post || api.default.post).mockRejectedValue(new Error('Network Error'));
 
     await SyncManager.sync();
 

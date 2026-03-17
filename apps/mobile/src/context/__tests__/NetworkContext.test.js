@@ -3,21 +3,20 @@ import { renderHook, act } from '@testing-library/react-native';
 import { NetworkProvider, useNetwork } from '../NetworkContext';
 import NetInfo from '@react-native-community/netinfo';
 
+const getNetInfo = () => NetInfo.fetch ? NetInfo : (NetInfo.default || NetInfo);
+const getAsyncStorage = () => AsyncStorage.getItem ? AsyncStorage : (AsyncStorage.default || AsyncStorage);
 // Mock NetInfo
-jest.mock('@react-native-community/netinfo', () => ({
-  addEventListener: jest.fn(),
-  fetch: jest.fn(),
-}));
+jest.mock('@react-native-community/netinfo', () => ({ fetch: jest.fn(), addEventListener: jest.fn() }));
 
 describe('NetworkContext', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Default mock return for addEventListener
-    NetInfo.addEventListener.mockReturnValue(() => {});
+    getNetInfo().addEventListener.mockReturnValue(() => {});
   });
 
   it('should provide isConnected status', async () => {
-    NetInfo.fetch.mockResolvedValue({ isConnected: true, isInternetReachable: true });
+    getNetInfo().fetch.mockResolvedValue({ isConnected: true, isInternetReachable: true });
     
     const wrapper = ({ children }) => <NetworkProvider>{children}</NetworkProvider>;
     const { result } = renderHook(() => useNetwork(), { wrapper });
@@ -32,11 +31,11 @@ describe('NetworkContext', () => {
 
   it('should update isConnected status when NetInfo emits changes', async () => {
     let callback;
-    NetInfo.addEventListener.mockImplementation((cb) => {
+    getNetInfo().addEventListener.mockImplementation((cb) => {
       callback = cb;
       return () => {};
     });
-    NetInfo.fetch.mockResolvedValue({ isConnected: true });
+    getNetInfo().fetch.mockResolvedValue({ isConnected: true });
 
     const wrapper = ({ children }) => <NetworkProvider>{children}</NetworkProvider>;
     const { result } = renderHook(() => useNetwork(), { wrapper });

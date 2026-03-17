@@ -1,34 +1,29 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { QueueService } from '../QueueService';
 
-vi.mock('@react-native-async-storage/async-storage', () => ({
-  default: {
-    setItem: vi.fn(),
-    getItem: vi.fn(),
-    removeItem: vi.fn(),
-  },
-}));
+const getNetInfo = () => NetInfo.fetch ? NetInfo : (NetInfo.default || NetInfo);
+const getAsyncStorage = () => AsyncStorage.getItem ? AsyncStorage : (AsyncStorage.default || AsyncStorage);
+jest.mock('@react-native-async-storage/async-storage', () => ({ getItem: jest.fn(), setItem: jest.fn(), removeItem: jest.fn() }));
 
 // Mock expo-file-system
-vi.mock('expo-file-system', () => ({
+jest.mock('expo-file-system', () => ({
   documentDirectory: 'test-dir/',
-  getInfoAsync: vi.fn().mockResolvedValue({ exists: true }),
-  makeDirectoryAsync: vi.fn(),
-  writeAsStringAsync: vi.fn(),
-  readAsStringAsync: vi.fn(),
-  deleteAsync: vi.fn(),
+  getInfoAsync: jest.fn().mockResolvedValue({ exists: true }),
+  makeDirectoryAsync: jest.fn(),
+  writeAsStringAsync: jest.fn(),
+  readAsStringAsync: jest.fn(),
+  deleteAsync: jest.fn(),
 }));
 
 describe('QueueService', () => {
   const STORAGE_KEY = 'OFFLINE_QUEUE';
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   it('should add an item to the queue', async () => {
-    AsyncStorage.getItem.mockResolvedValue(JSON.stringify([]));
+    getAsyncStorage().getItem.mockResolvedValue(JSON.stringify([]));
     
     const item = { type: 'TEST_ACTION', url: '/test', payload: { data: 'test' } };
     await QueueService.addItem(item);
@@ -38,7 +33,7 @@ describe('QueueService', () => {
       expect.stringContaining('TEST_ACTION')
     );
     
-    const savedData = JSON.parse(AsyncStorage.setItem.mock.calls[0][1]);
+    const savedData = JSON.parse(getAsyncStorage().setItem.mock.calls[0][1]);
     expect(savedData[0].type).toBe('TEST_ACTION');
     expect(savedData[0].id).toBeDefined();
     expect(savedData[0].createdAt).toBeDefined();
@@ -47,7 +42,7 @@ describe('QueueService', () => {
 
   it('should get all items from the queue', async () => {
     const mockQueue = [{ id: '1', type: 'ACTION' }];
-    AsyncStorage.getItem.mockResolvedValue(JSON.stringify(mockQueue));
+    getAsyncStorage().getItem.mockResolvedValue(JSON.stringify(mockQueue));
 
     const items = await QueueService.getItems();
     expect(items).toEqual(mockQueue);
@@ -55,7 +50,7 @@ describe('QueueService', () => {
   });
 
   it('should return empty array if queue is empty', async () => {
-    AsyncStorage.getItem.mockResolvedValue(null);
+    getAsyncStorage().getItem.mockResolvedValue(null);
     const items = await QueueService.getItems();
     expect(items).toEqual([]);
   });
@@ -65,7 +60,7 @@ describe('QueueService', () => {
       { id: '1', type: 'ACTION1' },
       { id: '2', type: 'ACTION2' }
     ];
-    AsyncStorage.getItem.mockResolvedValue(JSON.stringify(mockQueue));
+    getAsyncStorage().getItem.mockResolvedValue(JSON.stringify(mockQueue));
 
     await QueueService.removeItem('1');
 
@@ -77,14 +72,14 @@ describe('QueueService', () => {
 
   describe('initialize', () => {
     it('should return the count of items in queue', async () => {
-      AsyncStorage.getItem.mockResolvedValue(JSON.stringify([{ id: '1' }, { id: '2' }]));
+      getAsyncStorage().getItem.mockResolvedValue(JSON.stringify([{ id: '1' }, { id: '2' }]));
       const count = await QueueService.initialize();
       expect(count).toBe(2);
     });
 
     it('should return 0 and log error if data is corrupted', async () => {
-      AsyncStorage.getItem.mockResolvedValue('invalid-json');
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      getAsyncStorage().getItem.mockResolvedValue('invalid-json');
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
       
       const count = await QueueService.initialize();
       
