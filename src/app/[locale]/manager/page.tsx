@@ -31,6 +31,7 @@ export default async function ManagerDashboard(props: {
     }
 
     const t = await getTranslations("Manager.dashboard")
+    const tCommon = await getTranslations("Common")
     const dateLocale = locale === 'tr' ? tr : enUS
 
     const {
@@ -121,7 +122,7 @@ export default async function ManagerDashboard(props: {
                                 {t('recentJobs.title')}
                             </CardTitle>
                             <Link href="/manager/jobs" className="text-blue-600 text-sm font-medium hover:underline">
-                                {tCommon('actions')}
+                                <span>{tCommon('actions')}</span>
                             </Link>
                         </CardHeader>
                         <CardContent>
@@ -164,7 +165,9 @@ export default async function ManagerDashboard(props: {
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-xl font-bold text-gray-900">{t('stats.pendingApproval')}</h2>
                             <Link href="/manager/approvals" className="text-blue-600 text-sm font-medium hover:underline flex items-center gap-1">
-                                {t('stats.needsReview')} <ArrowRightIcon className="w-4 h-4" />
+                                <div className="flex items-center gap-1">
+                                    {t('stats.needsReview')} <ArrowRightIcon className="w-4 h-4" />
+                                </div>
                             </Link>
                         </div>
                         <div className="grid gap-4 sm:grid-cols-2">
@@ -183,7 +186,7 @@ export default async function ManagerDashboard(props: {
                                                         {approval.type}
                                                     </span>
                                                     <Link href={`/manager/jobs/${approval.jobId}`} className="text-blue-600 text-xs hover:underline">
-                                                        Details
+                                                        <span>Details</span>
                                                     </Link>
                                                 </div>
                                             </div>
@@ -243,22 +246,26 @@ export default async function ManagerDashboard(props: {
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <Link href="/manager/jobs" className="flex items-center gap-3 p-3 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow group">
-                                <div className="p-2 bg-blue-100 rounded-lg text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                                    <BriefcaseIcon className="h-5 w-5" />
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold text-blue-900 text-sm">{t('quickActions.newJob.title')}</h3>
-                                    <p className="text-[10px] text-blue-600/70">{t('quickActions.newJob.desc')}</p>
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-blue-100 rounded-lg text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                        <BriefcaseIcon className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-blue-900 text-sm">{t('quickActions.newJob.title')}</h3>
+                                        <p className="text-[10px] text-blue-600/70">{t('quickActions.newJob.desc')}</p>
+                                    </div>
                                 </div>
                             </Link>
 
                             <Link href="/manager/reports" className="flex items-center gap-3 p-3 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow group">
-                                <div className="p-2 bg-purple-100 rounded-lg text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                                    <UsersIcon className="h-5 w-5" />
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold text-blue-900 text-sm">{t('quickActions.reports.title')}</h3>
-                                    <p className="text-[10px] text-blue-600/70">{t('quickActions.reports.desc')}</p>
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-purple-100 rounded-lg text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                                        <UsersIcon className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-blue-900 text-sm">{t('quickActions.reports.title')}</h3>
+                                        <p className="text-[10px] text-blue-600/70">{t('quickActions.reports.desc')}</p>
+                                    </div>
                                 </div>
                             </Link>
                         </CardContent>
@@ -290,7 +297,7 @@ export default async function ManagerDashboard(props: {
                                 ))}
                             </div>
                             <Link href="/manager/logs" className="block w-full p-3 text-center text-[10px] font-bold text-blue-600 hover:bg-gray-50 border-t border-gray-100 uppercase tracking-widest">
-                                View all logs
+                                <span>View all logs</span>
                             </Link>
                         </div>
                     </div>

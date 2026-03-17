@@ -77,8 +77,11 @@ export function WorkerSidebar({ isOpen, onClose }: WorkerSidebarProps) {
                   )}
                   onClick={onClose}
                 >
-                                        <item.icon className={cn("h-5 w-5", isActive ? "text-indigo-600" : "text-gray-500")} />
-                                        {item.title}                </Link>
+                  <div className="flex items-center gap-3">
+                    <item.icon className={cn("h-5 w-5", isActive ? "text-indigo-600" : "text-gray-500")} />
+                    {item.title}
+                  </div>
+                </Link>
               )
             })}
           </nav>

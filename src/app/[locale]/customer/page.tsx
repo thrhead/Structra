@@ -18,6 +18,8 @@ import {
 import { Link } from '@/lib/navigation'
 // Keep next/link for internal links inside server components for now or switch to @/lib/navigation Link
 import { getTranslations } from 'next-intl/server'
+import { formatDistanceToNow } from 'date-fns'
+import { tr, enUS } from 'date-fns/locale'
 
 async function getCustomerDashboardData(userId: string) {
   const { prisma } = await import('@/lib/db')
@@ -94,7 +96,8 @@ async function getCustomerDashboardData(userId: string) {
   return { jobs: jobsWithProgress, stats, statusDistribution, recentUpdates }
 }
 
-export default async function CustomerDashboard() {
+export default async function CustomerDashboard(props: { params: Promise<{ locale: string }> }) {
+  const { locale } = await props.params
   const session = await auth()
   const t = await getTranslations('CustomerDashboard')
 
@@ -177,7 +180,7 @@ export default async function CustomerDashboard() {
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg font-bold">Son İşler</CardTitle>
               <Button asChild variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
-                <Link href="/customer/jobs">Tümünü Gör</Link>
+                <Link href="/customer/jobs"><span>Tümünü Gör</span></Link>
               </Button>
             </CardHeader>
             <CardContent>
@@ -193,33 +196,37 @@ export default async function CustomerDashboard() {
                       href={`/customer/jobs/${job.id}`}
                       className="group block p-5 rounded-2xl border border-gray-100 bg-white hover:border-blue-200 hover:shadow-md transition-all"
                     >
-                      <div className="flex items-start justify-between gap-2 mb-3">
-                        <h4 className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors truncate">{job.title}</h4>
-                        <Badge variant="secondary" className="shrink-0 bg-blue-50 text-blue-700 hover:bg-blue-100 border-none">
-                          {job.status}
-                        </Badge>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-xs text-gray-500 font-medium">
-                          <span>{t('recentJobs.progress')}</span>
-                          <span>%{job.progress}</span>
+                      <div>
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <h4 className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors truncate">{job.title}</h4>
+                          <Badge variant="secondary" className="shrink-0 bg-blue-50 text-blue-700 hover:bg-blue-100 border-none">
+                            {job.status}
+                          </Badge>
                         </div>
-                        <Progress value={job.progress} className="h-2 bg-gray-100" />
-                      </div>
-                      <div className="mt-4 flex justify-between items-center">
-                        <span className="text-[10px] text-gray-400 font-medium">{job.jobNo}</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 text-[10px] font-bold text-blue-600 p-0 hover:bg-transparent"
-                          asChild
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <a href={`/api/v1/jobs/${job.id}/report`} download>
-                            <DownloadIcon className="w-3.5 h-3.5 mr-1" />
-                            RAPOR İNDİR (PDF)
-                          </a>
-                        </Button>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-xs text-gray-500 font-medium">
+                            <span>{t('recentJobs.progress')}</span>
+                            <span>%{job.progress}</span>
+                          </div>
+                          <Progress value={job.progress} className="h-2 bg-gray-100" />
+                        </div>
+                        <div className="mt-4 flex justify-between items-center">
+                          <span className="text-[10px] text-gray-400 font-medium">{job.jobNo}</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 text-[10px] font-bold text-blue-600 p-0 hover:bg-transparent"
+                            asChild
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <a href={`/api/v1/jobs/${job.id}/report`} download>
+                              <div className="flex items-center">
+                                <DownloadIcon className="w-3.5 h-3.5 mr-1" />
+                                RAPOR İNDİR (PDF)
+                              </div>
+                            </a>
+                          </Button>
+                        </div>
                       </div>
                     </Link>
                   ))}

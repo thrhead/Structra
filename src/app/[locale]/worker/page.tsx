@@ -216,8 +216,10 @@ export default function WorkerDashboard() {
               <CardFooter className="bg-gray-50 p-3">
                 <Button asChild className="w-full" variant="default">
                   <Link href={`/worker/jobs/${job.id}`}>
-                    Detayları Gör
-                    <ChevronRightIcon className="ml-2 h-4 w-4" />
+                    <div className="flex items-center justify-center w-full">
+                      Detayları Gör
+                      <ChevronRightIcon className="ml-2 h-4 w-4" />
+                    </div>
                   </Link>
                 </Button>
               </CardFooter>
