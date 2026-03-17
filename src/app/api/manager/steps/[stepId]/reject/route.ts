@@ -68,7 +68,7 @@ export async function POST(
                     title: 'İş Adımı Reddedildi ❌',
                     message: `"${step.job.title}" işindeki "${step.title}" adımı reddedildi. Sebep: ${reason}`,
                     type: 'ERROR',
-                    link: `/jobs/${step.jobId}`
+                    link: `/worker/jobs/${step.jobId}`
                 }
             })
         }

@@ -13,7 +13,9 @@ import {
   Building2Icon,
   BriefcaseIcon,
   WifiOffIcon,
-  Loader2Icon
+  Loader2Icon,
+  Clock,
+  User
 } from 'lucide-react'
 import { format } from "date-fns"
 import { tr } from "date-fns/locale"

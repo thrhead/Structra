@@ -9,7 +9,6 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { 
-    getJobsForReport, 
     getReportStats, 
     getWeeklyCompletedSteps,
     getJobStatusDistribution,
@@ -22,7 +21,7 @@ import {
     getPendingCostsList,
     getCostList
 } from "@/lib/data/reports"
-import { getAllTeamsReports, getTeamDetailedReports } from "@/lib/data/teams"
+import { getAllTeamsSummary, getTeamDetailedReports } from "@/lib/data/teams"
 import dynamic from 'next/dynamic'
 
 const WeeklyStepsChart = dynamic(() => import("@/components/admin/reports/charts/WeeklyStepsChart"), { ssr: false, loading: () => <div className="h-[350px] w-full flex items-center justify-center bg-slate-50 dark:bg-slate-900 animate-pulse rounded-lg">Yükleniyor...</div> })
@@ -64,6 +63,7 @@ export default function AdminReportsPage(props: {
             const jobId = searchParams?.jobId || 'all';
             const category = searchParams?.category || 'all';
             const costStatus = searchParams?.status || 'all';
+            const activeTab = searchParams?.tab || 'overview';
 
             const from = fromStr ? new Date(fromStr) : new Date(0);
             const to = toStr ? new Date(toStr) : new Date();
@@ -71,35 +71,49 @@ export default function AdminReportsPage(props: {
             to.setHours(23, 59, 59, 999);
 
             try {
-                const [
-                    generalStats, allJobs, weeklySteps, jobDistribution,
-                    teamPerformance, filterJobs, filterCategories, costBreakdown,
-                    costTrend, totalTrend, pendingCostsList, costList, teamsReportData,
-                    varianceData
-                ] = await Promise.all([
-                    getReportStats(from, to, jobStatus, jobId, category),
-                    getJobsForReport(),
-                    getWeeklyCompletedSteps(),
-                    getJobStatusDistribution(from, to, jobStatus, jobId),
-                    getTeamPerformance(from, to, jobStatus, jobId),
+                // Shared data needed for layout/filters
+                const [filterJobs, filterCategories] = await Promise.all([
                     getJobsListForFilter(jobStatus),
-                    getCategoriesForFilter(),
-                    getCostBreakdown(from, to, costStatus, jobStatus, jobId, category),
-                    getCostTrend(from, to, costStatus, jobStatus, jobId, category),
-                    getTotalCostTrend(from, to, costStatus, jobStatus, jobId, category),
-                    getPendingCostsList(from, to, jobStatus, jobId, category),
-                    getCostList(from, to, costStatus, jobStatus, jobId, category),
-                    getAllTeamsReports(),
-                    fetch('/api/admin/reports/variance').then(res => res.json()).catch(() => [])
-                ])
+                    getCategoriesForFilter()
+                ]);
+
+                let tabData: any = {};
+
+                if (activeTab === 'overview') {
+                    const [generalStats, weeklySteps] = await Promise.all([
+                        getReportStats(from, to, jobStatus, jobId, category),
+                        getWeeklyCompletedSteps()
+                    ]);
+                    tabData = { generalStats, weeklySteps };
+                } else if (activeTab === 'performance') {
+                    const [generalStats, jobDistribution, teamPerformance] = await Promise.all([
+                        getReportStats(from, to, jobStatus, jobId, category),
+                        getJobStatusDistribution(from, to, jobStatus, jobId),
+                        getTeamPerformance(from, to, jobStatus, jobId)
+                    ]);
+                    tabData = { generalStats, jobDistribution, teamPerformance };
+                } else if (activeTab === 'costs') {
+                    const [costBreakdown, costTrend, totalTrend, costList] = await Promise.all([
+                        getCostBreakdown(from, to, costStatus, jobStatus, jobId, category),
+                        getCostTrend(from, to, costStatus, jobStatus, jobId, category),
+                        getTotalCostTrend(from, to, costStatus, jobStatus, jobId, category),
+                        getCostList(from, to, costStatus, jobStatus, jobId, category)
+                    ]);
+                    tabData = { costBreakdown, costTrend, totalTrend, costList };
+                } else if (activeTab === 'variance') {
+                    const varianceData = await fetch('/api/admin/reports/variance').then(res => res.json()).catch(() => []);
+                    tabData = { varianceData };
+                } else if (activeTab === 'teams') {
+                    const teamsReportData = await getAllTeamsSummary();
+                    tabData = { teamsReportData };
+                }
 
                 if (isMounted) {
                     setData({
-                        generalStats, allJobs, weeklySteps, jobDistribution,
-                        teamPerformance, filterJobs, filterCategories, costBreakdown,
-                        costTrend, totalTrend, pendingCostsList, costList, teamsReportData,
-                        varianceData,
-                        activeTab: searchParams?.tab || 'overview'
+                        ...tabData,
+                        filterJobs,
+                        filterCategories,
+                        activeTab
                     })
                 }
             } catch (error) {
@@ -128,7 +142,21 @@ export default function AdminReportsPage(props: {
         </div>
     }
 
-    const { generalStats, allJobs, weeklySteps, jobDistribution, teamPerformance, filterJobs, filterCategories, costBreakdown, costTrend, totalTrend, costList, teamsReportData, varianceData, activeTab } = data
+    const { 
+        generalStats = { totalJobs: 0, pendingJobs: 0, inProgressJobs: 0, completedJobs: 0, totalCost: 0, pendingApprovals: 0 }, 
+        weeklySteps = { categories: [], currentWeek: [], previousWeek: [] },
+        jobDistribution = {}, 
+        teamPerformance = [], 
+        filterJobs = [], 
+        filterCategories = [], 
+        costBreakdown = {}, 
+        costTrend = { data: [], categories: [] }, 
+        totalTrend = [], 
+        costList = [], 
+        teamsReportData = { reports: [], globalStats: { avgEfficiency: 0, totalExpenses: 0 } }, 
+        varianceData = [], 
+        activeTab 
+    } = data
     const { totalJobs, pendingJobs, inProgressJobs, completedJobs } = generalStats
     const { reports: teamReports, globalStats: teamGlobalStats } = teamsReportData
 

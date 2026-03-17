@@ -47,7 +47,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ job
             'İş Reddedildi ❌',
             `"${job.title}" işi reddedildi. Sebep: ${reason}`,
             'ERROR',
-            `/jobs/${job.id}`
+            `/worker/jobs/${job.id}`
         );
 
         // Trigger webhook

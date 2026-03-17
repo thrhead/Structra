@@ -39,7 +39,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ sub
             'Alt Görev Onaylandı',
             `"${substep.step.job.title}" işindeki "${substep.title}" alt görevi onaylandı.`,
             'SUCCESS',
-            `/jobs/${substep.step.jobId}`
+            `/worker/jobs/${substep.step.jobId}`
         );
 
         return NextResponse.json(substep);

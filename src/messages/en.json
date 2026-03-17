@@ -83,6 +83,26 @@
           }
         ]
       }
+    },
+    "trust": {
+      "title": "Solve the Invisibility Problem",
+      "description": "The biggest problem in field operations is communication breakdown and lack of data. With Structra, every step is verified with digital evidence.",
+      "cards": [
+        {
+          "title": "Digital Evidence",
+          "desc": "Saying 'Done' is not enough. Photo and GPS location are mandatory for every step."
+        },
+        {
+          "title": "Uninterrupted Data",
+          "desc": "No internet in the basement or on the construction site? No problem. Your data is safe and synchronized."
+        }
+      ]
+    },
+    "workflow": {
+      "title": "Seamless Workflow",
+      "step1": { "title": "Job Assignment", "desc": "Work orders are sent from the center to the team in seconds." },
+      "step2": { "title": "Field Assembly", "desc": "Error margins drop to zero with 3D guides and checklists." },
+      "step3": { "title": "Verification", "desc": "Quality standards are protected with manager approval." }
     }
   },
   "CustomerDashboard": {

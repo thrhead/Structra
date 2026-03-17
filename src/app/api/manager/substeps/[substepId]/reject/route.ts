@@ -45,7 +45,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ sub
             'Alt Görev Reddedildi',
             `"${substep.step.job.title}" işindeki "${substep.title}" alt görevi reddedildi. Sebep: ${reason}`,
             'ERROR',
-            `/jobs/${substep.step.jobId}`
+            `/worker/jobs/${substep.step.jobId}`
         );
 
         return NextResponse.json(substep);
