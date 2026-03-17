@@ -112,9 +112,9 @@ export async function POST(request: Request) {
 
         // Real-time broadcast
         if (jobId) {
-            emitToJob(jobId, 'receive:message', newMessage)
+            publishToJob(jobId, 'receive:message', newMessage)
         } else if (receiverId) {
-            emitToUser(receiverId, 'receive:message', newMessage)
+            publishToUser(receiverId, 'receive:message', newMessage)
         }
 
         return NextResponse.json(newMessage)

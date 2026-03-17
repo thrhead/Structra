@@ -104,7 +104,6 @@ const nextConfig = {
         ignoreBuildErrors: true,
     },
     transpilePackages: ['swagger-ui-react'],
-    serverExternalPackages: ['@prisma/client', 'bcryptjs', 'swagger-jsdoc'],
     images: {
         remotePatterns: [
             {
