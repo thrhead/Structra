@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, TouchableOpacity, Platform } from 'react-native';
-import { useSocket } from '../context/SocketContext';
+import { useAbly } from '../context/AblyContext';
 import { Ionicons } from '@expo/vector-icons';
 import { ToastService } from '../services/ToastService';
 import { Z_INDEX } from '../constants/theme';
 
 const ToastNotification = () => {
-    const { socket } = useSocket();
+    const { ably, getChannel } = useAbly();
     const [notification, setNotification] = useState(null);
     const slideAnim = useRef(new Animated.Value(-100)).current;
     const timerRef = useRef(null);
@@ -34,22 +34,26 @@ const ToastNotification = () => {
     };
 
     useEffect(() => {
-        // Listen to Socket events
-        if (socket) {
-            socket.on('notification:new', handleNewNotification);
+        // Listen to Ably events
+        let channel = null;
+        if (ably) {
+            channel = getChannel(`user:${ably.auth.clientId}:notifications`);
+            channel.subscribe('notification:new', (msg) => {
+                handleNewNotification(msg.data);
+            });
         }
 
         // Listen to Local Toast Service events
         const unsubscribeToast = ToastService.subscribe(handleNewNotification);
 
         return () => {
-            if (socket) {
-                socket.off('notification:new', handleNewNotification);
+            if (channel) {
+                channel.unsubscribe();
             }
             unsubscribeToast();
             if (timerRef.current) clearTimeout(timerRef.current);
         };
-    }, [socket]);
+    }, [ably]);
 
     const dismiss = () => {
         Animated.timing(slideAnim, {

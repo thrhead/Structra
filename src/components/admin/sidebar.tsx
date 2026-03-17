@@ -29,6 +29,11 @@ const sidebarItems = [
     icon: LayoutDashboardIcon
   },
   {
+    title: 'Mesajlar',
+    href: '/messages',
+    icon: MessageSquare
+  },
+  {
     title: 'Kullanıcılar',
     href: '/admin/users',
     icon: UsersIcon

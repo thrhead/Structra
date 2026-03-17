@@ -8,6 +8,7 @@ import { signOut } from "next-auth/react"
 
 const navigation = [
   { name: "İşlerim", href: "/customer", icon: BriefcaseIcon },
+  { name: "Mesajlar", href: "/messages", icon: MessageSquare },
   { name: "Profil", href: "/customer/profile", icon: UserIcon },
 ]
 

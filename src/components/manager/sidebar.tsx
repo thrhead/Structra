@@ -19,6 +19,11 @@ const sidebarItems = [
         icon: LayoutDashboardIcon
     },
     {
+        title: 'Mesajlar',
+        href: '/messages',
+        icon: MessageSquare
+    },
+    {
         title: 'Takvim',
         href: '/admin/calendar',
         icon: CalendarIcon

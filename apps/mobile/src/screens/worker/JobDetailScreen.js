@@ -27,7 +27,7 @@ import costService from '../../services/cost.service';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { getValidImageUrl } from '../../utils';
-import { useSocket } from '../../context/SocketContext';
+import { useAbly } from '../../context/AblyContext';
 import { useTranslation } from 'react-i18next';
 import { useAlert } from '../../context/AlertContext';
 import { API_URL } from '../../config';
@@ -49,7 +49,7 @@ export default function JobDetailScreen({ route, navigation }) {
     const { theme, isDark } = useTheme();
     const { t, i18n } = useTranslation();
     const { showAlert } = useAlert();
-    const { socket, joinJobRoom, leaveJobRoom } = useSocket();
+    const { ably, getChannel } = useAbly();
 
     // State
     const [job, setJob] = useState(null);
@@ -88,10 +88,10 @@ export default function JobDetailScreen({ route, navigation }) {
         React.useCallback(() => {
             loadJobDetails();
 
-            if (!socket) return;
-            joinJobRoom(jobId);
+            if (!ably) return;
+            const channel = getChannel(`job:${jobId}`);
 
-            const handleJobUpdate = (data) => {
+            const handleJobUpdate = (msg) => {
                 if (modalVisible || costModalVisible || rejectionModalVisible) {
                     loadJobDetails();
                     return;
@@ -104,13 +104,12 @@ export default function JobDetailScreen({ route, navigation }) {
                 );
             };
 
-            socket.on('job:updated', handleJobUpdate);
+            channel.subscribe('job:updated', handleJobUpdate);
 
             return () => {
-                socket.off('job:updated', handleJobUpdate);
-                leaveJobRoom(jobId);
+                channel.unsubscribe('job:updated', handleJobUpdate);
             };
-        }, [jobId, socket, modalVisible, costModalVisible, rejectionModalVisible])
+        }, [jobId, ably, modalVisible, costModalVisible, rejectionModalVisible])
     );
 
     const loadJobDetails = async () => {

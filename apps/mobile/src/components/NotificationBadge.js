@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSocket } from '../context/SocketContext';
+import { useAbly } from '../context/AblyContext';
 
 const NotificationBadge = ({ onPress, color = '#000' }) => {
-    const { unreadCount } = useSocket();
+    const { unreadCount } = useAbly();
 
     return (
         <TouchableOpacity 

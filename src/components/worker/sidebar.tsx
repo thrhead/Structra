@@ -20,6 +20,11 @@ const sidebarItems = [
     icon: HomeIcon
   },
   {
+    title: 'Mesajlar',
+    href: '/messages',
+    icon: MessageSquare
+  },
+  {
     title: 'İşlerim',
     href: '/worker?filter=ALL',
     icon: BriefcaseIcon
