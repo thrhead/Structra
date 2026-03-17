@@ -65,7 +65,8 @@ interface JobDetail {
 }
 
 export default function JobDetailPage(props: { params: Promise<{ id: string }> }) {
-  const params = use(props.params)
+  const unwrappedParams = use(props.params)
+  const id = unwrappedParams.id
   const [job, setJob] = useState<JobDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [expandedSteps, setExpandedSteps] = useState<Record<string, boolean>>({})
@@ -75,12 +76,14 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
   const router = useRouter()
 
   useEffect(() => {
-    fetchJob()
-  }, [params.id])
+    if (id) {
+      fetchJob()
+    }
+  }, [id])
 
   const fetchJob = async () => {
     try {
-      const res = await fetch(`/api/worker/jobs/${params.id}`)
+      const res = await fetch(`/api/worker/jobs/${id}`)
       if (!res.ok) throw new Error('Failed to fetch job')
       const data = await res.json()
       setJob(data)
@@ -92,7 +95,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
   }
 
   const toggleStep = async (stepId: string, currentStatus: boolean) => {
-    // Optimistic update logic is complex with validation, so we'll rely on server response or simple check first
+    // ...
     const step = job?.steps.find(s => s.id === stepId)
     if (!step) return
 
@@ -116,7 +119,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
     }
 
     try {
-      const res = await apiClient.post(`/api/worker/jobs/${params.id}/steps/${stepId}/toggle`, {})
+      const res = await apiClient.post(`/api/worker/jobs/${id}/steps/${stepId}/toggle`, {})
 
       if (!res.ok) {
         const data = await res.json()
@@ -132,20 +135,9 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
   }
 
   const toggleSubStep = async (stepId: string, subStepId: string) => {
-    // Fotoğraf kontrolü (tamamlanmaya çalışılıyorsa)
-    const step = job?.steps.find(s => s.id === stepId)
-    const subStep = step?.subSteps.find(ss => ss.id === subStepId)
-
-    if (subStep && !subStep.isCompleted) {
-      // Substep için yüklenen fotoğrafları kontrol et
-      // Not: step.photos içinde subStepId bazlı filtreleme yapılması gerekebilir
-      // Ancak mevcut JobDetail interface'inde photos sadece step düzeyinde görünüyor.
-      // API tarafı subStepId'yi kontrol ediyor, biz de burada en azından genel bir uyarı verebiliriz 
-      // veya API'den gelen hatayı yakalayabiliriz.
-    }
-
+    // ...
     try {
-      const res = await apiClient.post(`/api/worker/jobs/${params.id}/steps/${stepId}/substeps/${subStepId}/toggle`, {})
+      const res = await apiClient.post(`/api/worker/jobs/${id}/steps/${stepId}/substeps/${subStepId}/toggle`, {})
 
       if (!res.ok) {
         const data = await res.json()
@@ -169,8 +161,8 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
 
     try {
       const url = blockingTask.type === 'step'
-        ? `/api/worker/jobs/${params.id}/steps/${blockingTask.id}/block`
-        : `/api/worker/jobs/${params.id}/steps/${blockingTask.parentId}/substeps/${blockingTask.id}/block`
+        ? `/api/worker/jobs/${id}/steps/${blockingTask.id}/block`
+        : `/api/worker/jobs/${id}/steps/${blockingTask.parentId}/substeps/${blockingTask.id}/block`
 
       const res = await apiClient.post(url, { reason, note })
 
@@ -188,13 +180,13 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
   }
 
   const handlePhotoUpload = async (stepId: string, e: React.ChangeEvent<HTMLInputElement>) => {
-    // ... same prompt logic
+    // ...
     const url = prompt("Lütfen fotoğraf URL'sini girin (veya boş bırakıp test için rastgele bir resim kullanın):")
     const finalUrl = url || `https://picsum.photos/seed/${Date.now()}/800/600`
 
     try {
       setUploadingPhoto(stepId)
-      const res = await apiClient.post(`/api/worker/jobs/${params.id}/steps/${stepId}/photos`, { url: finalUrl })
+      const res = await apiClient.post(`/api/worker/jobs/${id}/steps/${stepId}/photos`, { url: finalUrl })
 
       if (res.ok) {
         fetchJob()
@@ -209,7 +201,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
   }
 
   const completeJob = async () => {
-    // Tüm alt iş emirlerinin tamamlanıp tamamlanmadığını kontrol et
+    // ...
     const allSubStepsCompleted = job?.steps.every(step => 
       step.subSteps.length === 0 || step.subSteps.every(ss => ss.isCompleted)
     )
@@ -224,7 +216,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
     }
 
     try {
-      const res = await apiClient.post(`/api/worker/jobs/${params.id}/complete`, {})
+      const res = await apiClient.post(`/api/worker/jobs/${id}/complete`, {})
 
       if (res.ok) {
         toast.success('İş başarıyla tamamlandı ve onay için gönderildi!')
@@ -245,7 +237,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
 
   const updateStatus = async (newStatus: string) => {
     try {
-      const res = await apiClient.patch(`/api/worker/jobs/${params.id}`, { status: newStatus })
+      const res = await apiClient.patch(`/api/worker/jobs/${id}`, { status: newStatus })
 
       if (res.ok) {
         fetchJob()
