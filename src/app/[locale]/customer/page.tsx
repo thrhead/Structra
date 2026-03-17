@@ -11,22 +11,15 @@ import {
   ClockIcon,
   CheckCircle2Icon,
   AlertCircleIcon,
-  DownloadIcon
+  DownloadIcon,
+  TrendingUpIcon,
+  ActivityIcon
 } from 'lucide-react'
 import { Link } from '@/lib/navigation'
 // Keep next/link for internal links inside server components for now or switch to @/lib/navigation Link
 import { getTranslations } from 'next-intl/server'
 
 async function getCustomerDashboardData(userId: string) {
-  // ...
-  const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/customer/jobs`, {
-    headers: {
-      cookie: `next-auth.session-token=${userId}` // This won't work, we need to use server-side fetch
-    },
-    cache: 'no-store'
-  })
-
-  // Since we can't easily pass auth in server component, let's use prisma directly
   const { prisma } = await import('@/lib/db')
 
   const customer = await prisma.customer.findUnique({
@@ -34,7 +27,11 @@ async function getCustomerDashboardData(userId: string) {
   })
 
   if (!customer) {
-    return { jobs: [], stats: { totalJobs: 0, pendingJobs: 0, inProgressJobs: 0, completedJobs: 0, completionRate: 0 } }
+    return { 
+      jobs: [], 
+      stats: { totalJobs: 0, pendingJobs: 0, inProgressJobs: 0, completedJobs: 0, completionRate: 0 },
+      recentUpdates: []
+    }
   }
 
   const jobs = await prisma.job.findMany({
@@ -42,12 +39,14 @@ async function getCustomerDashboardData(userId: string) {
     include: {
       steps: {
         select: {
-          isCompleted: true
+          title: true,
+          isCompleted: true,
+          completedAt: true
         }
       }
     },
     orderBy: {
-      createdAt: 'desc'
+      updatedAt: 'desc'
     },
     take: 5
   })
@@ -80,7 +79,19 @@ async function getCustomerDashboardData(userId: string) {
     return { ...job, progress }
   })
 
-  return { jobs: jobsWithProgress, stats, statusDistribution }
+  // Get recent updates from steps
+  const recentUpdates = jobs.flatMap(job => 
+    job.steps
+      .filter(step => step.isCompleted && step.completedAt)
+      .map(step => ({
+        jobTitle: job.title,
+        jobId: job.id,
+        stepTitle: step.title,
+        completedAt: step.completedAt!
+      }))
+  ).sort((a, b) => b.completedAt.getTime() - a.completedAt.getTime()).slice(0, 5)
+
+  return { jobs: jobsWithProgress, stats, statusDistribution, recentUpdates }
 }
 
 export default async function CustomerDashboard() {
@@ -91,18 +102,18 @@ export default async function CustomerDashboard() {
     redirect('/login')
   }
 
-  const { jobs, stats, statusDistribution } = await getCustomerDashboardData(session?.user?.id || '')
+  const { jobs, stats, statusDistribution, recentUpdates } = await getCustomerDashboardData(session?.user?.id || '')
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-6 max-w-7xl mx-auto space-y-8">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">{t('title')}</h1>
         <p className="text-gray-600 mt-1">{t('subtitle')}</p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+      {/* Stats Cards Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <StatsCard
           title={t('stats.totalJobs')}
           value={stats.totalJobs}
@@ -131,73 +142,150 @@ export default async function CustomerDashboard() {
           iconColor="text-green-600"
           bgColor="bg-green-100"
         />
+        <div className="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm hidden lg:block">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-indigo-100 rounded-lg">
+              <TrendingUpIcon className="w-5 h-5 text-indigo-600" />
+            </div>
+            <span className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Başarı Oranı</span>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <h3 className="text-2xl font-bold text-gray-900">%{stats.completionRate}</h3>
+          </div>
+        </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Job Status Chart */}
-        {statusDistribution && statusDistribution.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>İş Durumu Dağılımı</CardTitle>
+      <div className="grid gap-8 lg:grid-cols-3">
+        {/* Left: Job Lists and Distribution */}
+        <div className="lg:col-span-2 space-y-8">
+          {/* Job Status Chart */}
+          {statusDistribution && statusDistribution.length > 0 && (
+            <Card className="border-none shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-lg font-bold">İş Durumu Dağılımı</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px]">
+                  <JobStatusChart data={statusDistribution} />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Recent Jobs */}
+          <Card className="border-none shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-lg font-bold">Son İşler</CardTitle>
+              <Button asChild variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
+                <Link href="/customer/jobs">Tümünü Gör</Link>
+              </Button>
             </CardHeader>
             <CardContent>
-              <JobStatusChart data={statusDistribution} />
+              {jobs.length === 0 ? (
+                <div className="text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-300">
+                   <p className="text-gray-500">{t('recentJobs.noJobs')}</p>
+                </div>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2">
+                  {jobs.map((job) => (
+                    <Link
+                      key={job.id}
+                      href={`/customer/jobs/${job.id}`}
+                      className="group block p-5 rounded-2xl border border-gray-100 bg-white hover:border-blue-200 hover:shadow-md transition-all"
+                    >
+                      <div className="flex items-start justify-between gap-2 mb-3">
+                        <h4 className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors truncate">{job.title}</h4>
+                        <Badge variant="secondary" className="shrink-0 bg-blue-50 text-blue-700 hover:bg-blue-100 border-none">
+                          {job.status}
+                        </Badge>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-xs text-gray-500 font-medium">
+                          <span>{t('recentJobs.progress')}</span>
+                          <span>%{job.progress}</span>
+                        </div>
+                        <Progress value={job.progress} className="h-2 bg-gray-100" />
+                      </div>
+                      <div className="mt-4 flex justify-between items-center">
+                        <span className="text-[10px] text-gray-400 font-medium">{job.jobNo}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 text-[10px] font-bold text-blue-600 p-0 hover:bg-transparent"
+                          asChild
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <a href={`/api/v1/jobs/${job.id}/report`} download>
+                            <DownloadIcon className="w-3.5 h-3.5 mr-1" />
+                            RAPOR İNDİR (PDF)
+                          </a>
+                        </Button>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
-        )}
+        </div>
 
-        {/* Recent Jobs */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Son İşler</CardTitle>
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/customer/jobs">Tümünü Gör</Link>
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {jobs.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">Henüz iş bulunmuyor</p>
-            ) : (
-              <div className="space-y-4">
-                {jobs.map((job) => (
-                  <Link
-                    key={job.id}
-                    href={`/customer/jobs/${job.id}`}
-                    className="block p-3 rounded-lg border hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <h4 className="font-medium text-sm">{job.title}</h4>
-                      <Badge variant="outline" className="shrink-0">
-                        {job.status}
-                      </Badge>
-                    </div>
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-xs text-gray-600">
-                        <span>İlerleme</span>
-                        <span>{job.progress}%</span>
-                      </div>
-                      <Progress value={job.progress} className="h-1.5" />
-                    </div>
-                    <div className="mt-3 flex justify-end">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 text-[10px] relative z-10"
-                        asChild
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <a href={`/api/v1/jobs/${job.id}/report`} download>
-                          <DownloadIcon className="w-3 h-3 mr-1" />
-                          PDF İndir
-                        </a>
-                      </Button>
-                    </div>
-                  </Link>
-                ))}
+        {/* Right: Updates and Activity */}
+        <div className="space-y-8">
+           {/* Success Gauge for Mobile/Small Screens (if hidden in grid) */}
+           <div className="bg-gradient-to-br from-indigo-600 to-purple-700 p-6 rounded-3xl text-white shadow-lg lg:hidden">
+              <h3 className="text-sm font-medium opacity-80 uppercase tracking-wider mb-2">Başarı Oranı</h3>
+              <div className="flex items-baseline gap-2">
+                <span className="text-4xl font-bold">%{stats.completionRate}</span>
+                <span className="text-indigo-200 text-xs font-medium">tamamlanan işler</span>
               </div>
-            )}
-          </CardContent>
-        </Card>
+              <div className="mt-6 w-full bg-white/20 h-2 rounded-full overflow-hidden">
+                 <div className="bg-white h-full rounded-full" style={{ width: `${stats.completionRate}%` }}></div>
+              </div>
+           </div>
+
+           {/* Recent Updates Feed */}
+           <Card className="border-none shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-lg font-bold flex items-center gap-2">
+                  <ActivityIcon className="w-5 h-5 text-gray-500" />
+                  Son Güncellemeler
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {recentUpdates.length > 0 ? (
+                    recentUpdates.map((update, i) => (
+                      <div key={`${update.jobId}-${i}`} className="relative pl-6 pb-6 last:pb-0">
+                         {i < recentUpdates.length - 1 && (
+                           <div className="absolute left-[7px] top-6 bottom-0 w-0.5 bg-gray-100"></div>
+                         )}
+                         <div className="absolute left-0 top-1.5 w-3.5 h-3.5 rounded-full border-2 border-white bg-green-500 shadow-sm"></div>
+                         <div className="min-w-0">
+                            <p className="text-sm font-bold text-gray-900">{update.stepTitle}</p>
+                            <p className="text-xs text-blue-600 mt-0.5 font-medium truncate">{update.jobTitle}</p>
+                            <p className="text-[10px] text-gray-400 mt-1 flex items-center gap-1">
+                               <ClockIcon className="w-3 h-3" />
+                               {formatDistanceToNow(new Date(update.completedAt), { addSuffix: true, locale: locale === 'tr' ? tr : enUS })}
+                            </p>
+                         </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-500 text-center py-4">Henüz bir güncelleme yok.</p>
+                  )}
+                </div>
+              </CardContent>
+           </Card>
+
+           {/* Customer Support/Quick Info Card */}
+           <div className="bg-blue-50 border border-blue-100 p-6 rounded-3xl">
+              <h3 className="font-bold text-blue-900 mb-2">Desteğe mi ihtiyacınız var?</h3>
+              <p className="text-sm text-blue-700/80 mb-4">İşlerinizle ilgili detaylı bilgi almak veya revize talepleriniz için müşteri temsilcinizle iletişime geçebilirsiniz.</p>
+              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md border-none py-6">
+                Müşteri Temsilcisini Ara
+              </Button>
+           </div>
+        </div>
       </div>
     </div>
   )

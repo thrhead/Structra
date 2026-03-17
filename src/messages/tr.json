@@ -136,7 +136,16 @@
         "allTime": "Tüm zamanlar",
         "onField": "Sahada",
         "thisMonth": "Bu ay",
-        "needsReview": "İncelenmeli"
+        "needsReview": "İncelenmeli",
+        "activeJobs": "Devam Eden İşler",
+        "completedToday": "Bugün Tamamlanan",
+        "overdueJobs": "Geciken İşler",
+        "monthlyCosts": "Aylık Maliyet",
+        "efficiency": "Verimlilik Skoru",
+        "systemLogs": "Sistem Logları",
+        "inProgress": "Devam Ediyor",
+        "overdue": "Gecikmiş",
+        "approved": "Onaylandı"
       },
       "recentJobs": {
         "title": "Son İşler",

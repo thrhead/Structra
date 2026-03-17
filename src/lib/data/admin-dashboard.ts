@@ -12,7 +12,14 @@ export async function getAdminDashboardData() {
       pendingCostsAgg,
       approvedCostsAgg,
       weeklyCompletedSteps,
-      activeJobsBudgetAgg
+      activeJobsBudgetAgg,
+      totalJobs,
+      activeJobs,
+      completedJobsToday,
+      totalWorkers,
+      activeTeams,
+      latestLogs,
+      pendingApprovals
     ] = await Promise.all([
       prisma.user.findMany({
         where: {
@@ -76,7 +83,31 @@ export async function getAdminDashboardData() {
           budget: { not: null }
         },
         _sum: { budget: true }
-      }).catch(e => { console.error("activeJobsBudgetAgg fetch failed", e); return { _sum: { budget: 0 } }; })
+      }).catch(e => { console.error("activeJobsBudgetAgg fetch failed", e); return { _sum: { budget: 0 } }; }),
+      prisma.job.count().catch(() => 0),
+      prisma.job.count({ where: { status: 'IN_PROGRESS' } }).catch(() => 0),
+      prisma.job.count({ 
+        where: { 
+          status: 'COMPLETED', 
+          completedDate: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } 
+        } 
+      }).catch(() => 0),
+      prisma.user.count({ where: { role: 'WORKER' } }).catch(() => 0),
+      prisma.team.count({ where: { isActive: true } }).catch(() => 0),
+      prisma.systemLog.findMany({
+        take: 5,
+        orderBy: { createdAt: 'desc' },
+        include: { user: { select: { name: true } } }
+      }).catch(() => []),
+      prisma.approval.findMany({
+        where: { status: 'PENDING' },
+        take: 3,
+        include: { 
+          job: { select: { title: true, jobNo: true } },
+          requester: { select: { name: true } }
+        },
+        orderBy: { createdAt: 'desc' }
+      }).catch(() => [])
     ])
 
     const totalCostToday = todaysCosts.reduce((sum, cost) => sum + cost.amount, 0)
@@ -108,7 +139,14 @@ export async function getAdminDashboardData() {
       pendingApprovalsCount,
       totalPendingCost: pendingCostsAgg._sum?.amount || 0,
       totalApprovedCost: approvedCostsAgg._sum?.amount || 0,
-      weeklyStats
+      weeklyStats,
+      totalJobs,
+      activeJobs,
+      completedJobsToday,
+      totalWorkers,
+      activeTeams,
+      latestLogs,
+      pendingApprovals
     }
   } catch (error: any) {
     console.error("CRITICAL: getAdminDashboardData overall failure", error.message);
@@ -119,7 +157,14 @@ export async function getAdminDashboardData() {
       pendingApprovalsCount: 0,
       totalPendingCost: 0,
       totalApprovedCost: 0,
-      weeklyStats: []
+      weeklyStats: [],
+      totalJobs: 0,
+      activeJobs: 0,
+      completedJobsToday: 0,
+      totalWorkers: 0,
+      activeTeams: 0,
+      latestLogs: [],
+      pendingApprovals: []
     }
   }
 }

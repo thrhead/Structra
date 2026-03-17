@@ -100,7 +100,8 @@ export default function WorkerDashboard() {
   const stats = {
     activeJobs: jobs.filter(j => ['PENDING', 'IN_PROGRESS'].includes(j.status)).length,
     completedJobs: jobs.filter(j => j.status === 'COMPLETED').length,
-    totalEarnings: jobs.reduce((sum, j) => sum + (j.costs?.reduce((s: number, c: any) => s + (c.amount || 0), 0) || 0), 0)
+    totalEarnings: jobs.reduce((sum, j) => sum + (j.costs?.reduce((s: number, c: any) => s + (c.amount || 0), 0) || 0), 0),
+    pendingApprovals: jobs.reduce((sum, j) => sum + (j.costs?.filter((c: any) => c.status === 'PENDING').length || 0), 0)
   }
 
   const filteredJobs = jobs.filter(j => {

@@ -136,7 +136,16 @@
         "allTime": "All time",
         "onField": "On field",
         "thisMonth": "This month",
-        "needsReview": "Needs review"
+        "needsReview": "Needs review",
+        "activeJobs": "Active Jobs",
+        "completedToday": "Completed Today",
+        "overdueJobs": "Overdue Jobs",
+        "monthlyCosts": "Monthly Cost",
+        "efficiency": "Efficiency Score",
+        "systemLogs": "System Logs",
+        "inProgress": "In Progress",
+        "overdue": "Overdue",
+        "approved": "Approved"
       },
       "recentJobs": {
         "title": "Recent Jobs",
