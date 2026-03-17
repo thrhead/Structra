@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useSocket } from './socket-provider'
+import { useAbly } from './ably-provider'
+import { useSession } from 'next-auth/react'
 import { toast } from 'sonner'
 import {
     JobCompletedPayload,
@@ -12,41 +13,48 @@ import {
 } from '@/lib/socket-events'
 
 export function NotificationListener() {
-    const { socket, isConnected } = useSocket()
+    const { client, isConnected } = useAbly()
+    const { data: session } = useSession()
 
     useEffect(() => {
-        if (!socket || !isConnected) return
+        if (!client || !isConnected || !session?.user?.id) return
 
-        // Job completed notification
-        socket.on('job:completed', (data: JobCompletedPayload) => {
+        // Subscribe to user-specific channel
+        const userChannel = client.channels.get(`user:${session.user.id}`)
+        
+        // Subscribe to system-wide channel
+        const systemChannel = client.channels.get('system')
+
+        const handleJobCompleted = (message: any) => {
+            const data = message.data as JobCompletedPayload
             toast.success('İş Tamamlandı', {
                 description: `${data.title} işi ${data.completedBy} tarafından tamamlandı.`,
             })
-        })
+        }
 
-        // Cost submitted notification
-        socket.on('cost:submitted', (data: CostSubmittedPayload) => {
+        const handleCostSubmitted = (message: any) => {
+            const data = message.data as CostSubmittedPayload
             toast.info('Yeni Masraf', {
                 description: `${data.submittedBy} tarafından ${data.amount} ₺ masraf kaydedildi.`,
             })
-        })
+        }
 
-        // Cost approved notification
-        socket.on('cost:approved', (data: CostApprovedPayload) => {
+        const handleCostApproved = (message: any) => {
+            const data = message.data as CostApprovedPayload
             toast.success('Masraf Onaylandı', {
                 description: `${data.amount} ₺ tutarındaki masraf onaylandı.`,
             })
-        })
+        }
 
-        // Step completed notification
-        socket.on('step:completed', (data: StepCompletedPayload) => {
+        const handleStepCompleted = (message: any) => {
+            const data = message.data as StepCompletedPayload
             toast.success('Adım Tamamlandı', {
                 description: `${data.stepTitle} adımı tamamlandı.`,
             })
-        })
+        }
 
-        // Generic notification
-        socket.on('notification:new', (data: NotificationPayload) => {
+        const handleGenericNotification = (message: any) => {
+            const data = message.data as NotificationPayload
             const toastFn = data.type === 'success' ? toast.success :
                 data.type === 'error' ? toast.error :
                     data.type === 'warning' ? toast.warning :
@@ -58,16 +66,23 @@ export function NotificationListener() {
 
             // Dispatch event to refresh notification list in other components
             window.dispatchEvent(new CustomEvent('notification:refresh'))
-        })
+        }
+
+        // Add listeners to user channel
+        userChannel.subscribe('job:completed', handleJobCompleted)
+        userChannel.subscribe('cost:submitted', handleCostSubmitted)
+        userChannel.subscribe('cost:approved', handleCostApproved)
+        userChannel.subscribe('step:completed', handleStepCompleted)
+        userChannel.subscribe('notification:new', handleGenericNotification)
+
+        // Add listeners to system channel (redundant if also sent to user channel, but good for global broadcasts)
+        systemChannel.subscribe('notification:new', handleGenericNotification)
 
         return () => {
-            socket.off('job:completed')
-            socket.off('cost:submitted')
-            socket.off('cost:approved')
-            socket.off('step:completed')
-            socket.off('notification:new')
+            userChannel.unsubscribe()
+            systemChannel.unsubscribe()
         }
-    }, [socket, isConnected])
+    }, [client, isConnected, session?.user?.id])
 
-    return null // This component only listens, doesn't render anything
+    return null
 }

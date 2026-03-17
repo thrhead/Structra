@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { verifyAuth } from '@/lib/auth-helper';
 import { sendAdminNotification } from '@/lib/notification-helper';
-import { broadcast } from '@/lib/socket';
+import { broadcast } from '@/lib/ably';
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string; stepId: string }> }) {
     try {

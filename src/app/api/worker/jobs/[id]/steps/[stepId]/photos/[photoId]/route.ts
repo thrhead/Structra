@@ -47,8 +47,8 @@ export async function DELETE(
             where: { id: photoId }
         });
 
-        // Notify via Socket
-        const socketPayload = {
+        // Notify via Ably
+        const ablyPayload = {
             jobId,
             stepId,
             subStepId: photo.subStepId,
@@ -56,7 +56,7 @@ export async function DELETE(
             deletedBy: session.user.name || session.user.email
         };
 
-        const { emitToUser, broadcast } = await import('@/lib/socket');
+        const { publishToUser, broadcast } = await import('@/lib/ably');
 
         const job = await prisma.job.findUnique({
             where: { id: jobId },
@@ -64,8 +64,8 @@ export async function DELETE(
         });
 
         if (job) {
-            if (job.creatorId) emitToUser(job.creatorId, 'photo:deleted', socketPayload as unknown as Record<string, unknown>);
-            broadcast('photo:deleted', socketPayload as unknown as Record<string, unknown>);
+            if (job.creatorId) await publishToUser(job.creatorId, 'photo:deleted', ablyPayload);
+            await broadcast('photo:deleted', ablyPayload);
         }
 
         return NextResponse.json({ success: true });

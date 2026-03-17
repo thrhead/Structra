@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
-import { emitToUser, broadcast } from '@/lib/socket'
+import { publishToUser, broadcast } from '@/lib/ably'
 import { JobCompletedPayload } from '@/lib/socket-events'
 import { sendJobCompletedEmail } from '@/lib/email'
 import { notifyAdminsOfJobCompletion } from '@/lib/notifications'
@@ -119,7 +119,7 @@ export async function POST(
       }
     })
 
-    const socketPayload: JobCompletedPayload = {
+    const ablyPayload: JobCompletedPayload = {
       jobId: updatedJob.id,
       title: updatedJob.title,
       completedBy: session.user.name || session.user.email || 'Unknown',
@@ -128,12 +128,12 @@ export async function POST(
 
     try {
       if (job.creator?.id) {
-        emitToUser(job.creator.id, 'job:status_changed', { ...socketPayload, status: 'PENDING_APPROVAL' } as any)
+        await publishToUser(job.creator.id, 'job:status_changed', { ...ablyPayload, status: 'PENDING_APPROVAL' })
       }
       await notifyAdminsOfJobCompletion(jobId)
-      broadcast('job:status_changed', { ...socketPayload, status: 'PENDING_APPROVAL' } as any)
-    } catch (socketError) {
-      console.error('Socket error (non-fatal):', socketError);
+      await broadcast('job:status_changed', { ...ablyPayload, status: 'PENDING_APPROVAL' })
+    } catch (ablyError) {
+      console.error('Ably error (non-fatal):', ablyError);
     }
 
     // Send email to all approvers

@@ -6,6 +6,11 @@
       "sourceType": "github",
       "computedHash": "e9b692daf06faf96fa28b2b98f50b362e68b974db5ab503963a610c719cda79b"
     },
+    "sparc-methodology": {
+      "source": "ruvnet/ruflo",
+      "sourceType": "github",
+      "computedHash": "7f22d3bebf2e2f2a21f9423cbcee83ac73698d32b78aea323c2a95eba092d7d5"
+    },
     "ui-ux-pro-max": {
       "source": "nextlevelbuilder/ui-ux-pro-max-skill",
       "sourceType": "github",

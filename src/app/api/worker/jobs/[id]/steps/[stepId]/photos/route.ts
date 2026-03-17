@@ -154,8 +154,8 @@ export async function POST(
             }
         })
 
-        // Emit Socket.IO event
-        const socketPayload = {
+        // Emit Ably event
+        const ablyPayload = {
             jobId: params.id,
             stepId: params.stepId,
             subStepId: subStepId || null,
@@ -164,8 +164,8 @@ export async function POST(
             uploadedAt: new Date()
         }
 
-        // Import socket functions dynamically to avoid circular deps if any
-        const { emitToUser, broadcast } = await import('@/lib/socket')
+        // Import ably functions dynamically to avoid circular deps if any
+        const { publishToUser, broadcast } = await import('@/lib/ably')
 
         // Notify team lead/manager/admin
         // Find relevant users (e.g. job creator, team lead)
@@ -178,9 +178,9 @@ export async function POST(
         })
 
         if (job) {
-            if (job.creatorId) emitToUser(job.creatorId, 'photo:uploaded', socketPayload as unknown as Record<string, unknown>)
+            if (job.creatorId) await publishToUser(job.creatorId, 'photo:uploaded', ablyPayload)
             // Broadcast to admins/managers
-            broadcast('photo:uploaded', socketPayload as unknown as Record<string, unknown>)
+            await broadcast('photo:uploaded', ablyPayload)
         }
 
         return NextResponse.json(photo)

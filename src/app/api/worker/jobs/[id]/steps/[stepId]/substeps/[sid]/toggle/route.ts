@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
 import { sendAdminNotification } from '@/lib/notification-helper'
-import { broadcast } from '@/lib/socket'
+import { broadcast } from '@/lib/ably'
 
 export async function POST(
     req: Request,
@@ -65,8 +65,8 @@ export async function POST(
 
         // Notify admins when substep is completed (toggled ON)
         if (updatedSubStep.isCompleted && !subStep.isCompleted) {
-            // Socket.IO broadcast for real-time web notifications
-            broadcast('substep:completed', {
+            // Ably broadcast for real-time web notifications
+            await broadcast('substep:completed', {
                 substepId: params.sid,
                 jobId: params.id,
                 jobTitle: subStep.step.job.title,

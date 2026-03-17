@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
-import { emitToUser } from '@/lib/socket'
+import { publishToUser } from '@/lib/ably'
 import { sendAdminNotification } from '@/lib/notification-helper'
 import { checkConflict } from '@/lib/conflict-check'
 
@@ -152,8 +152,8 @@ export async function PATCH(
     console.log('🔔 Notification Message:', message)
 
     if (message) {
-      console.log('📤 Emitting notification to user:', session.user.id)
-      emitToUser(session.user.id, 'notification:new', {
+      console.log('📤 Publishing notification to user via Ably:', session.user.id)
+      await publishToUser(session.user.id, 'notification:new', {
         id: crypto.randomUUID(),
         title: 'İş Durumu Güncellendi',
         message,

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
-import { emitToJob, emitToUser } from '@/lib/socket'
+import { publishToJob, publishToUser } from '@/lib/ably'
 import { sanitizeHtml } from '@/lib/security'
 
 // Force dynamic since we use query params and auth

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
 import { checkConflict } from '@/lib/conflict-check'
-import { emitToJob } from '@/lib/socket'
+import { publishToJob } from '@/lib/ably'
 
 export async function POST(
   req: Request,
@@ -113,7 +113,7 @@ export async function POST(
     })
 
     // Real-time update
-    emitToJob(step.jobId, 'job:updated', { id: step.jobId, updatedAt: new Date() });
+    await publishToJob(step.jobId, 'job:updated', { id: step.jobId, updatedAt: new Date() });
 
     return NextResponse.json(updatedStep)
   } catch (error) {

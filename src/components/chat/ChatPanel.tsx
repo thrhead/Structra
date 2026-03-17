@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { useSocket } from '@/components/providers/socket-provider'
+import { useAbly } from '@/components/providers/ably-provider'
 import { useSession } from 'next-auth/react'
 import { CryptoService } from '@/lib/crypto-service'
 import { offlineDB } from '@/lib/offline-db'
@@ -30,7 +30,7 @@ interface ChatPanelProps {
 }
 
 export function ChatPanel({ jobId, title }: ChatPanelProps) {
-    const { socket, isConnected } = useSocket()
+    const { client, isConnected } = useAbly()
     const { data: session } = useSession()
     const [messages, setMessages] = useState<Message[]>([])
     const [inputText, setInputText] = useState('')
@@ -45,43 +45,48 @@ export function ChatPanel({ jobId, title }: ChatPanelProps) {
     }, [])
 
     useEffect(() => {
-        if (!mounted) return
+        if (!mounted || !client || !isConnected) return
         loadMessages()
 
-        if (socket && isConnected) {
-            socket.emit('join:job', jobId)
+        const channel = client.channels.get(`job:${jobId}`)
 
-            socket.on('receive:message', async (newMessage: Message) => {
-                if (newMessage.isEncrypted) {
-                    const decrypted = await CryptoService.decrypt(newMessage.content)
-                    newMessage.content = decrypted
-                }
-                setMessages((prev) => [...prev, newMessage])
-            })
+        const handleNewMessage = async (message: any) => {
+            const newMessage = message.data as Message
+            // Avoid adding our own message if it's already in state from handleSend
+            if (newMessage.senderId === session?.user?.id) {
+                const alreadyExists = messages.some(m => m.id === newMessage.id)
+                if (alreadyExists) return
+            }
 
-            socket.on('typing:start', (data: { userId: string }) => {
-                if (data.userId !== session?.user?.id) setIsTyping(true)
-            })
-
-            socket.on('typing:stop', () => {
-                setIsTyping(false)
-            })
+            if (newMessage.isEncrypted) {
+                const decrypted = await CryptoService.decrypt(newMessage.content)
+                newMessage.content = decrypted
+            }
+            setMessages((prev) => [...prev, newMessage])
         }
+
+        const handleTypingStart = (message: any) => {
+            if (message.data.userId !== session?.user?.id) setIsTyping(true)
+        }
+
+        const handleTypingStop = () => {
+            setIsTyping(false)
+        }
+
+        channel.subscribe('receive:message', handleNewMessage)
+        channel.subscribe('typing:start', handleTypingStart)
+        channel.subscribe('typing:stop', handleTypingStop)
 
         return () => {
-            if (socket) {
-                socket.off('receive:message')
-                socket.off('typing:start')
-                socket.off('typing:stop')
-            }
+            channel.unsubscribe()
         }
-    }, [socket, isConnected, jobId, mounted])
+    }, [client, isConnected, jobId, mounted, session?.user?.id])
 
     useEffect(() => {
         if (scrollRef.current) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight
         }
-    }, [messages])
+    }, [messages, isTyping])
 
     const loadMessages = async () => {
         try {
@@ -93,12 +98,9 @@ export function ChatPanel({ jobId, title }: ChatPanelProps) {
                 .equals(jobId)
                 .sortBy('sentAt')
 
-            // Cast Dexie result to Message type for state (assuming structure match mostly)
             if (localMessages.length > 0) {
-                // Need to map LocalMessage to component's Message interface
-                // Ideally we store full object in Dexie including sender details
-                setMessages(localMessages as any) // Using any for quick mapping, ideally align types
-                setLoading(false) // Show data immediately
+                setMessages(localMessages as any)
+                setLoading(false)
             }
 
             // 2. Fetch from API (Network)
@@ -154,10 +156,23 @@ export function ChatPanel({ jobId, title }: ChatPanelProps) {
 
             const sentMessage = await response.json()
             // The response will have encrypted content, but for UI we want plain
-            setMessages((prev) => [...prev, { ...sentMessage, content }])
+            const displayMessage = { ...sentMessage, content }
+            
+            // Check if already received via Ably to avoid duplicates
+            setMessages((prev) => {
+                if (prev.some(m => m.id === displayMessage.id)) return prev
+                return [...prev, displayMessage]
+            })
 
         } catch (error) {
             console.error('Send error:', error)
+        }
+    }
+
+    const sendTypingStatus = (status: 'start' | 'stop') => {
+        if (client && isConnected) {
+            const channel = client.channels.get(`job:${jobId}`)
+            channel.publish(`typing:${status}`, { userId: session?.user?.id })
         }
     }
 
@@ -172,7 +187,7 @@ export function ChatPanel({ jobId, title }: ChatPanelProps) {
     return (
         <div className="flex h-[500px] flex-col rounded-lg border bg-card shadow-sm overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between border-bottom p-3 bg-muted/50">
+            <div className="flex items-center justify-between border-b p-3 bg-muted/50">
                 <div className="flex items-center gap-2">
                     <div className={cn("h-2 w-2 rounded-full", isConnected ? "bg-green-500" : "bg-red-500 animate-pulse")} />
                     <span className="text-sm font-semibold">{title || 'İş Sohbeti'}</span>
@@ -251,14 +266,12 @@ export function ChatPanel({ jobId, title }: ChatPanelProps) {
                         value={inputText}
                         onChange={(e) => setInputText(e.target.value)}
                         className="flex-1 h-9 bg-muted/30 focus-visible:ring-primary"
-                        onKeyDown={(e) => {
-                            if (socket && isConnected) {
-                                socket.emit('typing:start', { jobId, userId: session?.user?.id })
-                                if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
-                                typingTimeoutRef.current = setTimeout(() => {
-                                    socket.emit('typing:stop', { jobId, userId: session?.user?.id })
-                                }, 2000)
-                            }
+                        onKeyDown={() => {
+                            sendTypingStatus('start')
+                            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
+                            typingTimeoutRef.current = setTimeout(() => {
+                                sendTypingStatus('stop')
+                            }, 2000)
                         }}
                     />
                     <Button

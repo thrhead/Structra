@@ -1,4 +1,5 @@
 import { prisma } from './db'
+import { publishToUser } from './ably'
 
 export interface NotificationInput {
   userId: string
@@ -18,7 +19,7 @@ export async function createNotification({
   type = 'INFO',
   link
 }: NotificationInput) {
-  return await prisma.notification.create({
+  const notification = await prisma.notification.create({
     data: {
       userId,
       title,
@@ -28,6 +29,18 @@ export async function createNotification({
       isRead: false
     }
   })
+
+  // Emit Ably event for real-time web updates
+  await publishToUser(userId, 'notification:new', {
+    id: notification.id,
+    title,
+    message,
+    type: type.toLowerCase(),
+    link,
+    createdAt: notification.createdAt
+  })
+
+  return notification
 }
 
 /**

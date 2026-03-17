@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
 import { z } from 'zod'
-import { broadcast, emitToUser } from '@/lib/socket'
+import { broadcast, publishToUser } from '@/lib/ably'
 import { CostSubmittedPayload } from '@/lib/socket-events'
 import { sendCostApprovalEmail } from '@/lib/email'
 import { sendAdminNotification } from '@/lib/notification-helper'
@@ -118,8 +118,8 @@ export async function POST(req: Request) {
             }
         })
 
-        // Emit Socket.IO event for real-time notification
-        const socketPayload: CostSubmittedPayload = {
+        // Emit Ably event for real-time notification
+        const ablyPayload: CostSubmittedPayload = {
             costId: cost.id,
             jobId: data.jobId,
             amount: data.amount,
@@ -129,11 +129,11 @@ export async function POST(req: Request) {
 
         // Notify job creator
         if (job.creator?.id) {
-            emitToUser(job.creator.id, 'cost:submitted', socketPayload as unknown as Record<string, unknown>)
+            await publishToUser(job.creator.id, 'cost:submitted', ablyPayload)
         }
 
         // Broadcast to all admins/managers
-        broadcast('cost:submitted', socketPayload as unknown as Record<string, unknown>)
+        await broadcast('cost:submitted', ablyPayload)
 
         // Send push notification to admins
         await sendAdminNotification(

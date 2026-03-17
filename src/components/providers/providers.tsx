@@ -1,7 +1,7 @@
 'use client'
 
 import { SessionProvider } from 'next-auth/react'
-import { SocketProvider } from './socket-provider'
+import { AblyProvider } from './ably-provider'
 import { SyncProvider } from './sync-provider'
 import { NotificationListener } from './notification-listener'
 import { ReactNode } from 'react'
@@ -9,12 +9,12 @@ import { ReactNode } from 'react'
 export function Providers({ children }: { children: ReactNode }) {
     return (
         <SessionProvider>
-            <SocketProvider>
+            <AblyProvider>
                 <SyncProvider>
                     {children}
                     <NotificationListener />
                 </SyncProvider>
-            </SocketProvider>
+            </AblyProvider>
         </SessionProvider>
     )
 }
