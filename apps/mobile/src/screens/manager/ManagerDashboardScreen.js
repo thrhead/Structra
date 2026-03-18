@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Alert,
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useSocket } from '../../context/SocketContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import GlassCard from '../../components/ui/GlassCard';
 import StatCard from '../../components/StatCard';
@@ -13,6 +14,7 @@ export default function ManagerDashboardScreen({ navigation }) {
     const { user, logout } = useAuth();
     const { theme, toggleTheme, isDark } = useTheme();
     const { showAlert } = useAlert();
+    const { unreadCount } = useSocket();
     const { statsData, fetchStats, loading } = useManagerDashboardStats();
 
     React.useEffect(() => {
@@ -75,7 +77,9 @@ export default function ManagerDashboardScreen({ navigation }) {
 
                         <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('Notifications')}>
                             <MaterialIcons name="notifications-none" size={24} color={theme.colors.icon} />
-                            <View style={[styles.notificationBadge, { backgroundColor: theme.colors.primary }]} />
+                            {unreadCount > 0 && (
+                                <View style={[styles.notificationBadge, { backgroundColor: theme.colors.primary }]} />
+                            )}
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('Profile')}>
                             <MaterialIcons name="settings" size={24} color={theme.colors.icon} />

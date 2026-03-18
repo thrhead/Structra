@@ -9,6 +9,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useSocket } from '../../context/SocketContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import GlassCard from '../../components/ui/GlassCard';
 import { useDashboardStats } from '../../hooks/useDashboardStats';
@@ -27,6 +28,7 @@ export default function AdminDashboardScreen({ navigation }) {
     const { user, logout } = useAuth();
     const { theme, toggleTheme, isDark } = useTheme();
     const { showAlert } = useAlert();
+    const { unreadCount } = useSocket();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
 
@@ -149,7 +151,9 @@ export default function AdminDashboardScreen({ navigation }) {
                                             onPress={() => navigation.navigate('Notifications')}
                                         >
                                             <MaterialIcons name="notifications-none" size={24} color={theme.colors.icon} />
-                                            <View style={styles.notificationBadge} />
+                                            {unreadCount > 0 && (
+                                                <View style={styles.notificationBadge} />
+                                            )}
                                         </TouchableOpacity>
 
                                         <TouchableOpacity

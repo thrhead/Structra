@@ -20,6 +20,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useSocket } from '../../context/SocketContext';
 import jobService from '../../services/job.service';
 import costService from '../../services/cost.service';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -55,6 +56,7 @@ export default function WorkerDashboardScreen({ navigation }) {
     const { user, logout } = useAuth();
     const { theme, toggleTheme, isDark, prefersReducedMotion } = useTheme();
     const { showAlert } = useAlert();
+    const { unreadCount } = useSocket();
 
     // State
     const [stats, setStats] = useState({
@@ -161,7 +163,9 @@ export default function WorkerDashboardScreen({ navigation }) {
                         </TouchableOpacity>
                         <TouchableOpacity style={[styles.iconButton, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder }]} onPress={() => navigation.navigate('Notifications')}>
                             <MaterialIcons name="notifications-none" size={24} color={theme.colors.icon} />
-                            <View style={styles.notificationBadge} />
+                            {unreadCount > 0 && (
+                                <View style={styles.notificationBadge} />
+                            )}
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={[styles.iconButton, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder }]}
