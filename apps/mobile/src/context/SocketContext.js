@@ -53,8 +53,32 @@ export const SocketProvider = ({ children }) => {
         // Initialize Ably client (reuse the same pattern as SocketContext for compatibility)
         console.log('[Ably] Initializing connection to:', API_BASE_URL);
 
+        // Use authCallback to pass the JWT token manually
         const ably = new Ably.Realtime({
-            authUrl: `${API_BASE_URL}/api/ably/auth`,
+            authCallback: async (callback) => {
+                try {
+                    const api = require('../services/api');
+                    const token = await api.getAuthToken();
+                    
+                    const response = await fetch(`${API_BASE_URL}/api/ably/auth`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const tokenRequestData = await response.json();
+                        callback(null, tokenRequestData);
+                    } else {
+                        const error = await response.text();
+                        callback(new Error(error), null);
+                    }
+                } catch (error) {
+                    console.error('[Ably] Auth callback error:', error);
+                    callback(error, null);
+                }
+            },
             clientId: user.id,
         });
 

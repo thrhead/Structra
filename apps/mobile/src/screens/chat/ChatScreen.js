@@ -67,9 +67,29 @@ const ChatScreen = () => {
             
             if (!user) return;
 
-            // Initialize Ably client
+            // Initialize Ably client with auth callback
             const ably = new Ably.Realtime({
-                authUrl: `${API_BASE_URL}/api/ably/auth`,
+                authCallback: async (callback) => {
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/api/ably/auth`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        
+                        if (response.ok) {
+                            const tokenRequestData = await response.json();
+                            callback(null, tokenRequestData);
+                        } else {
+                            const error = await response.text();
+                            callback(new Error(error), null);
+                        }
+                    } catch (error) {
+                        console.error('[Chat] Auth callback error:', error);
+                        callback(error, null);
+                    }
+                },
                 clientId: user.id,
             });
 
