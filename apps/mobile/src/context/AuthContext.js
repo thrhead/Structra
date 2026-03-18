@@ -4,6 +4,7 @@ import authService from '../services/auth.service';
 import { setAuthToken, clearAuthToken, registerLogoutCallback, getAuthToken } from '../services/api';
 import { withTimeout } from '../utils/async-helper';
 import { LoggerService } from '../services/LoggerService';
+import notificationService from '../services/notification.service';
 
 const AuthContext = createContext(null);
 
@@ -28,13 +29,28 @@ export const AuthProvider = ({ children }) => {
                 const token = await getAuthToken();
 
                 if (savedUser && token) {
-                    setUser(JSON.parse(savedUser));
+                    const parsedUser = JSON.parse(savedUser);
+                    setUser(parsedUser);
+                    
+                    // Register push notifications for returning user
+                    setupPushNotifications(parsedUser.id);
                 }
             })(), 5000, 'Auth check timeout');
         } catch (error) {
             console.error('Error checking user:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const setupPushNotifications = async (userId) => {
+        try {
+            const pushToken = await notificationService.registerForPushNotificationsAsync();
+            if (pushToken) {
+                await notificationService.sendPushTokenToBackend(pushToken, userId);
+            }
+        } catch (error) {
+            console.error('Failed to setup push notifications:', error);
         }
     };
 
@@ -47,6 +63,10 @@ export const AuthProvider = ({ children }) => {
                 await AsyncStorage.setItem('user', JSON.stringify(response.user));
                 await setAuthToken(response.token);
                 setUser(response.user);
+                
+                // Register push notifications
+                setupPushNotifications(response.user.id);
+                
                 LoggerService.info('Login successful', { email, userId: response.user.id });
                 return { success: true };
             } else {

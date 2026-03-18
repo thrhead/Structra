@@ -33,10 +33,28 @@ export const SocketProvider = ({ children }) => {
 
     // Create a compatible socket object
     const createSocketWrapper = (ably) => {
+        // Map to keep track of wrapped callbacks for unsubscription
+        const wrappedCallbacks = new Map();
+
         return {
             ably,
             on: (event, callback) => {
                 console.log(`[Ably Wrapper] Subscribing to: ${event}`);
+                
+                const wrappedCallback = (message) => {
+                    if (message && message.data) {
+                        callback(message.data);
+                    } else {
+                        callback(message);
+                    }
+                };
+                
+                // Store the mapping
+                if (!wrappedCallbacks.has(event)) {
+                    wrappedCallbacks.set(event, new Map());
+                }
+                wrappedCallbacks.get(event).set(callback, wrappedCallback);
+
                 if (event === 'connect') {
                     ably.connection.on('connected', callback);
                 } else if (event === 'disconnect') {
@@ -45,37 +63,58 @@ export const SocketProvider = ({ children }) => {
                     ably.connection.on('failed', callback);
                 } else if (event === 'job:updated') {
                     // This is a special case for JobDetailScreen
-                    // We'll subscribe to all active job channels for this event
                     Object.values(jobChannelsRef.current).forEach(channel => {
-                        channel.subscribe('job:updated', (message) => callback(message.data));
+                        channel.subscribe('job:updated', wrappedCallback);
                     });
-                    // Also save it for future job channels
                     ably._jobUpdateCallback = callback;
                 } else {
                     // Default to user channel for other events
                     const userChannel = ably.channels.get(`user:${user?.id}`);
-                    userChannel.subscribe(event, (message) => callback(message.data));
+                    userChannel.subscribe(event, wrappedCallback);
+                    
+                    // Also listen on system channel for broadcast events
+                    const systemChannel = ably.channels.get('system');
+                    systemChannel.subscribe(event, wrappedCallback);
                 }
             },
             off: (event, callback) => {
                 console.log(`[Ably Wrapper] Unsubscribing from: ${event}`);
+                
+                const eventMap = wrappedCallbacks.get(event);
+                const wrappedCallback = eventMap ? eventMap.get(callback) : null;
+
                 if (event === 'connect') {
                     ably.connection.off('connected', callback);
                 } else if (event === 'disconnect') {
                     ably.connection.off('disconnected', callback);
                 } else if (event === 'job:updated') {
                     Object.values(jobChannelsRef.current).forEach(channel => {
-                        channel.unsubscribe('job:updated');
+                        if (wrappedCallback) {
+                            channel.unsubscribe('job:updated', wrappedCallback);
+                        } else {
+                            channel.unsubscribe('job:updated');
+                        }
                     });
                     ably._jobUpdateCallback = null;
                 } else {
                     const userChannel = ably.channels.get(`user:${user?.id}`);
-                    userChannel.unsubscribe(event);
+                    const systemChannel = ably.channels.get('system');
+                    
+                    if (wrappedCallback) {
+                        userChannel.unsubscribe(event, wrappedCallback);
+                        systemChannel.unsubscribe(event, wrappedCallback);
+                        eventMap.delete(callback);
+                    } else {
+                        userChannel.unsubscribe(event);
+                        systemChannel.unsubscribe(event);
+                    }
                 }
             },
             emit: (event, ...args) => {
-                console.log(`[Ably Wrapper] Emitting (not fully supported): ${event}`, args);
-                // Implementation depends on server-side Ably setup
+                console.log(`[Ably Wrapper] Emitting: ${event}`, args);
+                // Simple emit to user-specific channel
+                const userChannel = ably.channels.get(`user:${user?.id}`);
+                userChannel.publish(event, args[0]);
             }
         };
     };

@@ -17,6 +17,12 @@ export async function GET(request: Request) {
 
         const tokenRequestData = await client.auth.createTokenRequest({
             clientId: session.user.id,
+            capability: {
+                [`user:${session.user.id}`]: ['subscribe', 'publish', 'presence'],
+                'job:*': ['subscribe', 'publish', 'presence'],
+                'system': ['subscribe'],
+                'system:*': ['subscribe'],
+            }
         })
 
         return NextResponse.json(tokenRequestData)
