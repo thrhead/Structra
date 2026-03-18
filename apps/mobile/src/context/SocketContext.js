@@ -213,10 +213,12 @@ export const SocketProvider = ({ children }) => {
             const userChannel = ably.channels.get(`user:${user.id}`);
             channelRef.current = userChannel;
 
+            // Subscribe to system channel for broadcasts
+            const systemChannel = ably.channels.get('system');
+
             console.log('[Ably] Subscribing to user channel:', `user:${user.id}`);
 
-            // Listen for new notifications
-            userChannel.subscribe('notification:new', (message) => {
+            const handleNotification = (message) => {
                 console.log('[Ably] 🔔 New notification received:', message.data);
                 setUnreadCount(prev => prev + 1);
                 setNotifications(prev => [message.data, ...prev]);
@@ -228,39 +230,49 @@ export const SocketProvider = ({ children }) => {
                         Alert.alert(message.data.title, message.data.message);
                     }
                 }
-            });
+            };
 
-            // Listen for job completion
-            userChannel.subscribe('job:completed', (message) => {
+            const handleJobCompleted = (message) => {
                 console.log('[Ably] ✅ Job completed:', message.data);
                 if (Platform.OS !== 'web') {
                     const { Alert } = require('react-native');
                     Alert.alert('İş Tamamlandı', `${message.data?.title || 'İş'} tamamlandı.`);
                 }
-            });
+            };
 
-            // Listen for job status changes
-            userChannel.subscribe('job:status_changed', (message) => {
+            const handleJobStatusChanged = (message) => {
                 console.log('[Ably] 📊 Job status changed:', message.data);
-            });
+            };
 
-            // Listen for photo upload
-            userChannel.subscribe('photo:uploaded', (message) => {
+            const handlePhotoUploaded = (message) => {
                 console.log('[Ably] 📸 Photo uploaded:', message.data);
                 if (Platform.OS !== 'web') {
                     const { Alert } = require('react-native');
                     Alert.alert('Fotoğraf Yüklendi', `${message.data?.uploadedBy || 'Kullanıcı'} yeni bir fotoğraf yükledi.`);
                 }
-            });
+            };
 
-            // Listen for cost submitted
-            userChannel.subscribe('cost:submitted', (message) => {
+            const handleCostSubmitted = (message) => {
                 console.log('[Ably] 💰 Cost submitted:', message.data);
                 if (Platform.OS !== 'web') {
                     const { Alert } = require('react-native');
                     Alert.alert('Maliyet Gönderildi', 'Yeni bir maliyet gönderildi.');
                 }
-            });
+            };
+
+            // Listen on user channel
+            userChannel.subscribe('notification:new', handleNotification);
+            userChannel.subscribe('job:completed', handleJobCompleted);
+            userChannel.subscribe('job:status_changed', handleJobStatusChanged);
+            userChannel.subscribe('photo:uploaded', handlePhotoUploaded);
+            userChannel.subscribe('cost:submitted', handleCostSubmitted);
+
+            // Listen on system channel for the same events (broadcasts)
+            systemChannel.subscribe('notification:new', handleNotification);
+            systemChannel.subscribe('job:completed', handleJobCompleted);
+            systemChannel.subscribe('job:status_changed', handleJobStatusChanged);
+            systemChannel.subscribe('photo:uploaded', handlePhotoUploaded);
+            systemChannel.subscribe('cost:submitted', handleCostSubmitted);
 
             // Fetch initial unread count
             fetchUnreadCount();
