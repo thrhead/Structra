@@ -42,6 +42,7 @@ import ChatScreen from './src/screens/chat/ChatScreen';
 import notificationService from './src/services/notification.service';
 import * as Notifications from 'expo-notifications';
 import { SocketProvider } from './src/context/SocketContext';
+import { AblyProvider } from './src/context/AblyContext';
 import ToastNotification from './src/components/ToastNotification';
 import { QueueService } from './src/services/QueueService';
 import { SyncManager } from './src/services/SyncManager';
@@ -346,13 +347,15 @@ export default function App() {
           <NetworkProvider>
             <ThemeProvider>
               <AuthProvider>
-                <SocketProvider>
-                  <AlertProvider>
+                <AblyProvider>
+                  <SocketProvider>
+                    <AlertProvider>
                     <OfflineBanner />
                     <AppNavigator />
                     <ToastNotification />
                   </AlertProvider>
                 </SocketProvider>
+                </AblyProvider>
               </AuthProvider>
             </ThemeProvider>
           </NetworkProvider>

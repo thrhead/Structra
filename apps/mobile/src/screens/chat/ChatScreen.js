@@ -14,9 +14,8 @@ import {
 import { Send, Lock, WifiOff, ChevronLeft } from 'lucide-react-native';
 import { MessageService } from '../../services/message.service';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { getSocketServer } from '../../services/api'; // Assuming socket logic is accessible or use a hook
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import io from 'socket.io-client';
+import Ably from 'ably';
 import { API_BASE_URL } from '../../services/api';
 
 const ChatScreen = () => {
@@ -30,16 +29,16 @@ const ChatScreen = () => {
     const [currentUser, setCurrentUser] = useState(null);
     const [isTyping, setIsTyping] = useState(false);
 
-    const socketRef = useRef(null);
+    const channelRef = useRef(null);
     const flatListRef = useRef(null);
 
     useEffect(() => {
         loadInitialData();
-        setupSocket();
+        setupAbly();
 
         return () => {
-            if (socketRef.current) {
-                socketRef.current.disconnect();
+            if (channelRef.current) {
+                channelRef.current.unsubscribe();
             }
         };
     }, []);
@@ -60,171 +59,155 @@ const ChatScreen = () => {
         }
     };
 
-    const setupSocket = async () => {
-        const token = await AsyncStorage.getItem('authToken');
+    const setupAbly = async () => {
+        try {
+            const token = await AsyncStorage.getItem('authToken');
+            const userStr = await AsyncStorage.getItem('user');
+            const user = userStr ? JSON.parse(userStr) : null;
+            
+            if (!user) return;
 
-        socketRef.current = io(API_BASE_URL, {
-            path: '/api/socket',
-            auth: { token }
-        });
+            // Initialize Ably client
+            const ably = new Ably.Realtime({
+                authUrl: `${API_BASE_URL}/api/ably/auth`,
+                clientId: user.id,
+            });
 
-        socketRef.current.on('connect', () => {
-            console.log('Connected to socket server');
-            socketRef.current.emit('join:job', jobId);
-        });
+            // Subscribe to job channel for chat
+            const channel = ably.channels.get(`job:${jobId}`);
+            channelRef.current = channel;
 
-        socketRef.current.on('receive:message', (newMessage) => {
-            setMessages(prev => [...prev, newMessage]);
-        });
+            channel.subscribe('receive:message', (message) => {
+                setMessages(prev => [...prev, message.data]);
+            });
 
-        socketRef.current.on('typing:start', (data) => {
-            if (data.userId !== currentUser?.id) setIsTyping(true);
-        });
+            channel.subscribe('typing:start', (data) => {
+                setIsTyping(true);
+            });
 
-        socketRef.current.on('typing:stop', (data) => {
-            if (data.userId !== currentUser?.id) setIsTyping(false);
-        });
-    };
+            channel.subscribe('typing:stop', (data) => {
+                setIsTyping(false);
+            });
 
-    const typingTimeoutRef = useRef(null);
-    const handleTyping = (text) => {
-        setInputText(text);
-        if (socketRef.current && currentUser?.id) {
-            socketRef.current.emit('typing:start', { jobId, userId: currentUser.id });
-            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-            typingTimeoutRef.current = setTimeout(() => {
-                socketRef.current.emit('typing:stop', { jobId, userId: currentUser.id });
-            }, 2000);
+            console.log('[Chat] Ably channel subscribed:', `job:${jobId}`);
+        } catch (error) {
+            console.error('[Chat] Failed to setup Ably:', error);
         }
     };
 
     const handleSend = async () => {
         if (!inputText.trim()) return;
 
-        const messageContent = inputText.trim();
+        const messageText = inputText.trim();
         setInputText('');
 
-        if (socketRef.current && currentUser?.id) {
-            socketRef.current.emit('typing:stop', { jobId, userId: currentUser.id });
-        }
-
         try {
-            const newMessage = await MessageService.sendMessage({
-                content: messageContent,
-                jobId: jobId,
-                isEncrypted: true // Always encrypt by default for security
+            // Send message via API
+            await MessageService.sendMessage({
+                jobId,
+                content: messageText,
             });
 
-            setMessages(prev => [...prev, {
-                ...newMessage,
-                sender: currentUser // Local display optimization
-            }]);
-
-            // Scroll to bottom
-            setTimeout(() => flatListRef.current?.scrollToEnd(), 100);
+            // Message will be received via Ably channel
         } catch (error) {
             console.error('Failed to send message:', error);
         }
     };
 
+    const handleTyping = async () => {
+        // Could implement typing indicator via Ably here
+    };
+
     const renderMessage = ({ item }) => {
-        const isMine = item.senderId === currentUser?.id || item.sender?.id === currentUser?.id;
+        const isOwnMessage = item.senderId === currentUser?.id;
 
         return (
             <View style={[
                 styles.messageContainer,
-                isMine ? styles.myMessage : styles.theirMessage
+                isOwnMessage ? styles.myMessage : styles.otherMessage
             ]}>
                 <View style={[
                     styles.messageBubble,
-                    isMine ? styles.myBubble : styles.theirBubble
+                    isOwnMessage ? styles.myBubble : styles.otherBubble
                 ]}>
                     <Text style={[
                         styles.messageText,
-                        isMine ? styles.myMessageText : styles.theirMessageText
+                        isOwnMessage ? styles.myText : styles.otherText
                     ]}>
                         {item.content}
                     </Text>
-                    <View style={styles.messageFooter}>
-                        <Text style={styles.messageTime}>
-                            {new Date(item.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </Text>
-                        {item.isEncrypted && (
-                            <Lock size={10} color={isMine ? '#E0E0E0' : '#9E9E9E'} style={{ marginLeft: 4 }} />
-                        )}
-                        {item.status === 'queued' && (
-                            <WifiOff size={10} color="#FF9800" style={{ marginLeft: 4 }} />
-                        )}
-                    </View>
+                    <Text style={[
+                        styles.messageTime,
+                        isOwnMessage ? styles.myTime : styles.otherTime
+                    ]}>
+                        {new Date(item.createdAt).toLocaleTimeString('tr-TR', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })}
+                    </Text>
                 </View>
             </View>
         );
     };
 
-    const handleBack = () => {
-        if (navigation.canGoBack()) {
-            navigation.goBack();
-        } else {
-            // Fallback for PWA refresh
-            navigation.navigate('WorkerDashboard');
-        }
-    };
+    if (loading) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#6366f1" />
+                </View>
+            </SafeAreaView>
+        );
+    }
 
     return (
         <SafeAreaView style={styles.container}>
-            {/* Header */}
             <View style={styles.header}>
-                <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-                    <ChevronLeft color="#333" />
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                    <ChevronLeft size={24} color="#fff" />
                 </TouchableOpacity>
                 <View style={styles.headerInfo}>
-                    <Text style={styles.headerTitle}>{jobTitle || 'İş Sohbeti'}</Text>
-                    <Text style={styles.headerSubtitle}>
-                        {isTyping ? 'Yazıyor...' : 'Çevrimiçi'}
-                    </Text>
+                    <Text style={styles.headerTitle}>{jobTitle || 'Sohbet'}</Text>
                 </View>
             </View>
 
-            {loading && messages.length === 0 ? (
-                <View style={styles.centered}>
-                    <ActivityIndicator size="large" color="#4CAF50" />
-                </View>
-            ) : (
-                <>
-                    {/* Messages List */}
-                    <FlatList
-                        ref={flatListRef}
-                        data={messages}
-                        renderItem={renderMessage}
-                        keyExtractor={(item) => item.id || item.tempId}
-                        contentContainerStyle={styles.listContent}
-                        onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
-                    />
+            <FlatList
+                ref={flatListRef}
+                data={messages}
+                keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
+                renderItem={renderMessage}
+                contentContainerStyle={styles.messageList}
+                onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
+            />
 
-                    {/* Input Area */}
-                    <KeyboardAvoidingView
-                        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-                    >
-                        <View style={styles.inputContainer}>
-                            <TextInput
-                                style={styles.input}
-                                value={inputText}
-                                onChangeText={handleTyping}
-                                placeholder="Mesaj yazın..."
-                                multiline
-                            />
-                            <TouchableOpacity
-                                style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
-                                onPress={handleSend}
-                                disabled={!inputText.trim()}
-                            >
-                                <Send size={24} color="#fff" />
-                            </TouchableOpacity>
-                        </View>
-                    </KeyboardAvoidingView>
-                </>
+            {isTyping && (
+                <View style={styles.typingIndicator}>
+                    <Text style={styles.typingText}>Yazıyor...</Text>
+                </View>
             )}
+
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                keyboardVerticalOffset={90}
+            >
+                <View style={styles.inputContainer}>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Mesaj yazın..."
+                        placeholderTextColor="#9CA3AF"
+                        value={inputText}
+                        onChangeText={setInputText}
+                        onSubmitEditing={handleSend}
+                    />
+                    <TouchableOpacity
+                        style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
+                        onPress={handleSend}
+                        disabled={!inputText.trim()}
+                    >
+                        <Send size={20} color="#fff" />
+                    </TouchableOpacity>
+                </View>
+            </KeyboardAvoidingView>
         </SafeAreaView>
     );
 };
@@ -232,9 +215,9 @@ const ChatScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F5F5F5',
+        backgroundColor: '#1F2937',
     },
-    centered: {
+    loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
@@ -242,104 +225,102 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 15,
-        backgroundColor: '#fff',
+        padding: 16,
+        backgroundColor: '#374151',
         borderBottomWidth: 1,
-        borderBottomColor: '#EEEEEE',
+        borderBottomColor: '#4B5563',
     },
     backButton: {
-        padding: 5,
+        marginRight: 12,
     },
     headerInfo: {
-        marginLeft: 10,
+        flex: 1,
     },
     headerTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#333',
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: '600',
     },
-    headerSubtitle: {
-        fontSize: 12,
-        color: '#4CAF50',
-    },
-    listContent: {
-        padding: 15,
-        paddingBottom: 20,
+    messageList: {
+        padding: 16,
     },
     messageContainer: {
-        marginBottom: 10,
-        width: '100%',
-        flexDirection: 'row',
+        marginBottom: 12,
     },
     myMessage: {
-        justifyContent: 'flex-end',
+        alignItems: 'flex-end',
     },
-    theirMessage: {
-        justifyContent: 'flex-start',
+    otherMessage: {
+        alignItems: 'flex-start',
     },
     messageBubble: {
         maxWidth: '80%',
         padding: 12,
-        borderRadius: 18,
+        borderRadius: 16,
     },
     myBubble: {
-        backgroundColor: '#4CAF50',
+        backgroundColor: '#6366f1',
         borderBottomRightRadius: 4,
     },
-    theirBubble: {
-        backgroundColor: '#fff',
+    otherBubble: {
+        backgroundColor: '#374151',
         borderBottomLeftRadius: 4,
-        borderWidth: 1,
-        borderColor: '#E0E0E0',
     },
     messageText: {
-        fontSize: 15,
-        lineHeight: 20,
+        fontSize: 16,
     },
-    myMessageText: {
+    myText: {
         color: '#fff',
     },
-    theirMessageText: {
-        color: '#333',
-    },
-    messageFooter: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        marginTop: 4,
+    otherText: {
+        color: '#E5E7EB',
     },
     messageTime: {
-        fontSize: 10,
-        color: 'rgba(0,0,0,0.4)',
+        fontSize: 11,
+        marginTop: 4,
+    },
+    myTime: {
+        color: 'rgba(255,255,255,0.7)',
+        textAlign: 'right',
+    },
+    otherTime: {
+        color: 'rgba(255,255,255,0.5)',
+    },
+    typingIndicator: {
+        padding: 8,
+        paddingLeft: 16,
+    },
+    typingText: {
+        color: '#9CA3AF',
+        fontSize: 12,
+        fontStyle: 'italic',
     },
     inputContainer: {
         flexDirection: 'row',
-        padding: 10,
-        backgroundColor: '#fff',
         alignItems: 'center',
+        padding: 12,
+        backgroundColor: '#374151',
         borderTopWidth: 1,
-        borderTopColor: '#EEEEEE',
+        borderTopColor: '#4B5563',
     },
     input: {
         flex: 1,
-        backgroundColor: '#F0F0F0',
-        borderRadius: 20,
-        paddingHorizontal: 15,
-        paddingVertical: 8,
-        marginRight: 10,
-        maxHeight: 100,
-        fontSize: 15,
+        backgroundColor: '#1F2937',
+        color: '#fff',
+        padding: 12,
+        borderRadius: 24,
+        marginRight: 8,
     },
     sendButton: {
-        backgroundColor: '#4CAF50',
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        backgroundColor: '#6366f1',
+        width: 44,
+        height: 44,
+        borderRadius: 22,
         justifyContent: 'center',
         alignItems: 'center',
     },
     sendButtonDisabled: {
-        backgroundColor: '#BDBDBD',
+        backgroundColor: '#4B5563',
     },
 });
 
