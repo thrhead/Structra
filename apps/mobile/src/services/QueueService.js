@@ -1,11 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system/legacy';
+import { Platform } from 'react-native';
 
 const STORAGE_KEY = 'OFFLINE_QUEUE';
-const MEDIA_DIR = `${FileSystem.documentDirectory}offline_media/`;
+const MEDIA_DIR = Platform.OS === 'web' ? '' : `${FileSystem.documentDirectory}offline_media/`;
 
 // Ensure media directory exists
 const ensureDirExists = async () => {
+  if (Platform.OS === 'web') return;
+  
   const dirInfo = await FileSystem.getInfoAsync(MEDIA_DIR);
   if (!dirInfo.exists) {
     await FileSystem.makeDirectoryAsync(MEDIA_DIR, { intermediates: true });
@@ -25,7 +28,7 @@ export const QueueService = {
       let mediaPath = null;
 
       // Seviye 1: Büyük medya dosyalarını (fotoğraf) FileSystem'e taşı
-      if (item.type === 'POST' && item.url.includes('/photos') && item.payload?.photo) {
+      if (Platform.OS !== 'web' && item.type === 'POST' && item.url.includes('/photos') && item.payload?.photo) {
         const fileName = `photo_${Date.now()}.txt`; // Base64 content
         mediaPath = `${MEDIA_DIR}${fileName}`;
         await FileSystem.writeAsStringAsync(mediaPath, item.payload.photo);
@@ -58,7 +61,9 @@ export const QueueService = {
    */
   initialize: async () => {
     try {
-      await ensureDirExists();
+      if (Platform.OS !== 'web') {
+        await ensureDirExists();
+      }
       const items = await QueueService.getItems();
       console.log(`[QueueService] Initialized with ${items.length} pending items.`);
       return items.length;
@@ -97,7 +102,7 @@ export const QueueService = {
       const itemToRemove = queue.find(item => item.id === id);
 
       // Dosyayı temizle (Seviye 1)
-      if (itemToRemove?.payload?._localUri) {
+      if (Platform.OS !== 'web' && itemToRemove?.payload?._localUri) {
         try {
           await FileSystem.deleteAsync(itemToRemove.payload._localUri, { idempotent: true });
         } catch (e) {
@@ -137,8 +142,10 @@ export const QueueService = {
     try {
       await AsyncStorage.removeItem(STORAGE_KEY);
       // Tüm medya klasörünü temizle
-      await FileSystem.deleteAsync(MEDIA_DIR, { idempotent: true });
-      await ensureDirExists();
+      if (Platform.OS !== 'web') {
+        await FileSystem.deleteAsync(MEDIA_DIR, { idempotent: true });
+        await ensureDirExists();
+      }
     } catch (error) {
       console.error('Error clearing queue:', error);
       throw error;

@@ -347,15 +347,13 @@ export default function App() {
           <NetworkProvider>
             <ThemeProvider>
               <AuthProvider>
-                <AblyProvider>
-                  <SocketProvider>
-                    <AlertProvider>
+                <SocketProvider>
+                  <AlertProvider>
                     <OfflineBanner />
                     <AppNavigator />
                     <ToastNotification />
                   </AlertProvider>
                 </SocketProvider>
-                </AblyProvider>
               </AuthProvider>
             </ThemeProvider>
           </NetworkProvider>

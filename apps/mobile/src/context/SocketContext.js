@@ -11,6 +11,8 @@ const SocketContext = createContext({
     notifications: [],
     markAsRead: () => { },
     markAllAsRead: () => { },
+    joinJobRoom: () => { },
+    leaveJobRoom: () => { },
 });
 
 export const useSocket = () => useContext(SocketContext);
@@ -25,8 +27,83 @@ export const SocketProvider = ({ children }) => {
     // Ref to keep track of client instance to prevent multiple connections
     const clientRef = useRef(null);
     const channelRef = useRef(null);
+    const jobChannelsRef = useRef({});
 
     console.log('[SocketContext] Render. Auth:', isAuthenticated, 'User:', user?.id);
+
+    // Create a compatible socket object
+    const createSocketWrapper = (ably) => {
+        return {
+            ably,
+            on: (event, callback) => {
+                console.log(`[Ably Wrapper] Subscribing to: ${event}`);
+                if (event === 'connect') {
+                    ably.connection.on('connected', callback);
+                } else if (event === 'disconnect') {
+                    ably.connection.on('disconnected', callback);
+                } else if (event === 'error') {
+                    ably.connection.on('failed', callback);
+                } else if (event === 'job:updated') {
+                    // This is a special case for JobDetailScreen
+                    // We'll subscribe to all active job channels for this event
+                    Object.values(jobChannelsRef.current).forEach(channel => {
+                        channel.subscribe('job:updated', (message) => callback(message.data));
+                    });
+                    // Also save it for future job channels
+                    ably._jobUpdateCallback = callback;
+                } else {
+                    // Default to user channel for other events
+                    const userChannel = ably.channels.get(`user:${user?.id}`);
+                    userChannel.subscribe(event, (message) => callback(message.data));
+                }
+            },
+            off: (event, callback) => {
+                console.log(`[Ably Wrapper] Unsubscribing from: ${event}`);
+                if (event === 'connect') {
+                    ably.connection.off('connected', callback);
+                } else if (event === 'disconnect') {
+                    ably.connection.off('disconnected', callback);
+                } else if (event === 'job:updated') {
+                    Object.values(jobChannelsRef.current).forEach(channel => {
+                        channel.unsubscribe('job:updated');
+                    });
+                    ably._jobUpdateCallback = null;
+                } else {
+                    const userChannel = ably.channels.get(`user:${user?.id}`);
+                    userChannel.unsubscribe(event);
+                }
+            },
+            emit: (event, ...args) => {
+                console.log(`[Ably Wrapper] Emitting (not fully supported): ${event}`, args);
+                // Implementation depends on server-side Ably setup
+            }
+        };
+    };
+
+    const joinJobRoom = (jobId) => {
+        if (!clientRef.current) return;
+        console.log(`[Ably] Joining job room: job:${jobId}`);
+        const channel = clientRef.current.channels.get(`job:${jobId}`);
+        jobChannelsRef.current[jobId] = channel;
+
+        // If we have a pending job:updated callback, subscribe now
+        if (clientRef.current._jobUpdateCallback) {
+            channel.subscribe('job:updated', (message) => {
+                clientRef.current._jobUpdateCallback(message.data);
+            });
+        }
+    };
+
+    const leaveJobRoom = (jobId) => {
+        if (!clientRef.current) return;
+        console.log(`[Ably] Leaving job room: job:${jobId}`);
+        const channel = jobChannelsRef.current[jobId];
+        if (channel) {
+            channel.unsubscribe();
+            channel.detach();
+            delete jobChannelsRef.current[jobId];
+        }
+    };
 
     useEffect(() => {
         console.log('[SocketContext] Effect triggered. Auth:', isAuthenticated, 'User:', user?.id);
@@ -37,6 +114,7 @@ export const SocketProvider = ({ children }) => {
                 clientRef.current.close();
                 clientRef.current = null;
                 channelRef.current = null;
+                jobChannelsRef.current = {};
                 setSocket(null);
                 setIsConnected(false);
                 setUnreadCount(0);
@@ -86,7 +164,7 @@ export const SocketProvider = ({ children }) => {
         });
 
         clientRef.current = ably;
-        setSocket(ably);
+        setSocket(createSocketWrapper(ably));
 
         ably.connection.on('connected', () => {
             console.log('[Ably] ✅ Connected:', ably.clientId);
@@ -165,6 +243,7 @@ export const SocketProvider = ({ children }) => {
                 clientRef.current.close();
                 clientRef.current = null;
                 channelRef.current = null;
+                jobChannelsRef.current = {};
             }
         };
     }, [isAuthenticated, user]);
@@ -244,7 +323,9 @@ export const SocketProvider = ({ children }) => {
             unreadCount,
             notifications,
             markAsRead,
-            markAllAsRead
+            markAllAsRead,
+            joinJobRoom,
+            leaveJobRoom
         }}>
             {children}
         </SocketContext.Provider>
