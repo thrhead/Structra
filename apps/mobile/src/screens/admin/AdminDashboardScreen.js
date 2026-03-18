@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, StatusBar, Alert, Platform, FlatList, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import {
     Users, Building2, UsersRound, Briefcase, ClipboardCheck, Banknote,
     Calendar, TrendingUp, BarChart3, Sun, Moon, PlusCircle, UserPlus, ChevronRight, ShieldCheck
@@ -141,6 +142,14 @@ export default function AdminDashboardScreen({ navigation }) {
                                             onPress={toggleTheme}
                                         >
                                             {isDark ? <Sun size={24} color={theme.colors.icon} /> : <Moon size={24} color={theme.colors.icon} />}
+                                        </TouchableOpacity>
+
+                                        <TouchableOpacity
+                                            style={[styles.iconButton, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder }]}
+                                            onPress={() => navigation.navigate('Notifications')}
+                                        >
+                                            <MaterialIcons name="notifications-none" size={24} color={theme.colors.icon} />
+                                            <View style={styles.notificationBadge} />
                                         </TouchableOpacity>
 
                                         <TouchableOpacity
@@ -366,6 +375,17 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 1,
+    },
+    notificationBadge: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: '#ef4444',
+        borderWidth: 1.5,
+        borderColor: '#fff',
     },
     avatarCircle: {
         width: 48,
