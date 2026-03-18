@@ -1,10 +1,11 @@
-import { auth } from '@/lib/auth'
 import { getAblyRestClient } from '@/lib/ably'
 import { NextResponse } from 'next/server'
+import { verifyAuth } from '@/lib/auth-helper'
 
-export async function GET() {
+export async function GET(request: Request) {
     try {
-        const session = await auth()
+        // Use verifyAuth which supports both JWT tokens (mobile) and session cookies (web)
+        const session = await verifyAuth(request)
         if (!session?.user?.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
