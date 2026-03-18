@@ -73,3 +73,5 @@ Proje hakkında daha detaylı teknik bilgi ve mimari kararlar için `memory-bank
 
 ---
 *Geleceğin saha operasyonlarını bugün Structra ile yönetin.*
+
+<!-- Trigger Vercel Build -->
