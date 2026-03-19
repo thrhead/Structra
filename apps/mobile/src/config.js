@@ -18,7 +18,8 @@ const getBaseUrl = () => {
             }
             return 'http://localhost:3000';
         }
-        return 'https://field-service-management-lovat.vercel.app';
+        // If web production, base API is structra.qzz.io
+        return 'https://structra.qzz.io';
     }
 
     // Hardcoded LAN IP for physical device testing in development
@@ -28,8 +29,8 @@ const getBaseUrl = () => {
     }
 
     // Fallback for production if no env var is set
-    console.log('[Config] Using Fallback URL: https://field-service-management-lovat.vercel.app');
-    return 'https://field-service-management-lovat.vercel.app';
+    console.log('[Config] Using Fallback URL: https://structra.qzz.io');
+    return 'https://structra.qzz.io';
 };
 
 export const API_URL = getBaseUrl();

@@ -12,6 +12,7 @@ const ALLOWED_ORIGINS = [
   /^https:\/\/field-service-management-lovat\.vercel\.app$/,
   /^https:\/\/assembly-.*\.vercel\.app$/,
   /^https:\/\/assemblyweb\.vercel\.app$/,
+  /^https:\/\/.*structra\.qzz\.io$/,
   /^null$/, // For mobile file:// or other scenarios
   /^capacitor:\/\/.*$/, // Capacitor support
   /^exp:\/\/.*$/ // Expo support
