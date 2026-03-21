@@ -1,29 +1,27 @@
 'use client'
 
-import { useState } from 'react'
 import { AdminSidebar } from '@/components/admin/sidebar'
 import { AdminHeader } from '@/components/admin/header'
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-
   return (
-    <div className="flex min-h-screen bg-muted/30">
-      <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-      <div className="flex-1 flex flex-col min-w-0">
-        <AdminHeader onMenuClick={() => setSidebarOpen(true)} />
-
-        <main className="flex-1 p-4 lg:p-8 overflow-y-auto">
-          <div className="max-w-7xl mx-auto w-full">
-            {children}
-          </div>
-        </main>
+    <SidebarProvider>
+      <div className="flex min-h-screen bg-muted/30 w-full">
+        <AdminSidebar />
+        <SidebarInset className="flex flex-col min-w-0">
+          <AdminHeader />
+          <main className="flex-1 p-4 lg:p-8">
+            <div className="max-w-7xl mx-auto w-full">
+              {children}
+            </div>
+          </main>
+        </SidebarInset>
       </div>
-    </div>
+    </SidebarProvider>
   )
 }

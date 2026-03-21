@@ -9,9 +9,20 @@ import {
   CheckSquareIcon,
   SettingsIcon,
   HomeIcon,
-  XIcon
+  HardHatIcon
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+} from '@/components/ui/sidebar'
 
 const sidebarItems = [
   {
@@ -36,65 +47,66 @@ const sidebarItems = [
   }
 ]
 
-interface WorkerSidebarProps {
-  isOpen: boolean
-  onClose: () => void
-}
-
-export function WorkerSidebar({ isOpen, onClose }: WorkerSidebarProps) {
+export function WorkerSidebar() {
   const pathname = usePathname()
 
   return (
-    <>
-      {/* Sidebar Container */}
-      <div
-        className={cn(
-          "fixed inset-y-0 left-0 z-40 w-64 bg-white border-r transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:flex lg:flex-col",
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        )}
-      >
-        <div className="h-16 flex items-center justify-between px-6 border-b lg:hidden">
-          <span className="font-bold text-lg">Menü</span>
-          <Button variant="ghost" size="icon" onClick={onClose} aria-label="Menüyü Kapat">
-            <XIcon className="h-5 w-5" />
-          </Button>
-        </div>
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar shadow-sm">
+      <SidebarHeader className="h-16 border-b border-sidebar-border flex items-center px-4">
+        <Link href="/worker" className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center w-full">
+          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-indigo-600 text-white shrink-0">
+            <HardHatIcon className="size-4" />
+          </div>
+          <div className="flex flex-col gap-0.5 leading-none group-data-[collapsible=icon]:hidden">
+            <span className="font-bold text-indigo-600">Saha Paneli</span>
+            <span className="text-[10px] text-muted-foreground">İş Akışı</span>
+          </div>
+        </Link>
+      </SidebarHeader>
 
-        {/* Navigation Links */}
-        <div className="flex-1 overflow-y-auto py-4 px-3">
-          <nav className="space-y-1">
+      <SidebarContent className="py-4">
+        <SidebarGroup>
+          <SidebarGroupLabel className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 group-data-[collapsible=icon]:hidden">
+            Menü
+          </SidebarGroupLabel>
+          <SidebarMenu>
             {sidebarItems.map((item) => {
-              const isActive = pathname === item.href || (item.href !== '/worker' && pathname.startsWith(item.href))
+              const isActive = pathname === item.href
               return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-indigo-50 text-indigo-600"
-                      : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                  )}
-                  onClick={onClose}
-                >
-                  <div className="flex items-center gap-3">
-                    <item.icon className={cn("h-5 w-5", isActive ? "text-indigo-600" : "text-gray-500")} />
-                    {item.title}
-                  </div>
-                </Link>
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton 
+                    asChild 
+                    isActive={isActive}
+                    tooltip={item.title}
+                    className={cn(
+                      "transition-all",
+                      isActive ? "bg-indigo-50 text-indigo-600" : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    )}
+                  >
+                    <Link href={item.href}>
+                      <item.icon className={cn("size-4", isActive ? "text-indigo-600" : "")} />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               )
             })}
-          </nav>
-        </div>
-      </div>
+          </SidebarMenu>
+        </SidebarGroup>
+      </SidebarContent>
 
-      {/* Overlay for mobile */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-background/60 backdrop-blur-sm z-30 lg:hidden"
-          onClick={onClose}
-        />
-      )}
-    </>
+      <SidebarFooter className="border-t border-sidebar-border bg-sidebar p-4">
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-8 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold shrink-0">
+            W
+          </div>
+          <div className="flex flex-1 flex-col overflow-hidden group-data-[collapsible=icon]:hidden">
+            <span className="truncate text-sm font-medium text-foreground">Worker</span>
+            <span className="truncate text-xs text-muted-foreground">worker@montaj.com</span>
+          </div>
+        </div>
+      </SidebarFooter>
+      <SidebarRail />
+    </Sidebar>
   )
 }

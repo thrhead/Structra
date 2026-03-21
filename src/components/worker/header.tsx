@@ -15,22 +15,18 @@ import { NotificationDropdown } from '@/components/notifications/notification-dr
 import { useNetwork } from '@/hooks/use-network'
 import { Badge } from '@/components/ui/badge'
 import { useRouter } from '@/lib/navigation'
+import { SidebarTrigger } from '@/components/ui/sidebar'
 
-interface WorkerHeaderProps {
-  onMenuClick: () => void
-}
-
-export function WorkerHeader({ onMenuClick }: WorkerHeaderProps) {
+export function WorkerHeader() {
   const { data: session } = useSession()
   const isOnline = useNetwork()
   const router = useRouter()
 
   return (
-    <header className="h-16 border-b bg-white flex items-center justify-between px-4 lg:px-6">
+    <header className="h-16 border-b bg-white flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={onMenuClick} className="lg:hidden">
-          <MenuIcon className="h-5 w-5" />
-        </Button>
+        <SidebarTrigger className="-ml-1" />
+        <div className="h-6 w-px bg-border mx-2 lg:hidden" />
         <h1 className="text-xl font-bold text-indigo-600">Montaj Takip</h1>
         {!isOnline && (
           <Badge variant="destructive" className="gap-1 animate-pulse">
@@ -72,4 +68,4 @@ export function WorkerHeader({ onMenuClick }: WorkerHeaderProps) {
       </div>
     </header>
   )
-}
+}

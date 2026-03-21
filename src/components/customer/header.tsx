@@ -12,23 +12,22 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useRouter } from '@/lib/navigation'
+import { SidebarTrigger } from '@/components/ui/sidebar'
 
 interface CustomerHeaderProps {
-  onMenuClick?: () => void
   user?: {
     name?: string | null
     email?: string | null
   }
 }
 
-export function CustomerHeader({ onMenuClick, user }: CustomerHeaderProps) {
+export function CustomerHeader({ user }: CustomerHeaderProps) {
   const router = useRouter()
   return (
-    <header className="h-16 border-b bg-white flex items-center justify-between px-4 lg:px-6">
+    <header className="h-16 border-b bg-white flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={onMenuClick} className="lg:hidden">
-          <MenuIcon className="h-5 w-5" />
-        </Button>
+        <SidebarTrigger className="-ml-1" />
+        <div className="h-6 w-px bg-border mx-2 lg:hidden" />
         <h1 className="text-xl font-bold text-indigo-600">Montaj Takip</h1>
       </div>
 
@@ -61,4 +60,4 @@ export function CustomerHeader({ onMenuClick, user }: CustomerHeaderProps) {
       </div>
     </header>
   )
-}
+}

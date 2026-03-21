@@ -14,20 +14,16 @@ import {
 import { signOut } from 'next-auth/react'
 import { useRouter } from '@/lib/navigation'
 import { NotificationDropdown } from '@/components/notifications/notification-dropdown'
+import { SidebarTrigger } from '@/components/ui/sidebar'
 
-interface AdminHeaderProps {
-  onMenuClick?: () => void
-}
-
-export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
+export function AdminHeader() {
   const router = useRouter()
 
   return (
     <div className="h-16 border-b bg-white flex items-center justify-between px-4 sticky top-0 z-40">
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={onMenuClick} className="lg:hidden" aria-label="Menüyü Aç">
-          <MenuIcon className="h-5 w-5" />
-        </Button>
+        <SidebarTrigger className="-ml-1" />
+        <div className="h-6 w-px bg-border mx-2 lg:hidden" />
         <h1 className="font-bold text-lg text-indigo-600">Montaj Takip</h1>
       </div>
       <div className="hidden lg:block">

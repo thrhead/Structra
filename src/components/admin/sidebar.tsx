@@ -17,10 +17,32 @@ import {
   FileTextIcon,
   BarChart3Icon,
   PieChartIcon,
-  GlobeIcon
+  GlobeIcon,
+  Settings2Icon,
+  ChevronRight
 } from 'lucide-react'
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+  SidebarRail,
+  useSidebar
+} from '@/components/ui/sidebar'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 
 const sidebarItems = [
   {
@@ -29,140 +51,170 @@ const sidebarItems = [
     icon: LayoutDashboardIcon
   },
   {
-    title: 'Kullanıcılar',
-    href: '/admin/users',
-    icon: UsersIcon
+    title: 'Kullanıcı Yönetimi',
+    icon: UsersIcon,
+    items: [
+      {
+        title: 'Tüm Kullanıcılar',
+        href: '/admin/users',
+      },
+      {
+        title: 'Müşteriler',
+        href: '/admin/customers',
+      },
+    ]
   },
   {
-    title: 'Müşteriler',
-    href: '/admin/customers',
-    icon: Users2Icon
+    title: 'Operasyon',
+    icon: BriefcaseIcon,
+    items: [
+      {
+        title: 'Ekipler',
+        href: '/admin/teams',
+      },
+      {
+        title: 'İşler',
+        href: '/admin/jobs',
+      },
+      {
+        title: 'Gelişmiş Planlama',
+        href: '/admin/jobs/gantt',
+      },
+      {
+        title: 'İş Şablonları',
+        href: '/admin/templates',
+      },
+    ]
   },
   {
-    title: 'Ekipler',
-    href: '/admin/teams',
-    icon: BriefcaseIcon
-  },
-  {
-    title: 'Takvim',
+    title: 'Verimlilik',
     href: '/admin/calendar',
     icon: CalendarIcon
   },
   {
-    title: 'İşler',
-    href: '/admin/jobs',
-    icon: BriefcaseIcon
+    title: 'Finans & Raporlama',
+    icon: BarChart3Icon,
+    items: [
+      {
+        title: 'Maliyetler',
+        href: '/admin/costs',
+      },
+      {
+        title: 'Raporlar',
+        href: '/admin/reports',
+      },
+      {
+        title: 'Sistem Logları',
+        href: '/admin/logs',
+      },
+    ]
   },
   {
-    title: 'Gelişmiş Planlama',
-    href: '/admin/jobs/gantt',
-    icon: CalendarIcon
-  },
-  {
-    title: 'İş Şablonları',
-    href: '/admin/templates',
-    icon: FileTextIcon
-  },
-  {
-    title: 'Onaylar',
-    href: '/admin/approvals',
-    icon: CheckCircle2Icon
-  },
-  {
-    title: 'Maliyetler',
-    href: '/admin/costs',
-    icon: TrendingUpIcon
-  },
-  {
-    title: 'Raporlar',
-    href: '/admin/reports',
-    icon: BarChart3Icon
-  },
-  {
-    title: 'Loglar',
-    href: '/admin/logs',
-    icon: FileTextIcon
-  },
-  {
-    title: 'Entegrasyonlar',
-    href: '/admin/integrations/api-keys',
-    icon: GlobeIcon
+    title: 'Sistem',
+    icon: Settings2Icon,
+    items: [
+      {
+        title: 'Entegrasyonlar',
+        href: '/admin/integrations/api-keys',
+      },
+      {
+        title: 'Ayarlar',
+        href: '/admin/settings',
+      }
+    ]
   }
 ]
 
-interface AdminSidebarProps {
-  isOpen: boolean
-  onClose: () => void
-}
-
-export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
+export function AdminSidebar() {
   const pathname = usePathname()
 
   return (
-    <>
-      {/* Sidebar Container */}
-      <div
-        className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:flex lg:flex-col",
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        )}
-      >
-        {/* Logo Area */}
-        <div className="h-16 flex items-center justify-between px-6 border-b">
-          <Link href="/admin" className="flex items-center gap-2 font-bold text-xl text-indigo-600" onClick={onClose}>
-            <span>Montaj Takip</span>
-          </Link>
-          <Button variant="ghost" size="icon" onClick={onClose} className="lg:hidden" aria-label="Menüyü Kapat">
-            <XIcon className="h-5 w-5" />
-          </Button>
-        </div>
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar shadow-sm">
+      <SidebarHeader className="h-16 border-b border-sidebar-border flex items-center px-4">
+        <Link href="/admin" className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center w-full">
+          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-indigo-600 text-white shrink-0">
+            <LayoutDashboardIcon className="size-4" />
+          </div>
+          <div className="flex flex-col gap-0.5 leading-none group-data-[collapsible=icon]:hidden">
+            <span className="font-bold text-indigo-600">Montaj Takip</span>
+            <span className="text-[10px] text-muted-foreground">Admin Paneli</span>
+          </div>
+        </Link>
+      </SidebarHeader>
 
-        {/* Navigation Links */}
-        <div className="flex-1 overflow-y-auto py-4 px-3">
-          <nav className="space-y-1">
+      <SidebarContent className="py-4">
+        <SidebarGroup>
+          <SidebarGroupLabel className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 group-data-[collapsible=icon]:hidden">
+            Yönetim
+          </SidebarGroupLabel>
+          <SidebarMenu>
             {sidebarItems.map((item) => {
+              if (item.items) {
+                return (
+                  <Collapsible key={item.title} asChild defaultOpen={item.items.some(sub => pathname === sub.href)} className="group/collapsible">
+                    <SidebarMenuItem>
+                      <CollapsibleTrigger asChild>
+                        <SidebarMenuButton tooltip={item.title} className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+                          {item.icon && <item.icon className="size-4" />}
+                          <span className="flex-1">{item.title}</span>
+                          <ChevronRight className="ml-auto size-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                        </SidebarMenuButton>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <SidebarMenuSub>
+                          {item.items.map((subItem) => (
+                            <SidebarMenuSubItem key={subItem.title}>
+                              <SidebarMenuSubButton asChild isActive={pathname === subItem.href} className={cn(
+                                "transition-all",
+                                pathname === subItem.href ? "bg-indigo-50 text-indigo-600 font-medium" : "hover:bg-sidebar-accent/50"
+                              )}>
+                                <Link href={subItem.href}>{subItem.title}</Link>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          ))}
+                        </SidebarMenuSub>
+                      </CollapsibleContent>
+                    </SidebarMenuItem>
+                  </Collapsible>
+                )
+              }
+
               const isActive = pathname === item.href
               return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-indigo-50 text-indigo-600"
-                      : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                  )}
-                  onClick={onClose}
-                >
-                  <item.icon className={cn("h-5 w-5", isActive ? "text-indigo-600" : "text-gray-500")} />
-                  {item.title}
-                </Link>
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton 
+                    asChild 
+                    tooltip={item.title} 
+                    isActive={isActive}
+                    className={cn(
+                      "transition-all",
+                      isActive ? "bg-indigo-50 text-indigo-600" : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    )}
+                  >
+                    <Link href={item.href!}>
+                      <item.icon className={cn("size-4", isActive ? "text-indigo-600" : "")} />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               )
             })}
-          </nav>
-        </div>
+          </SidebarMenu>
+        </SidebarGroup>
+      </SidebarContent>
 
-        {/* User Profile / Footer */}
-        <div className="border-t p-4">
-          <div className="flex items-center gap-3 px-2">
-            <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
-              A
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">Admin</p>
-              <p className="text-xs text-gray-500 truncate">admin@montaj.com</p>
-            </div>
+      <SidebarFooter className="border-t border-sidebar-border bg-sidebar p-4">
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-8 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold shrink-0">
+            A
+          </div>
+          <div className="flex flex-1 flex-col overflow-hidden group-data-[collapsible=icon]:hidden">
+            <span className="truncate text-sm font-medium text-foreground">Admin</span>
+            <span className="truncate text-xs text-muted-foreground">admin@montaj.com</span>
           </div>
         </div>
-      </div>
-
-      {/* Overlay for mobile */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-background/60 backdrop-blur-sm z-30 lg:hidden"
-          onClick={onClose}
-        />
-      )}
-    </>
+      </SidebarFooter>
+      <SidebarRail />
+    </Sidebar>
   )
 }

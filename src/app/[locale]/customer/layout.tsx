@@ -1,11 +1,10 @@
 'use client'
 
-import { useState } from 'react'
-import { auth } from "@/lib/auth"
 import { redirect } from "@/lib/navigation"
 import { CustomerHeader } from "@/components/customer/header"
 import { CustomerSidebar } from "@/components/customer/sidebar"
 import { useSession } from 'next-auth/react'
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 
 export default function CustomerLayout({
   children,
@@ -13,7 +12,6 @@ export default function CustomerLayout({
   children: React.ReactNode
 }) {
   const { data: session, status } = useSession()
-  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   if (status === 'loading') {
     return <div className="flex min-h-screen items-center justify-center">Yükleniyor...</div>
@@ -24,20 +22,21 @@ export default function CustomerLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <CustomerSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} /> 
-      
-      <div className="flex-1 flex flex-col min-w-0">
-        <CustomerHeader 
-          onMenuClick={() => setSidebarOpen(true)} 
-          user={session?.user as any} 
-        />
-        <main className="flex-1 p-4 lg:p-8 overflow-y-auto">
-          <div className="max-w-7xl mx-auto">
-            {children}
-          </div>
-        </main>
+    <SidebarProvider>
+      <div className="min-h-screen bg-gray-50 flex w-full">
+        <CustomerSidebar /> 
+        
+        <SidebarInset className="flex-1 flex flex-col min-w-0">
+          <CustomerHeader 
+            user={session?.user as any} 
+          />
+          <main className="flex-1 p-4 lg:p-8">
+            <div className="max-w-7xl mx-auto">
+              {children}
+            </div>
+          </main>
+        </SidebarInset>
       </div>
-    </div>
+    </SidebarProvider>
   )
 }
