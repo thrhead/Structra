@@ -7,12 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { UserIcon, LockIcon, Loader2Icon, CheckCircle2Icon, AlertCircleIcon } from 'lucide-react'
+import { UserIcon, LockIcon, Loader2Icon, CheckCircle2Icon, AlertCircleIcon, PaletteIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface ProfileViewProps {
     role: 'ADMIN' | 'MANAGER' | 'WORKER' | 'CUSTOMER'
 }
+
+import { SidebarThemeSwitcher } from '@/components/theme/sidebar-theme-switcher'
 
 export function ProfileView({ role }: ProfileViewProps) {
     const router = useRouter()
@@ -145,6 +147,21 @@ export function ProfileView({ role }: ProfileViewProps) {
     return (
         <div className="space-y-6 max-w-2xl mx-auto py-8 px-4">
             <h1 className="text-3xl font-bold text-gray-900">Hesap Ayarları</h1>
+
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center gap-2">
+                        <PaletteIcon className="h-5 w-5 text-indigo-600" />
+                        <CardTitle>Görünüm Ayarları</CardTitle>
+                    </div>
+                    <CardDescription>
+                        Yan menü stilini ve renk temasını seçin.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <SidebarThemeSwitcher />
+                </CardContent>
+            </Card>
 
             <Card>
                 <CardHeader>

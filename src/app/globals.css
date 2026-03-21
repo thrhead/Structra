@@ -121,15 +121,29 @@
   --info: oklch(0.75 0.15 240);
   --info-foreground: oklch(0.25 0.05 240);
 
-  /* Sidebar Tokens (Light Mode - Linked to existing theme) */
-  --sidebar-background: var(--background);
-  --sidebar-foreground: var(--foreground);
-  --sidebar-primary: var(--primary);
-  --sidebar-primary-foreground: var(--primary-foreground);
-  --sidebar-accent: var(--accent);
-  --sidebar-accent-foreground: var(--accent-foreground);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
+}
+
+/* Sidebar Theme Overrides */
+[data-sidebar-theme="modern-vibrant"] {
+  --sidebar: oklch(0.2 0.04 260); /* Vibrant Slate/Indigo */
+  --sidebar-foreground: oklch(0.98 0.01 260);
+  --sidebar-primary: oklch(0.65 0.15 260);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.28 0.05 260);
+  --sidebar-accent-foreground: oklch(0.98 0 0);
+  --sidebar-border: oklch(0.3 0.02 260);
+}
+
+[data-sidebar-theme="modern-dark"] {
+  --sidebar: oklch(0.15 0.02 260); /* Very Dark Slate */
+  --sidebar-foreground: oklch(0.95 0.01 260);
+  --sidebar-primary: oklch(0.7 0.12 250);
+  --sidebar-primary-foreground: oklch(0.15 0.02 260);
+  --sidebar-accent: oklch(0.2 0.03 260);
+  --sidebar-accent-foreground: oklch(0.95 0.01 260);
+  --sidebar-border: oklch(0.25 0.02 260);
 }
 
 .dark {
