@@ -119,7 +119,7 @@ const sidebarItems = [
       },
       {
         title: 'Ayarlar',
-        href: '/admin/settings',
+        href: '/admin/profile',
       }
     ]
   }
