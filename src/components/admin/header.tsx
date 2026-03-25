@@ -15,6 +15,7 @@ import { signOut } from 'next-auth/react'
 import { useRouter } from '@/lib/navigation'
 import { NotificationDropdown } from '@/components/notifications/notification-dropdown'
 import { SidebarTrigger } from '@/components/ui/sidebar'
+import { ThemeSwitcher } from '@/components/theme-switcher'
 
 export function AdminHeader() {
   const router = useRouter()
@@ -31,6 +32,7 @@ export function AdminHeader() {
       </div>
 
       <div className="flex items-center gap-2">
+        <ThemeSwitcher />
         <NotificationDropdown />
 
         <DropdownMenu>
