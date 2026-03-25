@@ -21,7 +21,7 @@ export function AdminHeader() {
   const router = useRouter()
 
   return (
-    <div className="h-16 border-b bg-white flex items-center justify-between px-4 sticky top-0 z-40">
+    <div className="h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-4 sticky top-0 z-40">
       <div className="flex items-center gap-3">
         <SidebarTrigger className="-ml-1" />
         <div className="h-6 w-px bg-border mx-2 lg:hidden" />

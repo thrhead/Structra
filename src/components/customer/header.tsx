@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useRouter } from '@/lib/navigation'
 import { SidebarTrigger } from '@/components/ui/sidebar'
+import { ThemeSwitcher } from '@/components/theme-switcher'
 
 interface CustomerHeaderProps {
   user?: {
@@ -24,7 +25,7 @@ interface CustomerHeaderProps {
 export function CustomerHeader({ user }: CustomerHeaderProps) {
   const router = useRouter()
   return (
-    <header className="h-16 border-b bg-white flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30">
+    <header className="h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30">
       <div className="flex items-center gap-4">
         <SidebarTrigger className="-ml-1" />
         <div className="h-6 w-px bg-border mx-2 lg:hidden" />
@@ -32,6 +33,7 @@ export function CustomerHeader({ user }: CustomerHeaderProps) {
       </div>
 
       <div className="flex items-center gap-2">
+        <ThemeSwitcher />
         {/* User Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

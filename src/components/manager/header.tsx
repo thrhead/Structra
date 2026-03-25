@@ -14,11 +14,12 @@ import { signOut } from 'next-auth/react'
 import { useRouter } from '@/lib/navigation'
 import { NotificationDropdown } from '@/components/notifications/notification-dropdown'
 import { SidebarTrigger } from '@/components/ui/sidebar'
+import { ThemeSwitcher } from '@/components/theme-switcher'
 
 export function ManagerHeader() {
     const router = useRouter()
     return (
-        <header className="h-16 border-b bg-white flex items-center justify-between px-4 sticky top-0 z-30">
+        <header className="h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-4 sticky top-0 z-30">
             <div className="flex items-center gap-3">
                 <SidebarTrigger className="-ml-1" />
                 <div className="h-6 w-px bg-border mx-2 lg:hidden" />
@@ -29,6 +30,7 @@ export function ManagerHeader() {
             </div>
 
             <div className="flex items-center gap-2">
+                <ThemeSwitcher />
                 <NotificationDropdown />
 
                 <DropdownMenu>
