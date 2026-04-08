@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, Dimensions, Platform, FlatList } from 'react-native';
 import { BarChart, PieChart } from 'react-native-gifted-charts';
-import { BarChart3, TrendingUp, DollarSign, Briefcase, Users, CheckCircle2, Calendar, ArrowRight, FileIcon, ShieldCheck, Zap, Award } from 'lucide-react-native';
+import { BarChart3, TrendingUp, DollarSign, Briefcase, Users, CheckCircle2, Calendar, ArrowRight, FileIcon, ShieldCheck, Zap, Award, AlertTriangle } from 'lucide-react-native';
 import { useTheme } from '../../context/ThemeContext';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -15,19 +15,18 @@ const { width } = Dimensions.get('window');
 const ReportsScreen = () => {
     const { theme, isDark } = useTheme();
     const [loading, setLoading] = useState(true);
-    const [perfData, setPerfData] = useState(null);
-    const [costData, setCostData] = useState(null);
-    const [teamsData, setTeamsData] = useState(null);
+    const [strategicData, setStrategicData] = useState(null);
+    const [tacticalData, setTacticalData] = useState(null);
+    const [operationalData, setOperationalData] = useState(null);
     const [exportsData, setExportsData] = useState([]);
-    const [activeTab, setActiveTab] = useState('performance'); // 'performance', 'costs', 'teams', 'exports'
-    const [selectedTemplate, setSelectedTemplate] = useState('standard');
+    const [activeTab, setActiveTab] = useState('strategic'); // 'strategic', 'tactical', 'operational', 'exports'
+    const [selectedTemplate, setSelectedTemplate] = useState('strategic');
     const [selectedDay, setSelectedDay] = useState(null);
 
     const templates = [
-        { id: 'standard', title: 'Standart', icon: FileIcon, tab: 'performance' },
-        { id: 'audit', title: 'Denetim', icon: ShieldCheck, tab: 'performance' },
-        { id: 'efficiency', title: 'Verimlilik', icon: Zap, tab: 'teams' },
-        { id: 'cost_breakdown', title: 'Maliyet', icon: DollarSign, tab: 'costs' },
+        { id: 'strategic', title: 'Stratejik', icon: BarChart3, tab: 'strategic' },
+        { id: 'tactical', title: 'Taktiksel', icon: TrendingUp, tab: 'tactical' },
+        { id: 'operational', title: 'Operasyonel', icon: Zap, tab: 'operational' },
     ];
 
     useEffect(() => {
@@ -44,18 +43,16 @@ const ReportsScreen = () => {
             const token = await AsyncStorage.getItem('authToken');
             const headers = { Authorization: `Bearer ${token}` };
 
-            const [perfRes, costRes, teamsRes, exportsRes] = await Promise.all([
-                axios.get(`${API_URL}/api/admin/reports/performance`, { headers }),
-                axios.get(`${API_URL}/api/admin/reports/costs`, { headers }),
-                axios.get(`${API_URL}/api/admin/reports/teams`, { headers }).catch(() => ({ data: { reports: [], globalStats: {} } })),
+            const [dashboardRes, exportsRes] = await Promise.all([
+                axios.get(`${API_URL}/api/admin/reports/dashboard`, { headers }),
                 axios.get(`${API_URL}/api/admin/reports/list`, { headers }).catch(() => ({ data: [] }))
             ]);
 
             if (!isMounted) return;
 
-            setPerfData(perfRes.data);
-            setCostData(costRes.data);
-            setTeamsData(teamsRes.data);
+            setStrategicData(dashboardRes.data.strategic);
+            setTacticalData(dashboardRes.data.tactical);
+            setOperationalData(dashboardRes.data.operational);
             setExportsData(exportsRes.data);
 
             if (perfRes.data.weeklySteps?.currentWeek?.length > 0) {
@@ -221,9 +218,9 @@ const ReportsScreen = () => {
             <View style={styles.tabContainer}>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 24, paddingRight: 40 }}>
                     {[
-                        { id: 'performance', label: 'Performans', icon: TrendingUp },
-                        { id: 'costs', label: 'Maliyetler', icon: DollarSign },
-                        { id: 'teams', label: 'Ekipler', icon: Users },
+                        { id: 'strategic', label: 'Stratejik', icon: BarChart3 },
+                        { id: 'tactical', label: 'Taktiksel', icon: TrendingUp },
+                        { id: 'operational', label: 'Operasyonel', icon: Zap },
                         { id: 'exports', label: 'İndirmeler', icon: FileIcon }
                     ].map((tab) => (
                         <TouchableOpacity
@@ -238,109 +235,88 @@ const ReportsScreen = () => {
             </View>
 
             <View style={styles.content}>
-                {activeTab === 'performance' && (
+                {activeTab === 'strategic' && (
                     <View style={styles.animateContent}>
                         <View style={styles.statsGrid}>
                             <GlassCard style={styles.statCard} theme={theme}>
-                                <Briefcase size={20} color={theme.colors.primary} />
-                                <Text style={[styles.statVal, { color: theme.colors.text }]}>{perfData?.stats?.totalJobs}</Text>
-                                <Text style={[styles.statLabel, { color: theme.colors.subText }]}>Toplam İş</Text>
+                                <TrendingUp size={20} color={theme.colors.primary} />
+                                <Text style={[styles.statVal, { color: theme.colors.text }]}>%{strategicData?.overallProfitMargin?.toFixed(1)}</Text>
+                                <Text style={[styles.statLabel, { color: theme.colors.subText }]}>Genel Kâr</Text>
                             </GlassCard>
-                            <GlassCard style={styles.statCard} theme={theme}>
-                                <CheckCircle2 size={20} color={theme.colors.success} />
-                                <Text style={[styles.statVal, { color: theme.colors.text }]}>{perfData?.stats?.completedJobs}</Text>
-                                <Text style={[styles.statLabel, { color: theme.colors.subText }]}>Tamamlanan</Text>
-                            </GlassCard>
-                        </View>
-
-                        <GlassCard style={styles.chartCard} theme={theme}>
-                            <View style={styles.cardHeader}>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                                    <TrendingUp size={18} color={theme.colors.primary} />
-                                    <Text style={[styles.cardTitle, { color: theme.colors.text }]}>Haftalık İlerleme</Text>
-                                </View>
-                            </View>
-                            <View style={{ marginTop: 20, alignItems: 'center' }}>
-                                {getFilteredStackData().length > 0 ? (
-                                    <BarChart
-                                        stackData={getFilteredStackData()}
-                                        height={200}
-                                        width={width - 80}
-                                        barWidth={28}
-                                        spacing={15}
-                                        barBorderRadius={4}
-                                        xAxisThickness={0}
-                                        yAxisThickness={0}
-                                        yAxisTextStyle={{ color: theme.colors.subText, fontSize: 10 }}
-                                        xAxisLabelTextStyle={{ color: theme.colors.subText, fontSize: 10 }}
-                                        hideRules
-                                        isAnimated
-                                    />
-                                ) : (
-                                    <View style={{ height: 200, justifyContent: 'center', alignItems: 'center' }}>
-                                        <TrendingUp size={48} color={theme.colors.subText} style={{ opacity: 0.5, marginBottom: 16 }} />
-                                        <Text style={{ color: theme.colors.subText, fontSize: 14 }}>Haftalık veri bulunmuyor</Text>
-                                    </View>
-                                )}
-                            </View>
-                        </GlassCard>
-                    </View>
-                )}
-
-                {activeTab === 'costs' && (
-                    <View style={styles.animateContent}>
-                        <View style={styles.statsGrid}>
                             <GlassCard style={styles.statCard} theme={theme}>
                                 <DollarSign size={20} color={theme.colors.success} />
-                                <Text style={[styles.statVal, { color: theme.colors.text }]}>₺{perfData?.stats?.totalCost?.toLocaleString()}</Text>
-                                <Text style={[styles.statLabel, { color: theme.colors.subText }]}>Toplam Gider</Text>
-                            </GlassCard>
-                            <GlassCard style={styles.statCard} theme={theme}>
-                                <TrendingUp size={20} color={theme.colors.warning} />
-                                <Text style={[styles.statVal, { color: theme.colors.text }]}>{perfData?.stats?.pendingApprovals}</Text>
-                                <Text style={[styles.statLabel, { color: theme.colors.subText }]}>Bekleyen Onay</Text>
+                                <Text style={[styles.statVal, { color: theme.colors.text }]}>₺{strategicData?.trends?.costs?.reduce((s, c) => s + c.amount, 0)?.toLocaleString()}</Text>
+                                <Text style={[styles.statLabel, { color: theme.colors.subText }]}>Top. Değer</Text>
                             </GlassCard>
                         </View>
 
                         <GlassCard style={styles.chartCard} theme={theme}>
-                            <Text style={[styles.cardTitle, { color: theme.colors.text, marginBottom: 16 }]}>Kategori Dağılımı</Text>
-                            {Object.entries(costData?.breakdown || {}).map(([cat, val], idx) => (
-                                <View key={idx} style={styles.costRow}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                                        <View style={[styles.legendDot, { backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'][idx % 4] }]} />
-                                        <Text style={{ color: theme.colors.text }}>{cat}</Text>
-                                    </View>
-                                    <Text style={{ fontWeight: 'bold', color: theme.colors.text }}>₺{val.toLocaleString()}</Text>
+                            <Text style={[styles.cardTitle, { color: theme.colors.text, marginBottom: 16 }]}>En Kârlı Müşteriler</Text>
+                            {strategicData?.topCustomersByProfit?.map((c, i) => (
+                                <View key={i} style={styles.costRow}>
+                                    <Text style={{ color: theme.colors.text }}>{c.customer}</Text>
+                                    <Text style={{ fontWeight: 'bold', color: theme.colors.success }}>%{c.profitMargin.toFixed(0)}</Text>
                                 </View>
                             ))}
                         </GlassCard>
                     </View>
                 )}
 
-                {activeTab === 'teams' && (
+                {activeTab === 'tactical' && (
                     <View style={styles.animateContent}>
                         <View style={styles.globalStatsRow}>
                             <View style={styles.globalStatItem}>
-                                <Text style={[styles.globalStatVal, { color: theme.colors.primary }]}>{teamsData?.globalStats?.totalTeams || 0}</Text>
+                                <Text style={[styles.globalStatVal, { color: theme.colors.primary }]}>%{tacticalData?.avgTeamLoad?.toFixed(0)}</Text>
+                                <Text style={styles.globalStatLabel}>ORT. YÜK</Text>
+                            </View>
+                            <View style={[styles.verticalDivider, { backgroundColor: theme.colors.cardBorder }]} />
+                            <View style={styles.globalStatItem}>
+                                <Text style={[styles.globalStatVal, { color: theme.colors.success }]}>{tacticalData?.teamCapacity?.length}</Text>
                                 <Text style={styles.globalStatLabel}>EKİP</Text>
-                            </View>
-                            <View style={[styles.verticalDivider, { backgroundColor: theme.colors.cardBorder }]} />
-                            <View style={styles.globalStatItem}>
-                                <Text style={[styles.globalStatVal, { color: theme.colors.success }]}>%{teamsData?.globalStats?.avgEfficiency || 0}</Text>
-                                <Text style={styles.globalStatLabel}>VERİMLİLİK</Text>
-                            </View>
-                            <View style={[styles.verticalDivider, { backgroundColor: theme.colors.cardBorder }]} />
-                            <View style={styles.globalStatItem}>
-                                <Text style={[styles.globalStatVal, { color: '#f59e0b' }]}>{teamsData?.globalStats?.totalEmployees || 0}</Text>
-                                <Text style={styles.globalStatLabel}>PERSONEL</Text>
                             </View>
                         </View>
 
-                        {teamsData?.reports?.map((team) => (
-                            <View key={team.id}>
-                                {renderTeamItem({ item: team })}
-                            </View>
-                        ))}
+                        <GlassCard style={styles.chartCard} theme={theme}>
+                            <Text style={[styles.cardTitle, { color: theme.colors.text, marginBottom: 16 }]}>Bütçe Sapması</Text>
+                            {tacticalData?.varianceData?.slice(0, 5).map((v, i) => (
+                                <View key={i} style={styles.costRow}>
+                                    <Text style={{ color: theme.colors.text, flex: 1 }}>{v.title}</Text>
+                                    <Text style={{ fontWeight: 'bold', color: v.variance >= 0 ? theme.colors.success : theme.colors.error }}>
+                                        {v.variance >= 0 ? '+' : ''}₺{v.variance.toLocaleString()}
+                                    </Text>
+                                </View>
+                            ))}
+                        </GlassCard>
+                    </View>
+                )}
+
+                {activeTab === 'operational' && (
+                    <View style={styles.animateContent}>
+                        <View style={styles.statsGrid}>
+                            <GlassCard style={styles.statCard} theme={theme}>
+                                <AlertTriangle size={20} color={theme.colors.warning} />
+                                <Text style={[styles.statVal, { color: theme.colors.text }]}>{operationalData?.pendingApprovals?.costs + operationalData?.pendingApprovals?.steps}</Text>
+                                <Text style={[styles.statLabel, { color: theme.colors.subText }]}>Onay Bekleyen</Text>
+                            </GlassCard>
+                            <GlassCard style={styles.statCard} theme={theme}>
+                                <Zap size={20} color={theme.colors.primary} />
+                                <Text style={[styles.statVal, { color: theme.colors.text }]}>%{operationalData?.bottleneckScore?.toFixed(0)}</Text>
+                                <Text style={[styles.statLabel, { color: theme.colors.subText }]}>Darboğaz Skoru</Text>
+                            </GlassCard>
+                        </View>
+
+                        <GlassCard style={styles.chartCard} theme={theme}>
+                            <Text style={[styles.cardTitle, { color: theme.colors.text, marginBottom: 16 }]}>Kritik Gecikmeler</Text>
+                            {operationalData?.topBottlenecks?.map((b, i) => (
+                                <View key={i} style={styles.costRow}>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={{ color: theme.colors.text }}>{b.jobNo}</Text>
+                                        <Text style={{ color: theme.colors.subText, fontSize: 10 }}>{b.title}</Text>
+                                    </View>
+                                    <Text style={{ fontWeight: 'bold', color: theme.colors.error }}>+{b.delay.toFixed(0)}dk</Text>
+                                </View>
+                            ))}
+                        </GlassCard>
                     </View>
                 )}
 

@@ -19,8 +19,14 @@ import {
     getCostTrend,
     getTotalCostTrend,
     getPendingCostsList,
-    getCostList
+    getCostList,
+    getStrategicDashboard,
+    getTacticalDashboard,
+    getOperationalDashboard
 } from "@/lib/data/reports"
+import StrategicView from "@/components/admin/reports/StrategicView"
+import TacticalView from "@/components/admin/reports/TacticalView"
+import OperationalView from "@/components/admin/reports/OperationalView"
 import { getAllTeamsSummary, getTeamDetailedReports } from "@/lib/data/teams"
 import dynamic from 'next/dynamic'
 
@@ -79,33 +85,24 @@ export default function AdminReportsPage(props: {
 
                 let tabData: any = {};
 
-                if (activeTab === 'overview') {
-                    const [generalStats, weeklySteps] = await Promise.all([
-                        getReportStats(from, to, jobStatus, jobId, category),
-                        getWeeklyCompletedSteps()
-                    ]);
-                    tabData = { generalStats, weeklySteps };
-                } else if (activeTab === 'performance') {
-                    const [generalStats, jobDistribution, teamPerformance] = await Promise.all([
-                        getReportStats(from, to, jobStatus, jobId, category),
-                        getJobStatusDistribution(from, to, jobStatus, jobId),
-                        getTeamPerformance(from, to, jobStatus, jobId)
-                    ]);
-                    tabData = { generalStats, jobDistribution, teamPerformance };
-                } else if (activeTab === 'costs') {
-                    const [costBreakdown, costTrend, totalTrend, costList] = await Promise.all([
-                        getCostBreakdown(from, to, costStatus, jobStatus, jobId, category),
-                        getCostTrend(from, to, costStatus, jobStatus, jobId, category),
-                        getTotalCostTrend(from, to, costStatus, jobStatus, jobId, category),
-                        getCostList(from, to, costStatus, jobStatus, jobId, category)
-                    ]);
-                    tabData = { costBreakdown, costTrend, totalTrend, costList };
-                } else if (activeTab === 'variance') {
-                    const varianceData = await fetch('/api/admin/reports/variance').then(res => res.json()).catch(() => []);
-                    tabData = { varianceData };
-                } else if (activeTab === 'teams') {
-                    const teamsReportData = await getAllTeamsSummary();
-                    tabData = { teamsReportData };
+                if (activeTab === 'strategic') {
+                    tabData = await getStrategicDashboard(from, to);
+                } else if (activeTab === 'tactical') {
+                    tabData = await getTacticalDashboard(from, to);
+                } else if (activeTab === 'operational') {
+                    tabData = await getOperationalDashboard(from, to);
+                } else {
+                    // Default to strategic if tab is unknown
+                    tabData = await getStrategicDashboard(from, to);
+                }
+
+                if (isMounted) {
+                    setData({
+                        ...tabData,
+                        filterJobs,
+                        filterCategories,
+                        activeTab
+                    })
                 }
 
                 if (isMounted) {
@@ -197,163 +194,23 @@ export default function AdminReportsPage(props: {
 
             <Tabs defaultValue={activeTab} className="space-y-6">
                 <TabsList className="bg-muted p-1 rounded-lg">
-                    <TabsTrigger value="overview" className="gap-2"><BarChart3 className="w-4 h-4" /> Genel Bakış</TabsTrigger>
-                    <TabsTrigger value="performance" className="gap-2"><Zap className="w-4 h-4" /> Performans</TabsTrigger>
-                    <TabsTrigger value="costs" className="gap-2"><Wallet className="w-4 h-4" /> Maliyetler</TabsTrigger>
-                    <TabsTrigger value="variance" className="gap-2"><TrendingUp className="w-4 h-4" /> Sapma Analizi</TabsTrigger>
-                    <TabsTrigger value="teams" className="gap-2"><Users className="w-4 h-4" /> Ekipler</TabsTrigger>
+                    <TabsTrigger value="strategic" className="gap-2"><BarChart3 className="w-4 h-4" /> Stratejik</TabsTrigger>
+                    <TabsTrigger value="tactical" className="gap-2"><TrendingUp className="w-4 h-4" /> Taktiksel</TabsTrigger>
+                    <TabsTrigger value="operational" className="gap-2"><Zap className="w-4 h-4" /> Operasyonel</TabsTrigger>
                 </TabsList>
 
-                {/* Genel Bakış Sekmesi */}
-                <TabsContent value="overview" className="space-y-6">
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Toplam İş</CardTitle></CardHeader>
-                            <CardContent><div className="text-2xl font-bold">{totalJobs}</div></CardContent>
-                        </Card>
-                        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Tamamlanan</CardTitle></CardHeader>
-                            <CardContent><div className="text-2xl font-bold text-green-600">{completedJobs}</div></CardContent>
-                        </Card>
-                        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Devam Eden</CardTitle></CardHeader>
-                            <CardContent><div className="text-2xl font-bold text-blue-600">{inProgressJobs}</div></CardContent>
-                        </Card>
-                        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Bekleyen</CardTitle></CardHeader>
-                            <CardContent><div className="text-2xl font-bold text-yellow-600">{pendingJobs}</div></CardContent>
-                        </Card>
-                    </div>
-                    <section className="bg-white dark:bg-slate-900 rounded-xl border p-6">
-                        <h3 className="text-lg font-semibold mb-4">Haftalık Tamamlanan Adımlar</h3>
-                        <WeeklyStepsChart data={weeklySteps} categories={weeklySteps.categories} />
-                    </section>
+                <TabsContent value="strategic" className="animate-in fade-in duration-500">
+                    <StrategicView data={data} />
                 </TabsContent>
 
-                {/* Sapma Analizi Sekmesi */}
-                <TabsContent value="variance" className="space-y-6">
-                    <VarianceTable data={varianceData} />
+                <TabsContent value="tactical" className="animate-in fade-in duration-500">
+                    <TacticalView data={data} />
                 </TabsContent>
 
-                {/* Performans Sekmesi */}
-                <TabsContent value="performance" className="space-y-6">
-                    <KPICards stats={generalStats} />
-                    <div className="grid gap-4 md:grid-cols-7">
-                        <Card className="md:col-span-4"><CardHeader><CardTitle>Ekip Performansı</CardTitle></CardHeader>
-                            <CardContent><TeamPerformanceChart data={teamPerfData} /></CardContent>
-                        </Card>
-                        <Card className="md:col-span-3"><CardHeader><CardTitle>Durum Dağılımı</CardTitle></CardHeader>
-                            <CardContent><JobDistributionChart data={jobData} /></CardContent>
-                        </Card>
-                    </div>
+                <TabsContent value="operational" className="animate-in fade-in duration-500">
+                    <OperationalView data={data} />
                 </TabsContent>
 
-                {/* Maliyet Sekmesi */}
-                <TabsContent value="costs" className="space-y-6">
-                    <div className="grid gap-4 md:grid-cols-7">
-                        <Card className="md:col-span-4"><CardHeader><CardTitle>Maliyet Trendi</CardTitle></CardHeader>
-                            <CardContent><CostTrendChart data={costTrend.data} categories={costTrend.categories} /></CardContent>
-                        </Card>
-                        <Card className="md:col-span-3"><CardHeader><CardTitle>Kategori Dağılımı</CardTitle></CardHeader>
-                            <CardContent><CategoryPieChart data={pieChartData} /></CardContent>
-                        </Card>
-                    </div>
-                    <Card><CardHeader><CardTitle>Gider Kalemleri</CardTitle></CardHeader>
-                        <CardContent><CostListTable costs={costList} /></CardContent>
-                    </Card>
-                </TabsContent>
-
-                {/* Ekipler Sekmesi */}
-                <TabsContent value="teams" className="space-y-6">
-                    <div className="grid gap-4 md:grid-cols-4">
-                        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Ortalama Verimlilik</CardTitle></CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{teamGlobalStats.avgEfficiency}%</div>
-                                <Progress value={teamGlobalStats.avgEfficiency} className="mt-2 h-1.5" />
-                            </CardContent>
-                        </Card>
-                        <Card><CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Toplam Harcama</CardTitle></CardHeader>
-                            <CardContent><div className="text-2xl font-bold">₺{teamGlobalStats.totalExpenses.toLocaleString('tr-TR')}</div></CardContent>
-                        </Card>
-                    </div>
-
-                    <div className="grid gap-6 md:grid-cols-12">
-                        {/* Sol: Ekip Listesi */}
-                        <Card className={cn(selectedTeamId ? "md:col-span-4" : "md:col-span-12")}>
-                            <CardHeader><CardTitle>Ekip Karşılaştırma</CardTitle></CardHeader>
-                            <CardContent>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Ekip</TableHead>
-                                            {!selectedTeamId && <TableHead>Lider</TableHead>}
-                                            <TableHead className="text-center">Verimlilik</TableHead>
-                                            <TableHead className="text-right">İşlem</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {teamReports.map((report: any) => (
-                                            <TableRow key={report.id} className={cn(selectedTeamId === report.id && "bg-primary/5")}>
-                                                <TableCell className="font-bold">{report.name}</TableCell>
-                                                {!selectedTeamId && <TableCell>{report.leadName}</TableCell>}
-                                                <TableCell className="text-center">%{report.stats.efficiencyScore}</TableCell>
-                                                <TableCell className="text-right">
-                                                    <Button variant="ghost" size="sm" onClick={() => handleTeamSelect(report.id)}>
-                                                        {selectedTeamId === report.id ? "Seçili" : "Detay"}
-                                                        <ChevronRight className="ml-1 h-4 w-4" />
-                                                    </Button>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </CardContent>
-                        </Card>
-
-                        {/* Sağ: Seçili Ekip Detay Raporu */}
-                        {selectedTeamId && (
-                            <div className="md:col-span-8 space-y-6">
-                                {loadingTeam ? (
-                                    <div className="h-full flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
-                                ) : teamDetails && (
-                                    <div className="animate-in fade-in slide-in-from-right-4 duration-500 space-y-6">
-                                        {/* Detaylı KPI Kartları */}
-                                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                                            <Card className="bg-primary/5 border-none shadow-none">
-                                                <CardHeader className="p-3 pb-0"><CardTitle className="text-[10px] uppercase text-muted-foreground">Verimlilik</CardTitle></CardHeader>
-                                                <CardContent className="p-3 pt-1"><div className="text-xl font-bold text-primary">%{teamDetails.stats.efficiencyScore}</div></CardContent>
-                                            </Card>
-                                            <Card className="bg-blue-50 border-none shadow-none text-blue-700">
-                                                <CardHeader className="p-3 pb-0"><CardTitle className="text-[10px] uppercase">Çalışma Saati</CardTitle></CardHeader>
-                                                <CardContent className="p-3 pt-1"><div className="text-xl font-bold">{teamDetails.stats.totalWorkingHours}s</div></CardContent>
-                                            </Card>
-                                            <Card className="bg-green-50 border-none shadow-none text-green-700">
-                                                <CardHeader className="p-3 pb-0"><CardTitle className="text-[10px] uppercase">Başarı</CardTitle></CardHeader>
-                                                <CardContent className="p-3 pt-1"><div className="text-xl font-bold">%{teamDetails.stats.successRate}</div></CardContent>
-                                            </Card>
-                                            <Card className="bg-orange-50 border-none shadow-none text-orange-700">
-                                                <CardHeader className="p-3 pb-0"><CardTitle className="text-[10px] uppercase">Toplam Gider</CardTitle></CardHeader>
-                                                <CardContent className="p-3 pt-1"><div className="text-xl font-bold">₺{teamDetails.stats.totalExpenses.toLocaleString('tr-TR')}</div></CardContent>
-                                            </Card>
-                                        </div>
-
-                                        <div className="grid gap-6 md:grid-cols-2">
-                                            <Card>
-                                                <CardHeader><CardTitle className="text-sm">Performans Trendi</CardTitle></CardHeader>
-                                                <CardContent><TeamPerformanceTrend data={teamDetails.stats.monthlyTrend} /></CardContent>
-                                            </Card>
-                                            <Card>
-                                                <CardHeader><CardTitle className="text-sm">Gider Dağılımı</CardTitle></CardHeader>
-                                                <CardContent><TeamFinancialCharts data={teamDetails.stats.categoryBreakdown} /></CardContent>
-                                            </Card>
-                                        </div>
-
-                                        <Card>
-                                            <CardHeader><CardTitle className="text-sm">Üye Performansları</CardTitle></CardHeader>
-                                            <CardContent><TeamMemberStats members={teamDetails.stats.memberStats} /></CardContent>
-                                        </Card>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                </TabsContent>
             </Tabs>
         </div>
     )

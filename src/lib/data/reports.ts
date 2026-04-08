@@ -588,3 +588,107 @@ export async function getCostList(startDate: Date, endDate: Date, status?: strin
         orderBy: { date: 'desc' }
     });
 }
+
+/**
+ * 📊 ENHANCED DASHBOARD FUNCTIONS (Strategic, Tactical, Operational)
+ */
+
+// 1. STRATEGIC DASHBOARD: Focus on business health and long-term trends
+export async function getStrategicDashboard(startDate: Date, endDate: Date) {
+    // Customer Profitability (CPI)
+    const profitabilityData = await getProfitabilityData(startDate, endDate);
+    
+    // Revenue vs Cost Trend
+    const totalCostTrend = await getTotalCostTrend(startDate, endDate);
+    // Note: Since we don't have a separate "Revenue" table, we use "Budget" as a proxy for projected revenue
+    const revenueTrend = await prisma.job.groupBy({
+        by: ['createdAt'],
+        _sum: { budget: true },
+        where: { createdAt: { gte: startDate, lte: endDate } }
+    });
+
+    const topCustomersByProfit = profitabilityData
+        .sort((a, b) => b.profit - a.profit)
+        .slice(0, 5);
+
+    const overallProfitMargin = profitabilityData.length > 0
+        ? profitabilityData.reduce((sum, item) => sum + item.profit, 0) / 
+          profitabilityData.reduce((sum, item) => sum + (item.budget || 1), 0) * 100
+        : 0;
+
+    return {
+        overallProfitMargin,
+        topCustomersByProfit,
+        profitabilityData,
+        trends: {
+            costs: totalCostTrend,
+            revenue: revenueTrend.map(r => ({ date: r.createdAt.toISOString().split('T')[0], amount: r._sum.budget || 0 }))
+        }
+    };
+}
+
+// 2. TACTICAL DASHBOARD: Focus on resource utilization and departmental alignment
+export async function getTacticalDashboard(startDate: Date, endDate: Date) {
+    // Team Capacity & Load Factor
+    const teamCapacity = await getTeamCapacityData();
+    
+    // Budget Variance Analysis
+    const budgetVariance = await prisma.job.findMany({
+        where: { status: 'COMPLETED', completedDate: { gte: startDate, lte: endDate } },
+        select: {
+            title: true,
+            budget: true,
+            costs: { where: { status: 'APPROVED' }, select: { amount: true } }
+        }
+    });
+
+    const varianceData = budgetVariance.map(job => {
+        const actualCost = job.costs.reduce((sum, c) => sum + c.amount, 0);
+        const budget = job.budget || 0;
+        return {
+            title: job.title,
+            budget,
+            actualCost,
+            variance: budget - actualCost,
+            variancePct: budget > 0 ? ((budget - actualCost) / budget) * 100 : 0
+        };
+    });
+
+    // Cost Category Distribution
+    const costBreakdown = await getCostBreakdown(startDate, endDate);
+
+    return {
+        teamCapacity,
+        varianceData,
+        costBreakdown,
+        avgTeamLoad: teamCapacity.reduce((sum, t) => sum + t.loadFactor, 0) / (teamCapacity.length || 1)
+    };
+}
+
+// 3. OPERATIONAL DASHBOARD: Focus on daily flow and bottlenecks
+export async function getOperationalDashboard(startDate: Date, endDate: Date) {
+    // Bottleneck Analysis (Step Completion Time Trend)
+    const delayAnalysis = await getDelayAnalysisData(startDate, endDate);
+    
+    // Pending Approvals (Urgent)
+    const pendingCosts = await prisma.costTracking.count({ where: { status: 'PENDING' } });
+    const pendingSteps = await prisma.jobStep.count({ where: { approvalStatus: 'PENDING' } });
+
+    // Active Jobs Distribution
+    const jobStatusDist = await getJobStatusDistribution(startDate, endDate);
+
+    // Recent Bottlenecks (Jobs with highest delay)
+    const topBottlenecks = delayAnalysis
+        .sort((a, b) => b.delay - a.delay)
+        .slice(0, 5);
+
+    return {
+        jobStatusDist,
+        topBottlenecks,
+        pendingApprovals: {
+            costs: pendingCosts,
+            steps: pendingSteps
+        },
+        bottleneckScore: delayAnalysis.reduce((sum, d) => sum + (d.delay > 0 ? 1 : 0), 0) / (delayAnalysis.length || 1) * 100
+    };
+}

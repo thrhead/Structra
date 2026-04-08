@@ -1,6 +1,11 @@
 {
   "version": 1,
   "skills": {
+    "dashboard-builder": {
+      "source": "affaan-m/everything-claude-code",
+      "sourceType": "github",
+      "computedHash": "107759b601b7abfa420bcb05c5763bfb16699e4685c86e0c022c504ae4d8e102"
+    },
     "debugger": {
       "source": "Shubhamsaboo/awesome-llm-apps",
       "sourceType": "github",
