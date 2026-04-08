@@ -15,27 +15,34 @@ export function PerformanceChart({ data }: PerformanceChartProps) {
       <BarChart data={data}>
         <XAxis
           dataKey="name"
-          stroke="#888888"
-          fontSize={12}
+          stroke="#64748b" // slate-500
+          fontSize={10}
           tickLine={false}
           axisLine={false}
+          dy={10}
         />
         <YAxis
-          stroke="#888888"
-          fontSize={12}
+          stroke="#64748b" // slate-500
+          fontSize={10}
           tickLine={false}
           axisLine={false}
           tickFormatter={(value) => `${value}`}
         />
         <Tooltip 
-            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-            cursor={{ fill: 'transparent' }}
+            contentStyle={{ 
+              borderRadius: '2px', 
+              border: '1px solid #e2e8f0', // slate-200 
+              boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+              fontSize: '11px',
+              fontFamily: 'monospace'
+            }}
+            cursor={{ fill: '#f1f5f9' }} // slate-100
         />
         <Bar
           dataKey="count"
-          fill="#00F5FF" // Cyber Teal
-          radius={[2, 2, 0, 0]}
-          className="drop-shadow-[0_0_8px_rgba(0,245,255,0.4)]"
+          fill="#0d9488" // Cyber Teal Light (Teal 600)
+          radius={[0, 0, 0, 0]} // Sharp
+          barSize={30}
         />
 
       </BarChart>

@@ -142,9 +142,17 @@ function LogRow({
 
   return (
     <>
-      <motion.button
+      <motion.div
+        role="button"
+        tabIndex={0}
         onClick={onToggle}
-        className="w-full p-4 text-left transition-colors hover:bg-muted/50 active:bg-muted/70"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onToggle();
+          }
+        }}
+        className="w-full p-4 text-left transition-colors hover:bg-muted/50 active:bg-muted/70 cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring"
         whileHover={{ backgroundColor: "rgba(0,0,0,0.02)" }}
       >
         <div className="flex items-center gap-4">
@@ -187,7 +195,7 @@ function LogRow({
             {log.duration}
           </span>
         </div>
-      </motion.button>
+      </motion.div>
 
       <AnimatePresence initial={false}>
         {expanded && (

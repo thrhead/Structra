@@ -15,22 +15,13 @@ import {
   MousePointer2Icon,
   LayersIcon,
   TargetIcon,
-  BoxIcon
+  BoxIcon,
+  TrendingDownIcon
 } from 'lucide-react'
 import { getAdminDashboardData } from "@/lib/data/admin-dashboard"
 import { PerformanceChart } from "@/components/charts/performance-chart"
 import { Link } from "@/lib/navigation"
 import Image from "next/image"
-
-// --- THEME CONSTANTS ---
-const COLORS = {
-  signalOrange: '#FF5722',
-  cyberTeal: '#00F5FF',
-  monoslate: '#1A1B1E',
-  concrete: '#8E8E93',
-  neonOrange: '0px 0px 20px rgba(255, 87, 34, 0.4)',
-  neonTeal: '0px 0px 20px rgba(0, 245, 255, 0.4)',
-}
 
 export default function AdminDashboard() {
   const [data, setData] = useState<any>(null)
@@ -47,11 +38,11 @@ export default function AdminDashboard() {
 
   if (loading || !data) {
     return (
-      <div className="min-h-screen bg-[#0A0A0B] flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <motion.div 
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="w-12 h-12 border-2 border-[#00F5FF]/30 border-t-[#00F5FF] rounded-full"
+          className="w-10 h-10 border-2 border-teal-600/20 border-t-teal-600 rounded-full"
         />
       </div>
     )
@@ -65,7 +56,6 @@ export default function AdminDashboard() {
     activeTeams,
     pendingApprovalsCount,
     totalCostToday,
-    budgetPercentage,
     latestLogs,
     strategic,
     tactical,
@@ -76,139 +66,142 @@ export default function AdminDashboard() {
     hidden: { opacity: 0 },
     visible: { 
       opacity: 1,
-      transition: { staggerChildren: 0.1 }
+      transition: { staggerChildren: 0.08 }
     }
   }
 
   const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
+    hidden: { y: 15, opacity: 0 },
     visible: { y: 0, opacity: 1 }
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-slate-200 p-4 md:p-8 font-sans selection:bg-[#00F5FF] selection:text-[#0A0A0B]">
+    <div className="min-h-screen bg-slate-50 text-slate-950 p-4 md:p-10 font-sans selection:bg-teal-100 selection:text-teal-900">
       
-      {/* 1. ASYMMETRIC HEADER & STRATEGIC LAYER */}
+      {/* 1. ASİMETRİK BAŞLIK & STRATEJİK KATMAN */}
       <motion.div 
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-12"
+        className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12"
       >
-        <div className="lg:col-span-8 flex flex-col justify-end min-h-[200px]">
-          <motion.p variants={itemVariants} className="text-[#00F5FF] font-mono text-sm tracking-widest uppercase mb-2">System Status: Active</motion.p>
-          <motion.h1 variants={itemVariants} className="text-5xl md:text-7xl font-black tracking-tight leading-none mb-6">
-            COMMAND <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00F5FF] to-[#FF5722]">CENTER</span>
+        <div className="lg:col-span-8 flex flex-col justify-end min-h-[160px]">
+          <motion.p variants={itemVariants} className="text-teal-600 font-mono text-xs tracking-[0.2em] uppercase mb-3">SİSTEM DURUMU: AKTİF</motion.p>
+          <motion.h1 variants={itemVariants} className="font-black text-6xl md:text-8xl tracking-tighter leading-[0.85] mb-8 text-slate-950">
+            OPERASYON <br/> <span className="text-teal-600">MERKEZİ</span>
           </motion.h1>
-          <motion.div variants={itemVariants} className="flex gap-4">
-            <div className="px-4 py-2 border border-[#8E8E93]/20 bg-white/5 backdrop-blur-md rounded-sm">
-              <span className="text-xs text-[#8E8E93] uppercase block">Overall Margin</span>
-              <span className="text-2xl font-bold">%{strategic?.overallProfitMargin?.toFixed(1) || 0}</span>
+          <motion.div variants={itemVariants} className="flex gap-6">
+            <div className="px-5 py-3 bg-white border border-slate-200 shadow-sm">
+              <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Genel Kârlılık</span>
+              <span className="text-3xl font-black text-slate-950">%{strategic?.overallProfitMargin?.toFixed(1) || 0}</span>
             </div>
-            <div className="px-4 py-2 border border-[#8E8E93]/20 bg-white/5 backdrop-blur-md rounded-sm">
-              <span className="text-xs text-[#8E8E93] uppercase block">Growth Vector</span>
-              <TrendingUpIcon className="w-5 h-5 text-[#00F5FF] mt-1" />
+            <div className="px-5 py-3 bg-white border border-slate-200 shadow-sm flex items-center gap-4">
+              <div>
+                <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Büyüme Vektörü</span>
+                <span className="text-xl font-black text-teal-600 uppercase">Pozitif</span>
+              </div>
+              <TrendingUpIcon className="w-8 h-8 text-teal-600/20" />
             </div>
           </motion.div>
         </div>
 
-        <div className="lg:col-span-4 relative group">
+        <div className="lg:col-span-4 self-end">
           <motion.div 
             variants={itemVariants}
-            whileHover={{ scale: 1.02 }}
-            className="h-full bg-gradient-to-br from-[#1A1B1E] to-[#0A0A0B] border border-[#FF5722]/30 p-8 flex flex-col justify-between relative overflow-hidden"
+            className="bg-orange-600 text-white p-8 shadow-2xl relative overflow-hidden"
           >
-            <div className="absolute -right-10 -top-10 w-40 h-40 bg-[#FF5722]/10 blur-3xl rounded-full group-hover:bg-[#FF5722]/20 transition-all duration-500" />
-            <div className="relative z-10">
-              <h3 className="text-[#FF5722] font-mono text-xs uppercase mb-1">Bottleneck Criticality</h3>
-              <p className="text-3xl font-bold tracking-tighter uppercase leading-none">
-                {operational?.bottleneckScore?.toFixed(0) || 0}% ALERT
-              </p>
+            <div className="absolute -right-4 -top-4 opacity-10">
+               <AlertTriangleIcon className="w-32 h-32" />
             </div>
-            <div className="relative z-10 space-y-4 mt-8 text-sm">
-              <div className="flex justify-between border-b border-[#8E8E93]/10 pb-2">
-                <span className="text-[#8E8E93]">Urgent Costs</span>
-                <span className="font-bold text-[#FF5722] tracking-widest">{operational?.pendingApprovals?.costs || 0}</span>
+            <div className="relative z-10">
+              <h3 className="font-mono text-[10px] uppercase tracking-widest mb-2 opacity-80">Darboğaz Kritiklik Skoru</h3>
+              <p className="text-5xl font-black tracking-tighter leading-none">
+                %{operational?.bottleneckScore?.toFixed(0) || 0}
+              </p>
+              <p className="text-[10px] font-bold mt-2 opacity-80 uppercase tracking-widest">DİKKAT GEREKTİREN DURUM</p>
+            </div>
+            <div className="relative z-10 grid grid-cols-2 gap-4 mt-8 pt-6 border-t border-white/20">
+              <div>
+                <span className="text-[10px] uppercase font-bold opacity-70 block">Bekleyen Harcama</span>
+                <span className="text-xl font-black tracking-widest">{operational?.pendingApprovals?.costs || 0}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-[#8E8E93]">Blocked Steps</span>
-                <span className="font-bold">{operational?.pendingApprovals?.steps || 0}</span>
+              <div>
+                <span className="text-[10px] uppercase font-bold opacity-70 block">Bloke Adımlar</span>
+                <span className="text-xl font-black tracking-widest">{operational?.pendingApprovals?.steps || 0}</span>
               </div>
             </div>
           </motion.div>
         </div>
       </motion.div>
 
-      {/* 2. FRAGMENTED METRICS GRID */}
+      {/* 2. FRAGMENTED METRİKLER */}
       <motion.div 
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-16"
+        className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-slate-200 border border-slate-200 mb-16 shadow-lg overflow-hidden"
       >
         {[
-          { icon: BriefcaseIcon, label: 'Active Jobs', value: activeJobs, sub: `of ${totalJobs}`, color: COLORS.cyberTeal },
-          { icon: TargetIcon, label: 'Daily Goal', value: completedJobsToday, sub: 'Confirmed', color: '#FFF' },
-          { icon: UsersIcon, label: 'Field Ops', value: totalWorkers, sub: `${activeTeams} Teams`, color: COLORS.cyberTeal },
-          { icon: ShieldCheckIcon, label: 'Validation', value: pendingApprovalsCount, sub: 'Needs Review', color: COLORS.signalOrange },
+          { icon: BriefcaseIcon, label: 'Aktif İşler', value: activeJobs, sub: `${totalJobs} Toplam`, color: 'text-teal-600' },
+          { icon: TargetIcon, label: 'Günlük Hedef', value: completedJobsToday, sub: 'Onaylandı', color: 'text-slate-950' },
+          { icon: UsersIcon, label: 'Saha Operasyonu', value: totalWorkers, sub: `${activeTeams} Ekip Aktif`, color: 'text-teal-600' },
+          { icon: ShieldCheckIcon, label: 'Bekleyen Onay', value: pendingApprovalsCount, sub: 'Kritik İnceleme', color: 'text-orange-600' },
         ].map((stat, idx) => (
           <motion.div 
             key={idx}
             variants={itemVariants}
-            className="p-6 bg-[#1A1B1E] border border-[#8E8E93]/10 relative group hover:border-[#8E8E93]/30 transition-all cursor-crosshair"
+            className="p-8 bg-white hover:bg-slate-50 transition-colors group relative"
           >
-            <stat.icon className="w-5 h-5 mb-4" style={{ color: stat.color }} />
-            <p className="text-xs text-[#8E8E93] uppercase font-mono tracking-tighter tracking-widest">{stat.label}</p>
+            <stat.icon className={`w-5 h-5 mb-6 ${stat.color}`} />
+            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">{stat.label}</p>
             <div className="flex items-baseline gap-2">
-              <h2 className="text-3xl font-bold tracking-tighter">{stat.value}</h2>
-              <span className="text-[10px] text-[#8E8E93]">{stat.sub}</span>
-            </div>
-            {/* Minimalist Grid Artifact */}
-            <div className="absolute bottom-2 right-2 flex gap-1">
-              <div className="w-1 h-1 bg-white/10" />
+              <h2 className="text-4xl font-black tracking-tighter text-slate-950">{stat.value}</h2>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{stat.sub}</span>
             </div>
           </motion.div>
         ))}
       </motion.div>
 
-      {/* 2.5 STRATEGIC & TACTICAL DEEP DIVE (Overlapping Fragment) */}
+      {/* 2.5 STRATEJİK & TAKTİKSEL DERİNLİK */}
       <motion.div 
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16 items-center"
+        className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16"
       >
-        <div className="lg:col-span-5 space-y-4">
-          <h2 className="text-xs text-[#8E8E93] font-mono tracking-widest uppercase px-1 flex items-center gap-2">
-            <TargetIcon className="w-3 h-3 text-[#FF5722]" /> Strategic Partners
+        <div className="lg:col-span-4 space-y-4">
+          <h2 className="text-[10px] text-slate-400 font-black tracking-widest uppercase px-1 flex items-center gap-2">
+            <TargetIcon className="w-3 h-3 text-teal-600" /> Stratejik Ortaklar
           </h2>
-          <div className="space-y-0.5">
+          <div className="space-y-1">
             {strategic?.topCustomersByProfit?.map((cust: any, i: number) => (
-              <div key={i} className="flex justify-between items-center p-3 bg-[#1A1B1E] border-l-4 border-[#00F5FF]/10 hover:border-[#00F5FF] transition-all">
-                <span className="text-sm font-bold tracking-tight">{cust.customer}</span>
-                <span className="text-xs font-mono text-[#00F5FF]">%{cust.profitMargin.toFixed(1)} MARGIN</span>
+              <div key={i} className="flex justify-between items-center p-4 bg-white border border-slate-100 shadow-sm hover:border-teal-600/30 transition-all group">
+                <span className="text-xs font-black text-slate-950 uppercase tracking-tight">{cust.customer}</span>
+                <span className="text-[10px] font-mono font-bold text-teal-600 px-2 py-1 bg-teal-50">%{cust.profitMargin.toFixed(1)} MARJ</span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="lg:col-span-7 bg-[#FF5722]/5 border border-[#FF5722]/20 p-8 relative overflow-hidden">
-           <div className="absolute top-0 right-0 p-4 opacity-10">
-              <TrendingUpIcon className="w-24 h-24" />
+        <div className="lg:col-span-8 bg-white border border-slate-200 p-10 shadow-xl relative overflow-hidden">
+           <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
+              <TrendingUpIcon className="w-48 h-48 text-slate-950" />
            </div>
-           <h2 className="text-xl font-bold tracking-tighter uppercase mb-6">Tactical Variance Radar</h2>
-           <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+           <h2 className="text-3xl font-black tracking-tighter uppercase mb-2 text-slate-950">Taktiksel Sapma Analizi</h2>
+           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-10">Bütçe ve Gerçekleşen Maliyet Karşılaştırması</p>
+           
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
               {tactical?.varianceData?.slice(0, 3).map((item: any, i: number) => (
-                <div key={i} className="space-y-2">
-                   <p className="text-[10px] text-[#8E8E93] uppercase font-mono truncate">{item.title}</p>
-                   <p className={`text-xl font-black ${item.variance >= 0 ? 'text-[#00F5FF]' : 'text-[#FF5722]'}`}>
+                <div key={i} className="space-y-4">
+                   <p className="text-[10px] text-slate-500 font-black uppercase tracking-tight truncate border-l-2 border-teal-600 pl-2">{item.title}</p>
+                   <p className={`text-3xl font-black tracking-tighter ${item.variance >= 0 ? 'text-teal-600' : 'text-orange-600'}`}>
                       {item.variance >= 0 ? '+' : ''}₺{Math.abs(item.variance).toLocaleString()}
                    </p>
-                   <div className="h-0.5 bg-white/10 w-full">
+                   <div className="h-1 bg-slate-100 w-full">
                       <motion.div 
                         initial={{ width: 0 }}
                         animate={{ width: `${Math.min(item.variancePct, 100)}%` }}
-                        className={`h-full ${item.variance >= 0 ? 'bg-[#00F5FF]' : 'bg-[#FF5722]'}`}
+                        className={`h-full ${item.variance >= 0 ? 'bg-teal-600' : 'bg-orange-600'}`}
                       />
                    </div>
                 </div>
@@ -217,55 +210,48 @@ export default function AdminDashboard() {
         </div>
       </motion.div>
 
-      {/* 3. THE ANALYTIC CORE (Asymmetric Layout) */}
+      {/* 3. ANALİTİK ÇEKİRDEK */}
       <div className="grid grid-cols-1 lg:grid-cols-10 gap-8 items-start">
-
         
-        {/* LEFT: TACTICAL FLOW & OPS */}
+        {/* SOL: PERFORMANS AKIŞI */}
         <div className="lg:col-span-6 space-y-12">
-          
-          {/* Main Chart */}
           <motion.div 
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="p-8 bg-[#1A1B1E] border border-[#00F5FF]/10 relative shadow-2xl overflow-hidden"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-10 bg-white border border-slate-200 shadow-2xl relative"
           >
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-10">
               <div className="flex items-center gap-3">
-                <BoxIcon className="w-5 h-5 text-[#00F5FF]" />
-                <h2 className="text-lg font-bold tracking-uppercase tracking-widest">PERFORMANCE VECTOR</h2>
+                <BoxIcon className="w-5 h-5 text-teal-600" />
+                <h2 className="text-xl font-black tracking-tighter uppercase">Performans Vektörü</h2>
               </div>
-              <div className="flex gap-4 text-[10px] font-mono">
-                <span className="flex items-center gap-1"><div className="w-2 h-2 bg-[#00F5FF]" /> COMPLETIONS</span>
-              </div>
+              <div className="text-[10px] font-black tracking-widest text-slate-400 uppercase">Haftalık Tamamlanan Adımlar</div>
             </div>
             <div className="h-[350px] w-full">
               <PerformanceChart data={data.weeklyStats} />
             </div>
-            {/* Overlay Grid Line */}
-            <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#00F5FF]/20 to-transparent" />
           </motion.div>
 
-          {/* Quick Actions - Radical Typography Link List */}
+          {/* Taktiksel İşlemler */}
           <div className="space-y-4">
-            <h2 className="text-xs text-[#8E8E93] font-mono tracking-widest uppercase px-1">Tactical Maneuvers</h2>
+            <h2 className="text-[10px] text-slate-400 font-black tracking-widest uppercase px-1">Taktiksel İşlemler</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
-                { href: '/admin/jobs', label: 'JOB ORCHESTRATION', desc: 'Control live deployments' },
-                { href: '/admin/costs', label: 'FINANCIAL RADAR', desc: 'Audit resource flow' },
-                { href: '/admin/teams', label: 'UNIT DEPLOYMENT', desc: 'Manage field assets' },
-                { href: '/admin/reports', label: 'STRATEGIC INTEL', desc: 'Historical analysis' },
+                { href: '/admin/jobs', label: 'İŞ YÖNETİMİ', desc: 'Canlı saha operasyonlarını yönet' },
+                { href: '/admin/costs', label: 'FİNANSAL RADAR', desc: 'Maliyet akışını denetle' },
+                { href: '/admin/teams', label: 'EKİP YÖNETİMİ', desc: 'Personel varlıklarını optimize et' },
+                { href: '/admin/reports', label: 'STRATEJİK ANALİZ', desc: 'Geçmiş verileri incele' },
               ].map((link, i) => (
                 <Link key={i} href={link.href}>
                   <motion.div 
                     whileHover={{ x: 5 }}
-                    className="p-4 border-l-2 border-[#8E8E93]/20 bg-white/2 hover:border-[#00F5FF] hover:bg-[#00F5FF]/5 transition-all group"
+                    className="p-6 border border-slate-200 bg-white hover:border-teal-600 hover:shadow-lg transition-all group"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-black text-lg tracking-tight group-hover:text-[#00F5FF]">{link.label}</span>
-                      <ArrowUpRightIcon className="w-4 h-4 text-[#8E8E93] group-hover:text-[#00F5FF]" />
+                      <span className="font-black text-xl tracking-tighter group-hover:text-teal-600">{link.label}</span>
+                      <ArrowUpRightIcon className="w-5 h-5 text-slate-300 group-hover:text-teal-600" />
                     </div>
-                    <p className="text-[10px] text-[#8E8E93] uppercase font-mono mt-1">{link.desc}</p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-2">{link.desc}</p>
                   </motion.div>
                 </Link>
               ))}
@@ -273,85 +259,85 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* RIGHT: REAL-TIME FEED & BOTTLENECKS */}
+        {/* SAĞ: CANLI AKIŞ & DARBOĞAZLAR */}
         <div className="lg:col-span-4 space-y-8">
           
-          {/* Activity Logs - Technical Terminal Style */}
+          {/* Canlı Sinyal Akışı */}
           <motion.div 
             initial={{ x: 20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
-            className="border-t-2 border-[#FF5722] bg-[#1A1B1E] p-6 shadow-xl"
+            className="border-t-4 border-orange-600 bg-white p-8 shadow-2xl"
           >
-            <div className="flex items-center gap-3 mb-6">
-              <ActivityIcon className="w-4 h-4 text-[#FF5722]" />
-              <h2 className="text-sm font-bold tracking-widest uppercase">REAL-TIME SIGNAL FEED</h2>
+            <div className="flex items-center gap-3 mb-8">
+              <ActivityIcon className="w-4 h-4 text-orange-600" />
+              <h2 className="text-sm font-black tracking-widest uppercase">CANLI SİNYAL AKIŞI</h2>
             </div>
-            <div className="space-y-4 font-mono text-[11px]">
+            <div className="space-y-6 font-mono text-[11px]">
               {latestLogs.map((log: any) => (
-                <div key={log.id} className="flex gap-3 group">
-                  <span className="text-[#8E8E93] shrink-0">{new Date(log.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
+                <div key={log.id} className="flex gap-4 border-b border-slate-100 pb-4 last:border-0 hover:bg-slate-50 transition-colors">
+                  <span className="text-slate-400 font-bold shrink-0">{new Date(log.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</span>
                   <div className="flex-1">
-                    <span className={`uppercase font-bold mr-2 ${log.level === 'ERROR' ? 'text-[#FF5722]' : 'text-[#00F5FF]'}`}>
+                    <span className={`uppercase font-black mr-2 ${log.level === 'ERROR' ? 'text-orange-600' : 'text-teal-600'}`}>
                       [{log.level}]
                     </span>
-                    <span className="text-slate-400 group-hover:text-white transition-colors">{log.message}</span>
+                    <span className="text-slate-600 leading-relaxed capitalize">{log.message}</span>
                   </div>
                 </div>
               ))}
             </div>
             <Link href="/admin/logs">
-              <p className="mt-8 text-[10px] text-[#8E8E93] hover:text-[#FF5722] transition-colors cursor-pointer flex items-center gap-2">
-                OPEN FULL TERMINAL <MousePointer2Icon className="w-3 h-3" />
+              <p className="mt-8 text-[10px] text-slate-400 hover:text-orange-600 font-black transition-colors cursor-pointer flex items-center gap-2 uppercase tracking-widest">
+                TÜM TERMİNALİ AÇ <MousePointer2Icon className="w-3 h-3" />
               </p>
             </Link>
           </motion.div>
 
-          {/* Top Bottlenecks - Fragmented List */}
+          {/* Operasyone Darboğazlar */}
           <div className="space-y-4">
-            <h2 className="text-xs text-[#8E8E93] font-mono tracking-widest uppercase">Operational Bottlenecks</h2>
-            <div className="space-y-1">
+            <h2 className="text-[10px] text-slate-400 font-black tracking-widest uppercase">Operasyonel Darboğazlar</h2>
+            <div className="space-y-2">
               {operational?.topBottlenecks?.map((item: any, i: number) => (
                 <motion.div 
                   key={i}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: i * 0.1 }}
-                  className="flex items-center justify-between p-3 bg-white/2 border border-white/5 hover:bg-[#FF5722]/5 transition-colors group"
+                  className="flex items-center justify-between p-4 bg-white border border-slate-100 shadow-sm hover:border-orange-600/30 transition-all group"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-1 h-8 bg-[#FF5722]/20 group-hover:bg-[#FF5722] transition-all" />
+                  <div className="flex items-center gap-4">
+                    <div className="w-1 h-10 bg-orange-600/10 group-hover:bg-orange-600 transition-all" />
                     <div>
-                      <p className="text-xs font-bold tracking-tight">{item.title}</p>
-                      <p className="text-[10px] text-[#8E8E93] uppercase font-mono">{item.jobNo}</p>
+                      <p className="text-xs font-black tracking-tight text-slate-900 uppercase">{item.title}</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{item.jobNo}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] text-[#FF5722] font-black">{item.delay.toFixed(0)} MIN DELAY</p>
-                    <p className="text-[9px] text-[#8E8E93]">{item.bottleneckCount} STALLS</p>
+                    <p className="text-[10px] text-orange-600 font-black uppercase tracking-widest">{item.delay.toFixed(0)} DK GECİKME</p>
+                    <p className="text-[9px] text-slate-400 font-black">{item.bottleneckCount} DURAKLAMA</p>
                   </div>
                 </motion.div>
               ))}
             </div>
           </div>
 
-          {/* Team Capacity Radar (Tactical) */}
-          <div className="p-6 bg-[#1A1B1E] border border-white/5">
-            <h2 className="text-xs text-[#8E8E93] font-mono tracking-widest uppercase mb-6 flex items-center gap-2">
-              <LayersIcon className="w-3 h-3 text-[#00F5FF]" /> DEPLOYMENT DENSITY
+          {/* Ekip Kapasite Yoğunluğu */}
+          <div className="p-8 bg-white border border-slate-200 shadow-lg">
+            <h2 className="text-[10px] text-slate-400 font-black tracking-widest uppercase mb-8 flex items-center gap-2">
+              <LayersIcon className="w-3 h-3 text-teal-600" /> EKİP YÜK YOĞUNLUĞU
             </h2>
-            <div className="space-y-4">
+            <div className="space-y-6">
               {tactical?.teamCapacity?.slice(0, 3).map((team: any, i: number) => (
-                <div key={i} className="space-y-1">
-                  <div className="flex justify-between text-[10px]">
+                <div key={i} className="space-y-2">
+                  <div className="flex justify-between text-[11px] font-black uppercase tracking-tight">
                     <span>{team.teamName}</span>
-                    <span className="text-[#00F5FF]">%{team.loadFactor.toFixed(0)}</span>
+                    <span className="text-teal-600">%{team.loadFactor.toFixed(0)}</span>
                   </div>
-                  <div className="h-1 bg-white/5 overflow-hidden">
+                  <div className="h-1.5 bg-slate-100 overflow-hidden">
                     <motion.div 
                       initial={{ width: 0 }}
                       animate={{ width: `${team.loadFactor}%` }}
                       transition={{ duration: 1, delay: i * 0.2 }}
-                      className="h-full bg-[#00F5FF]"
+                      className="h-full bg-teal-600 shadow-[0_0_10px_rgba(13,148,136,0.3)]"
                     />
                   </div>
                 </div>
@@ -359,9 +345,9 @@ export default function AdminDashboard() {
             </div>
           </div>
 
+        </div>
       </div>
-    </div>
+
     </div>
   )
 }
-
