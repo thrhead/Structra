@@ -15,10 +15,16 @@ export function HeroScene() {
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
         camera.position.z = 12;
 
-        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        mountRef.current.appendChild(renderer.domElement);
+        let renderer: THREE.WebGLRenderer;
+        try {
+            renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            mountRef.current.appendChild(renderer.domElement);
+        } catch (error) {
+            console.warn('WebGL is not supported in this environment. 3D Scene disabled.', error);
+            return;
+        }
 
         // Lights
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
