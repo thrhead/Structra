@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import { getAdminDashboardData } from "@/lib/data/admin-dashboard"
 import { PerformanceChart } from "@/components/charts/performance-chart"
+import { StrategicPulseChart } from "@/components/charts/strategic-pulse-chart"
 import { Link } from "@/lib/navigation"
 import Image from "next/image"
 
@@ -59,7 +60,8 @@ export default function AdminDashboard() {
     latestLogs,
     strategic,
     tactical,
-    operational
+    operational,
+    strategicTrend
   } = data
 
   const containerVariants = {
@@ -78,56 +80,78 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-950 p-4 md:p-10 font-sans selection:bg-teal-100 selection:text-teal-900">
       
-      {/* 1. ASİMETRİK BAŞLIK & STRATEJİK KATMAN */}
+      {/* 1. RADİKAL BAŞLIK & STRATEJİK NABIZ */}
       <motion.div 
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12"
+        className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12 items-end"
       >
-        <div className="lg:col-span-8 flex flex-col justify-end min-h-[160px]">
-          <motion.p variants={itemVariants} className="text-teal-600 font-mono text-xs tracking-[0.2em] uppercase mb-3">SİSTEM DURUMU: AKTİF</motion.p>
-          <motion.h1 variants={itemVariants} className="font-black text-6xl md:text-8xl tracking-tighter leading-[0.85] mb-8 text-slate-950">
-            OPERASYON <br/> <span className="text-teal-600">MERKEZİ</span>
-          </motion.h1>
-          <motion.div variants={itemVariants} className="flex gap-6">
-            <div className="px-5 py-3 bg-white border border-slate-200 shadow-sm">
-              <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Genel Kârlılık</span>
-              <span className="text-3xl font-black text-slate-950">%{strategic?.overallProfitMargin?.toFixed(1) || 0}</span>
-            </div>
-            <div className="px-5 py-3 bg-white border border-slate-200 shadow-sm flex items-center gap-4">
-              <div>
-                <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Büyüme Vektörü</span>
-                <span className="text-xl font-black text-teal-600 uppercase">Pozitif</span>
-              </div>
-              <TrendingUpIcon className="w-8 h-8 text-teal-600/20" />
-            </div>
+        <div className="lg:col-span-4 flex flex-col justify-end">
+          <motion.div variants={itemVariants} className="mb-8">
+            <p className="text-teal-600 font-mono text-[10px] tracking-[0.3em] uppercase mb-4">SİSTEM DURUMU: ANALİTİK AKTİF</p>
+            <h1 className="font-black text-6xl md:text-8xl tracking-tighter leading-[0.8] text-slate-950">
+              OPERASYON<br/><span className="text-teal-600">MERKEZİ</span>
+            </h1>
+          </motion.div>
+          
+          <motion.div variants={itemVariants} className="bg-white border-l-4 border-teal-600 p-6 shadow-xl">
+             <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">GÜNCEL YÜK (AKTİF + BEKLEYEN)</span>
+                <ZapIcon className="w-4 h-4 text-teal-600" />
+             </div>
+             <div className="flex items-baseline gap-3">
+                <span className="text-6xl font-black tracking-tighter text-slate-950">{activeJobs}</span>
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-tighter">İş Havuzda</span>
+             </div>
           </motion.div>
         </div>
 
-        <div className="lg:col-span-4 self-end">
+        <div className="lg:col-span-5 h-[280px] bg-white border border-slate-200 p-8 shadow-2xl relative overflow-hidden group">
+           <div className="absolute top-0 right-0 p-4 opacity-10 uppercase font-black text-[40px] tracking-tighter leading-none pointer-events-none select-none">
+              Strategic<br/>Pulse
+           </div>
+           <div className="relative z-10 h-full flex flex-col">
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Stratejik Dalgalanma</h3>
+                  <p className="text-[10px] font-bold text-teal-600 uppercase">İş Yoğunluğu & Maliyet Akışı</p>
+                </div>
+                <div className="text-right">
+                  <span className="text-2xl font-black tracking-tighter text-slate-950">₺{(strategicTrend?.[strategicTrend.length-1]?.cost || 0).toLocaleString('tr-TR')}</span>
+                  <p className="text-[10px] font-bold text-orange-600 uppercase tracking-widest">SON 24H HARCAMA</p>
+                </div>
+              </div>
+              <div className="flex-1 min-h-0">
+                <StrategicPulseChart data={strategicTrend} />
+              </div>
+           </div>
+        </div>
+
+        <div className="lg:col-span-3">
           <motion.div 
             variants={itemVariants}
-            className="bg-orange-600 text-white p-8 shadow-2xl relative overflow-hidden"
+            className="bg-slate-950 text-white p-8 shadow-2xl relative overflow-hidden h-[280px] flex flex-col justify-between"
           >
-            <div className="absolute -right-4 -top-4 opacity-10">
-               <AlertTriangleIcon className="w-32 h-32" />
+            <div className="absolute -right-6 -top-6 opacity-10">
+               <ShieldCheckIcon className="w-32 h-32 text-teal-500" />
             </div>
-            <div className="relative z-10">
-              <h3 className="font-mono text-[10px] uppercase tracking-widest mb-2 opacity-80">Darboğaz Kritiklik Skoru</h3>
-              <p className="text-5xl font-black tracking-tighter leading-none">
+            <div>
+              <h3 className="font-mono text-[10px] uppercase tracking-widest mb-4 text-teal-400">OPERASYONEL RİSK</h3>
+              <p className="text-7xl font-black tracking-tighter leading-none mb-2">
                 %{operational?.bottleneckScore?.toFixed(0) || 0}
               </p>
-              <p className="text-[10px] font-bold mt-2 opacity-80 uppercase tracking-widest">DİKKAT GEREKTİREN DURUM</p>
+              <div className={`w-12 h-1 ${Number(operational?.bottleneckScore) > 20 ? 'bg-orange-600' : 'bg-teal-600'}`} />
             </div>
-            <div className="relative z-10 grid grid-cols-2 gap-4 mt-8 pt-6 border-t border-white/20">
+            
+            <div className="grid grid-cols-2 gap-4 pt-6 border-t border-white/10">
               <div>
-                <span className="text-[10px] uppercase font-bold opacity-70 block">Bekleyen Harcama</span>
-                <span className="text-xl font-black tracking-widest">{operational?.pendingApprovals?.costs || 0}</span>
+                <span className="text-[9px] uppercase font-bold text-slate-500 block">Kârlılık</span>
+                <span className="text-xl font-black tracking-widest text-white">%{strategic?.overallProfitMargin?.toFixed(0) || 0}</span>
               </div>
               <div>
-                <span className="text-[10px] uppercase font-bold opacity-70 block">Bloke Adımlar</span>
-                <span className="text-xl font-black tracking-widest">{operational?.pendingApprovals?.steps || 0}</span>
+                <span className="text-[9px] uppercase font-bold text-slate-500 block">Duyarlılık</span>
+                <span className="text-xl font-black tracking-widest text-teal-500">Yüksek</span>
               </div>
             </div>
           </motion.div>
@@ -142,8 +166,8 @@ export default function AdminDashboard() {
         className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-slate-200 border border-slate-200 mb-16 shadow-lg overflow-hidden"
       >
         {[
-          { icon: BriefcaseIcon, label: 'Aktif İşler', value: activeJobs, sub: `${totalJobs} Toplam`, color: 'text-teal-600' },
-          { icon: TargetIcon, label: 'Günlük Hedef', value: completedJobsToday, sub: 'Onaylandı', color: 'text-slate-950' },
+          { icon: BriefcaseIcon, label: 'Toplam İş', value: totalJobs, sub: `${activeJobs} Aktif/Bekleyen`, color: 'text-teal-600' },
+          { icon: TargetIcon, label: 'Günlük Hedef', value: completedJobsToday, sub: 'Tamamlandı', color: 'text-slate-950' },
           { icon: UsersIcon, label: 'Saha Operasyonu', value: totalWorkers, sub: `${activeTeams} Ekip Aktif`, color: 'text-teal-600' },
           { icon: ShieldCheckIcon, label: 'Bekleyen Onay', value: pendingApprovalsCount, sub: 'Kritik İnceleme', color: 'text-orange-600' },
         ].map((stat, idx) => (
@@ -195,7 +219,7 @@ export default function AdminDashboard() {
                 <div key={i} className="space-y-4">
                    <p className="text-[10px] text-slate-500 font-black uppercase tracking-tight truncate border-l-2 border-teal-600 pl-2">{item.title}</p>
                    <p className={`text-3xl font-black tracking-tighter ${item.variance >= 0 ? 'text-teal-600' : 'text-orange-600'}`}>
-                      {item.variance >= 0 ? '+' : ''}₺{Math.abs(item.variance).toLocaleString()}
+                      {item.variance >= 0 ? '+' : ''}₺{Math.abs(item.variance).toLocaleString('tr-TR')}
                    </p>
                    <div className="h-1 bg-slate-100 w-full">
                       <motion.div 

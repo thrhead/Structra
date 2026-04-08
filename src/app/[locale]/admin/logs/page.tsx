@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import { useTranslations } from 'next-intl'
+import { AnimatePresence, motion } from "framer-motion"
 import {
     Table,
     TableBody,
@@ -29,7 +30,8 @@ import {
     Trash2,
     RefreshCcw,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    ChevronDown
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
@@ -43,6 +45,7 @@ export default function LogsPage() {
     const [search, setSearch] = useState('')
     const [page, setPage] = useState(1)
     const [pagination, setPagination] = useState({ totalPages: 1, total: 0 })
+    const [expandedId, setExpandedId] = useState<string | null>(null)
 
     const fetchLogs = async () => {
         setLoading(true)
@@ -170,6 +173,7 @@ export default function LogsPage() {
                         <Table>
                             <TableHeader className="bg-muted/50">
                                 <TableRow className="hover:bg-transparent border-none">
+                                    <TableHead className="w-[40px]"></TableHead>
                                     <TableHead className="w-[100px] font-bold">{t('level')}</TableHead>
                                     <TableHead className="w-[120px] font-bold">{t('platform')}</TableHead>
                                     <TableHead className="font-bold">{t('message')}</TableHead>
@@ -197,53 +201,108 @@ export default function LogsPage() {
                                         const meta = log.meta || {};
                                         const stack = meta.stack || log.stack;
                                         const context = meta.context || log.context;
+                                        const isExpanded = expandedId === log.id;
 
                                         return (
-                                            <TableRow key={log.id} className="cursor-default group hover:bg-muted/30 transition-colors">
-                                                <TableCell className="py-4">{getLevelBadge(log.level)}</TableCell>
-                                                <TableCell className="py-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="p-1.5 bg-background rounded-md border border-border/50 shadow-sm">
-                                                            {getPlatformIcon(log.platform)}
-                                                        </div>
-                                                        <span className="capitalize text-xs font-semibold">{log.platform}</span>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="py-4">
-                                                    <div className="flex flex-col gap-1 max-w-xl">
-                                                        <span className="font-medium text-sm leading-tight">{log.message}</span>
-                                                        {stack && (
-                                                            <details className="text-[10px] text-muted-foreground cursor-pointer">
-                                                                <summary className="hover:text-primary outline-none">View Stack Trace</summary>
-                                                                <pre className="mt-2 p-3 bg-secondary/50 rounded-lg overflow-x-auto border border-border font-mono whitespace-pre text-[9px]">
-                                                                    {stack}
-                                                                </pre>
-                                                            </details>
-                                                        )}
-                                                        {context && (
-                                                            <div className="flex flex-wrap gap-1 mt-1">
-                                                                {Object.entries(context).map(([key, val]) => (
-                                                                    <span key={key} className="text-[9px] bg-secondary px-1.5 py-0.5 rounded text-muted-foreground">
-                                                                        {key}: {typeof val === 'object' ? JSON.stringify(val) : String(val)}
-                                                                    </span>
-                                                                ))}
+                                            <Fragment key={log.id}>
+                                                <TableRow 
+                                                    className="cursor-pointer group hover:bg-muted/30 transition-colors"
+                                                    onClick={() => setExpandedId(isExpanded ? null : log.id)}
+                                                >
+                                                    <TableCell className="w-[40px] pl-4">
+                                                        <motion.div
+                                                            animate={{ rotate: isExpanded ? 180 : 0 }}
+                                                            transition={{ duration: 0.2 }}
+                                                        >
+                                                            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                                                        </motion.div>
+                                                    </TableCell>
+                                                    <TableCell className="py-4">{getLevelBadge(log.level)}</TableCell>
+                                                    <TableCell className="py-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="p-1.5 bg-background rounded-md border border-border/50 shadow-sm">
+                                                                {getPlatformIcon(log.platform)}
                                                             </div>
-                                                        )}
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="py-4">
-                                                    <div className="flex flex-col">
-                                                        <span className="font-bold text-sm">{log.user?.name || 'Sistem'}</span>
-                                                        <span className="text-[10px] text-muted-foreground truncate max-w-[150px]">{log.user?.email || 'automatic@system'}</span>
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="py-4 text-right">
-                                                    <div className="flex flex-col items-end">
-                                                        <span className="text-xs font-bold">{format(new Date(log.createdAt), 'HH:mm:ss')}</span>
-                                                        <span className="text-[10px] text-muted-foreground">{format(new Date(log.createdAt), 'dd MMM yyyy')}</span>
-                                                    </div>
-                                                </TableCell>
-                                            </TableRow>
+                                                            <span className="capitalize text-xs font-semibold">{log.platform}</span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="py-4">
+                                                        <div className="flex flex-col gap-1 max-w-xl">
+                                                            <span className="font-medium text-sm leading-tight truncate block">{log.message}</span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="py-4">
+                                                        <div className="flex flex-col">
+                                                            <span className="font-bold text-sm">{log.user?.name || 'Sistem'}</span>
+                                                            <span className="text-[10px] text-muted-foreground truncate max-w-[150px]">{log.user?.email || 'automatic@system'}</span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="py-4 text-right">
+                                                        <div className="flex flex-col items-end">
+                                                            <span className="text-xs font-bold">{format(new Date(log.createdAt), 'HH:mm:ss')}</span>
+                                                            <span className="text-[10px] text-muted-foreground">{format(new Date(log.createdAt), 'dd MMM yyyy')}</span>
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                                <AnimatePresence initial={false}>
+                                                    {isExpanded && (
+                                                        <TableRow className="hover:bg-transparent">
+                                                            <TableCell colSpan={6} className="p-0 border-0">
+                                                                <motion.div
+                                                                    initial={{ height: 0, opacity: 0 }}
+                                                                    animate={{ height: "auto", opacity: 1 }}
+                                                                    exit={{ height: 0, opacity: 0 }}
+                                                                    transition={{ duration: 0.2 }}
+                                                                    className="overflow-hidden bg-muted/40 border-b border-border shadow-inner"
+                                                                >
+                                                                    <div className="p-4 space-y-4">
+                                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                            <div>
+                                                                                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                                                                    {t('message')}
+                                                                                </p>
+                                                                                <p className="rounded bg-background border border-border/50 shadow-sm p-3 font-mono text-sm text-foreground break-words w-full">
+                                                                                    {log.message}
+                                                                                </p>
+                                                                            </div>
+                                                                            <div>
+                                                                                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                                                                    Context & Tags
+                                                                                </p>
+                                                                                <div className="rounded bg-background flex flex-col justify-center border border-border/50 shadow-sm p-3 font-mono text-xs text-foreground min-h-[50px] w-full">
+                                                                                    {context && Object.keys(context).length > 0 ? (
+                                                                                        <div className="flex flex-wrap gap-2">
+                                                                                            {Object.entries(context).map(([key, val]) => (
+                                                                                                <Badge key={key} variant="outline" className="text-xs">
+                                                                                                    <span className="font-semibold mr-1">{key}:</span> 
+                                                                                                    {typeof val === 'object' ? JSON.stringify(val) : String(val)}
+                                                                                                </Badge>
+                                                                                            ))}
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        <span className="text-muted-foreground italic">No extra context provided.</span>
+                                                                                    )}
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        
+                                                                        {stack && (
+                                                                            <div>
+                                                                                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center justify-between">
+                                                                                    <span>Stack Trace</span>
+                                                                                </p>
+                                                                                <pre className="p-3 bg-card rounded-lg overflow-x-auto shadow-sm border border-border/50 font-mono whitespace-pre text-[11px] text-foreground">
+                                                                                    {stack}
+                                                                                </pre>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </motion.div>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    )}
+                                                </AnimatePresence>
+                                            </Fragment>
                                         )
                                     })
                                 )}

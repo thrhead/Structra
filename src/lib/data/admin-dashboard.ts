@@ -28,7 +28,9 @@ export async function getAdminDashboardData() {
       // Enhanced Dashboard Data (Multi-tier)
       strategic,
       tactical,
-      operational
+      operational,
+      recentJobs,
+      recentCosts
     ] = await Promise.all([
       prisma.user.findMany({
         where: {
@@ -94,7 +96,7 @@ export async function getAdminDashboardData() {
         _sum: { budget: true }
       }).catch(e => { console.error("activeJobsBudgetAgg fetch failed", e); return { _sum: { budget: 0 } }; }),
       prisma.job.count().catch(() => 0),
-      prisma.job.count({ where: { status: 'IN_PROGRESS' } }).catch(() => 0),
+      prisma.job.count({ where: { status: { in: ['PENDING', 'IN_PROGRESS'] } } }).catch(() => 0),
       prisma.job.count({ 
         where: { 
           status: 'COMPLETED', 
@@ -120,7 +122,16 @@ export async function getAdminDashboardData() {
       // Async Multi-tier fetches
       getStrategicDashboard(thirtyDaysAgo, today).catch(() => ({})),
       getTacticalDashboard(thirtyDaysAgo, today).catch(() => ({})),
-      getOperationalDashboard(thirtyDaysAgo, today).catch(() => ({}))
+      getOperationalDashboard(thirtyDaysAgo, today).catch(() => ({})),
+      // Strategic Trend (14 Days)
+      prisma.job.findMany({
+        where: { createdAt: { gte: new Date(new Date().setDate(today.getDate() - 14)) } },
+        select: { createdAt: true }
+      }).catch(() => []),
+      prisma.costTracking.findMany({
+        where: { date: { gte: new Date(new Date().setDate(today.getDate() - 14)) }, status: 'APPROVED' },
+        select: { date: true, amount: true }
+      }).catch(() => [])
     ])
 
     const totalCostToday = todaysCosts.reduce((sum, cost) => sum + cost.amount, 0)
@@ -128,10 +139,10 @@ export async function getAdminDashboardData() {
     const dailyBudget = activeJobsBudgetAgg._sum?.budget || 2000
     const budgetPercentage = Math.min(Math.round((totalCostToday / dailyBudget) * 100), 100)
 
-    // Group jobs by date
+    // Group jobs by date (7 days for performance chart)
     const weeklyStats = new Array(7).fill(0).map((_, i) => {
       const d = new Date()
-      d.setDate(d.getDate() - (6 - i)) // Last 7 days including today
+      d.setDate(d.getDate() - (6 - i))
       const dateKey = d.toISOString().split('T')[0]
       const displayDate = d.toLocaleDateString('tr-TR', { weekday: 'short' })
 
@@ -142,6 +153,24 @@ export async function getAdminDashboardData() {
       return {
         name: displayDate,
         count
+      }
+    })
+
+    // Strategic Trend (14 days for top chart)
+    const strategicTrend = new Array(14).fill(0).map((_, i) => {
+      const d = new Date()
+      d.setDate(d.getDate() - (13 - i))
+      const dateKey = d.toISOString().split('T')[0]
+      const displayDate = d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })
+
+      const jobsCount = recentJobs.filter((j: any) => j.createdAt.toISOString().split('T')[0] === dateKey).length
+      const stepsCount = weeklyCompletedSteps.filter(s => s.completedAt?.toISOString().split('T')[0] === dateKey).length
+      const dayCosts = recentCosts.filter((c: any) => c.date.toISOString().split('T')[0] === dateKey).reduce((sum: number, c: any) => sum + c.amount, 0)
+
+      return {
+        name: displayDate,
+        intensity: jobsCount + stepsCount,
+        cost: dayCosts
       }
     })
 
@@ -163,7 +192,8 @@ export async function getAdminDashboardData() {
       // Tiered Insights
       strategic,
       tactical,
-      operational
+      operational,
+      strategicTrend
     }
   } catch (error: any) {
     console.error("CRITICAL: getAdminDashboardData overall failure", error.message);
@@ -184,7 +214,8 @@ export async function getAdminDashboardData() {
       pendingApprovals: [],
       strategic: {},
       tactical: {},
-      operational: {}
+      operational: {},
+      strategicTrend: []
     }
   }
 }
