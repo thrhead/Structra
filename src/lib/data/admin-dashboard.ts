@@ -3,15 +3,18 @@ import { getStrategicDashboard, getTacticalDashboard, getOperationalDashboard } 
 
 export async function getAdminDashboardData() {
   try {
-    const today = new Date()
-    const thirtyDaysAgo = new Date()
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    const now = new Date()
+    const today = new Date(now)
+    today.setHours(0, 0, 0, 0)
     
-    const sevenDaysAgo = new Date()
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+    const sevenDaysAgo = new Date(today)
+    sevenDaysAgo.setDate(today.getDate() - 7)
+
+    const thirtyDaysAgo = new Date(today)
+    thirtyDaysAgo.setDate(today.getDate() - 30)
 
     const [
-      activeWorkers,
+      activeWorkersCount,
       todaysCosts,
       pendingApprovalsCount,
       pendingCostsAgg,
@@ -29,10 +32,11 @@ export async function getAdminDashboardData() {
       strategic,
       tactical,
       operational,
-      recentJobs,
-      recentCosts
+      // Strategic Trend (14 Days)
+      strategicTrendResult
     ] = await Promise.all([
-      prisma.user.findMany({
+      // 0: activeWorkersCount
+      prisma.user.count({
         where: {
           role: 'WORKER',
           isActive: true,
@@ -43,73 +47,85 @@ export async function getAdminDashboardData() {
               }
             }
           }
-        },
-        take: 5,
-        select: {
-          id: true,
-          name: true,
-          avatarUrl: true
         }
-      }).catch(e => { console.error("activeWorkers fetch failed", e); return []; }),
+      }).catch(e => { console.error("activeWorkersCount fetch failed", e); return 0; }),
+
+      // 1: todaysCosts
       prisma.costTracking.findMany({
         where: {
-          date: {
-            gte: new Date(new Date().setHours(0, 0, 0, 0))
-          }
+          date: { gte: today }
         },
-        select: {
-          amount: true
-        }
+        select: { amount: true }
       }).catch(e => { console.error("todaysCosts fetch failed", e); return []; }),
+
+      // 2: pendingApprovalsCount
       prisma.approval.count({
-        where: {
-          status: 'PENDING'
-        }
+        where: { status: 'PENDING' }
       }).catch(e => { console.error("pendingApprovalsCount fetch failed", e); return 0; }),
+
+      // 3: pendingCostsAgg
       prisma.costTracking.aggregate({
         where: { status: 'PENDING' },
         _sum: { amount: true }
       }).catch(e => { console.error("pendingCostsAgg fetch failed", e); return { _sum: { amount: 0 } }; }),
+
+      // 4: approvedCostsAgg
       prisma.costTracking.aggregate({
         where: { status: 'APPROVED' },
         _sum: { amount: true }
       }).catch(e => { console.error("approvedCostsAgg fetch failed", e); return { _sum: { amount: 0 } }; }),
+
+      // 5: weeklyCompletedSteps
       prisma.jobStep.findMany({
         where: {
-          isCompleted: { equals: true },
-          completedAt: {
-            gte: sevenDaysAgo
-          }
+          isCompleted: true,
+          completedAt: { gte: sevenDaysAgo }
         },
-        select: {
-          completedAt: true
-        }
+        select: { completedAt: true }
       }).catch(e => { console.error("weeklyCompletedSteps fetch failed", e); return []; }),
+
+      // 6: activeJobsBudgetAgg
       prisma.job.aggregate({
         where: {
           OR: [
             { status: 'IN_PROGRESS' },
-            { scheduledDate: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } }
+            { scheduledDate: { gte: today } }
           ],
           budget: { not: null }
         },
         _sum: { budget: true }
       }).catch(e => { console.error("activeJobsBudgetAgg fetch failed", e); return { _sum: { budget: 0 } }; }),
-      prisma.job.count().catch(() => 0),
-      prisma.job.count({ where: { status: { in: ['PENDING', 'IN_PROGRESS'] } } }).catch(() => 0),
+
+      // 7: totalJobs
+      prisma.job.count().catch(e => { console.error("totalJobs fetch failed", e); return 0; }),
+
+      // 8: activeJobs
+      prisma.job.count({ 
+        where: { status: { in: ['PENDING', 'IN_PROGRESS'] } } 
+      }).catch(e => { console.error("activeJobs fetch failed", e); return 0; }),
+
+      // 9: completedJobsToday
       prisma.job.count({ 
         where: { 
           status: 'COMPLETED', 
-          completedDate: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } 
+          completedDate: { gte: today } 
         } 
-      }).catch(() => 0),
-      prisma.user.count({ where: { role: 'WORKER' } }).catch(() => 0),
-      prisma.team.count({ where: { isActive: true } }).catch(() => 0),
+      }).catch(e => { console.error("completedJobsToday fetch failed", e); return 0; }),
+
+      // 10: totalWorkers
+      prisma.user.count({ where: { role: 'WORKER' } }).catch(e => { console.error("totalWorkers fetch failed", e); return 0; }),
+
+      // 11: activeTeams
+      prisma.team.count({ where: { isActive: true } }).catch(e => { console.error("activeTeams fetch failed", e); return 0; }),
+
+      // 12: latestLogs
       prisma.systemLog.findMany({
         take: 5,
         orderBy: { createdAt: 'desc' },
         include: { user: { select: { name: true } } }
-      }).catch(() => []),
+      }).catch(e => { console.error("latestLogs fetch failed", e); return []; }),
+
+      // 13: pendingApprovals
       prisma.approval.findMany({
         where: { status: 'PENDING' },
         take: 3,
@@ -118,36 +134,59 @@ export async function getAdminDashboardData() {
           requester: { select: { name: true } }
         },
         orderBy: { createdAt: 'desc' }
-      }).catch(() => []),
-      // Async Multi-tier fetches
-      getStrategicDashboard(thirtyDaysAgo, today).catch(() => ({})),
-      getTacticalDashboard(thirtyDaysAgo, today).catch(() => ({})),
-      getOperationalDashboard(thirtyDaysAgo, today).catch(() => ({})),
-      // Strategic Trend (14 Days)
-      prisma.job.findMany({
-        where: { createdAt: { gte: new Date(new Date().setDate(today.getDate() - 14)) } },
-        select: { createdAt: true }
-      }).catch(() => []),
-      prisma.costTracking.findMany({
-        where: { date: { gte: new Date(new Date().setDate(today.getDate() - 14)) }, status: 'APPROVED' },
-        select: { date: true, amount: true }
-      }).catch(() => [])
+      }).catch(e => { console.error("pendingApprovals fetch failed", e); return []; }),
+
+      // 14: strategic
+      getStrategicDashboard(thirtyDaysAgo, now).catch(e => { console.error("strategic fetch failed", e); return {}; }),
+
+      // 15: tactical
+      getTacticalDashboard(thirtyDaysAgo, now).catch(e => { console.error("tactical fetch failed", e); return {}; }),
+
+      // 16: operational
+      getOperationalDashboard(thirtyDaysAgo, now).catch(e => { console.error("operational fetch failed", e); return {}; }),
+
+      // 17: strategicTrendResult (14-day)
+      Promise.all(
+        Array.from({ length: 14 }).map(async (_, i) => {
+          const dayStart = new Date(today)
+          dayStart.setDate(today.getDate() - (13 - i))
+          dayStart.setHours(0, 0, 0, 0)
+          
+          const dayEnd = new Date(dayStart)
+          dayEnd.setHours(23, 59, 59, 999)
+
+          const [jobCount, costData] = await Promise.all([
+            prisma.job.count({
+              where: { createdAt: { gte: dayStart, lte: dayEnd } }
+            }),
+            prisma.costTracking.aggregate({
+              where: { date: { gte: dayStart, lte: dayEnd }, status: 'APPROVED' },
+              _sum: { amount: true }
+            })
+          ])
+
+          return {
+            name: dayStart.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }),
+            intensity: jobCount,
+            cost: Number(costData._sum.amount || 0)
+          }
+        })
+      ).catch(e => { console.error("strategicTrendResult fetch failed", e); return []; })
     ])
 
-    const totalCostToday = todaysCosts.reduce((sum, cost) => sum + cost.amount, 0)
-    // Dynamic budget: Sum of budgets of active/scheduled jobs. Fallback to 2000 if no budgets defined.
+    const totalCostToday = todaysCosts.reduce((sum, cost) => sum + (cost.amount || 0), 0)
     const dailyBudget = activeJobsBudgetAgg._sum?.budget || 2000
     const budgetPercentage = Math.min(Math.round((totalCostToday / dailyBudget) * 100), 100)
 
-    // Group jobs by date (7 days for performance chart)
+    // Weekly performance mapping
     const weeklyStats = new Array(7).fill(0).map((_, i) => {
-      const d = new Date()
-      d.setDate(d.getDate() - (6 - i))
-      const dateKey = d.toISOString().split('T')[0]
+      const d = new Date(today)
+      d.setDate(today.getDate() - (6 - i))
+      const dateStr = d.toISOString().split('T')[0]
       const displayDate = d.toLocaleDateString('tr-TR', { weekday: 'short' })
 
       const count = weeklyCompletedSteps.filter(step =>
-        step.completedAt && step.completedAt.toISOString().split('T')[0] === dateKey
+        step.completedAt && step.completedAt.toISOString().split('T')[0] === dateStr
       ).length
 
       return {
@@ -156,26 +195,8 @@ export async function getAdminDashboardData() {
       }
     })
 
-    // Strategic Trend (14 days for top chart)
-    const strategicTrend = new Array(14).fill(0).map((_, i) => {
-      const d = new Date()
-      d.setDate(d.getDate() - (13 - i))
-      const dateKey = d.toISOString().split('T')[0]
-      const displayDate = d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })
-
-      const jobsCount = recentJobs.filter((j: any) => j.createdAt.toISOString().split('T')[0] === dateKey).length
-      const stepsCount = weeklyCompletedSteps.filter(s => s.completedAt?.toISOString().split('T')[0] === dateKey).length
-      const dayCosts = recentCosts.filter((c: any) => c.date.toISOString().split('T')[0] === dateKey).reduce((sum: number, c: any) => sum + c.amount, 0)
-
-      return {
-        name: displayDate,
-        intensity: jobsCount + stepsCount,
-        cost: dayCosts
-      }
-    })
-
     return {
-      activeWorkers,
+      activeWorkersCount,
       totalCostToday,
       budgetPercentage,
       pendingApprovalsCount,
@@ -193,12 +214,12 @@ export async function getAdminDashboardData() {
       strategic,
       tactical,
       operational,
-      strategicTrend
+      strategicTrend: strategicTrendResult
     }
   } catch (error: any) {
     console.error("CRITICAL: getAdminDashboardData overall failure", error.message);
     return {
-      activeWorkers: [],
+      activeWorkersCount: 0,
       totalCostToday: 0,
       budgetPercentage: 0,
       pendingApprovalsCount: 0,
@@ -218,4 +239,4 @@ export async function getAdminDashboardData() {
       strategicTrend: []
     }
   }
-}
+}
