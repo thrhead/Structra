@@ -1,37 +1,62 @@
-# Orchestration Plan: Issue #11 (Mesajlaşma Sistemi)
+# Plan: Notification System Audit and Fix (Issue #61)
 
-## Hedef
-Web ve mobil uygulamalardaki çalışmayan mesajlaşma bölümlerini (chat) onarmak, Socket.IO ve veritabanı (Prisma) entegrasyonlarını stabilize etmek ve daha UI/UX odaklı kullanışlı bir yapı kurmak.
+## Overview
+This plan addresses the missing notification bell icon for admin users on mobile and performs a general health check of the notification system across both web and mobile platforms.
 
-## Mevcut Durum Analizi
-- **Web:** `src/components/chat/ChatPanel.tsx` Socket.IO ve `/api/messages` uç noktasını kullanıyor.
-- **Mobile:** `apps/mobile/src/screens/chat/ChatScreen.js` `MessageService` yardımıyla veri çekiyor ve Socket.IO'ya (port `/api/socket`) bağlanmaya çalışıyor.
-- **Database:** Prisma şemasında `Message` ve `Conversation` modelleri mevcut, uçtan uca şifreleme (`isEncrypted`) desteği de var.
-- **Problem:** Genel olarak socket bağlantı kopuklukları, API tarafındaki veri çekme hataları veya Socket.IO sunucusunun Next.js dev server ile düzgün entegre edilememesi mesajlaşmanın çalışmasını engelliyor.
+## Success Criteria
+- [ ] Notification bell icon is visible for Admin users on mobile dashboard.
+- [ ] Notification badge (unread count) works correctly for Admin users on mobile.
+- [ ] Notifications list screen is accessible and functional for Admins on mobile.
+- [ ] Notification bell and dropdown are functional for Admins on the web application.
+- [ ] Real-time notification delivery via Ably is verified for all roles (Admin, Manager, Worker).
 
-## Plan & Görev Dağılımı (Phase 2 - Implementation)
+## Tech Stack
+- **Mobile**: React Native, Expo, Ably (Real-time).
+- **Web**: Next.js (App Router), Ably, Prisma.
+- **Backend**: Node.js/Next.js API routes, Ably Realtime Channels.
 
-Kullanıcı onayından sonra aşağıdaki ajanlar **PARALEL** olarak devreye girecek:
+## File Structure & Impact
+- `apps/mobile/src/screens/admin/AdminDashboardScreen.js`: Primary focus for mobile admin UI.
+- `apps/mobile/src/context/SocketContext.js`: Ably subscription logic.
+- `src/components/admin/header.tsx`: Web admin header.
+- `src/app/api/notifications/route.ts`: Notification delivery backend.
 
-### 1. BACKEND & DATABASE (`backend-specialist`, `database-architect`)
-- `server.ts` içerisindeki Socket.IO yapılandırması gözden geçirilecek. Next.js custom server entegrasyonu (CORS, Socket Path = `/api/socket`) doğru ayarlanacak.
-- `/api/messages` uç noktalarındaki eksiklikler (GET ve POST) tamamlanacak.
-- Mesaj kaydetme (`Message` modeli) sırasındaki ilişki (relation) hataları ve şifreleme süreçleri düzeltilecek.
+## Task Breakdown
 
-### 2. FRONTEND (WEB) (`frontend-specialist`)
-- `ChatPanel.tsx` hatasız hale getirilecek.
-- Daha pürüzsüz ve modern bir UI, "typing..." durum göstergesi ve bağlantı koptuğunda "Yeniden bağlanılıyor..." uyarısı eklenecek.
-- Çevrimdışı senkronizasyon (Dexie.js `offlineDB`) mekanizması API ile daha tutarlı hale getirilecek.
+### Phase 1: Analysis (Explorer Agent)
+- [x] Map notification UI components in `apps/mobile`.
+- [x] Check `AdminDashboardScreen.js` for existing bell icon logic.
+- [x] Check `AdminHeader.tsx` for web notification dropdown.
+- [x] Identify potential gaps in role-based notification delivery.
 
-### 3. MOBILE (`mobile-developer`)
-- `ChatScreen.js` ekranındaki Socket.IO bağlantısı (auth token aktarımı, path ayarı) web API'sine uygun hale getirilecek.
-- Mobil cihaz uyumlu klavye açıldığında kaydırma (`KeyboardAvoidingView`), mesaj baloncuğu (bubble) tasarımları ve UX iyileştirmeleri yapılacak.
+### Phase 2: Implementation (Parallel)
 
-### 4. TEST & DOĞRULAMA (`test-engineer`)
-- Web ve Mobile arasındaki mesajlaşma uçtan uca test edilecek.
-- Yetkisiz erişim kontrolleri yapılacak.
-- `security_scan.py` ve `lint_runner.py` scriptleri çalıştırılarak raporlanacak.
+#### Mobile Fixes (`mobile-developer`)
+- [ ] **Task M1**: Fix/Restore bell icon in `AdminDashboardScreen.js`.
+    - *Input*: `AdminDashboardScreen.js` source.
+    - *Output*: Functional notification icon + badge.
+    - *Verify*: Icon appears and navigates to `Notifications` screen.
+- [ ] **Task M2**: Ensure notification bell is available on major admin sub-screens if necessary, or fix global header behavior.
 
----
+#### Web Verification (`frontend-specialist`)
+- [ ] **Task W1**: Audit `AdminHeader.tsx` and `NotificationDropdown.tsx`.
+    - *Input*: Web layout components.
+    - *Output*: Verified functional notification UI for Admins.
+    - *Verify*: Unread count updates and dropdown opens.
 
-**NOT:** Bu planı onayladıktan sonra (Y) Çoklu Ajan (Multi-Agent) implementasyon süreci başlayacaktır.
+#### Backend/Real-time Audit (`backend-specialist`)
+- [ ] **Task B1**: Verify Ably channel names and subscription logic for Admin role.
+    - *Input*: `SocketContext.js` and `api/notifications` routes.
+    - *Output*: Confirmed channel security and role-agnostic delivery.
+    - *Verify*: Emitting a notification to an admin user results in unread count change.
+
+### Phase 3: Verification (Test Engineer)
+- [ ] **Task T1**: Run security scan for Ably secrets/token exposure.
+- [ ] **Task T2**: Verify UI consistency across roles.
+- [ ] **Task T3**: Manual verification of "Mark as Read" functionality for Admins.
+
+## Phase X: Final Checklist
+- [ ] No purple/violet hex codes used.
+- [ ] Socratic Gate respected.
+- [ ] Build successful for both apps.
+- [ ] All verification scripts passed.

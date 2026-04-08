@@ -12,7 +12,7 @@ const CategoryPieChart = dynamic(() => import("./charts/CategoryPieChart"), { ss
 export default function StrategicView({ data }: { data: any }) {
     if (!data) return null;
 
-    const { overallProfitMargin, topCustomersByProfit, trends } = data;
+    const { overallProfitMargin = 0, topCustomersByProfit = [], trends = { costs: [], revenue: [] } } = data || {};
 
     return (
         <div className="space-y-6">
@@ -25,7 +25,7 @@ export default function StrategicView({ data }: { data: any }) {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-3xl font-bold text-indigo-600">%{overallProfitMargin.toFixed(1)}</div>
+                        <div className="text-3xl font-bold text-indigo-600">%{overallProfitMargin?.toFixed(1) || '0.0'}</div>
                         <p className="text-xs text-muted-foreground mt-1">Geçmiş dönem bütçe/maliyet analizi</p>
                     </CardContent>
                 </Card>
@@ -39,7 +39,7 @@ export default function StrategicView({ data }: { data: any }) {
                     </CardHeader>
                     <CardContent>
                         <div className="text-3xl font-bold text-emerald-600">
-                            ₺{trends.revenue.reduce((sum: number, r: any) => sum + r.amount, 0).toLocaleString()}
+                            ₺{(trends?.revenue || []).reduce((sum: number, r: any) => sum + (r.amount || 0), 0).toLocaleString()}
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">Sözleşme/Bütçe bazlı toplam değer</p>
                     </CardContent>
@@ -53,7 +53,7 @@ export default function StrategicView({ data }: { data: any }) {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-3xl font-bold text-blue-600">{topCustomersByProfit.length}</div>
+                        <div className="text-3xl font-bold text-blue-600">{(topCustomersByProfit || []).length}</div>
                         <p className="text-xs text-muted-foreground mt-1">En yüksek kârlılığa sahip partnerler</p>
                     </CardContent>
                 </Card>
@@ -64,7 +64,7 @@ export default function StrategicView({ data }: { data: any }) {
                     <CardHeader><CardTitle>Gelir vs Maliyet Trendi</CardTitle></CardHeader>
                     <CardContent className="h-[300px]">
                         {/* CostTrendChart reusable but we might want to overlay revenue here */}
-                        <CostTrendChart data={trends.costs} categories={['Maliyet']} />
+                        <CostTrendChart data={trends?.costs || []} categories={['Maliyet']} />
                     </CardContent>
                 </Card>
 

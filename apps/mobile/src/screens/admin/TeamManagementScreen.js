@@ -146,10 +146,12 @@ const TeamManagementScreen = ({ navigation }) => {
                         <Users size={20} color={theme.colors.primary} style={styles.icon} />
                         <Text style={[styles.teamName, { color: theme.colors.text }]}>{item.name}</Text>
                     </View>
-                    <View style={[styles.statusBadge, { backgroundColor: item.status === 'BUSY' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)' }]}>
-                        <Circle size={8} fill={item.status === 'BUSY' ? '#EF4444' : '#22C55E'} color={item.status === 'BUSY' ? '#EF4444' : '#22C55E'} />
-                        <Text style={[styles.statusText, { color: item.status === 'BUSY' ? '#EF4444' : '#22C55E' }]}>
-                            {item.status === 'BUSY' ? t('manager.busy') : t('manager.available')}
+                    <View style={[styles.statusBadge, { 
+                        backgroundColor: !item.isActive ? 'rgba(107, 114, 128, 0.1)' : (item.status === 'BUSY' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)') 
+                    }]}>
+                        <Circle size={8} fill={!item.isActive ? '#6B7280' : (item.status === 'BUSY' ? '#EF4444' : '#22C55E')} color={!item.isActive ? '#6B7280' : (item.status === 'BUSY' ? '#EF4444' : '#22C55E')} />
+                        <Text style={[styles.statusText, { color: !item.isActive ? '#6B7280' : (item.status === 'BUSY' ? '#EF4444' : '#22C55E') }]}>
+                            {!item.isActive ? 'Pasif' : (item.status === 'BUSY' ? t('manager.busy') : t('manager.available'))}
                         </Text>
                     </View>
                 </View>

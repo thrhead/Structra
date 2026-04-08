@@ -33,9 +33,11 @@ export function PerformanceChart({ data }: PerformanceChartProps) {
         />
         <Bar
           dataKey="count"
-          fill="#4F46E5" // Indigo-600
-          radius={[4, 4, 0, 0]}
+          fill="#00F5FF" // Cyber Teal
+          radius={[2, 2, 0, 0]}
+          className="drop-shadow-[0_0_8px_rgba(0,245,255,0.4)]"
         />
+
       </BarChart>
     </ResponsiveContainer>
   )

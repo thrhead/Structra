@@ -1,7 +1,12 @@
 import { prisma } from "@/lib/db"
+import { getStrategicDashboard, getTacticalDashboard, getOperationalDashboard } from "./reports"
 
 export async function getAdminDashboardData() {
   try {
+    const today = new Date()
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    
     const sevenDaysAgo = new Date()
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
 
@@ -19,7 +24,11 @@ export async function getAdminDashboardData() {
       totalWorkers,
       activeTeams,
       latestLogs,
-      pendingApprovals
+      pendingApprovals,
+      // Enhanced Dashboard Data (Multi-tier)
+      strategic,
+      tactical,
+      operational
     ] = await Promise.all([
       prisma.user.findMany({
         where: {
@@ -107,7 +116,11 @@ export async function getAdminDashboardData() {
           requester: { select: { name: true } }
         },
         orderBy: { createdAt: 'desc' }
-      }).catch(() => [])
+      }).catch(() => []),
+      // Async Multi-tier fetches
+      getStrategicDashboard(thirtyDaysAgo, today).catch(() => ({})),
+      getTacticalDashboard(thirtyDaysAgo, today).catch(() => ({})),
+      getOperationalDashboard(thirtyDaysAgo, today).catch(() => ({}))
     ])
 
     const totalCostToday = todaysCosts.reduce((sum, cost) => sum + cost.amount, 0)
@@ -146,7 +159,11 @@ export async function getAdminDashboardData() {
       totalWorkers,
       activeTeams,
       latestLogs,
-      pendingApprovals
+      pendingApprovals,
+      // Tiered Insights
+      strategic,
+      tactical,
+      operational
     }
   } catch (error: any) {
     console.error("CRITICAL: getAdminDashboardData overall failure", error.message);
@@ -164,7 +181,10 @@ export async function getAdminDashboardData() {
       totalWorkers: 0,
       activeTeams: 0,
       latestLogs: [],
-      pendingApprovals: []
+      pendingApprovals: [],
+      strategic: {},
+      tactical: {},
+      operational: {}
     }
   }
-}
+}

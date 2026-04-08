@@ -9,7 +9,15 @@ import { Progress } from "@/components/ui/progress"
 export default function OperationalView({ data }: { data: any }) {
     if (!data) return null;
 
-    const { jobStatusDist, topBottlenecks, pendingApprovals, bottleneckScore } = data;
+    const { 
+        jobStatusDist = {}, 
+        topBottlenecks = [], 
+        pendingApprovals = { costs: 0, steps: 0 }, 
+        bottleneckScore = 0 
+    } = data || {};
+
+    const safePendingApprovals = pendingApprovals || { costs: 0, steps: 0 };
+    const safeJobStatusDist = jobStatusDist || {};
 
     return (
         <div className="space-y-6">
@@ -22,8 +30,8 @@ export default function OperationalView({ data }: { data: any }) {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-3xl font-bold">{pendingApprovals.costs + pendingApprovals.steps}</div>
-                        <p className="text-xs text-muted-foreground mt-1">{pendingApprovals.costs} Maliyet, {pendingApprovals.steps} Adım</p>
+                        <div className="text-3xl font-bold">{(safePendingApprovals.costs || 0) + (safePendingApprovals.steps || 0)}</div>
+                        <p className="text-xs text-muted-foreground mt-1">{safePendingApprovals.costs || 0} Maliyet, {safePendingApprovals.steps || 0} Adım</p>
                     </CardContent>
                 </Card>
 
@@ -35,8 +43,8 @@ export default function OperationalView({ data }: { data: any }) {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-3xl font-bold text-blue-600">%{bottleneckScore.toFixed(0)}</div>
-                        <Progress value={bottleneckScore} className="mt-2 h-2" />
+                        <div className="text-3xl font-bold text-blue-600">%{Number(bottleneckScore || 0).toFixed(0)}</div>
+                        <Progress value={bottleneckScore || 0} className="mt-2 h-2" />
                     </CardContent>
                 </Card>
 
@@ -48,7 +56,7 @@ export default function OperationalView({ data }: { data: any }) {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-3xl font-bold text-emerald-600">{jobStatusDist.COMPLETED || 0}</div>
+                        <div className="text-3xl font-bold text-emerald-600">{safeJobStatusDist.COMPLETED || 0}</div>
                         <p className="text-xs text-muted-foreground mt-1">Seçili periyotta tamamlanan</p>
                     </CardContent>
                 </Card>
@@ -61,7 +69,7 @@ export default function OperationalView({ data }: { data: any }) {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-3xl font-bold text-indigo-600">{jobStatusDist.IN_PROGRESS || 0}</div>
+                        <div className="text-3xl font-bold text-indigo-600">{safeJobStatusDist.IN_PROGRESS || 0}</div>
                         <p className="text-xs text-muted-foreground mt-1">Şu an sahada devam eden</p>
                     </CardContent>
                 </Card>
@@ -110,7 +118,7 @@ export default function OperationalView({ data }: { data: any }) {
                     <CardHeader><CardTitle>Günlük İş Dağılımı</CardTitle></CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            {Object.entries(jobStatusDist).map(([status, count]: [string, any], i: number) => (
+                            {Object.entries(safeJobStatusDist || {}).map(([status, count]: [string, any], i: number) => (
                                 <div key={i} className="flex items-center justify-between">
                                     <span className="text-sm font-medium">{status}</span>
                                     <div className="flex items-center gap-2 flex-1 mx-4">

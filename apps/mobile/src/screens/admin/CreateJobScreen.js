@@ -67,7 +67,7 @@ export default function CreateJobScreen({ navigation }) {
                 teamService.getAll()
             ]);
             setCustomers(customersData);
-            setTeams(teamsData);
+            setTeams(teamsData.filter(t => t.isActive !== false));
         } catch (error) {
             console.error('Error loading data:', error);
             showAlert('Hata', 'Veriler yüklenemedi', [], 'error');

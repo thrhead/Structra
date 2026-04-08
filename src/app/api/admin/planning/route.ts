@@ -29,6 +29,7 @@ export async function GET(req: Request) {
         })
 
         const teams = await prisma.team.findMany({
+            where: { isActive: true },
             select: {
                 id: true,
                 name: true

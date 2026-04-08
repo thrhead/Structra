@@ -153,14 +153,14 @@ export default function AdminReportsPage(props: {
         teamsReportData = { reports: [], globalStats: { avgEfficiency: 0, totalExpenses: 0 } }, 
         varianceData = [], 
         activeTab 
-    } = data
-    const { totalJobs, pendingJobs, inProgressJobs, completedJobs } = generalStats
-    const { reports: teamReports, globalStats: teamGlobalStats } = teamsReportData
+    } = data || {}
+    const { totalJobs, pendingJobs, inProgressJobs, completedJobs } = generalStats || {}
+    const { reports: teamReports, globalStats: teamGlobalStats } = teamsReportData || { reports: [], globalStats: { avgEfficiency: 0, totalExpenses: 0 } }
 
     // Chart Transforms
-    const jobData = Object.entries(jobDistribution).map(([status, count]) => ({ name: status, value: count as number }))
-    const teamPerfData = teamPerformance.map((t: any) => ({ name: t.teamName, jobs: t.totalJobs, time: Math.round(t.avgCompletionTimeMinutes) }))
-    const pieChartData = Object.entries(costBreakdown).map(([name, value]) => ({ name, value: value as number }))
+    const jobData = Object.entries(jobDistribution || {}).map(([status, count]) => ({ name: status, value: count as number }))
+    const teamPerfData = (teamPerformance || []).map((t: any) => ({ name: t.teamName, jobs: t.totalJobs, time: Math.round(t.avgCompletionTimeMinutes) }))
+    const pieChartData = Object.entries(costBreakdown || {}).map(([name, value]) => ({ name, value: value as number }))
 
     return (
         <div className="space-y-6 p-6">

@@ -11,8 +11,8 @@ const CategoryPieChart = dynamic(() => import("./charts/CategoryPieChart"), { ss
 export default function TacticalView({ data }: { data: any }) {
     if (!data) return null;
 
-    const { teamCapacity, varianceData, costBreakdown, avgTeamLoad } = data;
-    const pieChartData = Object.entries(costBreakdown).map(([name, value]) => ({ name, value: value as number }))
+    const { teamCapacity = [], varianceData = [], costBreakdown = {}, avgTeamLoad = 0 } = data || {};
+    const pieChartData = Object.entries(costBreakdown || {}).map(([name, value]) => ({ name, value: value as number }))
 
     return (
         <div className="space-y-6">
