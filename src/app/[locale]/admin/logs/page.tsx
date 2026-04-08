@@ -255,40 +255,60 @@ export default function LogsPage() {
                                                                     transition={{ duration: 0.2 }}
                                                                     className="overflow-hidden bg-muted/40 border-b border-border shadow-inner"
                                                                 >
-                                                                    <div className="p-4 space-y-4">
-                                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                    <div className="p-4 space-y-4 bg-background">
+                                                                        <div>
+                                                                            <p className="mb-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                                                                                Message
+                                                                            </p>
+                                                                            <p className="rounded bg-muted/20 p-3 font-mono text-sm text-foreground">
+                                                                                {log.message}
+                                                                            </p>
+                                                                        </div>
+
+                                                                        <div className="grid grid-cols-2 gap-4 text-sm mt-4">
                                                                             <div>
-                                                                                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                                                                                    {t('message')}
+                                                                                <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                                                                                    Duration
                                                                                 </p>
-                                                                                <p className="rounded bg-background border border-border/50 shadow-sm p-3 font-mono text-sm text-foreground break-words w-full">
-                                                                                    {log.message}
+                                                                                <p className="font-mono text-foreground font-medium">
+                                                                                    {meta?.duration || log.duration || '-'}
                                                                                 </p>
                                                                             </div>
                                                                             <div>
-                                                                                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                                                                                    Context & Tags
+                                                                                <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                                                                                    Timestamp
                                                                                 </p>
-                                                                                <div className="rounded bg-background flex flex-col justify-center border border-border/50 shadow-sm p-3 font-mono text-xs text-foreground min-h-[50px] w-full">
-                                                                                    {context && Object.keys(context).length > 0 ? (
-                                                                                        <div className="flex flex-wrap gap-2">
-                                                                                            {Object.entries(context).map(([key, val]) => (
-                                                                                                <Badge key={key} variant="outline" className="text-xs">
-                                                                                                    <span className="font-semibold mr-1">{key}:</span> 
-                                                                                                    {typeof val === 'object' ? JSON.stringify(val) : String(val)}
-                                                                                                </Badge>
-                                                                                            ))}
-                                                                                        </div>
-                                                                                    ) : (
-                                                                                        <span className="text-muted-foreground italic">No extra context provided.</span>
-                                                                                    )}
-                                                                                </div>
+                                                                                <p className="font-mono text-[13px] text-foreground font-medium">
+                                                                                    {format(new Date(log.createdAt), "yyyy-MM-dd'T'HH:mm:ss'Z'")}
+                                                                                </p>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div className="mt-4">
+                                                                            <p className="mb-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                                                                                Tags
+                                                                            </p>
+                                                                            <div className="flex flex-wrap gap-2">
+                                                                                {context && Object.keys(context).length > 0 ? (
+                                                                                    Object.entries(context).map(([key, val]) => (
+                                                                                        <Badge key={key} variant="outline" className="text-xs bg-muted/20 font-medium px-2.5 py-0.5 rounded-full border-border lowercase shadow-none text-muted-foreground">
+                                                                                            {key}: {typeof val === 'object' ? JSON.stringify(val) : String(val)}
+                                                                                        </Badge>
+                                                                                    ))
+                                                                                ) : (
+                                                                                    <Badge variant="outline" className="text-xs bg-muted/20 font-medium px-2.5 py-0.5 rounded-full border-border lowercase shadow-none text-muted-foreground">
+                                                                                        {log.platform || 'system'}
+                                                                                    </Badge>
+                                                                                )}
+                                                                                <Badge variant="outline" className="text-xs bg-muted/20 font-medium px-2.5 py-0.5 rounded-full border-border lowercase shadow-none text-muted-foreground">
+                                                                                    {log.level.toLowerCase()}
+                                                                                </Badge>
                                                                             </div>
                                                                         </div>
                                                                         
                                                                         {stack && (
-                                                                            <div>
-                                                                                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center justify-between">
+                                                                            <div className="mt-4">
+                                                                                <p className="mb-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground flex items-center justify-between">
                                                                                     <span>Stack Trace</span>
                                                                                 </p>
                                                                                 <pre className="p-3 bg-card rounded-lg overflow-x-auto shadow-sm border border-border/50 font-mono whitespace-pre text-[11px] text-foreground">
