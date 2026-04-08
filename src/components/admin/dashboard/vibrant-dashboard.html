@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-header {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .shadow-glow-blue { box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
+        .shadow-glow-emerald { box-shadow: 0 0 15px rgba(16, 185, 129, 0.5); }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#2563eb",
+                        "on-secondary-container": "#1e293b",
+                        "surface-variant": "#f1f5f9",
+                        "on-tertiary-fixed": "#064e3b",
+                        "on-secondary-fixed": "#1e1b4b",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "outline": "#94a3b8",
+                        "surface-container-high": "#f8fafc",
+                        "surface-container-highest": "#f1f5f9",
+                        "tertiary-container": "#dcfce7",
+                        "surface-container": "#f1f5f9",
+                        "surface-bright": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "surface-container-low": "#f8fafc",
+                        "secondary-fixed-dim": "#cbd5e1",
+                        "on-tertiary": "#ffffff",
+                        "on-surface-variant": "#64748b",
+                        "surface": "#f8fafc",
+                        "on-tertiary-container": "#10b981",
+                        "on-primary-fixed-variant": "#1e40af",
+                        "background": "#f8fafc",
+                        "primary-fixed-dim": "#93c5fd",
+                        "error-container": "#fee2e2",
+                        "secondary-fixed": "#e2e8f0",
+                        "surface-dim": "#e2e8f0",
+                        "surface-tint": "#2563eb",
+                        "tertiary-fixed": "#ecfdf5",
+                        "on-background": "#0f172a",
+                        "primary-container": "#dbeafe",
+                        "secondary": "#6366f1",
+                        "on-tertiary-fixed-variant": "#059669",
+                        "inverse-primary": "#93c5fd",
+                        "on-primary-container": "#1e3a8a",
+                        "inverse-on-surface": "#f8fafc",
+                        "primary-fixed": "#eff6ff",
+                        "on-surface": "#0f172a",
+                        "outline-variant": "#e2e8f0",
+                        "inverse-surface": "#1e293b",
+                        "tertiary": "#059669",
+                        "error": "#ef4444",
+                        "on-error-container": "#991b1b",
+                        "on-primary-fixed": "#1e3a8a",
+                        "secondary-container": "#e0e7ff",
+                        "tertiary-fixed-dim": "#6ee7b7",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed-variant": "#4338ca"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.375rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface antialiased">
+<!-- SideNavBar Component -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-white border-r border-slate-200 flex flex-col py-6 px-4 z-50">
+<div class="mb-10 px-2">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-xl" data-icon="architecture">architecture</span>
+</div>
+<h1 class="text-lg font-bold tracking-tighter text-slate-900">ArchLedger</h1>
+</div>
+<p class="text-[10px] uppercase tracking-[0.1em] text-primary font-bold mt-1">Institutional Grade</p>
+</div>
+<nav class="flex-1 space-y-1">
+<!-- Dashboard (Active) -->
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary font-bold transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="dashboard">dashboard</span>
+<span class="font-['Inter'] text-sm">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:text-primary hover:bg-slate-50 transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="insights">insights</span>
+<span class="font-['Inter'] text-sm">Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:text-primary hover:bg-slate-50 transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="receipt_long">receipt_long</span>
+<span class="font-['Inter'] text-sm">Transactions</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:text-primary hover:bg-slate-50 transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="assessment">assessment</span>
+<span class="font-['Inter'] text-sm">Reports</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:text-primary hover:bg-slate-50 transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="settings">settings</span>
+<span class="font-['Inter'] text-sm">Settings</span>
+</a>
+</nav>
+<div class="mt-auto space-y-1">
+<button class="w-full mb-6 py-2.5 px-4 bg-primary text-white rounded-lg text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:bg-blue-700 transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                New Report
+            </button>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:text-slate-700 transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="help">help</span>
+<span class="font-['Inter'] text-sm">Support</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:text-error transition-all duration-200" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="logout">logout</span>
+<span class="font-['Inter'] text-sm">Sign Out</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 min-h-screen">
+<!-- TopNavBar Component -->
+<header class="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-xl border-b border-slate-100 flex justify-between items-center px-8 h-16">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+<input class="w-full bg-slate-50 border-none rounded-lg py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-slate-400" placeholder="Search architectural data..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<button class="material-symbols-outlined p-2 text-slate-400 hover:text-primary transition-colors" data-icon="history">history</button>
+<button class="material-symbols-outlined p-2 text-slate-400 hover:text-primary transition-colors relative" data-icon="notifications">
+                        notifications
+                        <span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border-2 border-white"></span>
+</button>
+</div>
+<div class="h-8 w-[1px] bg-slate-200"></div>
+<div class="flex items-center gap-3">
+<div class="text-right">
+<p class="text-xs font-bold text-slate-900">John Harrison</p>
+<p class="text-[10px] text-primary font-bold">Lead Architect</p>
+</div>
+<img alt="User Avatar" class="w-10 h-10 rounded-full object-cover ring-2 ring-primary/10" data-alt="professional portrait of a middle-aged man in a dark suit with a clean office background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2dF46cws3ulRBLlMIxTe3tyirZSSw71HJe-H0ek9rlHaF0YCe_mpyjJ0On_F887ANSOx1pmlmmRkpKt46T-2Wd4UQiN7-3DpBExFd2CZvpyktCrrb9YLUvaZGLwiC4K68dUKhcfzwQ39yqJS_Jd2cLtdUYW_MyEL-7H9sTBTTUyDH6xxlHPoeH_NoI2mLHJQQRpfzoiTOJFei5YI30OAg104GyI7N_yjDVedXxShauPXI5AwReGeIU2P8OFbPu9f6KQsFR2CjhqM"/>
+</div>
+</div>
+</header>
+<div class="p-8 space-y-8">
+<!-- Hero Card Section -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<div class="lg:col-span-2 bg-gradient-to-br from-blue-600 via-indigo-700 to-violet-800 p-8 rounded-2xl shadow-xl shadow-blue-900/20 flex justify-between items-center relative overflow-hidden group">
+<div class="relative z-10">
+<h2 class="text-white text-3xl font-extrabold tracking-tight mb-2">Good Morning, John!</h2>
+<p class="text-blue-100 text-lg mb-6 opacity-90 font-medium">Your institutional ledger has 4 pending approvals for the morning cycle.</p>
+<button class="bg-white text-blue-700 px-6 py-2.5 rounded-lg text-sm font-bold shadow-lg hover:bg-blue-50 transition-all hover:scale-105 active:scale-95">
+                            Review Performance
+                        </button>
+</div>
+<div class="relative z-10 w-48 h-48 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90">
+<circle class="text-white/10" cx="96" cy="96" fill="transparent" r="80" stroke="currentColor" stroke-width="12"></circle>
+<circle class="text-white drop-shadow-lg" cx="96" cy="96" fill="transparent" r="80" stroke="currentColor" stroke-dasharray="502.4" stroke-dashoffset="125.6" stroke-linecap="round" stroke-width="12"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-3xl font-extrabold text-white">75%</span>
+<span class="text-[10px] text-blue-100 font-bold uppercase tracking-widest">Target</span>
+</div>
+</div>
+<!-- Decorative background element -->
+<div class="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-colors"></div>
+<div class="absolute -bottom-12 -left-12 w-48 h-48 bg-indigo-400/20 rounded-full blur-2xl"></div>
+</div>
+<div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start">
+<span class="text-[10px] font-extrabold uppercase tracking-[0.15em] text-amber-600 bg-amber-50 px-2 py-1 rounded">Sales Achievement</span>
+<span class="material-symbols-outlined text-amber-500" data-icon="stars">stars</span>
+</div>
+<h3 class="text-4xl font-extrabold text-slate-900 mt-2 tracking-tighter">$142.8k</h3>
+<div class="flex items-center gap-2 mt-4 text-emerald-600">
+<span class="material-symbols-outlined text-sm font-bold">trending_up</span>
+<span class="text-xs font-bold">+12.4% from last period</span>
+</div>
+</div>
+<div class="pt-6 border-t border-slate-50">
+<div class="flex justify-between items-end">
+<div class="flex gap-1.5 h-12 items-end">
+<div class="w-2 h-3 bg-amber-100 rounded-full"></div>
+<div class="w-2 h-5 bg-amber-200 rounded-full"></div>
+<div class="w-2 h-8 bg-amber-300 rounded-full"></div>
+<div class="w-2 h-12 bg-amber-500 rounded-full shadow-glow-amber"></div>
+<div class="w-2 h-6 bg-amber-200 rounded-full"></div>
+<div class="w-2 h-9 bg-amber-300 rounded-full"></div>
+<div class="w-2 h-4 bg-amber-100 rounded-full"></div>
+</div>
+<span class="text-[10px] font-bold text-slate-400">Weekly Projection</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Analytics Cards Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Total Earnings -->
+<div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:border-emerald-200 transition-colors">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+</div>
+<span class="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full">MONTHLY</span>
+</div>
+<p class="text-slate-500 text-xs font-semibold">Total Earnings</p>
+<div class="flex items-baseline gap-2">
+<h4 class="text-2xl font-extrabold text-slate-900 tracking-tight">$84,200</h4>
+<span class="text-xs text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">+8.2%</span>
+</div>
+</div>
+<!-- Sales by Region -->
+<div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:border-blue-200 transition-colors">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+<span class="material-symbols-outlined" data-icon="public">public</span>
+</div>
+<span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-blue-600">more_horiz</span>
+</div>
+<p class="text-slate-500 text-xs font-semibold">Sales by Region</p>
+<h4 class="text-2xl font-extrabold text-slate-900 tracking-tight">Europe (42%)</h4>
+<div class="w-full bg-slate-100 h-2 rounded-full mt-4 overflow-hidden">
+<div class="bg-gradient-to-r from-blue-400 to-blue-600 w-[42%] h-full rounded-full"></div>
+</div>
+</div>
+<!-- Weekly Overview -->
+<div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:border-indigo-200 transition-colors">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+<span class="material-symbols-outlined" data-icon="query_stats">query_stats</span>
+</div>
+<span class="text-[10px] font-bold text-indigo-700 bg-indigo-100 px-2.5 py-1 rounded-full">REAL-TIME</span>
+</div>
+<p class="text-slate-500 text-xs font-semibold">Weekly Overview</p>
+<div class="flex items-end gap-2 h-10 mt-2">
+<div class="flex-1 bg-indigo-100 h-[40%] rounded-md hover:bg-indigo-200 transition-colors"></div>
+<div class="flex-1 bg-indigo-500 h-[85%] rounded-md shadow-sm"></div>
+<div class="flex-1 bg-indigo-200 h-[60%] rounded-md"></div>
+<div class="flex-1 bg-indigo-100 h-[30%] rounded-md"></div>
+<div class="flex-1 bg-violet-600 h-[95%] rounded-md shadow-sm"></div>
+<div class="flex-1 bg-indigo-200 h-[50%] rounded-md"></div>
+</div>
+</div>
+</section>
+<!-- Transaction Summary Section -->
+<section class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+<div class="px-8 py-6 flex justify-between items-center border-b border-slate-50">
+<div class="flex items-center gap-3">
+<div class="w-2 h-8 bg-primary rounded-full"></div>
+<h3 class="text-lg font-extrabold text-slate-900">Recent Activity</h3>
+</div>
+<div class="flex gap-2">
+<button class="text-xs font-bold text-slate-500 hover:text-primary transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-50 flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm">download</span> Download
+                    </button>
+<button class="text-xs font-bold text-slate-500 hover:text-primary transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-50 flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm">filter_list</span> Filter
+                    </button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50/50">
+<th class="px-8 py-4 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">ENTITY</th>
+<th class="px-8 py-4 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">TRANSACTION ID</th>
+<th class="px-8 py-4 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">DATE</th>
+<th class="px-8 py-4 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">AMOUNT</th>
+<th class="px-8 py-4 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">STATUS</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-50">
+<!-- Row 1 -->
+<tr class="hover:bg-slate-50/80 transition-colors group">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-extrabold">AL</div>
+<span class="text-sm font-bold text-slate-900">Alpha Logistics</span>
+</div>
+</td>
+<td class="px-8 py-5 text-sm text-slate-500 font-mono">#TX-92841</td>
+<td class="px-8 py-5 text-sm text-slate-500">Oct 24, 2023</td>
+<td class="px-8 py-5 text-sm font-bold text-slate-900">$12,400.00</td>
+<td class="px-8 py-5">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-extrabold uppercase tracking-wider">
+<span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> Completed
+                                    </span>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-slate-50/80 transition-colors group">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-extrabold">SN</div>
+<span class="text-sm font-bold text-slate-900">Stellar Networks</span>
+</div>
+</td>
+<td class="px-8 py-5 text-sm text-slate-500 font-mono">#TX-92842</td>
+<td class="px-8 py-5 text-sm text-slate-500">Oct 23, 2023</td>
+<td class="px-8 py-5 text-sm font-bold text-slate-900">$3,150.00</td>
+<td class="px-8 py-5">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-[10px] font-extrabold uppercase tracking-wider">
+<span class="w-1.5 h-1.5 bg-amber-500 rounded-full"></span> Pending
+                                    </span>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-slate-50/80 transition-colors group">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-violet-100 text-violet-600 flex items-center justify-center text-[10px] font-extrabold">BC</div>
+<span class="text-sm font-bold text-slate-900">Beacon Corp</span>
+</div>
+</td>
+<td class="px-8 py-5 text-sm text-slate-500 font-mono">#TX-92843</td>
+<td class="px-8 py-5 text-sm text-slate-500">Oct 23, 2023</td>
+<td class="px-8 py-5 text-sm font-bold text-slate-900">$45,000.00</td>
+<td class="px-8 py-5">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-extrabold uppercase tracking-wider">
+<span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span> Completed
+                                    </span>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-slate-50/80 transition-colors group">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center text-[10px] font-extrabold">OX</div>
+<span class="text-sm font-bold text-slate-900">Omni-X</span>
+</div>
+</td>
+<td class="px-8 py-5 text-sm text-slate-500 font-mono">#TX-92844</td>
+<td class="px-8 py-5 text-sm text-slate-500">Oct 22, 2023</td>
+<td class="px-8 py-5 text-sm font-bold text-slate-900">$2,400.00</td>
+<td class="px-8 py-5">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 text-rose-700 text-[10px] font-extrabold uppercase tracking-wider">
+<span class="w-1.5 h-1.5 bg-rose-500 rounded-full"></span> Flagged
+                                    </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-8 py-4 bg-slate-50/30 flex items-center justify-center">
+<button class="text-xs font-bold text-primary hover:text-blue-700 flex items-center gap-1 group">
+                    View All Transactions 
+                    <span class="material-symbols-outlined text-sm transition-transform group-hover:translate-x-1">arrow_forward</span>
+</button>
+</div>
+</section>
+</div>
+</main>
+</body></html>
