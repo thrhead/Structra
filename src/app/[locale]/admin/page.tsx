@@ -166,10 +166,11 @@ export default function AdminDashboard() {
             {/* Minimalist Grid Artifact */}
             <div className="absolute bottom-2 right-2 flex gap-1">
               <div className="w-1 h-1 bg-white/10" />
-              <div className="w-1 h-1 bg-white/10" />
             </div>
           </motion.div>
         ))}
+      </motion.div>
+
       {/* 2.5 STRATEGIC & TACTICAL DEEP DIVE (Overlapping Fragment) */}
       <motion.div 
         variants={containerVariants}
@@ -359,6 +360,7 @@ export default function AdminDashboard() {
           </div>
 
       </div>
+    </div>
     </div>
   )
 }
