@@ -136,16 +136,30 @@ export async function getAdminDashboardData() {
         orderBy: { createdAt: 'desc' }
       }).catch(e => { console.error("pendingApprovals fetch failed", e); return []; }),
 
-      // 14: strategic
+      // 14: latestCustomers
+      prisma.customer.findMany({
+        take: 5,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          company: true,
+          email: true,
+          phone: true,
+          address: true,
+          isActive: true
+        }
+      }).catch(e => { console.error("latestCustomers fetch failed", e); return []; }),
+
+      // 15: strategic
       getStrategicDashboard(thirtyDaysAgo, now).catch(e => { console.error("strategic fetch failed", e); return {}; }),
 
-      // 15: tactical
+      // 16: tactical
       getTacticalDashboard(thirtyDaysAgo, now).catch(e => { console.error("tactical fetch failed", e); return {}; }),
 
-      // 16: operational
+      // 17: operational
       getOperationalDashboard(thirtyDaysAgo, now).catch(e => { console.error("operational fetch failed", e); return {}; }),
 
-      // 17: strategicTrendResult (14-day)
+      // 18: strategicTrendResult (14-day)
       Promise.all(
         Array.from({ length: 14 }).map(async (_, i) => {
           const dayStart = new Date(today)
@@ -210,6 +224,7 @@ export async function getAdminDashboardData() {
       activeTeams,
       latestLogs,
       pendingApprovals,
+      latestCustomers,
       // Tiered Insights
       strategic,
       tactical,
@@ -233,6 +248,7 @@ export async function getAdminDashboardData() {
       activeTeams: 0,
       latestLogs: [],
       pendingApprovals: [],
+      latestCustomers: [],
       strategic: {},
       tactical: {},
       operational: {},
