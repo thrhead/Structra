@@ -59,6 +59,23 @@ export default function AdminDashboardClient({ data }: AdminDashboardClientProps
         return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(value || 0)
     }
 
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: { 
+            opacity: 1,
+            transition: { staggerChildren: 0.05 }
+        }
+    }
+
+    const itemVariants = {
+        hidden: { y: 15, opacity: 0 },
+        visible: { 
+            y: 0, 
+            opacity: 1,
+            transition: { type: 'spring', stiffness: 100 }
+        }
+    }
+
     // Fallback logic for charts
     const stepsData = strategic?.weeklySteps || { 
         currentWeek: weeklyStats || [], 
