@@ -605,29 +605,49 @@ export async function getStrategicDashboard(startDate: Date, endDate: Date) {
     
     // Revenue vs Cost Trend
     const totalCostTrend = await getTotalCostTrend(startDate, endDate);
-    // Note: Since we don't have a separate "Revenue" table, we use "Budget" as a proxy for projected revenue
     const revenueTrend = await prisma.job.groupBy({
         by: ['createdAt'],
         _sum: { budget: true },
         where: { createdAt: { gte: startDate, lte: endDate } }
     });
 
+    // Project Status Summary (New for Issue #74)
+    const jobStatusStats = await prisma.job.groupBy({
+        by: ['status'],
+        _count: true,
+        where: { createdAt: { gte: startDate, lte: endDate } }
+    });
+
+    const projectCompletionStats = {
+        total: jobStatusStats.reduce((sum, s) => sum + s._count, 0),
+        completed: jobStatusStats.find(s => s.status === 'COMPLETED')?._count || 0,
+        percentage: 0
+    };
+    projectCompletionStats.percentage = projectCompletionStats.total > 0 
+        ? (projectCompletionStats.completed / projectCompletionStats.total) * 100 
+        : 0;
+
     const topCustomersByProfit = profitabilityData
         .sort((a, b) => b.profit - a.profit)
         .slice(0, 5);
 
     const overallProfitMargin = profitabilityData.length > 0
-        ? profitabilityData.reduce((sum, item) => sum + item.profit, 0) / 
-          profitabilityData.reduce((sum, item) => sum + (item.budget || 1), 0) * 100
+        ? (profitabilityData.reduce((sum, item) => sum + item.profit, 0) / 
+          profitabilityData.reduce((sum, item) => sum + (item.budget || 1), 0)) * 100
         : 0;
 
     return {
         overallProfitMargin,
         topCustomersByProfit,
         profitabilityData,
+        projectStats: projectCompletionStats,
+        jobStatusStats: jobStatusStats.map(s => ({ status: s.status, count: s._count })),
         trends: {
             costs: totalCostTrend,
-            revenue: revenueTrend.map(r => ({ date: r.createdAt.toISOString().split('T')[0], amount: r._sum.budget || 0 }))
+            revenue: revenueTrend.map(r => ({ 
+                date: r.createdAt.toISOString().split('T')[0], 
+                amount: r._sum.budget || 0 
+            }))
         }
     };
 }
@@ -662,10 +682,16 @@ export async function getTacticalDashboard(startDate: Date, endDate: Date) {
     // Cost Category Distribution
     const costBreakdown = await getCostBreakdown(startDate, endDate);
 
+    // Budget Efficiency (Issue #74)
+    const totalBudget = budgetVariance.reduce((sum, j) => sum + (j.budget || 0), 0);
+    const totalActual = budgetVariance.reduce((sum, j) => sum + j.costs.reduce((s, c) => s + c.amount, 0), 0);
+    const budgetEfficiency = totalBudget > 0 ? (1 - (totalActual / totalBudget)) * 100 : 0;
+
     return {
         teamCapacity,
         varianceData,
         costBreakdown,
+        budgetEfficiency,
         avgTeamLoad: teamCapacity.reduce((sum, t) => sum + t.loadFactor, 0) / (teamCapacity.length || 1)
     };
 }
@@ -684,6 +710,7 @@ export async function getOperationalDashboard(startDate: Date, endDate: Date) {
 
     // Recent Bottlenecks (Jobs with highest delay)
     const topBottlenecks = delayAnalysis
+        .filter(d => d.delay > 0)
         .sort((a, b) => b.delay - a.delay)
         .slice(0, 5);
 
