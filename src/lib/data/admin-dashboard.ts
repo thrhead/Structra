@@ -28,6 +28,7 @@ export async function getAdminDashboardData() {
       activeTeams,
       latestLogs,
       pendingApprovals,
+      latestCustomers,
       // Enhanced Dashboard Data (Multi-tier)
       strategic,
       tactical,
