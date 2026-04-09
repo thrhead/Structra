@@ -32,48 +32,41 @@ interface AdminDashboardClientProps {
 }
 
 export default function AdminDashboardClient({ data }: AdminDashboardClientProps) {
-    if (!data) return null
+    // Check if we are on client side
+    const [isMounted, setIsMounted] = React.useState(false);
+    React.useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    if (!data) return null;
 
     const {
         activeJobs = 0,
         totalJobs = 0,
         completedJobsToday = 0,
         activeWorkersCount = 0,
+        totalWorkers = 0,
         pendingApprovalsCount = 0,
         totalCostToday = 0,
         latestCustomers = [],
         weeklyStats = [],
         strategicTrend = [],
-        strategic = {}
+        strategic = {},
+        activeTeams = 0
     } = data
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(value || 0)
     }
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: { 
-            opacity: 1,
-            transition: { staggerChildren: 0.05 }
-        }
-    }
-
-    const itemVariants = {
-        hidden: { y: 15, opacity: 0 },
-        visible: { 
-            y: 0, 
-            opacity: 1,
-            transition: { type: 'spring', stiffness: 100 }
-        }
-    }
-
-    // Combine data for operational efficiency chart if strategic.weeklySteps is missing
+    // Fallback logic for charts
     const stepsData = strategic?.weeklySteps || { 
-        currentWeek: weeklyStats, 
+        currentWeek: weeklyStats || [], 
         previousWeek: [], 
         categories: ['Tamamlanan'] 
     }
+
+    if (!isMounted) return <div className="w-full min-h-screen bg-slate-50 flex items-center justify-center">Yükleniyor...</div>;
 
     return (
         <div className="w-full bg-[#f8fafc] font-sans antialiased min-h-screen pb-12">
@@ -81,142 +74,131 @@ export default function AdminDashboardClient({ data }: AdminDashboardClientProps
                 {/* 4 KPI Cards */}
                 <motion.section 
                     className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
                 >
-                    <motion.div variants={itemVariants}>
-                        <Card className="bg-white dark:bg-slate-950 p-5 rounded-xl border-slate-200/60 dark:border-slate-800 shadow-sm hover:shadow-md transition-all flex items-center gap-4">
-                            <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-lg">
-                                <Activity className="w-6 h-6" />
+                    <Card className="bg-white dark:bg-slate-950 p-5 rounded-xl border-slate-200/60 dark:border-slate-800 shadow-sm hover:shadow-md transition-all flex items-center gap-4">
+                        <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-lg">
+                            <Activity className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-bold tracking-[0.05em] text-slate-500 uppercase">AKTİF GÖREV</p>
+                            <h3 className="text-2xl font-black text-slate-900 dark:text-white">{activeJobs}</h3>
+                        </div>
+                    </Card>
+
+                    <Card className="bg-white dark:bg-slate-950 p-5 rounded-xl border-slate-200/60 dark:border-slate-800 shadow-sm hover:shadow-md transition-all flex items-center gap-4">
+                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg">
+                            <Wallet className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-bold tracking-[0.05em] text-slate-500 uppercase">TOPLAM MALİYET</p>
+                            <h3 className="text-2xl font-black text-slate-900 dark:text-white">{formatCurrency(totalCostToday)}</h3>
+                        </div>
+                    </Card>
+
+                    <Card className="bg-white dark:bg-slate-950 p-5 rounded-xl border-slate-200/60 dark:border-slate-800 shadow-sm hover:shadow-md transition-all flex items-center gap-4">
+                        <div className="p-3 bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400 rounded-lg">
+                            <Users className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-bold tracking-[0.05em] text-slate-500 uppercase">SAHA PERSONELİ</p>
+                            <h3 className="text-2xl font-black text-slate-900 dark:text-white">{activeWorkersCount || totalWorkers}</h3>
+                        </div>
+                    </Card>
+
+                    <Link href="/admin/approvals" className="block">
+                        <Card className={cn(
+                            "p-5 rounded-xl flex items-center gap-4 shadow-sm hover:shadow-md transition-all border",
+                            pendingApprovalsCount > 0 ? "bg-amber-50 border-amber-200 dark:bg-amber-950/10 dark:border-amber-900/50" : "bg-white border-slate-200/60 dark:bg-slate-950 dark:border-slate-800"
+                        )}>
+                            <div className={cn("p-3 rounded-lg", pendingApprovalsCount > 0 ? "bg-amber-100 text-amber-600 dark:bg-amber-900/30" : "bg-slate-50 text-slate-400 dark:bg-slate-900")}>
+                                <Clock className="w-6 h-6" />
                             </div>
                             <div>
-                                <p className="text-[10px] font-bold tracking-[0.05em] text-slate-500 uppercase">AKTİF GÖREV</p>
-                                <h3 className="text-2xl font-black text-slate-900 dark:text-white">{activeJobs}</h3>
+                                <p className="text-[10px] font-bold tracking-[0.05em] text-slate-500 uppercase">ONAY BEKLEYEN</p>
+                                <h3 className={cn("text-2xl font-black", pendingApprovalsCount > 0 ? "text-amber-600" : "text-slate-900 dark:text-white")}>{pendingApprovalsCount}</h3>
                             </div>
                         </Card>
-                    </motion.div>
-
-                    <motion.div variants={itemVariants}>
-                        <Card className="bg-white dark:bg-slate-950 p-5 rounded-xl border-slate-200/60 dark:border-slate-800 shadow-sm hover:shadow-md transition-all flex items-center gap-4">
-                            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg">
-                                <Wallet className="w-6 h-6" />
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-bold tracking-[0.05em] text-slate-500 uppercase">TOPLAM MALİYET</p>
-                                <h3 className="text-2xl font-black text-slate-900 dark:text-white">{formatCurrency(totalCostToday)}</h3>
-                            </div>
-                        </Card>
-                    </motion.div>
-
-                    <motion.div variants={itemVariants}>
-                        <Card className="bg-white dark:bg-slate-950 p-5 rounded-xl border-slate-200/60 dark:border-slate-800 shadow-sm hover:shadow-md transition-all flex items-center gap-4">
-                            <div className="p-3 bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400 rounded-lg">
-                                <Users className="w-6 h-6" />
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-bold tracking-[0.05em] text-slate-500 uppercase">SAHA PERSONELİ</p>
-                                <h3 className="text-2xl font-black text-slate-900 dark:text-white">{activeWorkersCount}</h3>
-                            </div>
-                        </Card>
-                    </motion.div>
-
-                    <motion.div variants={itemVariants}>
-                        <Link href="/admin/approvals" className="block">
-                            <Card className={cn(
-                                "p-5 rounded-xl flex items-center gap-4 shadow-sm hover:shadow-md transition-all border",
-                                pendingApprovalsCount > 0 ? "bg-amber-50 border-amber-200 dark:bg-amber-950/10 dark:border-amber-900/50" : "bg-white border-slate-200/60 dark:bg-slate-950 dark:border-slate-800"
-                            )}>
-                                <div className={cn("p-3 rounded-lg", pendingApprovalsCount > 0 ? "bg-amber-100 text-amber-600 dark:bg-amber-900/30" : "bg-slate-50 text-slate-400 dark:bg-slate-900")}>
-                                    <Clock className="w-6 h-6" />
-                                </div>
-                                <div>
-                                    <p className="text-[10px] font-bold tracking-[0.05em] text-slate-500 uppercase">ONAY BEKLEYEN</p>
-                                    <h3 className={cn("text-2xl font-black", pendingApprovalsCount > 0 ? "text-amber-600" : "text-slate-900 dark:text-white")}>{pendingApprovalsCount}</h3>
-                                </div>
-                            </Card>
-                        </Link>
-                    </motion.div>
+                    </Link>
                 </motion.section>
 
                 {/* Main Charts Section */}
                 <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* System Pulse Chart */}
-                    <motion.div variants={itemVariants} initial="hidden" animate="visible" className="lg:col-span-1">
-                        <Card className="bg-white dark:bg-slate-950 rounded-2xl p-6 border-slate-200/60 dark:border-slate-800 shadow-sm flex flex-col h-full overflow-hidden">
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-sm font-bold flex items-center gap-2 text-slate-800 dark:text-slate-100">
-                                    <BarChart3 className="w-4 h-4 text-indigo-500" /> SİSTEM NABZI
-                                </h2>
-                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Son 14 Gün</span>
+                    <Card className="bg-white dark:bg-slate-950 rounded-2xl p-6 border-slate-200/60 dark:border-slate-800 shadow-sm flex flex-col h-full overflow-hidden">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-sm font-bold flex items-center gap-2 text-slate-800 dark:text-slate-100">
+                                <BarChart3 className="w-4 h-4 text-indigo-500" /> SİSTEM NABZI
+                            </h2>
+                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Son 14 Gün</span>
+                        </div>
+                        <div className="mb-4">
+                            <h3 className="text-3xl font-black text-slate-900 dark:text-white">
+                                {totalJobs} <span className="text-xs font-normal text-slate-400">Toplam İş Emri</span>
+                            </h3>
+                        </div>
+                        <div className="space-y-3 mb-8">
+                            <div className="flex justify-between items-center text-xs">
+                                <span className="flex items-center gap-2 text-slate-500">
+                                    <span className="w-2 h-2 rounded-full bg-teal-500"></span> Yeni İşler (Bugün)
+                                </span>
+                                <span className="font-bold">{strategicTrend[strategicTrend.length-1]?.intensity || 0}</span>
                             </div>
-                            <div className="mb-4">
-                                <h3 className="text-3xl font-black text-slate-900 dark:text-white">
-                                    {totalJobs} <span className="text-xs font-normal text-slate-400">Toplam İş Emri</span>
-                                </h3>
+                            <div className="flex justify-between items-center text-xs">
+                                <span className="flex items-center gap-2 text-slate-500">
+                                    <span className="w-2 h-2 rounded-full bg-orange-500"></span> Onaylı Harcamalar
+                                </span>
+                                <span className="font-bold">{formatCurrency(strategicTrend.reduce((sum: number, day: any) => sum + (day.cost || 0), 0))}</span>
                             </div>
-                            <div className="space-y-3 mb-8">
-                                <div className="flex justify-between items-center text-xs">
-                                    <span className="flex items-center gap-2 text-slate-500">
-                                        <span className="w-2 h-2 rounded-full bg-teal-500"></span> Yeni İşler (Bugün)
-                                    </span>
-                                    <span className="font-bold">{strategicTrend[strategicTrend.length-1]?.intensity || 0}</span>
-                                </div>
-                                <div className="flex justify-between items-center text-xs">
-                                    <span className="flex items-center gap-2 text-slate-500">
-                                        <span className="w-2 h-2 rounded-full bg-orange-500"></span> Onaylı Harcamalar
-                                    </span>
-                                    <span className="font-bold">{formatCurrency(strategicTrend.reduce((sum: number, day: any) => sum + (day.cost || 0), 0))}</span>
-                                </div>
-                            </div>
-                            <div className="flex-1 min-h-[200px] w-full mt-auto">
-                                <StrategicPulseChart data={strategicTrend} />
-                            </div>
-                        </Card>
-                    </motion.div>
+                        </div>
+                        <div className="flex-1 min-h-[200px] w-full mt-auto">
+                            <StrategicPulseChart data={strategicTrend} />
+                        </div>
+                    </Card>
 
-                    {/* Operational Summary Bar Chart replacement */}
-                    <motion.div variants={itemVariants} initial="hidden" animate="visible" className="lg:col-span-2">
-                        <Card className="bg-white dark:bg-slate-950 rounded-2xl p-6 border-slate-200/60 dark:border-slate-800 shadow-sm h-full flex flex-col overflow-hidden">
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-sm font-bold flex items-center gap-2 text-slate-800 dark:text-slate-100">
-                                    <Zap className="w-4 h-4 text-indigo-500" /> Operasyonel Verimlilik
-                                </h2>
-                            </div>
-                            <div className="grid grid-cols-3 gap-4 mb-8">
-                                <div>
-                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Bekleyen İşler</p>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-2xl font-black text-slate-900 dark:text-white">{(totalJobs || 0) - (completedJobsToday || 0)}</span>
-                                        <Badge variant="outline" className="text-[10px] border-emerald-200 text-emerald-600 bg-emerald-50/50">SİSTEM</Badge>
-                                    </div>
-                                </div>
-                                <div>
-                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Tamamlanan (Bugün)</p>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-2xl font-black text-slate-900 dark:text-white">{completedJobsToday}</span>
-                                        <span className={cn("text-[10px] font-black", completedJobsToday > 0 ? "text-emerald-500" : "text-slate-400")}>
-                                            {completedJobsToday > 0 ? '↑ YENİ' : 'STABİL'}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div>
-                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Aktif Ekipler</p>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-2xl font-black text-slate-900 dark:text-white">{data.activeTeams || 0}</span>
-                                        <span className="text-[10px] text-slate-400 font-medium">Saha</span>
-                                    </div>
+                    {/* Operational Summary Bar Chart */}
+                    <Card className="lg:col-span-2 bg-white dark:bg-slate-950 rounded-2xl p-6 border-slate-200/60 dark:border-slate-800 shadow-sm h-full flex flex-col overflow-hidden">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-sm font-bold flex items-center gap-2 text-slate-800 dark:text-slate-100">
+                                <Zap className="w-4 h-4 text-indigo-500" /> Operasyonel Verimlilik
+                            </h2>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4 mb-8">
+                            <div>
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Bekleyen İşler</p>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-2xl font-black text-slate-900 dark:text-white">{(totalJobs || 0) - (completedJobsToday || 0)}</span>
+                                    <Badge variant="outline" className="text-[10px] border-emerald-200 text-emerald-600 bg-emerald-50/50">SİSTEM</Badge>
                                 </div>
                             </div>
-                            <div className="flex-1 min-h-[300px] w-full">
-                                <WeeklyStepsChart 
-                                    data={stepsData} 
-                                    categories={stepsData.categories || ['Tamamlanan']} 
-                                />
+                            <div>
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Tamamlanan (Bugün)</p>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-2xl font-black text-slate-900 dark:text-white">{completedJobsToday}</span>
+                                    <span className={cn("text-[10px] font-black", completedJobsToday > 0 ? "text-emerald-500" : "text-slate-400")}>
+                                        {completedJobsToday > 0 ? '↑ YENİ' : 'STABİL'}
+                                    </span>
+                                </div>
                             </div>
-                        </Card>
-                    </motion.div>
+                            <div>
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Aktif Ekipler</p>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-2xl font-black text-slate-900 dark:text-white">{activeTeams || 0}</span>
+                                    <span className="text-[10px] text-slate-400 font-medium">Saha</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex-1 min-h-[300px] w-full">
+                            <WeeklyStepsChart 
+                                data={stepsData} 
+                                categories={stepsData.categories || ['Tamamlanan']} 
+                            />
+                        </div>
+                    </Card>
                 </section>
+...
 
                 {/* Lower Section: Reports and Customers */}
                 <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">

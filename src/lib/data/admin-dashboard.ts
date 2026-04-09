@@ -216,7 +216,7 @@ export async function getAdminDashboardData() {
       }
     })
 
-    return {
+    const result = {
       activeWorkersCount,
       totalCostToday,
       budgetPercentage,
@@ -238,6 +238,16 @@ export async function getAdminDashboardData() {
       operational,
       strategicTrend: strategicTrendResult
     }
+
+    console.log("DASHBOARD DEBUG: Fetch successful", {
+      jobs: totalJobs,
+      active: activeJobs,
+      workers: totalWorkers,
+      customers: latestCustomers.length,
+      trendPoints: strategicTrendResult.length
+    });
+
+    return result
   } catch (error: any) {
     console.error("CRITICAL: getAdminDashboardData overall failure", error.message);
     return {
