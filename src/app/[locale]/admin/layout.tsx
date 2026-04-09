@@ -16,7 +16,7 @@ export default function AdminLayout({
         <SidebarInset className="flex flex-col min-w-0">
           <AdminHeader />
           <main className="flex-1 p-4 lg:p-8">
-            <div className="max-w-7xl mx-auto w-full">
+            <div className="w-full">
               {children}
             </div>
           </main>
