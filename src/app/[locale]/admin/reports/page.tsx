@@ -27,6 +27,7 @@ import {
 import StrategicView from "@/components/admin/reports/StrategicView"
 import TacticalView from "@/components/admin/reports/TacticalView"
 import OperationalView from "@/components/admin/reports/OperationalView"
+import ModernDashboardView from "@/components/admin/reports/ModernDashboardView"
 import { getAllTeamsSummary, getTeamDetailedReports } from "@/lib/data/teams"
 import dynamic from 'next/dynamic'
 
@@ -192,12 +193,17 @@ export default function AdminReportsPage(props: {
                 </Suspense>
             </Card>
 
-            <Tabs defaultValue={activeTab} className="space-y-6">
+            <Tabs defaultValue={activeTab === 'overview' ? 'modern' : activeTab} className="space-y-6">
                 <TabsList className="bg-muted p-1 rounded-lg">
+                    <TabsTrigger value="modern" className="gap-2"><LayoutDashboard className="w-4 h-4" /> Genel Bakış</TabsTrigger>
                     <TabsTrigger value="strategic" className="gap-2"><BarChart3 className="w-4 h-4" /> Stratejik</TabsTrigger>
                     <TabsTrigger value="tactical" className="gap-2"><TrendingUp className="w-4 h-4" /> Taktiksel</TabsTrigger>
                     <TabsTrigger value="operational" className="gap-2"><Zap className="w-4 h-4" /> Operasyonel</TabsTrigger>
                 </TabsList>
+
+                <TabsContent value="modern" className="animate-in fade-in duration-500">
+                    <ModernDashboardView data={data} />
+                </TabsContent>
 
                 <TabsContent value="strategic" className="animate-in fade-in duration-500">
                     <StrategicView data={data} />
