@@ -113,10 +113,17 @@ export async function getAdminDashboardData() {
       }).catch(e => { console.error("completedJobsToday fetch failed", e); return 0; }),
 
       // 10: totalWorkers
-      prisma.user.count({ where: { role: 'WORKER' } }).catch(e => { console.error("totalWorkers fetch failed", e); return 0; }),
+      prisma.user.count({ 
+        where: { 
+          role: { in: ['WORKER', 'MANAGER'] },
+          isActive: true
+        } 
+      }).catch(e => { console.error("totalWorkers fetch failed", e); return 0; }),
 
       // 11: activeTeams
-      prisma.team.count({ where: { isActive: true } }).catch(e => { console.error("activeTeams fetch failed", e); return 0; }),
+      prisma.team.count({ 
+        where: { isActive: true } 
+      }).catch(e => { console.error("activeTeams fetch failed", e); return 0; }),
 
       // 12: latestLogs
       prisma.systemLog.findMany({
@@ -162,26 +169,26 @@ export async function getAdminDashboardData() {
       // 18: strategicTrendResult (14-day)
       Promise.all(
         Array.from({ length: 14 }).map(async (_, i) => {
-          const dayStart = new Date(today)
-          dayStart.setDate(today.getDate() - (13 - i))
-          dayStart.setHours(0, 0, 0, 0)
+          const d = new Date(today)
+          d.setDate(today.getDate() - (13 - i))
+          d.setHours(0, 0, 0, 0)
           
-          const dayEnd = new Date(dayStart)
-          dayEnd.setHours(23, 59, 59, 999)
+          const dEnd = new Date(d)
+          dEnd.setHours(23, 59, 59, 999)
 
           const [jobCount, costData] = await Promise.all([
             prisma.job.count({
-              where: { createdAt: { gte: dayStart, lte: dayEnd } }
+              where: { createdAt: { gte: d, lte: dEnd } }
             }),
             prisma.costTracking.aggregate({
-              where: { date: { gte: dayStart, lte: dayEnd }, status: 'APPROVED' },
+              where: { date: { gte: d, lte: dEnd }, status: 'APPROVED' },
               _sum: { amount: true }
             })
           ])
 
           return {
-            name: dayStart.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }),
-            intensity: jobCount,
+            name: d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }),
+            intensity: jobCount || 0,
             cost: Number(costData._sum.amount || 0)
           }
         })

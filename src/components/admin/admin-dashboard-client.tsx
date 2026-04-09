@@ -38,17 +38,17 @@ export default function AdminDashboardClient({ data }: AdminDashboardClientProps
         activeJobs = 0,
         totalJobs = 0,
         completedJobsToday = 0,
-        totalWorkers = 0,
+        activeWorkersCount = 0,
         pendingApprovalsCount = 0,
         totalCostToday = 0,
         latestCustomers = [],
         weeklyStats = [],
         strategicTrend = [],
-        operational = {}
+        strategic = {}
     } = data
 
     const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(value)
+        return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(value || 0)
     }
 
     const containerVariants = {
@@ -66,6 +66,13 @@ export default function AdminDashboardClient({ data }: AdminDashboardClientProps
             opacity: 1,
             transition: { type: 'spring', stiffness: 100 }
         }
+    }
+
+    // Combine data for operational efficiency chart if strategic.weeklySteps is missing
+    const stepsData = strategic?.weeklySteps || { 
+        currentWeek: weeklyStats, 
+        previousWeek: [], 
+        categories: ['Tamamlanan'] 
     }
 
     return (
@@ -109,7 +116,7 @@ export default function AdminDashboardClient({ data }: AdminDashboardClientProps
                             </div>
                             <div>
                                 <p className="text-[10px] font-bold tracking-[0.05em] text-slate-500 uppercase">SAHA PERSONELİ</p>
-                                <h3 className="text-2xl font-black text-slate-900 dark:text-white">{totalWorkers}</h3>
+                                <h3 className="text-2xl font-black text-slate-900 dark:text-white">{activeWorkersCount}</h3>
                             </div>
                         </Card>
                     </motion.div>
@@ -136,7 +143,7 @@ export default function AdminDashboardClient({ data }: AdminDashboardClientProps
                 <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* System Pulse Chart */}
                     <motion.div variants={itemVariants} initial="hidden" animate="visible" className="lg:col-span-1">
-                        <Card className="bg-white dark:bg-slate-950 rounded-2xl p-6 border-slate-200/60 dark:border-slate-800 shadow-sm flex flex-col h-full">
+                        <Card className="bg-white dark:bg-slate-950 rounded-2xl p-6 border-slate-200/60 dark:border-slate-800 shadow-sm flex flex-col h-full overflow-hidden">
                             <div className="flex justify-between items-center mb-6">
                                 <h2 className="text-sm font-bold flex items-center gap-2 text-slate-800 dark:text-slate-100">
                                     <BarChart3 className="w-4 h-4 text-indigo-500" /> SİSTEM NABZI
@@ -151,18 +158,18 @@ export default function AdminDashboardClient({ data }: AdminDashboardClientProps
                             <div className="space-y-3 mb-8">
                                 <div className="flex justify-between items-center text-xs">
                                     <span className="flex items-center gap-2 text-slate-500">
-                                        <span className="w-2 h-2 rounded-full bg-indigo-500"></span> Yeni İşler
+                                        <span className="w-2 h-2 rounded-full bg-teal-500"></span> Yeni İşler (Bugün)
                                     </span>
                                     <span className="font-bold">{strategicTrend[strategicTrend.length-1]?.intensity || 0}</span>
                                 </div>
                                 <div className="flex justify-between items-center text-xs">
                                     <span className="flex items-center gap-2 text-slate-500">
-                                        <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Tamamlanan
+                                        <span className="w-2 h-2 rounded-full bg-orange-500"></span> Onaylı Harcamalar
                                     </span>
-                                    <span className="font-bold">{completedJobsToday}</span>
+                                    <span className="font-bold">{formatCurrency(strategicTrend.reduce((sum: number, day: any) => sum + (day.cost || 0), 0))}</span>
                                 </div>
                             </div>
-                            <div className="h-40 w-full mt-auto">
+                            <div className="flex-1 min-h-[200px] w-full mt-auto">
                                 <StrategicPulseChart data={strategicTrend} />
                             </div>
                         </Card>
@@ -170,7 +177,7 @@ export default function AdminDashboardClient({ data }: AdminDashboardClientProps
 
                     {/* Operational Summary Bar Chart replacement */}
                     <motion.div variants={itemVariants} initial="hidden" animate="visible" className="lg:col-span-2">
-                        <Card className="bg-white dark:bg-slate-950 rounded-2xl p-6 border-slate-200/60 dark:border-slate-800 shadow-sm h-full">
+                        <Card className="bg-white dark:bg-slate-950 rounded-2xl p-6 border-slate-200/60 dark:border-slate-800 shadow-sm h-full flex flex-col overflow-hidden">
                             <div className="flex justify-between items-center mb-6">
                                 <h2 className="text-sm font-bold flex items-center gap-2 text-slate-800 dark:text-slate-100">
                                     <Zap className="w-4 h-4 text-indigo-500" /> Operasyonel Verimlilik
@@ -180,27 +187,32 @@ export default function AdminDashboardClient({ data }: AdminDashboardClientProps
                                 <div>
                                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Bekleyen İşler</p>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-2xl font-black text-slate-900 dark:text-white">{data.activeJobs - activeJobs}</span>
-                                        <Badge variant="outline" className="text-[10px] border-emerald-200 text-emerald-600 bg-emerald-50/50">AKTİF</Badge>
+                                        <span className="text-2xl font-black text-slate-900 dark:text-white">{(totalJobs || 0) - (completedJobsToday || 0)}</span>
+                                        <Badge variant="outline" className="text-[10px] border-emerald-200 text-emerald-600 bg-emerald-50/50">SİSTEM</Badge>
                                     </div>
                                 </div>
                                 <div>
                                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Tamamlanan (Bugün)</p>
                                     <div className="flex items-center gap-2">
                                         <span className="text-2xl font-black text-slate-900 dark:text-white">{completedJobsToday}</span>
-                                        <span className="text-[10px] text-emerald-500 font-black">↑ {completedJobsToday > 0 ? 'YENİ' : '0'}</span>
+                                        <span className={cn("text-[10px] font-black", completedJobsToday > 0 ? "text-emerald-500" : "text-slate-400")}>
+                                            {completedJobsToday > 0 ? '↑ YENİ' : 'STABİL'}
+                                        </span>
                                     </div>
                                 </div>
                                 <div>
-                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Toplam Ekip</p>
+                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Aktif Ekipler</p>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-2xl font-black text-slate-900 dark:text-white">{data.activeTeams}</span>
-                                        <span className="text-[10px] text-slate-400 font-medium">Sistemde Kayıtlı</span>
+                                        <span className="text-2xl font-black text-slate-900 dark:text-white">{data.activeTeams || 0}</span>
+                                        <span className="text-[10px] text-slate-400 font-medium">Saha</span>
                                     </div>
                                 </div>
                             </div>
-                            <div className="h-64 w-full">
-                                <WeeklyStepsChart data={data.strategic?.weeklySteps || { currentWeek: weeklyStats, previousWeek: [], categories: ['Tamamlanan'] }} categories={['Tamamlanan']} />
+                            <div className="flex-1 min-h-[300px] w-full">
+                                <WeeklyStepsChart 
+                                    data={stepsData} 
+                                    categories={stepsData.categories || ['Tamamlanan']} 
+                                />
                             </div>
                         </Card>
                     </motion.div>
