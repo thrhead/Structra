@@ -264,7 +264,7 @@ export default function AdminDashboardClient({ data }: AdminDashboardClientProps
                             <div className="space-y-5">
                                 <div className="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800">
                                     <span className="text-xs font-medium text-slate-500">Toplam Personel</span>
-                                    <span className="text-sm font-black text-slate-900 dark:text-white">{totalWorkers}</span>
+                                    <span className="text-sm font-black text-slate-900 dark:text-white">{data.totalWorkers || activeWorkersCount}</span>
                                 </div>
                                 <div className="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800">
                                     <span className="text-xs font-medium text-slate-500">Bekleyen Onaylar</span>
