@@ -2,24 +2,14 @@
 
 import { motion } from 'framer-motion'
 import { 
-  LayoutDashboardIcon, 
   BarChart3Icon, 
-  HistoryIcon, 
-  SettingsIcon, 
-  HelpCircleIcon, 
-  LogOutIcon,
-  SearchIcon,
-  BellIcon,
-  PlusIcon,
   TrendingUpIcon,
   UsersIcon,
   BriefcaseIcon,
   DollarSignIcon,
   ActivityIcon,
   GlobeIcon,
-  CheckCircle2Icon,
-  ClockIcon,
-  AlertCircleIcon
+  CheckCircle2Icon
 } from 'lucide-react'
 import { PerformanceChart } from "@/components/charts/performance-chart"
 import { StrategicPulseChart } from "@/components/charts/strategic-pulse-chart"
@@ -66,303 +56,209 @@ export default function AdminDashboardClient({ data }: AdminDashboardClientProps
   }
 
   return (
-    <div className="flex min-h-screen bg-[#f8fafc] font-sans selection:bg-blue-100 selection:text-blue-900">
+    <div className="w-full bg-[#f8fafc] font-sans selection:bg-blue-100 selection:text-blue-900 rounded-3xl overflow-hidden min-h-[calc(100vh-120px)]">
       
-      {/* SIDEBAR (Stitch Inspired) */}
-      <aside className="w-64 bg-white border-r border-slate-200 flex flex-col fixed h-screen z-50">
-        <div className="p-8 mb-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white text-xs font-bold font-mono">ST</span>
+      {/* CONTENT */}
+      <motion.div 
+        className="p-4 lg:p-10 space-y-8"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* HERO SECTION */}
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <motion.div 
+            variants={itemVariants}
+            className="lg:col-span-2 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-8 rounded-3xl shadow-xl shadow-blue-900/10 relative overflow-hidden group flex items-center"
+          >
+            <div className="relative z-10 w-full md:w-2/3">
+              <h2 className="text-white text-4xl font-black tracking-tight mb-3">Günaydın, Hoş Geldiniz!</h2>
+              <p className="text-blue-100 text-lg mb-8 opacity-90 font-medium leading-relaxed">
+                Sistem şu an stabil. Bugün sonuçlandırılması gereken <span className="text-white font-bold">{pendingApprovalsCount}</span> onay talebi bulunuyor.
+              </p>
+              <Link href="/admin/approvals">
+                <button className="bg-white text-blue-700 px-8 py-3 rounded-xl text-sm font-bold shadow-lg hover:bg-blue-50 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                  Performansı İncele
+                </button>
+              </Link>
             </div>
-            <div>
-              <h1 className="text-lg font-black tracking-tighter text-slate-900 leading-none">STRUCTRA</h1>
-              <p className="text-[9px] uppercase tracking-[0.2em] text-blue-600 font-bold mt-1">Institutional Grade</p>
+
+            {/* STAT CIRCLE */}
+            <div className="relative z-10 hidden md:flex flex-1 items-center justify-center py-4">
+              <div className="relative w-40 h-40">
+                <svg className="w-full h-full transform -rotate-90">
+                  <circle className="text-white/10" cx="80" cy="80" r="70" fill="transparent" stroke="currentColor" strokeWidth="12" />
+                  <motion.circle 
+                    initial={{ strokeDashoffset: 440 }}
+                    animate={{ strokeDashoffset: 440 - (440 * 0.75) }}
+                    className="text-white" cx="80" cy="80" r="70" fill="transparent" stroke="currentColor" strokeWidth="12" strokeDasharray="440" strokeLinecap="round" 
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-3xl font-black text-white">75%</span>
+                  <span className="text-[10px] text-blue-100 font-bold uppercase tracking-widest">Hedef</span>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        <nav className="flex-1 px-4 space-y-1">
-          <NavItem icon={LayoutDashboardIcon} label="Dashboard" active />
-          <NavItem icon={BarChart3Icon} label="Analytics" href="/admin/reports" />
-          <NavItem icon={BriefcaseIcon} label="Transactions" href="/admin/jobs" />
-          <NavItem icon={ActivityIcon} label="Reports" href="/admin/reports" />
-          <NavItem icon={SettingsIcon} label="Settings" href="/admin/profile" />
-        </nav>
+            {/* BACKGROUND DECOR */}
+            <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-60 h-60 bg-blue-400/10 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none" />
+          </motion.div>
 
-        <div className="p-4 mt-auto border-t border-slate-100">
-          <button className="w-full mb-6 py-2.5 px-4 bg-blue-600 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all hover:scale-[1.02]">
-            <PlusIcon className="w-4 h-4" />
-            Yeni Rapor
-          </button>
-          
-          <div className="space-y-1">
-            <NavItem icon={HelpCircleIcon} label="Support" href="#" />
-            <NavItem icon={LogOutIcon} label="Sign Out" href="/api/auth/signout" isError />
-          </div>
-        </div>
-      </aside>
-
-      {/* MAIN CONTENT Area */}
-      <main className="flex-1 ml-64 min-h-screen">
-        
-        {/* TOP NAVBAR */}
-        <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-100 flex justify-between items-center px-8 h-18">
-          <div className="flex-1 max-w-md relative">
-            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-            <input 
-              type="text" 
-              placeholder="Sistem verilerinde ara..." 
-              className="w-full bg-slate-50 border-none rounded-lg py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-blue-500/10 placeholder:text-slate-400 transition-all"
-            />
-          </div>
-
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-1">
-              <IconButton icon={HistoryIcon} />
-              <div className="relative">
-                <IconButton icon={BellIcon} />
-                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
+          {/* QUICK KPI CARD */}
+          <motion.div 
+            variants={itemVariants}
+            className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col justify-between"
+          >
+            <div className="space-y-6">
+              <div className="flex justify-between items-start">
+                <span className="inline-block px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest rounded-full">GÜNLÜK HEDEF</span>
+                <ActivityIcon className="w-5 h-5 text-blue-500" />
+              </div>
+              <div>
+                <h3 className="text-5xl font-black tracking-tighter text-slate-900 leading-none">%{((completedJobsToday / Math.max(totalJobs, 1)) * 100).toFixed(0)}</h3>
+                <div className="flex items-center gap-2 mt-4 text-emerald-600">
+                  <TrendingUpIcon className="w-4 h-4" />
+                  <span className="text-xs font-bold">Tamamlanan görevler</span>
+                </div>
               </div>
             </div>
             
-            <div className="h-8 w-[1px] bg-slate-200" />
-
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <p className="text-xs font-bold text-slate-900">Admin Paneli</p>
-                <p className="text-[10px] text-blue-600 font-bold">Baş Yönetici</p>
+            <div className="pt-8 border-t border-slate-50">
+              <div className="flex justify-between items-end">
+                <div className="flex gap-1.5 h-10 items-end">
+                  {[3, 5, 8, 10, 6, 9, 4].map((v, i) => (
+                    <div key={i} className={`w-2 rounded-full ${i === 3 ? 'bg-blue-600 h-10' : 'bg-blue-100 h-' + v * 3}`} />
+                  ))}
+                </div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase">Haftalık Mevcudiyet</span>
               </div>
-              <div className="w-10 h-10 rounded-full bg-slate-100 border-2 border-blue-600/10" />
             </div>
-          </div>
-        </header>
+          </motion.div>
+        </section>
 
-        {/* CONTENT */}
-        <motion.div 
-          className="p-8 space-y-8"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {/* HERO SECTION */}
-          <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <motion.div 
-              variants={itemVariants}
-              className="lg:col-span-2 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 p-8 rounded-3xl shadow-xl shadow-blue-900/10 relative overflow-hidden group flex items-center"
-            >
-              <div className="relative z-10 w-full md:w-2/3">
-                <h2 className="text-white text-4xl font-black tracking-tight mb-3">Günaydın, Hoş Geldiniz!</h2>
-                <p className="text-blue-100 text-lg mb-8 opacity-90 font-medium leading-relaxed">
-                  Sistem şu an stabil. Bugün sonuçlandırılması gereken <span className="text-white font-bold">{pendingApprovalsCount}</span> onay talebi bulunuyor.
-                </p>
-                <Link href="/admin/approvals">
-                  <button className="bg-white text-blue-700 px-8 py-3 rounded-xl text-sm font-bold shadow-lg hover:bg-blue-50 transition-all hover:scale-[1.02] active:scale-[0.98]">
-                    Performansı İncele
-                  </button>
-                </Link>
+        {/* KPI GRID */}
+        <section className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <StatCard label="Aktif Görev" value={activeJobs} trend="+12.4%" icon={BriefcaseIcon} color="blue" />
+          <StatCard label="Toplam Bütçe" value={`₺${(totalCostToday).toLocaleString('tr-TR')}`} trend="+8.2%" icon={DollarSignIcon} color="emerald" pill="GÜNLÜK" />
+          <StatCard label="Saha Personeli" value={totalWorkers} sub={`${activeTeams} Takım`} icon={UsersIcon} color="indigo" pill="AKTİF" />
+          <StatCard label="Onay Bekleyen" value={pendingApprovalsCount} trend={`${pendingApprovalsCount > 0 ? 'DİKKAT' : 'TEMİZ'}`} icon={CheckCircle2Icon} color="rose" isAlert={pendingApprovalsCount > 0} />
+        </section>
+
+        {/* CHARTS SECTION */}
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* LARGE CHART */}
+          <motion.div 
+            variants={itemVariants}
+            className="lg:col-span-8 bg-white p-8 rounded-3xl shadow-sm border border-slate-100"
+          >
+            <div className="flex flex-col md:flex-row justify-between items-start mb-12 gap-4">
+              <div>
+                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-2">Stratejik Analiz</h3>
+                <h2 className="text-2xl font-black tracking-tighter text-slate-950 uppercase">SİSTEM NABZI</h2>
               </div>
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center gap-4">
+                 <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Canlı Akış Aktif</span>
+              </div>
+            </div>
+            
+            <div className="h-[350px] w-full">
+              <StrategicPulseChart data={strategicTrend} />
+            </div>
+          </motion.div>
 
-              {/* STAT CIRCLE */}
-              <div className="relative z-10 hidden md:flex flex-1 items-center justify-center py-4">
-                <div className="relative w-40 h-40">
-                  <svg className="w-full h-full transform -rotate-90">
-                    <circle className="text-white/10" cx="80" cy="80" r="70" fill="transparent" stroke="currentColor" strokeWidth="12" />
-                    <motion.circle 
-                      initial={{ strokeDashoffset: 440 }}
-                      animate={{ strokeDashoffset: 440 - (440 * 0.75) }}
-                      className="text-white" cx="80" cy="80" r="70" fill="transparent" stroke="currentColor" strokeWidth="12" strokeDasharray="440" strokeLinecap="round" 
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-3xl font-black text-white">75%</span>
-                    <span className="text-[10px] text-blue-100 font-bold uppercase tracking-widest">Hedef</span>
+          {/* SIDE ACTIVITY / LOGS */}
+          <motion.div 
+            variants={itemVariants}
+            className="lg:col-span-4 bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col"
+          >
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <ActivityIcon className="w-4 h-4 text-blue-600" />
+                <h3 className="text-xs font-black tracking-[0.2em] uppercase">SİNYAL AKIŞI</h3>
+              </div>
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-ping" />
+            </div>
+
+            <div className="flex-1 space-y-6 overflow-hidden">
+              {latestLogs?.slice(0, 5).map((log: any) => (
+                <div key={log.id} className="flex gap-4 group cursor-default">
+                  <div className="pt-1">
+                    <div className={`w-2 h-2 rounded-full ${log.level === 'ERROR' ? 'bg-red-500' : 'bg-blue-500'}`} />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[11px] font-black text-slate-800 leading-none">
+                      {log.message}
+                    </p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">
+                      {new Date(log.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })} • {log.level}
+                    </p>
                   </div>
                 </div>
-              </div>
+              ))}
+            </div>
 
-              {/* BACKGROUND DECOR */}
-              <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
-              <div className="absolute bottom-0 left-0 w-60 h-60 bg-blue-400/10 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none" />
-            </motion.div>
+            <Link href="/admin/logs" className="mt-8 block">
+              <button className="w-full py-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition-all font-black text-[10px] tracking-widest uppercase text-slate-500">
+                TÜM KAYITLARI GÖR
+              </button>
+            </Link>
+          </motion.div>
+        </section>
 
-            {/* QUICK KPI CARD */}
-            <motion.div 
-              variants={itemVariants}
-              className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col justify-between"
-            >
-              <div className="space-y-6">
-                <div className="flex justify-between items-start">
-                  <span className="inline-block px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest rounded-full">GÜNLÜK HEDEF</span>
-                  <ActivityIcon className="w-5 h-5 text-blue-500" />
-                </div>
-                <div>
-                  <h3 className="text-5xl font-black tracking-tighter text-slate-900 leading-none">%{((completedJobsToday / Math.max(totalJobs, 1)) * 100).toFixed(0)}</h3>
-                  <div className="flex items-center gap-2 mt-4 text-emerald-600">
-                    <TrendingUpIcon className="w-4 h-4" />
-                    <span className="text-xs font-bold">Tamamlanan görevler</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="pt-8 border-t border-slate-50">
-                <div className="flex justify-between items-end">
-                  <div className="flex gap-1.5 h-10 items-end">
-                    {[3, 5, 8, 10, 6, 9, 4].map((v, i) => (
-                      <div key={i} className={`w-2 rounded-full ${i === 3 ? 'bg-blue-600 h-10' : 'bg-blue-100 h-' + v * 3}`} />
-                    ))}
-                  </div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">Haftalık Mevcudiyet</span>
-                </div>
-              </div>
-            </motion.div>
-          </section>
+        {/* LOWER GRID */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-12">
+          {/* WEEKLY PERFORMACE */}
+          <motion.div 
+            variants={itemVariants}
+            className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100"
+          >
+            <h3 className="text-xs font-black tracking-[0.2em] uppercase text-slate-400 mb-8">Haftalık Performans</h3>
+            <div className="h-[250px] w-full">
+              <PerformanceChart data={weeklyStats} />
+            </div>
+          </motion.div>
 
-          {/* KPI GRID */}
-          <section className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <StatCard label="Aktif Görev" value={activeJobs} trend="+12.4%" icon={BriefcaseIcon} color="blue" />
-            <StatCard label="Toplam Bütçe" value={`₺${(totalCostToday).toLocaleString('tr-TR')}`} trend="+8.2%" icon={DollarSignIcon} color="emerald" pill="GÜNLÜK" />
-            <StatCard label="Saha Personeli" value={totalWorkers} sub={`${activeTeams} Takım`} icon={UsersIcon} color="indigo" pill="AKTİF" />
-            <StatCard label="Onay Bekleyen" value={pendingApprovalsCount} trend={`${pendingApprovalsCount > 0 ? 'DİKKAT' : 'TEMİZ'}`} icon={CheckCircle2Icon} color="rose" isAlert={pendingApprovalsCount > 0} />
-          </section>
-
-          {/* CHARTS SECTION */}
-          <section className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* LARGE CHART */}
-            <motion.div 
-              variants={itemVariants}
-              className="lg:col-span-8 bg-white p-8 rounded-3xl shadow-sm border border-slate-100"
-            >
-              <div className="flex flex-col md:flex-row justify-between items-start mb-12 gap-4">
-                <div>
-                  <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-2">Stratejik Analiz</h3>
-                  <h2 className="text-2xl font-black tracking-tighter text-slate-950 uppercase">SİSTEM NABZI</h2>
-                </div>
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center gap-4">
-                   <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
-                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Canlı Akış Aktif</span>
-                </div>
-              </div>
-              
-              <div className="h-[350px] w-full">
-                <StrategicPulseChart data={strategicTrend} />
-              </div>
-            </motion.div>
-
-            {/* SIDE ACTIVITY / LOGS */}
-            <motion.div 
-              variants={itemVariants}
-              className="lg:col-span-4 bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col"
-            >
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-3">
-                  <ActivityIcon className="w-4 h-4 text-blue-600" />
-                  <h3 className="text-xs font-black tracking-[0.2em] uppercase">SİNYAL AKIŞI</h3>
-                </div>
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-ping" />
-              </div>
-
-              <div className="flex-1 space-y-6 overflow-hidden">
-                {latestLogs?.slice(0, 5).map((log: any) => (
-                  <div key={log.id} className="flex gap-4 group cursor-default">
-                    <div className="pt-1">
-                      <div className={`w-2 h-2 rounded-full ${log.level === 'ERROR' ? 'bg-red-500' : 'bg-blue-500'}`} />
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[11px] font-black text-slate-800 leading-none">
-                        {log.message}
+          {/* REGIONAL / EXTRA KPI */}
+          <motion.div 
+            variants={itemVariants}
+            className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col justify-between"
+          >
+             <div>
+               <h3 className="text-xs font-black tracking-[0.2em] uppercase text-slate-400 mb-8 text-center md:text-left">TAKTİKSEL SAPMA</h3>
+               <div className="grid grid-cols-3 gap-8">
+                  {tactical?.varianceData?.slice(0, 3).map((item: any, i: number) => (
+                    <div key={i} className="space-y-3">
+                      <p className="text-[10px] font-black uppercase text-slate-400 truncate">{item.title}</p>
+                      <p className={`text-2xl font-black tracking-tighter ${item.variance >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                        %{Math.abs(item.variancePct || 0).toFixed(0)}
                       </p>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase">
-                        {new Date(log.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })} • {log.level}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <Link href="/admin/logs" className="mt-8 block">
-                <button className="w-full py-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition-all font-black text-[10px] tracking-widest uppercase text-slate-500">
-                  TÜM KAYITLARI GÖR
-                </button>
-              </Link>
-            </motion.div>
-          </section>
-
-          {/* LOWER GRID */}
-          <section className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-12">
-            {/* WEEKLY PERFORMACE */}
-            <motion.div 
-              variants={itemVariants}
-              className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100"
-            >
-              <h3 className="text-xs font-black tracking-[0.2em] uppercase text-slate-400 mb-8">Haftalık Performans</h3>
-              <div className="h-[250px] w-full">
-                <PerformanceChart data={weeklyStats} />
-              </div>
-            </motion.div>
-
-            {/* REGIONAL / EXTRA KPI */}
-            <motion.div 
-              variants={itemVariants}
-              className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col justify-between"
-            >
-               <div>
-                 <h3 className="text-xs font-black tracking-[0.2em] uppercase text-slate-400 mb-8 text-center md:text-left">TAKTİKSEL SAPMA</h3>
-                 <div className="grid grid-cols-3 gap-8">
-                    {tactical?.varianceData?.slice(0, 3).map((item: any, i: number) => (
-                      <div key={i} className="space-y-3">
-                        <p className="text-[10px] font-black uppercase text-slate-400 truncate">{item.title}</p>
-                        <p className={`text-2xl font-black tracking-tighter ${item.variance >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                          %{Math.abs(item.variancePct || 0).toFixed(0)}
-                        </p>
-                        <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
-                          <div className={`h-full ${item.variance >= 0 ? 'bg-emerald-500' : 'bg-red-500'} w-[${Math.min(Math.abs(item.variancePct), 100)}%]`} />
-                        </div>
+                      <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
+                        <div className={`h-full ${item.variance >= 0 ? 'bg-emerald-500' : 'bg-red-500'} w-[${Math.min(Math.abs(item.variancePct), 100)}%]`} />
                       </div>
-                    ))}
-                 </div>
+                    </div>
+                  ))}
                </div>
+             </div>
 
-               <div className="grid grid-cols-2 gap-8 pt-8 mt-8 border-t border-slate-50">
-                 <div className="p-6 bg-slate-50 rounded-2xl group hover:bg-blue-600 transition-all cursor-pointer">
-                    <GlobeIcon className="w-6 h-6 text-blue-600 group-hover:text-white mb-4 transition-colors" />
-                    <p className="text-[10px] font-black text-slate-400 group-hover:text-blue-100 transition-colors">BÖLGESEL</p>
-                    <p className="text-lg font-black text-slate-900 group-hover:text-white transition-colors">AVRUPA (42%)</p>
-                 </div>
-                 <div className="p-6 bg-slate-50 rounded-2xl group hover:bg-blue-600 transition-all cursor-pointer">
-                    <TrendingUpIcon className="w-6 h-6 text-emerald-600 group-hover:text-white mb-4 transition-colors" />
-                    <p className="text-[10px] font-black text-slate-400 group-hover:text-blue-100 transition-colors">KÂRLILIK</p>
-                    <p className="text-lg font-black text-slate-900 group-hover:text-white transition-colors">%{strategic?.overallProfitMargin?.toFixed(0) || 0}</p>
-                 </div>
+             <div className="grid grid-cols-2 gap-8 pt-8 mt-8 border-t border-slate-50">
+               <div className="p-6 bg-slate-50 rounded-2xl group hover:bg-blue-600 transition-all cursor-pointer">
+                  <GlobeIcon className="w-6 h-6 text-blue-600 group-hover:text-white mb-4 transition-colors" />
+                  <p className="text-[10px] font-black text-slate-400 group-hover:text-blue-100 transition-colors">BÖLGESEL</p>
+                  <p className="text-lg font-black text-slate-900 group-hover:text-white transition-colors">AVRUPA (42%)</p>
                </div>
-            </motion.div>
-          </section>
-        </motion.div>
-      </main>
+               <div className="p-6 bg-slate-50 rounded-2xl group hover:bg-blue-600 transition-all cursor-pointer">
+                  <TrendingUpIcon className="w-6 h-6 text-emerald-600 group-hover:text-white mb-4 transition-colors" />
+                  <p className="text-[10px] font-black text-slate-400 group-hover:text-blue-100 transition-colors">KÂRLILIK</p>
+                  <p className="text-lg font-black text-slate-900 group-hover:text-white transition-colors">%{strategic?.overallProfitMargin?.toFixed(0) || 0}</p>
+               </div>
+             </div>
+          </motion.div>
+        </section>
+      </motion.div>
     </div>
-  )
-}
-
-function NavItem({ icon: Icon, label, href = "#", active = false, isError = false }: any) {
-  return (
-    <Link href={href} className="block">
-      <div className={`
-        flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group
-        ${active ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/10' : 'text-slate-500 hover:text-blue-600 hover:bg-slate-50'}
-        ${isError ? 'hover:text-red-600 hover:bg-red-50' : ''}
-      `}>
-        <Icon className={`w-[20px] h-[20px] ${active ? 'text-white' : 'text-slate-400 group-hover:text-blue-600 transition-colors'}`} />
-        <span className="text-sm font-bold tracking-tight">{label}</span>
-      </div>
-    </Link>
-  )
-}
-
-function IconButton({ icon: Icon }: any) {
-  return (
-    <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-slate-50 rounded-xl transition-all">
-      <Icon className="w-5 h-5" />
-    </button>
   )
 }
 
