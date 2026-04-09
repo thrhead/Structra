@@ -28,7 +28,8 @@ export default function ModernDashboardView({ data }: ModernDashboardViewProps) 
     const { 
         generalStats = { totalJobs: 0, pendingJobs: 0, inProgressJobs: 0, completedJobs: 0, totalCost: 0, pendingApprovals: 0 },
         jobDistribution = {},
-        teamPerformance = []
+        teamPerformance = [],
+        weeklySteps = { categories: [], currentWeek: [], previousWeek: [] }
     } = data || {}
 
     // Format currency
@@ -116,7 +117,7 @@ export default function ModernDashboardView({ data }: ModernDashboardViewProps) 
                         </div>
                     </div>
                     <div className="h-[350px] w-full">
-                        <WeeklyStepsChart />
+                        <WeeklyStepsChart data={weeklySteps} categories={weeklySteps.categories} />
                     </div>
                 </Card>
 

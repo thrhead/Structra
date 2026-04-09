@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, memo } from 'react';
+import React, { useState, useMemo, memo, useEffect } from 'react';
 import {
     BarChart,
     Bar,
@@ -18,31 +18,47 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
 interface WeeklyStepsChartProps {
-    data: any;
-    categories: string[];
+    data?: {
+        currentWeek: any[];
+        previousWeek: any[];
+    };
+    categories?: string[];
 }
+
 const COLORS = [
     '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
     '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#14b8a6',
     '#6366f1', '#fbbf24'
 ];
-const WeeklyStepsChart = memo(({ data, categories }: WeeklyStepsChartProps) => {
-    const [selectedDay, setSelectedDay] = useState<any>(null);
 
-    const { currentWeek, previousWeek } = data;
+const WeeklyStepsChart = memo(({ data, categories = [] }: WeeklyStepsChartProps) => {
+    const [selectedDay, setSelectedDay] = useState<any>(null);
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    const currentWeek = data?.currentWeek || [];
+    const previousWeek = data?.previousWeek || [];
 
     // Combine current and previous for the chart
     const chartData = useMemo(() => {
+        if (!isMounted) return [];
         return currentWeek.map((day: any, index: number) => ({
             ...day,
             prevTotal: previousWeek[index]?.total || 0,
             displayDate: new Date(day.date).toLocaleDateString('tr-TR', { weekday: 'short' })
         }));
-    }, [currentWeek, previousWeek]);
+    }, [currentWeek, previousWeek, isMounted]);
 
     const handleBarClick = (data: any) => {
         setSelectedDay(data);
     };
+
+    if (!isMounted) {
+        return <div className="h-[350px] w-full flex items-center justify-center bg-slate-50 dark:bg-slate-900 animate-pulse rounded-lg">Yükleniyor...</div>;
+    }
 
     return (
         <div className="space-y-6">
@@ -52,10 +68,10 @@ const WeeklyStepsChart = memo(({ data, categories }: WeeklyStepsChartProps) => {
                         <CardTitle className="text-lg font-bold">Haftalık Tamamlanan Adımlar</CardTitle>
                         <div className="flex gap-2">
                             <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                                Bu Hafta: {currentWeek.reduce((acc: number, d: any) => acc + d.total, 0)}
+                                Bu Hafta: {currentWeek.reduce((acc: number, d: any) => acc + (d.total || 0), 0)}
                             </Badge>
                             <Badge variant="outline" className="bg-slate-50 text-slate-700 border-slate-200">
-                                Geçen Hafta: {previousWeek.reduce((acc: number, d: any) => acc + d.total, 0)}
+                                Geçen Hafta: {previousWeek.reduce((acc: number, d: any) => acc + (d.total || 0), 0)}
                             </Badge>
                         </div>
                     </div>
@@ -132,7 +148,7 @@ const WeeklyStepsChart = memo(({ data, categories }: WeeklyStepsChartProps) => {
                     </CardHeader>
                     <CardContent className="pt-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            {selectedDay.jobs.length > 0 ? (
+                            {selectedDay.jobs && selectedDay.jobs.length > 0 ? (
                                 selectedDay.jobs.map((job: any) => (
                                     <div key={job.id} className="p-3 rounded-lg border border-slate-100 dark:border-slate-800 flex items-center justify-between">
                                         <span className="font-medium text-sm">{job.title}</span>
