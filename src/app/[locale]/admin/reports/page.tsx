@@ -79,9 +79,10 @@ export default function AdminReportsPage(props: {
 
             try {
                 // Shared data needed for layout/filters
-                const [filterJobs, filterCategories] = await Promise.all([
+                const [filterJobs, filterCategories, stats] = await Promise.all([
                     getJobsListForFilter(jobStatus),
-                    getCategoriesForFilter()
+                    getCategoriesForFilter(),
+                    getReportStats(from, to, jobStatus, jobId, category)
                 ]);
 
                 let tabData: any = {};
@@ -93,13 +94,18 @@ export default function AdminReportsPage(props: {
                 } else if (activeTab === 'operational') {
                     tabData = await getOperationalDashboard(from, to);
                 } else {
-                    // Default to strategic if tab is unknown
-                    tabData = await getStrategicDashboard(from, to);
+                    // Default to modern/overview - needs basic performance and weekly steps
+                    const [perf, weekly] = await Promise.all([
+                        getTeamPerformance(from, to),
+                        getWeeklyCompletedSteps()
+                    ]);
+                    tabData = { teamPerformance: perf, weeklySteps: weekly };
                 }
 
                 if (isMounted) {
                     setData({
                         ...tabData,
+                        generalStats: stats,
                         filterJobs,
                         filterCategories,
                         activeTab

@@ -60,13 +60,18 @@ export const getReportStats = unstable_cache(
             where: { ...costWhere, status: 'PENDING' }
         });
 
+        const totalWorkers = await prisma.user.count({
+            where: { role: { in: ['WORKER', 'MANAGER'] }, isActive: true }
+        });
+
         return {
             totalJobs,
             pendingJobs,
             inProgressJobs,
             completedJobs,
             totalCost: approvedCosts._sum.amount || 0,
-            pendingApprovals: pendingCostsCount
+            pendingApprovals: pendingCostsCount,
+            totalWorkers
         };
     },
     ['report-stats'],
