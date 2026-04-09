@@ -1,16 +1,16 @@
 import { prisma } from './db'
-import { publishToUser } from './ably'
+import { sendNotificationToUsers, NotificationType } from './notification-helper'
 
 export interface NotificationInput {
   userId: string
   title: string
   message: string
-  type?: string
+  type?: NotificationType
   link?: string | null
 }
 
 /**
- * Create a notification for a user
+ * Create a notification for a user (DB, Web and Mobile)
  */
 export async function createNotification({
   userId,
@@ -19,28 +19,8 @@ export async function createNotification({
   type = 'INFO',
   link
 }: NotificationInput) {
-  const notification = await prisma.notification.create({
-    data: {
-      userId,
-      title,
-      message,
-      type,
-      link: link || null,
-      isRead: false
-    }
-  })
-
-  // Emit Ably event for real-time web updates
-  await publishToUser(userId, 'notification:new', {
-    id: notification.id,
-    title,
-    message,
-    type: type.toLowerCase(),
-    link,
-    createdAt: notification.createdAt
-  })
-
-  return notification
+  // Uses centralized helper for DB, Ably and Push notifications
+  return await sendNotificationToUsers([userId], title, message, type, link || undefined)
 }
 
 /**
@@ -54,17 +34,14 @@ export async function notifyJobAssignment(jobId: string, workerIds: string[]) {
 
   if (!job) return
 
-  const notifications = workerIds.map(workerId => ({
-    userId: workerId,
-    title: 'Yeni İş Atandı',
-    message: `${job.title} işi size atandı. Müşteri: ${job.customer.company}`,
-    type: 'INFO',
-    link: `/worker/jobs/${jobId}`
-  }))
-
-  await prisma.notification.createMany({
-    data: notifications
-  })
+  await sendNotificationToUsers(
+    workerIds,
+    'Yeni İş Atandı',
+    `${job.title} işi size atandı. Müşteri: ${job.customer.company}`,
+    'INFO',
+    `/worker/jobs/${jobId}`,
+    { jobId }
+  )
 }
 
 /**
@@ -173,6 +150,7 @@ export async function getUnreadNotificationCount(userId: string) {
     }
   })
 }
+
 /**
  * Notify all admins and managers about approval result
  */
@@ -205,18 +183,16 @@ export async function notifyAdminsOfApprovalResult(
   const type = status === 'APPROVED' ? 'SUCCESS' : 'ERROR'
   const approverName = approver?.name || 'Bir yönetici'
 
-  const notifications = admins.map(admin => ({
-    userId: admin.id,
-    title: `İş ${status === 'APPROVED' ? 'Onaylandı' : 'Reddedildi'}`,
-    message: `${job.title} işi ${approverName} tarafından ${actionText}.${notes ? ` Not: ${notes}` : ''}`,
-    type,
-    link: `/admin/jobs/${jobId}`,
-    isRead: false
-  }))
+  const adminIds = admins.map(a => a.id)
 
-  await prisma.notification.createMany({
-    data: notifications
-  })
+  await sendNotificationToUsers(
+    adminIds,
+    `İş ${status === 'APPROVED' ? 'Onaylandı' : 'Reddedildi'}`,
+    `${job.title} işi ${approverName} tarafından ${actionText}.${notes ? ` Not: ${notes}` : ''}`,
+    type,
+    `/admin/jobs/${jobId}`,
+    { jobId, status }
+  )
 }
 
 /**
@@ -238,16 +214,14 @@ export async function notifyAdminsOfJobCompletion(jobId: string) {
     }
   })
 
-  const notifications = admins.map(admin => ({
-    userId: admin.id,
-    title: 'İş Tamamlandı - Onay Bekliyor',
-    message: `${job.title} işi tamamlandı ve onayınızı bekliyor.`,
-    type: 'WARNING',
-    link: `/admin/jobs/${jobId}`, // Direct link to job details for approval
-    isRead: false
-  }))
+  const adminIds = admins.map(a => a.id)
 
-  await prisma.notification.createMany({
-    data: notifications
-  })
+  await sendNotificationToUsers(
+    adminIds,
+    'İş Tamamlandı - Onay Bekliyor',
+    `${job.title} işi tamamlandı ve onayınızı bekliyor.`,
+    'WARNING',
+    `/admin/jobs/${jobId}`,
+    { jobId }
+  )
 }

@@ -319,18 +319,28 @@ export default function App() {
       SyncManager.init();
       // Initialize Logger Service (periodic sync)
       LoggerService.init();
+
+      // Listen for notification responses (user taps on a notification)
+      const subscription = Notifications.addNotificationResponseReceivedListener(response => {
+        const data = response.notification.request.content.data;
+        console.log('Notification tapped with data:', data);
+        
+        // Custom logic for routing can go here if linking doesn't handle it
+        // Example: if (data.link) { ... }
+      });
+
+      return () => {
+        subscription.remove();
+        try {
+          SyncManager.destroy();
+          LoggerService.destroy();
+        } catch (error) {
+          console.error('App cleanup error:', error);
+        }
+      };
     } catch (error) {
       console.error('App initialization error:', error);
     }
-
-    return () => {
-      try {
-        SyncManager.destroy();
-        LoggerService.destroy();
-      } catch (error) {
-        console.error('App cleanup error:', error);
-      }
-    };
   }, []);
 
   return (
