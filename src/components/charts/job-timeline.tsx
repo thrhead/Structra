@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import Image from 'next/image'
 
+import { CustomSpinner } from '@/components/ui/custom-spinner';
 interface StepPhoto {
     id: string
     url: string
@@ -244,7 +245,7 @@ export function JobTimeline({ steps, scheduledDate, completedDate, jobId }: JobT
                                                                                     onClick={() => handleApprove(subStep.id)}
                                                                                     disabled={loadingId === subStep.id}
                                                                                 >
-                                                                                    {loadingId === subStep.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle className="h-3 w-3 mr-1" />}
+                                                                                    {loadingId === subStep.id ? <CustomSpinner className="h-3 w-3 animate-spin" /> : <CheckCircle className="h-3 w-3 mr-1" />}
                                                                                     Onayla
                                                                                 </Button>
                                                                                 <Button

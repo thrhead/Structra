@@ -26,6 +26,7 @@ import JobFilterTabs from '../../components/worker/JobFilterTabs';
 import JobSearchHeader from '../../components/worker/JobSearchHeader';
 import { useAlert } from '../../context/AlertContext';
 
+import CustomSpinner from '../../components/CustomSpinner';
 export default function WorkerJobsScreen() {
     const navigation = useNavigation();
     const { user } = useAuth();
@@ -98,7 +99,7 @@ export default function WorkerJobsScreen() {
             <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background, minHeight: 0 }]}>
                 <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={theme.colors.background} />
                 <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', backgroundColor: theme.colors.background }]}>
-                    <ActivityIndicator size="large" color={theme.colors.primary} />
+                    <CustomSpinner size="large" color={theme.colors.primary} />
                 </View>
             </SafeAreaView>
         );

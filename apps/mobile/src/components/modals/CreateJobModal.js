@@ -9,6 +9,7 @@ import templateService from '../../services/template.service';
 import customerService from '../../services/customer.service';
 import teamService from '../../services/team.service';
 
+import CustomSpinner from '../../components/CustomSpinner';
 export default function CreateJobModal({ visible, onClose, onSuccess }) {
     const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
@@ -331,7 +332,7 @@ export default function CreateJobModal({ visible, onClose, onSuccess }) {
                             disabled={loading}
                         >
                             {loading ? (
-                                <ActivityIndicator color="#000" />
+                                <CustomSpinner color="#000" />
                             ) : (
                                 <Text style={styles.saveButtonText}>{t('jobs.create')}</Text>
                             )}

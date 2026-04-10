@@ -53,6 +53,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { useTheme } from './src/context/ThemeContext';
 
+import CustomSpinner from './src/components/CustomSpinner';
 // Web specific styles injection
 // ... (rest of web styles)
 
@@ -78,7 +79,7 @@ function AppNavigator() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme?.colors?.primary || COLORS.primary} />
+        <CustomSpinner size="large" color={theme?.colors?.primary || COLORS.primary} />
       </View>
     );
   }

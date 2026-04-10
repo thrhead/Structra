@@ -8,6 +8,7 @@ import StatsSummary from '../../components/manager/StatsSummary';
 import JobReportList from '../../components/manager/JobReportList';
 import { useAlert } from '../../context/AlertContext';
 
+import CustomSpinner from '../../components/CustomSpinner';
 export default function JobAssignmentScreen({ navigation }) {
     const { theme, isDark } = useTheme();
     const { showAlert } = useAlert();
@@ -54,7 +55,7 @@ export default function JobAssignmentScreen({ navigation }) {
     if (loading) {
         return (
             <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
-                <ActivityIndicator size="large" color={theme.colors.primary} />
+                <CustomSpinner size="large" color={theme.colors.primary} />
                 <Text style={[styles.loadingText, { color: theme.colors.subText }]}>Yükleniyor...</Text>
             </View>
         );

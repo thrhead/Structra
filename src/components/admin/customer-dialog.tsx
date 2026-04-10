@@ -41,6 +41,7 @@ type FormData = z.infer<typeof customerEditSchema>
 
 import { updateCustomerAction } from '@/lib/actions/customers'
 
+import { CustomSpinner } from '@/components/ui/custom-spinner';
 interface CustomerDialogProps {
   customer?: any
   trigger?: React.ReactNode
@@ -178,7 +179,7 @@ export function CustomerDialog({ customer, trigger }: CustomerDialogProps) {
               İptal
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
+              {isLoading && <CustomSpinner className="mr-2 h-4 w-4 animate-spin" />}
               {isEditing ? 'Güncelle' : 'Oluştur'}
             </Button>
           </div>

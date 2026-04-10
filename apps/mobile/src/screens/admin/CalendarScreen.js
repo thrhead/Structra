@@ -6,6 +6,7 @@ import { useCalendarEvents } from '../../hooks/useCalendarEvents';
 import EventList from '../../components/admin/EventList';
 import { useTheme } from '../../context/ThemeContext';
 
+import CustomSpinner from '../../components/CustomSpinner';
 export default function CalendarScreen({ navigation }) {
     const insets = useSafeAreaInsets();
     const { theme, isDark } = useTheme();
@@ -89,7 +90,7 @@ export default function CalendarScreen({ navigation }) {
 
             {loading && (
                 <View style={[styles.loader, { backgroundColor: theme.colors.background + 'B3' }]}>
-                    <ActivityIndicator size="large" color={theme.colors.primary} />
+                    <CustomSpinner size="large" color={theme.colors.primary} />
                 </View>
             )}
         </View>

@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
+import { CustomSpinner } from '@/components/ui/custom-spinner';
 interface VarianceReport {
   id: string;
   jobNo: string;
@@ -65,7 +66,7 @@ export default function AnalysisPage() {
   if (loading) {
     return (
       <div className="flex h-[50vh] items-center justify-center">
-        <Loader2Icon className="h-8 w-8 animate-spin text-muted-foreground" />
+        <CustomSpinner className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }

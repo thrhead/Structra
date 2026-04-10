@@ -18,6 +18,7 @@ import { useTeamManagement } from '../../hooks/useTeamManagement';
 import TeamFormModal from '../../components/manager/TeamFormModal';
 import CustomButton from '../../components/CustomButton';
 
+import CustomSpinner from '../../components/CustomSpinner';
 const TeamManagementScreen = ({ navigation }) => {
     const { theme, isDark } = useTheme();
     const { t } = useTranslation();
@@ -192,7 +193,7 @@ const TeamManagementScreen = ({ navigation }) => {
     if (loading && !refreshing) {
         return (
             <View style={[styles.centered, { backgroundColor: theme.colors.background }]}>
-                <ActivityIndicator size="large" color={theme.colors.primary} />
+                <CustomSpinner size="large" color={theme.colors.primary} />
             </View>
         );
     }

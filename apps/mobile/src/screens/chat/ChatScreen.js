@@ -18,6 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ably from 'ably';
 import { API_BASE_URL } from '../../services/api';
 
+import CustomSpinner from '../../components/CustomSpinner';
 const ChatScreen = () => {
     const navigation = useNavigation();
     const route = useRoute();
@@ -177,7 +178,7 @@ const ChatScreen = () => {
         return (
             <SafeAreaView style={styles.container}>
                 <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#6366f1" />
+                    <CustomSpinner size="large" color="#6366f1" />
                 </View>
             </SafeAreaView>
         );

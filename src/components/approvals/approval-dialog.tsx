@@ -16,6 +16,7 @@ import { Loader2Icon, CheckIcon, XIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { processApprovalAction } from '@/lib/actions/approvals'
 
+import { CustomSpinner } from '@/components/ui/custom-spinner';
 interface ApprovalDialogProps {
   approval: {
     id: string
@@ -133,7 +134,7 @@ export function ApprovalDialog({ approval }: ApprovalDialogProps) {
             >
               {loading ? (
                 <>
-                  <Loader2Icon className="h-4 w-4 mr-2 animate-spin" />
+                  <CustomSpinner className="h-4 w-4 mr-2 animate-spin" />
                   İşleniyor...
                 </>
               ) : (

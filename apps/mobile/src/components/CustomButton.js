@@ -3,6 +3,7 @@ import { Pressable, Text, StyleSheet, ActivityIndicator, Platform } from 'react-
 import { COLORS } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 
+import CustomSpinner from '../components/CustomSpinner';
 const CustomButton = ({
     onPress,
     title,
@@ -86,7 +87,7 @@ const CustomButton = ({
             ]}
         >
             {loading ? (
-                <ActivityIndicator color={getTextColor()} />
+                <CustomSpinner color={getTextColor()} />
             ) : (
                 <>
                     {icon}

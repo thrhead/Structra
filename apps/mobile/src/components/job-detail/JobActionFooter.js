@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 
+import CustomSpinner from '../../components/CustomSpinner';
 const JobActionFooter = ({ 
     theme, 
     user, 
@@ -39,7 +40,7 @@ const JobActionFooter = ({
                         disabled={job.status === 'COMPLETED' || job.status === 'PENDING_APPROVAL' || completing}
                     >
                         {completing ? (
-                            <ActivityIndicator color={theme.colors.textInverse} />
+                            <CustomSpinner color={theme.colors.textInverse} />
                         ) : (
                             <Text style={[styles.mainCompleteButtonText, { color: theme.colors.textInverse }]}>
                                 {job.status === 'COMPLETED' ? t('common.success') :

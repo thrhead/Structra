@@ -16,6 +16,7 @@ interface ProfileViewProps {
 
 import { SidebarThemeSwitcher } from '@/components/theme/sidebar-theme-switcher'
 
+import { CustomSpinner } from '@/components/ui/custom-spinner';
 export function ProfileView({ role }: ProfileViewProps) {
     const router = useRouter()
     const { data: session, status, update } = useSession()
@@ -139,7 +140,7 @@ export function ProfileView({ role }: ProfileViewProps) {
     if (status === 'loading') {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
-                <Loader2Icon className="h-8 w-8 animate-spin text-indigo-600" />
+                <CustomSpinner className="h-8 w-8 animate-spin text-indigo-600" />
             </div>
         )
     }
@@ -215,7 +216,7 @@ export function ProfileView({ role }: ProfileViewProps) {
                         )}
 
                         <Button type="submit" disabled={profileLoading} className="w-full">
-                            {profileLoading && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
+                            {profileLoading && <CustomSpinner className="mr-2 h-4 w-4 animate-spin" />}
                             Değişiklikleri Kaydet
                         </Button>
                     </form>
@@ -276,7 +277,7 @@ export function ProfileView({ role }: ProfileViewProps) {
                         )}
 
                         <Button type="submit" disabled={passwordLoading} variant="outline" className="w-full">
-                            {passwordLoading && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
+                            {passwordLoading && <CustomSpinner className="mr-2 h-4 w-4 animate-spin" />}
                             Şifreyi Güncelle
                         </Button>
                     </form>

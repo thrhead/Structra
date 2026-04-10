@@ -26,6 +26,7 @@ import { useRouter } from '@/lib/navigation'
 import { useSearchParams } from 'next/navigation'
 import { getJobsListForFilter, getCategoriesForFilter } from '@/lib/data/reports'
 
+import { CustomSpinner } from '@/components/ui/custom-spinner';
 interface Cost {
     id: string
     amount: number
@@ -288,7 +289,7 @@ function CostsTable() {
                                                                 onClick={() => handleUpdateStatus(cost.id, 'APPROVED')}
                                                                 disabled={processing === cost.id}
                                                             >
-                                                                {processing === cost.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2Icon className="h-4 w-4" />}
+                                                                {processing === cost.id ? <CustomSpinner className="h-4 w-4 animate-spin" /> : <CheckCircle2Icon className="h-4 w-4" />}
                                                             </Button>
                                                             <Button
                                                                 size="sm"
@@ -363,7 +364,7 @@ function CostsTable() {
                                 onClick={() => handleUpdateStatus(rejectDialog.id, 'REJECTED', rejectionReason)}
                                 disabled={!rejectionReason || processing === rejectDialog.id}
                             >
-                                {processing === rejectDialog.id && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                {processing === rejectDialog.id && <CustomSpinner className="mr-2 h-4 w-4 animate-spin" />}
                                 Reddet
                             </Button>
                         </div>
@@ -418,7 +419,7 @@ function CostsTable() {
                             disabled={deleting}
                             className="bg-red-700 hover:bg-red-800"
                         >
-                            {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {deleting && <CustomSpinner className="mr-2 h-4 w-4 animate-spin" />}
                             Evet, Kalıcı Olarak Sil
                         </Button>
                     </DialogFooter>

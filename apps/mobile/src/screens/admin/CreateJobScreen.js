@@ -25,6 +25,7 @@ import SelectionModal from '../../components/admin/SelectionModal';
 import ChecklistManager from '../../components/admin/ChecklistManager';
 import { useAlert } from '../../context/AlertContext';
 
+import CustomSpinner from '../../components/CustomSpinner';
 export default function CreateJobScreen({ navigation }) {
     const { theme, isDark } = useTheme();
     const { showAlert } = useAlert();
@@ -272,7 +273,7 @@ export default function CreateJobScreen({ navigation }) {
                             disabled={loading}
                         >
                             {loading ? (
-                                <ActivityIndicator color={theme.colors.textInverse} />
+                                <CustomSpinner color={theme.colors.textInverse} />
                             ) : (
                                 <Text style={[styles.submitButtonText, { color: theme.colors.textInverse }]}>Oluştur</Text>
                             )}

@@ -11,6 +11,7 @@ import { Link } from '@/lib/navigation'
 import { CheckCircle2, AlertTriangle, XCircle, Bell, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { CustomSpinner } from '@/components/ui/custom-spinner';
 export default function NotificationsPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -157,7 +158,7 @@ export default function NotificationsPage() {
   if (status === 'loading' || loading) {
     return (
       <div className="flex h-[50vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <CustomSpinner className="h-8 w-8 animate-spin text-primary" />
       </div>
     )
   }

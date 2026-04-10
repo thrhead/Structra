@@ -14,6 +14,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import api from '../../services/api';
 
+import CustomSpinner from '../../components/CustomSpinner';
 const TeamDetailScreen = ({ route, navigation }) => {
     const { theme, isDark } = useTheme();
     const { t } = useTranslation();
@@ -114,7 +115,7 @@ const TeamDetailScreen = ({ route, navigation }) => {
     if (loading && !refreshing) {
         return (
             <View style={[styles.centered, { backgroundColor: theme.colors.background }]}>
-                <ActivityIndicator size="large" color={theme.colors.primary} />
+                <CustomSpinner size="large" color={theme.colors.primary} />
             </View>
         );
     }

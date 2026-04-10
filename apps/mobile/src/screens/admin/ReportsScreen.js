@@ -10,6 +10,7 @@ import * as Sharing from 'expo-sharing';
 import { API_URL } from '../../config';
 import GlassCard from '../../components/ui/GlassCard';
 
+import CustomSpinner from '../../components/CustomSpinner';
 const { width } = Dimensions.get('window');
 
 const ReportsScreen = () => {
@@ -103,7 +104,7 @@ const ReportsScreen = () => {
     if (loading) {
         return (
             <View style={[styles.center, { backgroundColor: theme.colors.background }]}>
-                <ActivityIndicator size="large" color={theme.colors.primary} />
+                <CustomSpinner size="large" color={theme.colors.primary} />
             </View>
         );
     }

@@ -24,6 +24,7 @@ import { PhotoUploadDialog } from '@/components/worker/photo-upload-dialog'
 import { apiClient } from '@/lib/api-client'
 import { ChatPanel } from '@/components/chat/ChatPanel'
 
+import { CustomSpinner } from '@/components/ui/custom-spinner';
 interface JobDetail {
   id: string
   title: string
@@ -523,7 +524,7 @@ export default function JobDetailPage(props: { params: any }) {
                         disabled={uploadingPhoto === step.id}
                       >
                         {uploadingPhoto === step.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <CustomSpinner className="h-4 w-4 animate-spin" />
                         ) : (
                           <CameraIcon className="h-4 w-4" />
                         )}

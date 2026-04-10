@@ -15,6 +15,7 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { createTeamAction, updateTeamAction } from '@/lib/actions/teams'
 
+import { CustomSpinner } from '@/components/ui/custom-spinner';
 const teamSchema = z.object({
   name: z.string().min(2, 'Ekip adı en az 2 karakter olmalıdır'),
   description: z.string().optional(),
@@ -225,7 +226,7 @@ export function TeamDialog({ team, users, currentMembers = [], trigger }: TeamDi
               İptal
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading && <Loader2Icon className="h-4 w-4 mr-2 animate-spin" />}
+              {loading && <CustomSpinner className="h-4 w-4 mr-2 animate-spin" />}
               {loading ? 'Kaydediliyor...' : team ? 'Güncelle' : 'Ekle'}
             </Button>
           </div>

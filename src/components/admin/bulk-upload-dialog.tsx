@@ -16,6 +16,7 @@ import * as XLSX from 'xlsx'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 
+import { CustomSpinner } from '@/components/ui/custom-spinner';
 export function BulkUploadDialog() {
     const [open, setOpen] = useState(false)
     const [file, setFile] = useState<File | null>(null)
@@ -180,7 +181,7 @@ export function BulkUploadDialog() {
                     <div className="flex justify-end gap-3 pt-4 border-t">
                         <Button variant="outline" onClick={() => setOpen(false)}>İptal</Button>
                         <Button onClick={handleUpload} disabled={!file || isLoading}>
-                            {isLoading && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
+                            {isLoading && <CustomSpinner className="mr-2 h-4 w-4 animate-spin" />}
                             Yükle
                         </Button>
                     </div>

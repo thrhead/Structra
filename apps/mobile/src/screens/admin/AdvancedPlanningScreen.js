@@ -14,6 +14,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import api from '../../services/api';
 
+import CustomSpinner from '../../components/CustomSpinner';
 const { width } = Dimensions.get('window');
 
 const AdvancedPlanningScreen = () => {
@@ -85,7 +86,7 @@ const AdvancedPlanningScreen = () => {
     if (loading && !refreshing) {
         return (
             <View style={[styles.centered, { backgroundColor: theme.colors.background }]}>
-                <ActivityIndicator size="large" color={theme.colors.primary} />
+                <CustomSpinner size="large" color={theme.colors.primary} />
             </View>
         );
     }

@@ -49,6 +49,7 @@ const statusLabels: Record<string, string> = {
 
 import { WorkerStats } from '@/components/worker/worker-stats'
 
+import { CustomSpinner } from '@/components/ui/custom-spinner';
 export default function WorkerDashboard() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -114,7 +115,7 @@ export default function WorkerDashboard() {
   if (status === 'loading' || (loading && jobs.length === 0)) {
     return (
       <div className="flex h-[50vh] items-center justify-center">
-        <Loader2Icon className="h-8 w-8 animate-spin text-primary" />
+        <CustomSpinner className="h-8 w-8 animate-spin text-primary" />
       </div>
     )
   }

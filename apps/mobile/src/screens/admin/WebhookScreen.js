@@ -6,6 +6,7 @@ import { useWebhooks } from '../../hooks/useWebhooks';
 import { LinearGradient } from 'expo-linear-gradient';
 import GlassCard from '../../components/ui/GlassCard';
 
+import CustomSpinner from '../../components/CustomSpinner';
 export default function WebhookScreen() {
     const { theme, isDark } = useTheme();
     const { webhooks, logs, loading, refreshing, onRefresh, loadWebhooks, loadLogs, toggleWebhook } = useWebhooks();
@@ -62,7 +63,7 @@ export default function WebhookScreen() {
     if (loading && !refreshing) {
         return (
             <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
-                <ActivityIndicator size="large" color={theme.colors.primary} />
+                <CustomSpinner size="large" color={theme.colors.primary} />
             </View>
         );
     }

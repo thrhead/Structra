@@ -15,6 +15,7 @@ import {
 import { formatDistanceToNow } from 'date-fns'
 import { tr } from 'date-fns/locale'
 
+import { CustomSpinner } from '@/components/ui/custom-spinner';
 interface Notification {
   id: string
   title: string
@@ -134,7 +135,7 @@ export function NotificationDropdown() {
               className="h-6 text-xs"
             >
               {loading ? (
-                <Loader2Icon className="h-3 w-3 animate-spin" />
+                <CustomSpinner className="h-3 w-3 animate-spin" />
               ) : (
                 <>
                   <CheckIcon className="h-3 w-3 mr-1" />

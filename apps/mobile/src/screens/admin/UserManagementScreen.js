@@ -7,6 +7,7 @@ import UserListItem from '../../components/admin/UserListItem';
 import UserFormModal from '../../components/admin/UserFormModal';
 import { useAlert } from '../../context/AlertContext';
 
+import CustomSpinner from '../../components/CustomSpinner';
 export default function UserManagementScreen({ navigation, route }) {
     const { theme, isDark } = useTheme();
     const { showAlert } = useAlert();
@@ -142,7 +143,7 @@ export default function UserManagementScreen({ navigation, route }) {
     if (loading) {
         return (
             <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
-                <ActivityIndicator size="large" color={theme.colors.primary} />
+                <CustomSpinner size="large" color={theme.colors.primary} />
             </View>
         );
     }

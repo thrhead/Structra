@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 
+import { CustomSpinner } from '@/components/ui/custom-spinner';
 interface JobDetail {
   id: string
   title: string
@@ -190,7 +191,7 @@ export default function CustomerJobDetailPage(props: { params: Promise<{ id: str
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2Icon className="h-8 w-8 animate-spin text-indigo-600" />
+        <CustomSpinner className="h-8 w-8 animate-spin text-indigo-600" />
       </div>
     )
   }
@@ -245,7 +246,7 @@ export default function CustomerJobDetailPage(props: { params: Promise<{ id: str
                 disabled={actionLoading}
                 className="bg-green-600 hover:bg-green-700 text-white gap-2"
               >
-                {actionLoading ? <Loader2Icon className="h-4 w-4 animate-spin" /> : <ThumbsUpIcon className="h-4 w-4" />}
+                {actionLoading ? <CustomSpinner className="h-4 w-4 animate-spin" /> : <ThumbsUpIcon className="h-4 w-4" />}
                 İşi Onayla
               </Button>
               <Button 
@@ -284,7 +285,7 @@ export default function CustomerJobDetailPage(props: { params: Promise<{ id: str
               onClick={handleReject}
               disabled={actionLoading || !rejectionNote.trim()}
             >
-              {actionLoading && <Loader2Icon className="h-4 w-4 animate-spin mr-2" />}
+              {actionLoading && <CustomSpinner className="h-4 w-4 animate-spin mr-2" />}
               Reddet ve Bildir
             </Button>
           </DialogFooter>

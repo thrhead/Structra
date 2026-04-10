@@ -28,6 +28,7 @@ import { useRouter } from 'next/navigation'
 import { createJobAction, updateJobAction } from '@/lib/actions/jobs'
 import { useEffect } from 'react'
 
+import { CustomSpinner } from '@/components/ui/custom-spinner';
 const jobSchema = z.object({
   title: z.string().min(3, 'İş başlığı en az 3 karakter olmalıdır'),
   projectNo: z.string().optional().nullable(),
@@ -663,7 +664,7 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
             <Button type="submit" disabled={isLoading} className={isLoading ? "opacity-70 pointer-events-none" : ""}>
               {isLoading ? (
                 <>
-                  <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+                  <CustomSpinner className="mr-2 h-4 w-4 animate-spin" />
                   İşleniyor...
                 </>
               ) : (

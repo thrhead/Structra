@@ -11,6 +11,7 @@ import { format } from 'date-fns'
 import { tr } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 
+import { CustomSpinner } from '@/components/ui/custom-spinner';
 interface Job {
   id: string
   title: string
@@ -101,7 +102,7 @@ export default function CustomerJobsPage() {
       {/* Jobs Grid */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2Icon className="h-8 w-8 animate-spin text-indigo-600" />
+          <CustomSpinner className="h-8 w-8 animate-spin text-indigo-600" />
         </div>
       ) : jobs.length === 0 ? (
         <Card>

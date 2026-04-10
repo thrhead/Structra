@@ -9,6 +9,7 @@ import { Loader2Icon, CheckCircle2Icon, XCircleIcon, AlertCircle } from 'lucide-
 import { toast } from 'sonner'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
+import { CustomSpinner } from '@/components/ui/custom-spinner';
 interface ApprovalActionCardProps {
     approval: {
         id: string
@@ -108,7 +109,7 @@ export function ApprovalActionCard({ approval }: ApprovalActionCardProps) {
                                 >
                                     {loading ? (
                                         <>
-                                            <Loader2Icon className="h-4 w-4 mr-2 animate-spin" />
+                                            <CustomSpinner className="h-4 w-4 mr-2 animate-spin" />
                                             İşleniyor...
                                         </>
                                     ) : (

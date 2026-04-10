@@ -10,6 +10,7 @@ import MemberCard from '../../components/manager/MemberCard';
 import TeamFormModal from '../../components/manager/TeamFormModal';
 import { useAlert } from '../../context/AlertContext';
 
+import CustomSpinner from '../../components/CustomSpinner';
 export default function TeamListScreen({ navigation }) {
     const { theme, isDark } = useTheme();
     const { showAlert } = useAlert();
@@ -90,7 +91,7 @@ export default function TeamListScreen({ navigation }) {
     if (loading) {
         return (
             <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
-                <ActivityIndicator size="large" color={theme.colors.primary} />
+                <CustomSpinner size="large" color={theme.colors.primary} />
             </View>
         );
     }

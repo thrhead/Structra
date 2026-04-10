@@ -28,6 +28,7 @@ import StatCard from '../../components/StatCard';
 import JobCard from '../../components/JobCard';
 import { useAlert } from '../../context/AlertContext';
 
+import CustomSpinner from '../../components/CustomSpinner';
 if (Platform.OS === 'android') {
     if (UIManager.setLayoutAnimationEnabledExperimental) {
         UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -310,7 +311,7 @@ export default function WorkerDashboardScreen({ navigation }) {
                 >
                     {loading && !refreshing ? (
                         <View style={{ height: 200, justifyContent: 'center', alignItems: 'center' }}>
-                            <ActivityIndicator size="large" color={theme.colors.primary} />
+                            <CustomSpinner size="large" color={theme.colors.primary} />
                         </View>
                     ) : (
                         <>

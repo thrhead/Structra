@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { FileTextIcon, Loader2Icon } from 'lucide-react'
 import { generateProformaPDF } from '@/lib/proforma-generator'
 
+import { CustomSpinner } from '@/components/ui/custom-spinner';
 interface ProformaDownloadButtonProps {
     job: any
 }
@@ -50,7 +51,7 @@ export function ProformaDownloadButton({ job }: ProformaDownloadButtonProps) {
             disabled={loading}
             className="bg-primary/5 border-primary/20 hover:bg-primary/10 hover:border-primary/40 text-primary transition-all font-semibold"
         >
-            {loading ? <Loader2Icon className="w-4 h-4 mr-2 animate-spin" /> : <FileTextIcon className="w-4 h-4 mr-2" />}
+            {loading ? <CustomSpinner className="w-4 h-4 mr-2 animate-spin" /> : <FileTextIcon className="w-4 h-4 mr-2" />}
             Proforma Export
         </Button>
     )

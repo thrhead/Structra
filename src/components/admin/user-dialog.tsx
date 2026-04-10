@@ -28,6 +28,7 @@ import { toast } from 'sonner'
 import { updateUserAction, createUserAction } from '@/lib/actions/users'
 import { Switch } from "@/components/ui/switch"
 
+import { CustomSpinner } from '@/components/ui/custom-spinner';
 // Schema for editing (password optional)
 const userEditSchema = registerSchema.extend({
   password: z.string().optional().or(z.literal('')),
@@ -185,7 +186,7 @@ export function UserDialog({ user, trigger }: UserDialogProps) {
               İptal
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
+              {isLoading && <CustomSpinner className="mr-2 h-4 w-4 animate-spin" />}
               {isEditing ? 'Güncelle' : 'Oluştur'}
             </Button>
           </div>

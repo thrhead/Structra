@@ -5,6 +5,7 @@ import { useApprovals } from '../../hooks/useApprovals';
 import ApprovalCard from '../../components/admin/ApprovalCard';
 import { useTheme } from '../../context/ThemeContext';
 
+import CustomSpinner from '../../components/CustomSpinner';
 export default function ApprovalsScreen({ navigation }) {
     const { theme } = useTheme();
     const {
@@ -30,7 +31,7 @@ export default function ApprovalsScreen({ navigation }) {
     if (loading) {
         return (
             <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
-                <ActivityIndicator size="large" color={theme.colors.primary} />
+                <CustomSpinner size="large" color={theme.colors.primary} />
             </View>
         );
     }

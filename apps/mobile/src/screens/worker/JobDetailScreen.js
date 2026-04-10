@@ -43,6 +43,7 @@ import SubStepItem from '../../components/job-detail/SubStepItem';
 import JobActionFooter from '../../components/job-detail/JobActionFooter';
 import JobDetailModals from '../../components/job-detail/JobDetailModals';
 
+import CustomSpinner from '../../components/CustomSpinner';
 export default function JobDetailScreen({ route, navigation }) {
     const { jobId } = route.params;
     const { user } = useAuth();
@@ -566,7 +567,7 @@ export default function JobDetailScreen({ route, navigation }) {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
                 <View style={styles.centerContainer}>
-                    <ActivityIndicator size="large" color={theme.colors.primary} />
+                    <CustomSpinner size="large" color={theme.colors.primary} />
                 </View>
             </SafeAreaView>
         );

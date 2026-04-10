@@ -5,6 +5,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useNotifications } from '../../hooks/useNotifications';
 import NotificationItem from '../../components/worker/NotificationItem';
 
+import CustomSpinner from '../../components/CustomSpinner';
 export default function NotificationsScreen({ navigation }) {
     const { theme, isDark } = useTheme();
     const { notifications, loading, refreshing, onRefresh, markAsRead } = useNotifications();
@@ -48,7 +49,7 @@ export default function NotificationsScreen({ navigation }) {
     if (loading) {
         return (
             <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
-                <ActivityIndicator size="large" color={theme.colors.primary} />
+                <CustomSpinner size="large" color={theme.colors.primary} />
             </View>
         );
     }

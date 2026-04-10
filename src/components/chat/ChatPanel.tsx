@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Lock, Send, WifiOff, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+import { CustomSpinner } from '@/components/ui/custom-spinner';
 interface Message {
     id: string
     content: string
@@ -179,7 +180,7 @@ export function ChatPanel({ jobId, title }: ChatPanelProps) {
     if (!mounted || loading) {
         return (
             <div role="status" className="flex h-[400px] items-center justify-center rounded-lg border bg-card">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                <CustomSpinner className="h-6 w-6 animate-spin text-primary" />
             </div>
         )
     }
@@ -193,7 +194,7 @@ export function ChatPanel({ jobId, title }: ChatPanelProps) {
                     <span className="text-sm font-semibold">{title || 'İş Sohbeti'}</span>
                     {!isConnected && <span className="text-xs text-red-500 ml-2">Yeniden bağlanılıyor...</span>}
                 </div>
-                {!isConnected ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : null}
+                {!isConnected ? <CustomSpinner className="h-4 w-4 animate-spin text-muted-foreground" /> : null}
             </div>
 
             {/* Messages Area */}
