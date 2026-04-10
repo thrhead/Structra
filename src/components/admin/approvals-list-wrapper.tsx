@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import React from 'react'
+import { CustomSpinner } from '@/components/ui/custom-spinner'
 
 export const ApprovalsListWrapper = dynamic(
     () => import('@/components/admin/approvals-list-client').then(mod => mod.ApprovalsListClient),

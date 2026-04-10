@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { CustomSpinner } from '@/components/ui/custom-spinner'
 
 interface Job {
     id: string

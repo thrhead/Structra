@@ -8,6 +8,7 @@ import { Bell, Check, CheckCheck, Trash2 } from 'lucide-react'
 import { format } from 'date-fns'
 import { tr } from 'date-fns/locale'
 import { toast } from 'sonner'
+import { CustomSpinner } from '@/components/ui/custom-spinner'
 
 interface Notification {
     id: string
