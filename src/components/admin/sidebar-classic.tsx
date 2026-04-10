@@ -29,6 +29,11 @@ const sidebarItems = [
     icon: LayoutDashboardIcon
   },
   {
+    title: 'Dashboard v2 (Yeni)',
+    href: '/dashboard-v2',
+    icon: LayoutDashboardIcon
+  },
+  {
     title: 'Kullanıcılar',
     href: '/admin/users',
     icon: UsersIcon
