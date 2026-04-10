@@ -43,6 +43,7 @@
     "@react-leaflet/core": "^2.1.0",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
+    "@tremor/react": "^3.18.7",
     "@types/crypto-js": "^4.2.2",
     "ably": "^1.2.50",
     "antd": "^6.3.5",
