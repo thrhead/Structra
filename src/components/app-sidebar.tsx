@@ -2,21 +2,17 @@
 
 import * as React from "react"
 import {
+  LayoutDashboard,
+  Users,
   Briefcase,
   Calendar,
   BarChart3,
-  LayoutDashboard,
   Settings2,
-  Users,
-  Map,
-  PieChart,
-  GalleryVerticalEnd,
-  AudioWaveform,
   Command,
+  GalleryVerticalEnd
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
 import { NavUser } from "@/components/nav-user"
 import { TeamSwitcher } from "@/components/team-switcher"
 import {
@@ -27,7 +23,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 
-// Projenin Gerçek Verileri
+// Projenin Orijinal Gerçek Verileri
 const data = {
   user: {
     name: "Administrator",
@@ -35,6 +31,11 @@ const data = {
     avatar: "",
   },
   teams: [
+    {
+      name: "Montaj Takip",
+      logo: LayoutDashboard,
+      plan: "Admin Paneli",
+    },
     {
       name: "Structra",
       logo: Command,
@@ -48,82 +49,93 @@ const data = {
   ],
   navMain: [
     {
-      title: "Dashboard",
-      url: "/admin",
-      icon: LayoutDashboard,
-      isActive: true,
+      title: 'Dashboard',
+      url: '/admin',
+      icon: LayoutDashboard
     },
     {
-      title: "Operasyon",
-      url: "#",
+      title: 'Dashboard v2 (Yeni)',
+      url: '/dashboard-v2',
+      icon: LayoutDashboard
+    },
+    {
+      title: 'Kullanıcı Yönetimi',
+      url: '#',
+      icon: Users,
+      items: [
+        {
+          title: 'Tüm Kullanıcılar',
+          url: '/admin/users',
+        },
+        {
+          title: 'Müşteriler',
+          url: '/admin/customers',
+        },
+      ]
+    },
+    {
+      title: 'Operasyon',
+      url: '#',
       icon: Briefcase,
       items: [
         {
-          title: "İşler",
-          url: "/admin/jobs",
+          title: 'Ekipler',
+          url: '/admin/teams',
         },
         {
-          title: "Müşteriler",
-          url: "/admin/customers",
+          title: 'İşler',
+          url: '/admin/jobs',
         },
         {
-          title: "Ekipler",
-          url: "/admin/teams",
+          title: 'Gelişmiş Planlama',
+          url: '/admin/jobs/gantt',
         },
         {
-            title: "Onaylar",
-            url: "/admin/approvals",
+          title: 'İş Şablonları',
+          url: '/admin/templates',
         },
-      ],
+      ]
     },
     {
-      title: "Planlama",
-      url: "#",
-      icon: Calendar,
+      title: 'Verimlilik',
+      url: '/admin/calendar',
+      icon: Calendar
+    },
+    {
+      title: 'Finans & Raporlama',
+      url: '#',
+      icon: BarChart3,
       items: [
         {
-          title: "Takvim",
-          url: "/admin/calendar",
+          title: 'Maliyetler',
+          url: '/admin/costs',
         },
         {
-          title: "Gantt Şeması",
-          url: "/admin/jobs/gantt",
+          title: 'Raporlar',
+          url: '/admin/reports',
         },
-      ],
+        {
+          title: 'Sistem Logları',
+          url: '/admin/logs',
+        },
+      ]
     },
     {
-      title: "Ayarlar",
-      url: "#",
+      title: 'Sistem',
+      url: '#',
       icon: Settings2,
       items: [
         {
-          title: "Profil",
-          url: "/admin/profile",
+          title: 'Entegrasyonlar',
+          url: '/admin/integrations/api-keys',
         },
         {
-          title: "Bildirimler",
-          url: "/admin/notifications",
-        },
-      ],
-    },
-  ],
-  projects: [
-    {
-      name: "Genel Raporlar",
-      url: "/admin/reports",
-      icon: PieChart,
-    },
-    {
-      name: "Maliyet Analizi",
-      url: "/admin/reports/costs",
-      icon: BarChart3,
-    },
-    {
-      name: "Saha Haritası",
-      url: "/admin/jobs/map",
-      icon: Map,
-    },
-  ],
+          title: 'Ayarlar',
+          url: '/admin/profile',
+        }
+      ]
+    }
+  ]
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -134,7 +146,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />
