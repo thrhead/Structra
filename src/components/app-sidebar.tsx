@@ -5,16 +5,12 @@ import {
   LayoutDashboard,
   Users,
   Briefcase,
-  Users2,
-  CheckSquare,
   Calendar,
   BarChart3,
   Settings,
   Bell,
   LogOut,
   ChevronRight,
-  Search,
-  Plus
 } from "lucide-react"
 
 import {
@@ -38,6 +34,8 @@ import {
     CollapsibleTrigger 
 } from "@/components/ui/collapsible"
 import { useRouter, usePathname } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 const menuItems = [
   {
@@ -94,9 +92,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-slate-100 dark:border-slate-800" {...props}>
-      <SidebarHeader className="h-16 border-b border-slate-100 dark:border-slate-800 flex items-center px-4">
+      <SidebarHeader className="h-16 border-b border-slate-100 dark:border-slate-800 flex items-center px-4 shrink-0">
         <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-none">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-none">
               <span className="text-sm font-black italic">S</span>
             </div>
             <div className="flex flex-col group-data-[collapsible=icon]:hidden">
@@ -174,26 +172,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
 
       <SidebarFooter className="p-4 border-t border-slate-100 dark:border-slate-800">
-          <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
-            <Avatar className="h-9 w-9 border-2 border-indigo-100 dark:border-slate-800">
+          <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center overflow-hidden">
+            <Avatar className="h-9 w-9 border-2 border-indigo-100 dark:border-slate-800 shrink-0">
                 <AvatarFallback className="bg-indigo-600 text-white font-black text-xs">AD</AvatarFallback>
             </Avatar>
-            <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-                <span className="text-xs font-black text-slate-900 dark:text-slate-100">Administrator</span>
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">admin@structra.com</span>
+            <div className="flex flex-col group-data-[collapsible=icon]:hidden min-w-0">
+                <span className="text-xs font-black text-slate-900 dark:text-slate-100 truncate">Administrator</span>
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter truncate">admin@structra.com</span>
             </div>
-            <Button variant="ghost" size="icon" className="ml-auto h-8 w-8 rounded-lg group-data-[collapsible=icon]:hidden hover:bg-red-50 hover:text-red-600 transition-colors">
+            <Button variant="ghost" size="icon" className="ml-auto h-8 w-8 rounded-lg group-data-[collapsible=icon]:hidden hover:bg-red-50 hover:text-red-600 transition-colors shrink-0">
                 <LogOut className="size-4" />
             </Button>
           </div>
       </SidebarFooter>
     </Sidebar>
   )
-}
-
-function Avatar({ className, children }: any) {
-    return <div className={`overflow-hidden rounded-full ${className}`}>{children}</div>
-}
-function AvatarFallback({ className, children }: any) {
-    return <div className={`flex h-full w-full items-center justify-center ${className}`}>{children}</div>
 }
