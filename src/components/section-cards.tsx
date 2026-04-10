@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card"
 
 interface SectionCardsProps {
-  stats: {
+  stats?: {
     totalCustomers: number
     activeTeams: number
     pendingJobs: number
@@ -21,18 +21,28 @@ interface SectionCardsProps {
 }
 
 export function SectionCards({ stats }: SectionCardsProps) {
+  // Safe defaults to prevent build/runtime crashes
+  const safeStats = stats || {
+    totalCustomers: 0,
+    activeTeams: 0,
+    pendingJobs: 0,
+    completedJobs: 0,
+    growthRate: '0%',
+    completionRate: '0%'
+  }
+
   return (
     <div className="grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs lg:px-6 xl:grid-cols-2 2xl:grid-cols-4 dark:*:data-[slot=card]:bg-card">
       <Card className="@container/card rounded-3xl border-none shadow-sm">
         <CardHeader>
           <CardDescription className="text-[10px] font-black uppercase tracking-widest text-slate-400">Toplam Müşteri</CardDescription>
           <CardTitle className="text-2xl font-black italic tabular-nums @[250px]/card:text-3xl">
-            {stats.totalCustomers}
+            {safeStats.totalCustomers}
           </CardTitle>
           <CardAction>
             <Badge variant="outline" className="border-indigo-100 text-indigo-600 bg-indigo-50/50 rounded-lg">
               <IconTrendingUp size={14} className="mr-1" />
-              {stats.growthRate}
+              {safeStats.growthRate}
             </Badge>
           </CardAction>
         </CardHeader>
@@ -50,7 +60,7 @@ export function SectionCards({ stats }: SectionCardsProps) {
         <CardHeader>
           <CardDescription className="text-[10px] font-black uppercase tracking-widest text-slate-400">Aktif Ekipler</CardDescription>
           <CardTitle className="text-2xl font-black italic tabular-nums @[250px]/card:text-3xl">
-            {stats.activeTeams}
+            {safeStats.activeTeams}
           </CardTitle>
           <CardAction>
             <div className="p-1.5 bg-orange-50 rounded-lg text-orange-600">
@@ -72,7 +82,7 @@ export function SectionCards({ stats }: SectionCardsProps) {
         <CardHeader>
           <CardDescription className="text-[10px] font-black uppercase tracking-widest text-slate-400">Bekleyen İşler</CardDescription>
           <CardTitle className="text-2xl font-black italic tabular-nums @[250px]/card:text-3xl">
-            {stats.pendingJobs}
+            {safeStats.pendingJobs}
           </CardTitle>
           <CardAction>
             <div className="p-1.5 bg-blue-50 rounded-lg text-blue-600">
@@ -94,12 +104,12 @@ export function SectionCards({ stats }: SectionCardsProps) {
         <CardHeader>
           <CardDescription className="text-[10px] font-black uppercase tracking-widest text-slate-400">Tamamlanan</CardDescription>
           <CardTitle className="text-2xl font-black italic tabular-nums @[250px]/card:text-3xl">
-            {stats.completedJobs}
+            {safeStats.completedJobs}
           </CardTitle>
           <CardAction>
             <Badge variant="outline" className="border-emerald-100 text-emerald-600 bg-emerald-50/50 rounded-lg">
               <IconCheck size={14} className="mr-1" />
-              {stats.completionRate}
+              {safeStats.completionRate}
             </Badge>
           </CardAction>
         </CardHeader>
