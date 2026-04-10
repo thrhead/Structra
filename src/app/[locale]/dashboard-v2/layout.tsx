@@ -1,17 +1,114 @@
-import { auth } from "@/lib/auth"
-import { redirect } from "@/lib/navigation"
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
+'use client'
 
-export default async function V2Layout({ children }: { children: React.ReactNode }) {
-  const session = await auth()
+import { AppSidebar } from "@/components/app-sidebar"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import { Separator } from "@/components/ui/separator"
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar"
+import { usePathname } from 'next/navigation'
+import { ThemeSwitcher } from '@/components/theme-switcher'
+import { NotificationDropdown } from '@/components/notifications/notification-dropdown'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { signOut } from 'next-auth/react'
+import { useRouter } from '@/lib/navigation'
+import { LogOutIcon } from 'lucide-react'
 
-  if (!session || session.user.role !== "ADMIN") {
-    redirect("/login")
-  }
-
+export default function DashboardV2Layout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const pathname = usePathname()
+  const router = useRouter()
+  
   return (
-    <DashboardLayout>
-      {children}
-    </DashboardLayout>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center justify-between gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 border-b border-slate-100 dark:border-slate-800 bg-white/50 dark:bg-slate-950/50 backdrop-blur-md sticky top-0 z-40 px-4">
+          <div className="flex items-center gap-2">
+            <SidebarTrigger className="-ml-1 text-slate-500 hover:text-indigo-600 transition-colors" />
+            <Separator
+              orientation="vertical"
+              className="mr-2 data-[orientation=vertical]:h-4"
+            />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem className="hidden md:block">
+                  <BreadcrumbLink href="/admin" className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    Saha Operasyon
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator className="hidden md:block text-slate-300" />
+                <BreadcrumbItem>
+                  <BreadcrumbPage className="text-[10px] font-black uppercase tracking-widest text-indigo-600">
+                    Dashboard V2
+                  </BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <ThemeSwitcher />
+            <NotificationDropdown />
+            
+            <Separator
+              orientation="vertical"
+              className="h-4 bg-slate-200 dark:bg-slate-800"
+            />
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-xl hover:bg-slate-100 dark:hover:bg-slate-900 overflow-hidden">
+                  <Avatar className="h-8 w-8 border border-slate-200 dark:border-slate-800">
+                    <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-indigo-700 text-white font-black text-[10px]">
+                      AD
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 shadow-2xl">
+                <DropdownMenuLabel className="px-2 py-1.5 text-xs font-black uppercase tracking-widest text-slate-400">Hesabım</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="rounded-xl text-sm font-medium" onClick={() => router.push('/admin/profile')}>
+                  Profil Ayarları
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="rounded-xl text-sm font-bold text-red-600 focus:bg-red-50 focus:text-red-700" onClick={() => signOut({ callbackUrl: '/login' })}>
+                  <LogOutIcon className="mr-2 h-4 w-4" />
+                  Güvenli Çıkış
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </header>
+
+        <div className="flex flex-1 flex-col gap-4 p-4 lg:p-8 pt-6">
+          <main className="w-full h-full">
+            {children}
+          </main>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }
