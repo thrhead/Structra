@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { Spin } from 'antd';
 import type { SpinProps } from 'antd';

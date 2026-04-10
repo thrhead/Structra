@@ -9,17 +9,19 @@ import { getCustomer } from "@/lib/data/customers"
 import { format } from "date-fns"
 import { tr } from "date-fns/locale"
 
-export default async function CustomerDetailsPage(props: {
-    params: Promise<{ id: string }>
+export default async function CustomerDetailsPage({
+    params
+}: {
+    params: { id: string }
 }) {
-    const params = await props.params
+    const { id } = params
     const session = await auth()
 
     if (!session || session.user.role !== "ADMIN") {
         redirect("/login")
     }
 
-    const customer = await getCustomer(params.id)
+    const customer = await getCustomer(id)
 
     if (!customer) {
         return (

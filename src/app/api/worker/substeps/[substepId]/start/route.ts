@@ -4,11 +4,10 @@ import { verifyAuth } from '@/lib/auth-helper';
 import { sendAdminNotification } from '@/lib/notification-helper';
 import { broadcast } from '@/lib/ably';
 
-export async function POST(request: Request, { params }: { params: Promise<{ substepId: string }> }) {
+export async function POST(request: Request, { params }: { params: { substepId: string } }) {
     try {
         console.log('[DEBUG] POST request received at flattened route');
-        const paramsValue = await params;
-        const { substepId } = paramsValue;
+        const { substepId } = params;
         console.log('[DEBUG] SubstepId:', substepId);
 
         const session = await verifyAuth(request);

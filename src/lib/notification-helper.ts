@@ -136,3 +136,32 @@ export async function sendUserNotification(
     return await sendNotificationToUsers([userId], title, message, type, link, data);
 }
 
+/**
+ * Sends a notification to all active admins and managers
+ */
+export async function sendAdminNotification(
+    title: string,
+    message: string,
+    type: NotificationType = 'INFO',
+    link?: string,
+    excludeUserId?: string
+) {
+    try {
+        const admins = await prisma.user.findMany({
+            where: {
+                role: { in: ['ADMIN', 'MANAGER'] },
+                isActive: true,
+                id: excludeUserId ? { not: excludeUserId } : undefined
+            },
+            select: { id: true }
+        });
+
+        const adminIds = admins.map(a => a.id);
+        if (adminIds.length > 0) {
+            await sendNotificationToUsers(adminIds, title, message, type, link);
+        }
+    } catch (error) {
+        console.error('Error sending admin notification:', error);
+    }
+}
+
