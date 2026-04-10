@@ -83,7 +83,7 @@ export function JobsListClient({ initialJobs, teams, customers }: JobsListClient
 
             {loading && (
                 <div className="text-center py-8">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                    <CustomSpinner className="h-8 w-8 animate-spin text-green-600" />
                 </div>
             )}
 

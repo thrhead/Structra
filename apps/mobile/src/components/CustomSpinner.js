@@ -1,21 +1,59 @@
-import React from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Easing, StyleSheet, View } from 'react-native';
 
 const CustomSpinner = ({ size = 'large', color, style, ...props }) => {
-  // Determine color based on size if not explicitly provided
-  // Matching the web design: default/large -> #00d4ff, small -> #722ed1
+  const rotation = useRef(new Animated.Value(0)).current;
+
   let spinnerColor = color;
   if (!color) {
-    if (size === 'small' || size === 'small') {
+    if (size === 'small') {
       spinnerColor = '#722ed1';
     } else {
       spinnerColor = '#00d4ff';
     }
   }
 
+  let sizeNum = 32;
+  let borderWidth = 3;
+  if (size === 'small') {
+    sizeNum = 20;
+    borderWidth = 2;
+  } else if (size === 'large') {
+    sizeNum = 40;
+    borderWidth = 4;
+  } else if (typeof size === 'number') {
+    sizeNum = size;
+  }
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(rotation, {
+        toValue: 1,
+        duration: 800,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
+  }, [rotation]);
+
+  const spin = rotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
   return (
     <View style={[styles.container, style]}>
-      <ActivityIndicator size={size} color={spinnerColor} {...props} />
+      <Animated.View
+        style={{
+          width: sizeNum,
+          height: sizeNum,
+          borderRadius: sizeNum / 2,
+          borderWidth: borderWidth,
+          borderColor: spinnerColor + '40', // 25% opacity
+          borderTopColor: spinnerColor,
+          transform: [{ rotate: spin }],
+        }}
+      />
     </View>
   );
 };

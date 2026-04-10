@@ -4,7 +4,7 @@ Structra, saha operasyonlarını yöneten işletmeler için geliştirilmiş, uç
 
 ## Temel Hedefler
 - **Gerçek Zamanlı İzlenebilirlik**: Saha ekiplerinin konumlarını ve iş aşamalarını anlık olarak takip etmek.
-- **Operasyonel Verimlilik**: Kağıt üzerindeki checklist'leri dijitalleştirerek hata payını azaltmak ve hızı artırmak.
+- **Operasyonel Verimlilik**: Kağıt üzerindeki checklist'leridijitalleştirerek hata payını azaltmak ve hızı artırmak.
 - **Maliyet Yönetimi**: Saha harcamalarını kayıt altına alarak bütçe takibini şeffaf hale getirmek.
 - **Müşteri Memnuniyeti**: Müşterilere kendi işlerinin ilerlemesini izleyebilecekleri şeffaf bir portal sunmak.
 

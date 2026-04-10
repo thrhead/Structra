@@ -9,7 +9,7 @@ export const ApprovalsListWrapper = dynamic(
         ssr: false,
         loading: () => (
             <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+                <CustomSpinner className="h-8 w-8 animate-spin mx-auto text-gray-900" />
                 <p className="mt-4 text-gray-500">Yükleniyor...</p>
             </div>
         )
