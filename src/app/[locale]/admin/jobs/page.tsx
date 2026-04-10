@@ -30,7 +30,7 @@ import dynamic from 'next/dynamic'
 
 const GlobalJobsTree = dynamic(
   () => import('@/components/admin/global-jobs-tree').then(mod => mod.GlobalJobsTree),
-  { ssr: false, loading: () => <div className="p-8 text-center text-gray-500 animate-pulse bg-gray-50 rounded-lg h-[400px] flex items-center justify-center">Ağaç Görünümü Yükleniyor...</div> }
+  { ssr: false, loading: () => <div className="p-8 text-center text-gray-500 dark:text-slate-400 animate-pulse bg-gray-50 rounded-lg h-[400px] flex items-center justify-center">Ağaç Görünümü Yükleniyor...</div> }
 )
 
 const priorityColors: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
@@ -128,8 +128,8 @@ export default async function JobsPage(props: {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">İşler</h1>
-          <p className="text-gray-500 mt-2">Montaj ve servis işlerini yönetin.</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-slate-100">İşler</h1>
+          <p className="text-gray-500 dark:text-slate-400 mt-2">Montaj ve servis işlerini yönetin.</p>
         </div>
         <div className="flex items-center gap-2">
           <AdvancedFilter
@@ -144,13 +144,13 @@ export default async function JobsPage(props: {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow">
+      <div className="bg-white dark:bg-slate-900 dark:border-slate-800 rounded-lg shadow">
         {/* Active Filters Summary */}
         {(searchParams.status || searchParams.teams || searchParams.search || searchParams.jobNo || searchParams.from) && (
-          <div className="px-6 py-3 border-b bg-slate-50/50 flex flex-wrap gap-2 items-center">
+          <div className="px-6 py-3 border-b dark:border-slate-800 bg-slate-50/50 flex flex-wrap gap-2 items-center">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mr-1">Aktif Filtreler:</span>
             {searchParams.search && (
-              <Badge variant="secondary" className="gap-1 bg-white border-slate-200">
+              <Badge variant="secondary" className="gap-1 bg-white dark:bg-slate-900 dark:border-slate-800 border-slate-200">
                 Arama: {searchParams.search}
               </Badge>
             )}
@@ -160,20 +160,20 @@ export default async function JobsPage(props: {
               </Badge>
             )}
             {statusFilter?.map(s => (
-              <Badge key={s} variant="outline" className="bg-white capitalize">
+              <Badge key={s} variant="outline" className="bg-white dark:bg-slate-900 dark:border-slate-800 capitalize">
                 Durum: {statusLabels[s] || s}
               </Badge>
             ))}
             {teamsFilter?.map(tId => {
               const teamName = teams.find(t => t.id === tId)?.name
               return (
-                <Badge key={tId} variant="outline" className="bg-white">
+                <Badge key={tId} variant="outline" className="bg-white dark:bg-slate-900 dark:border-slate-800">
                   Ekip: {teamName || tId}
                 </Badge>
               )
             })}
             {searchParams.from && (
-              <Badge variant="outline" className="bg-white">
+              <Badge variant="outline" className="bg-white dark:bg-slate-900 dark:border-slate-800">
                 Tarih: {format(new Date(searchParams.from), 'P', { locale: tr })}
                 {searchParams.to ? ` - ${format(new Date(searchParams.to), 'P', { locale: tr })}` : ''}
               </Badge>
@@ -184,7 +184,7 @@ export default async function JobsPage(props: {
           </div>
         )}
 
-        <div className="p-4 border-b">
+        <div className="p-4 border-b dark:border-slate-800">
           <div className="relative max-w-sm">
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <form>
@@ -199,7 +199,7 @@ export default async function JobsPage(props: {
         </div>
 
         <Tabs defaultValue="list" className="w-full">
-          <div className="px-4 py-2 border-b bg-slate-50 flex items-center justify-between">
+          <div className="px-4 py-2 border-b dark:border-slate-800 bg-slate-50 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-slate-700">Görünüm Seçenekleri</h2>
             <TabsList className="grid w-[300px] grid-cols-2">
               <TabsTrigger value="list">Liste Görünümü</TabsTrigger>
@@ -253,11 +253,11 @@ export default async function JobsPage(props: {
                                 #{job.id.slice(-6).toUpperCase()}
                               </div>
                             </div>
-                            <Link href={`/admin/jobs/${job.id}`} className="font-medium text-gray-900 hover:underline hover:text-blue-600 block leading-tight">
+                            <Link href={`/admin/jobs/${job.id}`} className="font-medium text-gray-900 dark:text-slate-100 hover:underline hover:text-blue-600 block leading-tight">
                               {job.title}
                             </Link>
                             {job.location && (
-                              <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+                              <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-slate-400 mt-1">
                                 <MapPinIcon className="h-3 w-3" />
                                 <span className="truncate max-w-[150px]">{job.location}</span>
                               </div>
@@ -267,7 +267,7 @@ export default async function JobsPage(props: {
                       </TableCell>
                       <TableCell>
                         <div className="font-medium">{job.customer?.company || 'Bilinmeyen Müşteri'}</div>
-                        <div className="text-sm text-gray-500">{job.customer?.user?.name || ''}</div>
+                        <div className="text-sm text-gray-500 dark:text-slate-400">{job.customer?.user?.name || ''}</div>
                         {job._count?.steps === 0 && job.status === 'PENDING' && (
                           <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
                             <Ban className="h-3 w-3 mr-1" /> İşe Başlanmadı
@@ -286,7 +286,7 @@ export default async function JobsPage(props: {
                               {job.assignments[0].team.name}
                             </Badge>
                             {job.assignments[0].team.lead && (
-                              <div className="text-xs text-gray-500 flex items-center">
+                              <div className="text-xs text-gray-500 dark:text-slate-400 flex items-center">
                                 <UserIcon className="h-3 w-3 mr-1" /> Lider: {job.assignments[0].team.lead.name}
                               </div>
                             )}
@@ -305,7 +305,7 @@ export default async function JobsPage(props: {
                       <TableCell>
                         <div className="w-full max-w-[140px]">
                           <div className="flex items-center justify-between text-xs mb-1">
-                            <span className="text-gray-500">{completedSteps}/{totalSteps} Adım</span>
+                            <span className="text-gray-500 dark:text-slate-400">{completedSteps}/{totalSteps} Adım</span>
                             <span className="font-medium text-gray-700">%{progress}</span>
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
@@ -318,7 +318,7 @@ export default async function JobsPage(props: {
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="font-bold text-gray-900">
+                          <span className="font-bold text-gray-900 dark:text-slate-100">
                             {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', minimumFractionDigits: 0 }).format(totalApprovedAmount)}
                           </span>
                           {totalPendingAmount > 0 && (
@@ -368,7 +368,7 @@ export default async function JobsPage(props: {
                 })}
                 {jobs.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8 text-gray-500">
+                    <TableCell colSpan={9} className="text-center py-8 text-gray-500 dark:text-slate-400">
                       Kayıtlı iş bulunamadı.
                     </TableCell>
                   </TableRow>

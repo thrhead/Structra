@@ -32,7 +32,7 @@ export default async function TeamDetailPage(props: {
     if (!team) {
         return (
             <div className="p-8 text-center">
-                <h1 className="text-2xl font-bold text-gray-900">Ekip Bulunamadı</h1>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Ekip Bulunamadı</h1>
                 <Link href="/admin/teams" className="text-blue-600 hover:underline mt-4 inline-block">
                     Ekip Listesine Dön
                 </Link>
@@ -170,7 +170,7 @@ export default async function TeamDetailPage(props: {
                                 {team.members.map((member: any) => {
                                     const isLead = team.leadId === member.userId;
                                     return (
-                                        <div key={member.id} className={`flex items-center justify-between p-4 border rounded-lg ${isLead ? 'bg-indigo-50 border-indigo-200' : 'bg-white'}`}>
+                                        <div key={member.id} className={`flex items-center justify-between p-4 border rounded-lg ${isLead ? 'bg-indigo-50 border-indigo-200' : 'bg-white dark:bg-slate-900 dark:border-slate-800'}`}>
                                             <div className="flex items-center gap-4">
                                                 <div className="relative">
                                                     <Avatar className="h-12 w-12 border-2 border-white shadow-sm">
@@ -183,7 +183,7 @@ export default async function TeamDetailPage(props: {
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-gray-900">{member.user.name}</p>
+                                                    <p className="font-bold text-gray-900 dark:text-slate-100">{member.user.name}</p>
                                                     <p className="text-xs text-muted-foreground">{member.user.email}</p>
                                                 </div>
                                             </div>
@@ -256,15 +256,15 @@ export default async function TeamDetailPage(props: {
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-4 pt-4">
-                                    <div className="flex justify-between border-b pb-2">
+                                    <div className="flex justify-between border-b dark:border-slate-800 pb-2">
                                         <span className="text-muted-foreground">Toplam Onaylı Masraf:</span>
                                         <span className="font-bold text-lg text-orange-600">₺{stats.totalExpenses.toLocaleString('tr-TR')}</span>
                                     </div>
-                                    <div className="flex justify-between border-b pb-2">
+                                    <div className="flex justify-between border-b dark:border-slate-800 pb-2">
                                         <span className="text-muted-foreground">İş Başına Ortalama Masraf:</span>
                                         <span className="font-medium">₺{stats.totalJobs > 0 ? (stats.totalExpenses / stats.totalJobs).toLocaleString('tr-TR') : 0}</span>
                                     </div>
-                                    <div className="flex justify-between border-b pb-2">
+                                    <div className="flex justify-between border-b dark:border-slate-800 pb-2">
                                         <span className="text-muted-foreground">En Çok Harcama Yapılan Kategori:</span>
                                         <span className="font-medium">
                                             {stats.categoryBreakdown.length > 0

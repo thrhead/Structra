@@ -55,14 +55,14 @@ export default async function UsersPage(props: {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Kullanıcılar</h1>
-          <p className="text-gray-500 mt-2">Sistemdeki tüm kullanıcıları buradan yönetebilirsiniz.</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-slate-100">Kullanıcılar</h1>
+          <p className="text-gray-500 dark:text-slate-400 mt-2">Sistemdeki tüm kullanıcıları buradan yönetebilirsiniz.</p>
         </div>
         <UserDialog />
       </div>
 
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-4 border-b">
+      <div className="bg-white dark:bg-slate-900 dark:border-slate-800 rounded-lg shadow">
+        <div className="p-4 border-b dark:border-slate-800">
           <div className="relative max-w-sm">
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <form>
@@ -121,13 +121,13 @@ export default async function UsersPage(props: {
                       className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "h-8 w-8 p-0")}
                       title="Detayları Gör"
                     >
-                      <Eye className="h-4 w-4 text-gray-500" />
+                      <Eye className="h-4 w-4 text-gray-500 dark:text-slate-400" />
                     </Link>
                     <UserDialog
                       user={JSON.parse(JSON.stringify(user))}
                       trigger={
                         <Button variant="ghost" size="icon" className="h-8 w-8 p-0" title="Düzenle">
-                          <PencilIcon className="h-4 w-4 text-gray-500" />
+                          <PencilIcon className="h-4 w-4 text-gray-500 dark:text-slate-400" />
                         </Button>
                       }
                     />
@@ -145,7 +145,7 @@ export default async function UsersPage(props: {
             ))}
             {users.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={7} className="text-center py-8 text-gray-500 dark:text-slate-400">
                   Kullanıcı bulunamadı.
                 </TableCell>
               </TableRow>

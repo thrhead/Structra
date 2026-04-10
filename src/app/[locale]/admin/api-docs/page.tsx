@@ -14,7 +14,7 @@ export default function ApiDocsPage() {
 
     return (
         <div className="flex flex-col h-[calc(100vh-64px)] bg-background">
-            <div className="flex items-center justify-between p-4 border-b bg-card">
+            <div className="flex items-center justify-between p-4 border-b dark:border-slate-800 bg-card">
                 <div>
                     <h1 className="text-xl font-bold">API Documentation</h1>
                     <p className="text-sm text-muted-foreground">Interactive API explorer for developers.</p>
@@ -37,7 +37,7 @@ export default function ApiDocsPage() {
                 </div>
             </div>
 
-            <div className="flex-1 overflow-auto bg-white p-4">
+            <div className="flex-1 overflow-auto bg-white dark:bg-slate-900 dark:border-slate-800 p-4">
                 <div className="max-w-5xl mx-auto">
                     {(SwaggerUI as any) && (
                         <div className="swagger-ui-custom">

@@ -261,14 +261,14 @@ export function GlobalJobsTree({ jobs }: GlobalJobsTreeProps) {
 
     if (jobs.length === 0) {
         return (
-            <div className="p-8 text-center text-slate-500 bg-slate-50 rounded-lg border border-dashed">
+            <div className="p-8 text-center text-slate-500 bg-slate-50 dark:bg-slate-900 rounded-lg border border-dashed">
                 Gösterilecek iş bulunamadı.
             </div>
         )
     }
 
     return (
-        <div className="p-6 overflow-x-auto bg-slate-50/50 min-h-[600px] rounded-lg border">
+        <div className="p-6 overflow-x-auto bg-slate-50 dark:bg-slate-900/50 min-h-[600px] rounded-lg border">
             <div className="min-w-max pb-32 pt-4">
                 <div className="flex flex-col gap-10">
                     {groupedByYear.map(([year, yearJobs], yIdx) => {

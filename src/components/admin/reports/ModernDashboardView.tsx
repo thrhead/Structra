@@ -132,7 +132,7 @@ export default function ModernDashboardView({ data }: ModernDashboardViewProps) 
 
                 {/* Team Performance List */}
                 <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-[#e2e8f0] dark:border-slate-800 shadow-sm overflow-hidden flex flex-col h-full">
-                    <div className="p-6 border-b border-[#e2e8f0] dark:border-slate-800 flex justify-between items-center">
+                    <div className="p-6 border-b dark:border-slate-800 border-[#e2e8f0] dark:border-slate-800 flex justify-between items-center">
                         <div>
                             <h3 className="text-lg font-black text-[#0f172a] dark:text-white tracking-tighter uppercase">Ekip Performans Matrisi</h3>
                             <p className="text-[10px] font-bold text-[#64748b] uppercase tracking-widest mt-1">Gerçek zamanlı verimlilik sıralaması</p>

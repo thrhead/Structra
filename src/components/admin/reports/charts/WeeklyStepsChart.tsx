@@ -37,8 +37,8 @@ const COLORS = [
 const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
         return (
-            <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-2xl min-w-[160px]">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] mb-3 border-b border-slate-100 dark:border-slate-800 pb-2">{label}</p>
+            <div className="bg-white dark:bg-slate-900 dark:border-slate-800/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-2xl min-w-[160px]">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] mb-3 border-b dark:border-slate-800 border-slate-100 dark:border-slate-800 pb-2">{label}</p>
                 <div className="space-y-2">
                     {payload.map((item: any, i: number) => (
                         <div key={i} className="flex items-center justify-between gap-4">
@@ -85,7 +85,7 @@ const WeeklyStepsChart = memo(({ data, categories = [] }: WeeklyStepsChartProps)
     };
 
     if (!isMounted) {
-        return <div className="h-[350px] w-full flex items-center justify-center bg-slate-50/50 dark:bg-slate-900/50 animate-pulse rounded-3xl">Yükleniyor...</div>;
+        return <div className="h-[350px] w-full flex items-center justify-center bg-slate-50 dark:bg-slate-900/50 dark:bg-slate-900/50 animate-pulse rounded-3xl">Yükleniyor...</div>;
     }
 
     return (
@@ -156,7 +156,7 @@ const WeeklyStepsChart = memo(({ data, categories = [] }: WeeklyStepsChartProps)
                     >
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+                                <div className="p-2 bg-white dark:bg-slate-900 dark:border-slate-800 dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
                                     <Calendar className="w-5 h-5 text-indigo-500" />
                                 </div>
                                 <div>
@@ -183,7 +183,7 @@ const WeeklyStepsChart = memo(({ data, categories = [] }: WeeklyStepsChartProps)
                                     </div>
                                 ))
                             ) : (
-                                <div className="col-span-full py-8 text-center bg-white/50 dark:bg-slate-900/20 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
+                                <div className="col-span-full py-8 text-center bg-white dark:bg-slate-900 dark:border-slate-800/50 dark:bg-slate-900/20 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
                                     <p className="text-xs text-slate-400 font-bold uppercase tracking-widest italic">Bu güne ait detaylı iş kaydı bulunamadı.</p>
                                 </div>
                             )}

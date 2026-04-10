@@ -103,7 +103,7 @@ export default function OperationalView({ data }: { data: any }) {
                         </TableHeader>
                         <TableBody>
                             {topBottlenecks.map((job: any, i: number) => (
-                                <TableRow key={i} className="group hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
+                                <TableRow key={i} className="group hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-900/50 transition-colors">
                                     <TableCell>
                                         <div className="font-semibold">{job.jobNo}</div>
                                         <div className="text-xs text-muted-foreground truncate w-48">{job.title}</div>

@@ -36,14 +36,14 @@ export default async function CustomersPage(props: {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Müşteriler</h1>
-          <p className="text-gray-500 mt-2">Müşteri firmaları ve yetkili kişileri yönetin.</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-slate-100">Müşteriler</h1>
+          <p className="text-gray-500 dark:text-slate-400 mt-2">Müşteri firmaları ve yetkili kişileri yönetin.</p>
         </div>
         <CustomerDialog />
       </div>
 
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-4 border-b">
+      <div className="bg-white dark:bg-slate-900 dark:border-slate-800 rounded-lg shadow">
+        <div className="p-4 border-b dark:border-slate-800">
           <div className="relative max-w-sm">
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <form>
@@ -78,16 +78,16 @@ export default async function CustomersPage(props: {
                       <Building2Icon className="h-4 w-4" />
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">{customer.company}</p>
+                      <p className="font-medium text-gray-900 dark:text-slate-100">{customer.company}</p>
                       {customer.taxId && (
-                        <p className="text-xs text-gray-500">VN: {customer.taxId}</p>
+                        <p className="text-xs text-gray-500 dark:text-slate-400">VN: {customer.taxId}</p>
                       )}
                     </div>
                   </div>
                 </TableCell>
                 <TableCell>
                   <div className="font-medium">{customer.user.name}</div>
-                  <div className="text-sm text-gray-500">{customer.user.email}</div>
+                  <div className="text-sm text-gray-500 dark:text-slate-400">{customer.user.email}</div>
                 </TableCell>
                 <TableCell>
                   <div className="space-y-1">
@@ -122,7 +122,7 @@ export default async function CustomersPage(props: {
                     trigger={
                       <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                         <span className="sr-only">Düzenle</span>
-                        <PencilIcon className="h-4 w-4 text-gray-500" />
+                        <PencilIcon className="h-4 w-4 text-gray-500 dark:text-slate-400" />
                       </Button>
                     }
                   />
@@ -131,7 +131,7 @@ export default async function CustomersPage(props: {
             ))}
             {customers.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={6} className="text-center py-8 text-gray-500 dark:text-slate-400">
                   Müşteri bulunamadı.
                 </TableCell>
               </TableRow>

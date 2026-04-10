@@ -51,7 +51,7 @@ export default function AdminLayout({
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center justify-between gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 border-b border-slate-100 dark:border-slate-800 bg-white/50 dark:bg-slate-950/50 backdrop-blur-md sticky top-0 z-40 px-4">
+        <header className="flex h-16 shrink-0 items-center justify-between gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 border-b dark:border-slate-800 border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 dark:border-slate-800/50 dark:bg-slate-950/50 backdrop-blur-md sticky top-0 z-40 px-4">
           <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1 text-slate-500 hover:text-indigo-600 transition-colors" />
             <Separator

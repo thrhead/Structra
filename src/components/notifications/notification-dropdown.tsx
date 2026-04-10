@@ -5,13 +5,10 @@ import { useRouter } from 'next/navigation'
 import { BellIcon, CheckIcon, Loader2Icon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { formatDistanceToNow } from 'date-fns'
 import { tr } from 'date-fns/locale'
 
@@ -112,8 +109,8 @@ export function NotificationDropdown() {
   }
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="relative z-50 cursor-pointer">
           <BellIcon className="h-5 w-5" />
           {unreadCount > 0 && (
@@ -122,17 +119,17 @@ export function NotificationDropdown() {
             </span>
           )}
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80">
-        <DropdownMenuLabel className="flex items-center justify-between">
-          <span>Bildirimler</span>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-80 p-0 overflow-hidden shadow-2xl rounded-2xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
+        <div className="flex items-center justify-between p-3 border-b border-slate-100 dark:border-slate-800">
+          <span className="font-semibold text-sm">Bildirimler</span>
           {unreadCount > 0 && (
             <Button
               variant="ghost"
               size="sm"
               onClick={handleMarkAllAsRead}
               disabled={loading}
-              className="h-6 text-xs"
+              className="h-6 text-xs px-2"
             >
               {loading ? (
                 <CustomSpinner className="h-3 w-3 animate-spin" />
@@ -144,33 +141,31 @@ export function NotificationDropdown() {
               )}
             </Button>
           )}
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
+        </div>
         
         {notifications.length === 0 ? (
-          <div className="p-4 text-center text-sm text-gray-500">
+          <div className="p-6 text-center text-sm text-gray-500 dark:text-gray-400">
             Bildiriminiz bulunmuyor
           </div>
         ) : (
-          <>
+          <div className="max-h-[300px] overflow-y-auto">
             {notifications.map((notification) => (
-              <DropdownMenuItem
+              <div
                 key={notification.id}
                 onClick={() => handleNotificationClick(notification)}
-                className={`flex flex-col items-start gap-1 p-3 cursor-pointer ${
-                  !notification.isRead ? 'bg-blue-50' : ''
+                className={`flex items-start gap-3 p-3 cursor-pointer transition-colors border-b border-slate-50 dark:border-slate-900/50 hover:bg-slate-50 dark:hover:bg-slate-900 ${
+                  !notification.isRead ? 'bg-indigo-50/50 dark:bg-indigo-950/20' : ''
                 }`}
               >
-                <div className="flex items-start gap-2 w-full">
-                  <span className="text-lg">{getNotificationIcon(notification.type)}</span>
+                  <span className="text-xl mt-1 leading-none">{getNotificationIcon(notification.type)}</span>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm ${!notification.isRead ? 'font-semibold' : 'font-medium'}`}>
+                    <p className={`text-sm ${!notification.isRead ? 'font-semibold text-slate-900 dark:text-slate-100' : 'font-medium text-slate-700 dark:text-slate-300'}`}>
                       {notification.title}
                     </p>
-                    <p className="text-xs text-gray-600 line-clamp-2">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">
                       {notification.message}
                     </p>
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5 uppercase tracking-wider font-semibold">
                       {formatDistanceToNow(new Date(notification.createdAt), { 
                         addSuffix: true,
                         locale: tr 
@@ -178,25 +173,23 @@ export function NotificationDropdown() {
                     </p>
                   </div>
                   {!notification.isRead && (
-                    <div className="h-2 w-2 rounded-full bg-blue-500 shrink-0 mt-1" />
+                    <div className="h-2 w-2 rounded-full bg-indigo-500 shrink-0 mt-2 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
                   )}
-                </div>
-              </DropdownMenuItem>
+              </div>
             ))}
             
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
+            <button
               onClick={() => {
                 router.push('/worker/notifications')
                 setOpen(false)
               }}
-              className="text-center justify-center text-indigo-600 font-medium"
+              className="w-full p-3 text-center text-sm text-indigo-600 dark:text-indigo-400 font-bold hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
             >
               Tümünü Gör
-            </DropdownMenuItem>
-          </>
+            </button>
+          </div>
         )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </PopoverContent>
+    </Popover>
   )
 }

@@ -1,62 +1,30 @@
-# Plan: Notification System Audit and Fix (Issue #61)
+# Orchestration Plan: UI/UX & Dark Mode Optimization
 
-## Overview
-This plan addresses the missing notification bell icon for admin users on mobile and performs a general health check of the notification system across both web and mobile platforms.
+## Hedefler
+1. **Bildirim Sisteminin Onarımı:** `NotificationDropdown` bileşeninin tıklama ve açılma sorununu çözmek için `DropdownMenu` yapısının `Popover` ile değiştirilmesi veya kontrollü state mekanizmasının güncellenmesi.
+2. **Kapsamlı Dark Mode Desteği:** Ana dashboard dışında kalan (Müşteriler, İşler, Ekipler, Şablonlar, API Docs vb.) diğer tüm modüllerin karanlık tema varyasyonlarını (`dark:bg-*`, `dark:text-*`, `dark:border-*`) ekleyerek evrensel görünüm standardını yakalamak.
 
-## Success Criteria
-- [ ] Notification bell icon is visible for Admin users on mobile dashboard.
-- [ ] Notification badge (unread count) works correctly for Admin users on mobile.
-- [ ] Notifications list screen is accessible and functional for Admins on mobile.
-- [ ] Notification bell and dropdown are functional for Admins on the web application.
-- [ ] Real-time notification delivery via Ably is verified for all roles (Admin, Manager, Worker).
+## Önerilen Değişiklikler
 
-## Tech Stack
-- **Mobile**: React Native, Expo, Ably (Real-time).
-- **Web**: Next.js (App Router), Ably, Prisma.
-- **Backend**: Node.js/Next.js API routes, Ably Realtime Channels.
+### 1. Frontend Geliştirmeleri (frontend-specialist)
+- **`src/components/notifications/notification-dropdown.tsx`:** Radix UI `DropdownMenu`'nün neden olduğu `pointer-events`/`z-index` sıkışmasını aşmak için `Popover` bileşenine geçiş veya tetikleyici Buton elementinin wrapper ile kurtarılması.
+- **Karanlık Tema Entegrasyonu (CSS/Tailwind):**
+  - `src/app/[locale]/admin/customers/page.tsx`
+  - `src/app/[locale]/admin/teams/[id]/page.tsx`
+  - `src/app/[locale]/admin/jobs/page.tsx`
+  - `src/app/[locale]/admin/users/page.tsx`
+  - `src/app/[locale]/admin/templates/page.tsx`
+  - *Mevcut hardcoded `bg-white` ve gri metinlerin yanına `dark:bg-slate-900`, `dark:border-slate-800` vb. sınıfların enjekte edilmesi.*
 
-## File Structure & Impact
-- `apps/mobile/src/screens/admin/AdminDashboardScreen.js`: Primary focus for mobile admin UI.
-- `apps/mobile/src/context/SocketContext.js`: Ably subscription logic.
-- `src/components/admin/header.tsx`: Web admin header.
-- `src/app/api/notifications/route.ts`: Notification delivery backend.
+### 2. Test ve Doğrulama (test-engineer)
+- UI/UX değişikliklerinin sayfaların SSR build ve hidratasyonlarında hata yaratmadığından emin olmak.
+- Bildirim menüsünün mobile (SidebarInset) ve masaüstü gridlerde tetiklenebilirliğini manuel ve programatik olarak denetlemek.
+- Renk kontrast doğrulamasını hem Light hem de Dark tema için teyit etmek.
 
-## Task Breakdown
+## Doğrulama Planı (Verification)
+Uygulama tamamlandıktan sonra;
+- Vercel build'leri `ux_audit.py` veya `lint_runner.py` gibi kontrol scriptleri ile desteklenecek.
+- Tema değiştiricisinden Dark Mode açıldığında sadece ana sayfada değil tüm navigasyon destinasyonlarında kusursuz siyah arayüzün sağlanıp sağlanmadığı kontrol edilecek.
 
-### Phase 1: Analysis (Explorer Agent)
-- [x] Map notification UI components in `apps/mobile`.
-- [x] Check `AdminDashboardScreen.js` for existing bell icon logic.
-- [x] Check `AdminHeader.tsx` for web notification dropdown.
-- [x] Identify potential gaps in role-based notification delivery.
-
-### Phase 2: Implementation (Parallel)
-
-#### Mobile Fixes (`mobile-developer`)
-- [ ] **Task M1**: Fix/Restore bell icon in `AdminDashboardScreen.js`.
-    - *Input*: `AdminDashboardScreen.js` source.
-    - *Output*: Functional notification icon + badge.
-    - *Verify*: Icon appears and navigates to `Notifications` screen.
-- [ ] **Task M2**: Ensure notification bell is available on major admin sub-screens if necessary, or fix global header behavior.
-
-#### Web Verification (`frontend-specialist`)
-- [ ] **Task W1**: Audit `AdminHeader.tsx` and `NotificationDropdown.tsx`.
-    - *Input*: Web layout components.
-    - *Output*: Verified functional notification UI for Admins.
-    - *Verify*: Unread count updates and dropdown opens.
-
-#### Backend/Real-time Audit (`backend-specialist`)
-- [ ] **Task B1**: Verify Ably channel names and subscription logic for Admin role.
-    - *Input*: `SocketContext.js` and `api/notifications` routes.
-    - *Output*: Confirmed channel security and role-agnostic delivery.
-    - *Verify*: Emitting a notification to an admin user results in unread count change.
-
-### Phase 3: Verification (Test Engineer)
-- [ ] **Task T1**: Run security scan for Ably secrets/token exposure.
-- [ ] **Task T2**: Verify UI consistency across roles.
-- [ ] **Task T3**: Manual verification of "Mark as Read" functionality for Admins.
-
-## Phase X: Final Checklist
-- [ ] No purple/violet hex codes used.
-- [ ] Socratic Gate respected.
-- [ ] Build successful for both apps.
-- [ ] All verification scripts passed.
+> [!IMPORTANT]
+> Kullanıcı Onayı Gereklidir: Planı onayladıktan sonra (Y/N) kodlama fazlası parelel ajanlarla başlatılacaktır.

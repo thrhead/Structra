@@ -79,7 +79,7 @@ export default function TacticalView({ data }: { data: any }) {
                 <CardContent className="max-h-[400px] overflow-auto">
                     <div className="space-y-4">
                         {varianceData.map((item: any, idx: number) => (
-                            <div key={idx} className="space-y-1.5 p-3 rounded-lg border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
+                            <div key={idx} className="space-y-1.5 p-3 rounded-lg border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-900/50 transition-colors">
                                 <div className="flex justify-between text-sm font-medium">
                                     <span>{item.title}</span>
                                     <span className={item.variance >= 0 ? "text-emerald-600" : "text-rose-600"}>
