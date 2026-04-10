@@ -54,11 +54,6 @@ const data = {
       icon: LayoutDashboard
     },
     {
-      title: 'Dashboard v2 (Yeni)',
-      url: '/dashboard-v2',
-      icon: LayoutDashboard
-    },
-    {
       title: 'Kullanıcı Yönetimi',
       url: '#',
       icon: Users,

@@ -84,29 +84,18 @@ export default function AdminLayout({
               className="h-4 bg-slate-200 dark:bg-slate-800"
             />
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-xl hover:bg-slate-100 dark:hover:bg-slate-900 overflow-hidden ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-                  <Avatar className="h-8 w-8 border border-slate-200 dark:border-slate-800">
-                    <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-indigo-700 text-white font-black text-[10px]">
-                      AD
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 shadow-2xl">
-                <DropdownMenuLabel className="px-2 py-1.5 text-xs font-black uppercase tracking-widest text-slate-400">Hesabım</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="rounded-xl text-sm font-medium" onClick={() => router.push('/admin/profile')}>
-                  Profil Ayarları
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="rounded-xl text-sm font-bold text-red-600 focus:bg-red-50 focus:text-red-700" onClick={() => signOut({ callbackUrl: '/login' })}>
-                  <LogOutIcon className="mr-2 h-4 w-4" />
-                  Güvenli Çıkış
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => router.push('/admin/profile')} 
+                className="rounded-xl hover:bg-slate-100 dark:hover:bg-slate-900 overflow-hidden ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 relative z-50 cursor-pointer"
+            >
+                <Avatar className="h-8 w-8 border border-slate-200 dark:border-slate-800">
+                <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-indigo-700 text-white font-black text-[10px]">
+                    AD
+                </AvatarFallback>
+                </Avatar>
+            </Button>
           </div>
         </header>
 
