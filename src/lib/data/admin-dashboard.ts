@@ -62,10 +62,11 @@ export async function getAdminDashboardData() {
         select: { amount: true }
       }).catch(e => { console.error("todaysCosts fetch failed", e); return []; }),
 
-      // 2: pendingApprovalsCount
-      prisma.approval.count({
-        where: { status: 'PENDING' }
-      }).catch(e => { console.error("pendingApprovalsCount fetch failed", e); return 0; }),
+      // 2: pendingApprovalsCount (Total pending actions: Approvals + Pending Costs)
+      Promise.all([
+        prisma.approval.count({ where: { status: 'PENDING' } }),
+        prisma.costTracking.count({ where: { status: 'PENDING' } })
+      ]).then(([appr, costs]) => appr + costs).catch(e => { console.error("pendingApprovalsCount fetch failed", e); return 0; }),
 
       // 3: pendingCostsAgg
       prisma.costTracking.aggregate({
@@ -162,17 +163,22 @@ export async function getAdminDashboardData() {
         orderBy: { createdAt: 'desc' }
       }).catch(e => { console.error("pendingApprovals fetch failed", e); return []; }),
 
-      // 14: latestCustomers
+      // 14: latestCustomers (with job counts and spent info)
       prisma.customer.findMany({
         take: 5,
         orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          company: true,
-          email: true,
-          phone: true,
-          address: true,
-          isActive: true
+        include: {
+          _count: {
+            select: { jobs: true }
+          },
+          jobs: {
+            select: {
+              costs: {
+                where: { status: 'APPROVED' },
+                select: { amount: true }
+              }
+            }
+          }
         }
       }).catch(e => { console.error("latestCustomers fetch failed", e); return []; }),
 

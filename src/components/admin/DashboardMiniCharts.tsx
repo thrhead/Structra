@@ -7,6 +7,8 @@ import {
 } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { CheckCircle2, Clock, Zap, TrendingUp } from 'lucide-react'
+import Link from 'next/link'
+import { useParams } from 'next/navigation'
 
 interface DashboardMiniChartsProps {
   weeklyStats: { name: string; count: number }[]
@@ -58,6 +60,9 @@ export default function DashboardMiniCharts({
   const hasWeeklyData = weeklyStats.some(d => d.count > 0)
   const hasJobData = totalJobs > 0
 
+  const { locale } = useParams()
+  const basePrefix = `/${locale}`
+
   // Stats strip
   const statsStrip = [
     {
@@ -66,6 +71,7 @@ export default function DashboardMiniCharts({
       icon: TrendingUp,
       color: 'text-indigo-600 dark:text-indigo-400',
       bg: 'bg-indigo-50 dark:bg-indigo-950/40',
+      href: `${basePrefix}/admin/jobs`
     },
     {
       label: 'Devam Eden',
@@ -73,6 +79,7 @@ export default function DashboardMiniCharts({
       icon: Zap,
       color: 'text-amber-600 dark:text-amber-400',
       bg: 'bg-amber-50 dark:bg-amber-950/40',
+      href: `${basePrefix}/admin/jobs?status=IN_PROGRESS`
     },
     {
       label: 'Tamamlanan',
@@ -80,6 +87,7 @@ export default function DashboardMiniCharts({
       icon: CheckCircle2,
       color: 'text-emerald-600 dark:text-emerald-400',
       bg: 'bg-emerald-50 dark:bg-emerald-950/40',
+      href: `${basePrefix}/admin/jobs?status=COMPLETED`
     },
     {
       label: 'Bekleyen Onay',
@@ -87,6 +95,7 @@ export default function DashboardMiniCharts({
       icon: Clock,
       color: 'text-rose-600 dark:text-rose-400',
       bg: 'bg-rose-50 dark:bg-rose-950/40',
+      href: `${basePrefix}/admin/approvals`
     },
   ]
 
@@ -198,20 +207,21 @@ export default function DashboardMiniCharts({
       {/* ── KPI Strip Row ── */}
       <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-3">
         {statsStrip.map((stat) => (
-          <Card
-            key={stat.label}
-            className="rounded-2xl border border-slate-200/60 dark:border-slate-800/50 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 group"
-          >
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className={`p-2 rounded-xl ${stat.bg} transition-transform duration-300 group-hover:scale-110`}>
-                <stat.icon className={`w-4 h-4 ${stat.color}`} />
-              </div>
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500 leading-none mb-1">{stat.label}</p>
-                <p className={`text-2xl font-bold tabular-nums tracking-tight ${stat.color}`}>{stat.value}</p>
-              </div>
-            </CardContent>
-          </Card>
+          <Link key={stat.label} href={stat.href} className="block">
+            <Card
+              className="rounded-2xl border border-slate-200/60 dark:border-slate-800/50 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 group h-full"
+            >
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className={`p-2 rounded-xl ${stat.bg} transition-transform duration-300 group-hover:scale-110`}>
+                  <stat.icon className={`w-4 h-4 ${stat.color}`} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500 leading-none mb-1">{stat.label}</p>
+                  <p className={`text-2xl font-bold tabular-nums tracking-tight ${stat.color}`}>{stat.value}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
       </div>
     </div>
