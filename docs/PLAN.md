@@ -1,30 +1,44 @@
-# Orchestration Plan: UI/UX & Dark Mode Optimization
+# 📋 STRUCTRA - Dashboard 2 Implementation Plan
 
-## Hedefler
-1. **Bildirim Sisteminin Onarımı:** `NotificationDropdown` bileşeninin tıklama ve açılma sorununu çözmek için `DropdownMenu` yapısının `Popover` ile değiştirilmesi veya kontrollü state mekanizmasının güncellenmesi.
-2. **Kapsamlı Dark Mode Desteği:** Ana dashboard dışında kalan (Müşteriler, İşler, Ekipler, Şablonlar, API Docs vb.) diğer tüm modüllerin karanlık tema varyasyonlarını (`dark:bg-*`, `dark:text-*`, `dark:border-*`) ekleyerek evrensel görünüm standardını yakalamak.
+## 1. Genel Bakış
+Structra saha operasyonları uygulaması için çevrimdışı öncelikli (offline-first), endüstriyel tasarıma sahip yeni bir Dashboard (Tema 2) ekranı geliştirilecektir. İşlem, Orchestration (Çoklu-Ajan) iş akışına uygun olarak yürütülecektir.
 
-## Önerilen Değişiklikler
+## 2. Teknoloji Yığını
+- **Core:** Expo SDK 51, React Native (0.74+), TypeScript
+- **State & Storage:** Zustand, AsyncStorage
+- **Network:** @react-native-community/netinfo
+- **UI & Animations:** react-native-reanimated, react-native-svg
 
-### 1. Frontend Geliştirmeleri (frontend-specialist)
-- **`src/components/notifications/notification-dropdown.tsx`:** Radix UI `DropdownMenu`'nün neden olduğu `pointer-events`/`z-index` sıkışmasını aşmak için `Popover` bileşenine geçiş veya tetikleyici Buton elementinin wrapper ile kurtarılması.
-- **Karanlık Tema Entegrasyonu (CSS/Tailwind):**
-  - `src/app/[locale]/admin/customers/page.tsx`
-  - `src/app/[locale]/admin/teams/[id]/page.tsx`
-  - `src/app/[locale]/admin/jobs/page.tsx`
-  - `src/app/[locale]/admin/users/page.tsx`
-  - `src/app/[locale]/admin/templates/page.tsx`
-  - *Mevcut hardcoded `bg-white` ve gri metinlerin yanına `dark:bg-slate-900`, `dark:border-slate-800` vb. sınıfların enjekte edilmesi.*
+## 3. Mimari ve Klasör Yapısı
+```text
+/src
+ ├── /components
+ │    ├── /ui             (Card, Button, Badge)
+ │    └── /dashboard      (KPICards, AnalyticsChart, QuickActions, RecentJobsList, SyncStatus)
+ ├── /screens
+ │    └── Dashboard2Screen.tsx
+ ├── /services
+ │    └── store.ts        (Zustand store, Queue yönetimi, Mock Data)
+ └── /offline
+      └── SyncManager.ts  (Network dinleyici, Queue işleyici)
+```
 
-### 2. Test ve Doğrulama (test-engineer)
-- UI/UX değişikliklerinin sayfaların SSR build ve hidratasyonlarında hata yaratmadığından emin olmak.
-- Bildirim menüsünün mobile (SidebarInset) ve masaüstü gridlerde tetiklenebilirliğini manuel ve programatik olarak denetlemek.
-- Renk kontrast doğrulamasını hem Light hem de Dark tema için teyit etmek.
+## 4. Uygulama Aşamaları (Faz 2 - Paralel İşlem)
 
-## Doğrulama Planı (Verification)
-Uygulama tamamlandıktan sonra;
-- Vercel build'leri `ux_audit.py` veya `lint_runner.py` gibi kontrol scriptleri ile desteklenecek.
-- Tema değiştiricisinden Dark Mode açıldığında sadece ana sayfada değil tüm navigasyon destinasyonlarında kusursuz siyah arayüzün sağlanıp sağlanmadığı kontrol edilecek.
+### Ajan 1: `backend-specialist` (Veri ve Çevrimdışı Altyapı)
+- `src/services/store.ts`: Zustand state yönetimi, AsyncStorage ile çevrimdışı işlem kuyruğu (offline queue).
+- `src/offline/SyncManager.ts`: NetInfo ile internet bağlantısı kontrolü ve arka planda kuyruk işleme mantığı.
 
-> [!IMPORTANT]
-> Kullanıcı Onayı Gereklidir: Planı onayladıktan sonra (Y/N) kodlama fazlası parelel ajanlarla başlatılacaktır.
+### Ajan 2: `frontend-specialist` (Kullanıcı Arayüzü ve Ekran)
+- `src/components/ui/*`: Reusable endüstriyel UI bileşenleri (Card, Button, Badge).
+- `src/components/dashboard/*`: KPI kartları, SVG bazlı basit analitik grafiği, Hızlı İşlemler, Son İşlemler listesi ve Senkronizasyon Durum çubuğu.
+- `src/screens/Dashboard2Screen.tsx`: Tüm bileşenlerin performanslı bir şekilde (ScrollView/FlatList) birleştirilmesi.
+
+### Ajan 3: `test-engineer` (Doğrulama ve Optimizasyon)
+- Kodların React Native hook kurallarına ve performans standartlarına (memoization vb.) uygunluğunun test edilmesi.
+- Güvenlik ve Lint testlerinin simüle edilmesi/çalıştırılması.
+
+## 5. Çevrimdışı (Offline) Senaryosu
+- İnternet yokken yapılan işlemler (Örn: Yeni İş Oluştur) AsyncStorage'a kaydedilir.
+- Ekranda her zaman "X işlem bekliyor" şeklinde bir bar görünür.
+- İnternet geldiğinde işlemler sırayla simüle edilerek işlenir ve bar güncellenir.
