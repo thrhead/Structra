@@ -38,7 +38,7 @@ export async function getPendingCosts() {
 
 export async function getPendingJobSteps() {
   const steps = await prisma.jobStep.findMany({
-    where: { approvalStatus: 'PENDING', isCompleted: true },
+    where: { approvalStatus: 'PENDING' },
     include: {
       job: { select: { id: true, title: true, jobNo: true, customer: { select: { company: true } } } },
       completedBy: { select: { id: true, name: true } },
@@ -47,7 +47,7 @@ export async function getPendingJobSteps() {
   });
 
   const subSteps = await prisma.jobSubStep.findMany({
-    where: { approvalStatus: 'PENDING', isCompleted: true },
+    where: { approvalStatus: 'PENDING' },
     include: {
       step: { 
         include: { 
@@ -69,10 +69,10 @@ export async function getApprovalStats() {
         where: { status: 'PENDING' }
     });
     const pendingSteps = await prisma.jobStep.count({
-        where: { approvalStatus: 'PENDING', isCompleted: true }
+        where: { approvalStatus: 'PENDING' }
     });
     const pendingSubSteps = await prisma.jobSubStep.count({
-        where: { approvalStatus: 'PENDING', isCompleted: true }
+        where: { approvalStatus: 'PENDING' }
     });
     return { 
         pendingApprovalModelCount: pendingCount,
