@@ -17,7 +17,6 @@ import {
   Users, 
   Briefcase, 
   UserPlus, 
-  Settings, 
   ChevronDown,
   LayoutGrid,
   ClipboardList
@@ -41,19 +40,26 @@ export function DashboardQuickActions({ customers, teams, templates, users }: Da
   const basePrefix = `/${locale}`
 
   return (
-    <div className="flex items-center gap-3 mb-6">
-      <DropdownMenu>
+    <div className="flex items-center gap-3 mb-6 relative z-[100]">
+      <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button 
             variant="default" 
-            className="rounded-2xl h-11 px-5 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 transition-all duration-300 group ring-offset-2 ring-indigo-500/30 focus:ring-2"
+            className="rounded-2xl h-11 px-5 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 transition-all duration-300 group ring-offset-2 ring-indigo-500/30 focus:ring-2 relative z-[101]"
+            onClick={() => console.log('Quick Actions Trigger Clicked')}
           >
             <PlusCircle className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:rotate-90" />
             <span className="font-bold tracking-tight text-sm">Hızlı İşlemler</span>
             <ChevronDown className="ml-2 h-4 w-4 opacity-50 transition-transform duration-300 group-data-[state=open]:rotate-180" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-64 p-2 rounded-2xl shadow-xl border-slate-100 dark:border-slate-800" align="start" sideOffset={8}>
+        
+        <DropdownMenuContent 
+          className="w-64 p-2 rounded-2xl shadow-2xl border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 z-[110]" 
+          align="start" 
+          sideOffset={8}
+          onCloseAutoFocus={(e) => e.preventDefault()}
+        >
           <DropdownMenuGroup>
             <DropdownMenuLabel className="px-2 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400">
               Yeni Oluştur
