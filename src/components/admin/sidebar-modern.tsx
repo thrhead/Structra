@@ -56,6 +56,11 @@ const sidebarItems = [
     icon: LayoutDashboardIcon
   },
   {
+    title: 'Onay Merkezi',
+    href: '/admin/approvals',
+    icon: CheckCircle2Icon
+  },
+  {
     title: 'Kullanıcı Yönetimi',
     icon: UsersIcon,
     items: [
