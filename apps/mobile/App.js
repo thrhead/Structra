@@ -23,6 +23,7 @@ import ManagerDashboardScreen from './src/screens/manager/ManagerDashboardScreen
 import TeamListScreen from './src/screens/manager/TeamListScreen';
 import JobAssignmentScreen from './src/screens/manager/JobAssignmentScreen';
 import AdminDashboardScreen from './src/screens/admin/AdminDashboardScreen';
+import Dashboard2Screen from './src/screens/Dashboard2Screen';
 import UserManagementScreen from './src/screens/admin/UserManagementScreen';
 import CustomerManagementScreen from './src/screens/admin/CustomerManagementScreen';
 import ApprovalsScreen from './src/screens/admin/ApprovalsScreen';
@@ -197,6 +198,11 @@ function AppNavigator() {
                 name="AdminDashboard"
                 component={AdminDashboardScreen}
                 options={{ title: 'Admin Dashboard', headerShown: false }}
+              />
+              <Stack.Screen
+                name="Dashboard2"
+                component={Dashboard2Screen}
+                options={{ title: 'Theme 2 (Industrial)', headerShown: false }}
               />
               <Stack.Screen
                 name="UserManagement"
