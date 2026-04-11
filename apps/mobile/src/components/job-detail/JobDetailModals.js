@@ -151,7 +151,7 @@ const JobDetailModals = ({
             />
 
             {/* Choice Modal (Finish Job options) */}
-            <AppModal visible={choiceModalVisible} animationType="slide">
+            <AppModal visible={choiceModalVisible} animationType="slide" onRequestClose={() => setChoiceModalVisible(false)}>
                 <View style={styles.modalOverlay}>
                     <View style={[styles.modalCard, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
                         <Text style={[styles.modalTitle, { color: theme.colors.text }]}>İşi Bitir</Text>

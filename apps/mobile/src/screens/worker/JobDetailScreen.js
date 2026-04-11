@@ -430,17 +430,32 @@ export default function JobDetailScreen({ route, navigation }) {
     };
 
     const handleCompleteJob = async () => {
-        if (!job || !job.steps) return;
-        const allStepsCompleted = job.steps.length > 0 && job.steps.every(step => {
-            const anaAdimTamam = step.isCompleted;
-            const altAdimlarTamam = !step.subSteps || step.subSteps.length === 0 || step.subSteps.every(ss => ss.isCompleted);
-            return anaAdimTamam && altAdimlarTamam;
-        });
-        if (!allStepsCompleted) {
-            showAlert(t('common.warning'), "Bu montajı tamamlayarak kapatmak için tüm alt iş emirlerini tamamlamanız gerekiyor", [], 'warning');
-            return;
+        try {
+            console.log('[MOBILE] handleCompleteJob triggered for job:', jobId);
+            if (!job || !job.steps) {
+                console.log('[MOBILE] Job or job.steps is missing');
+                return;
+            }
+            
+            const allStepsCompleted = job.steps.length > 0 && job.steps.every(step => {
+                const anaAdimTamam = step.isCompleted === true || step.status === 'COMPLETED';
+                const altAdimlarTamam = !step.subSteps || step.subSteps.length === 0 || step.subSteps.every(ss => ss.isCompleted === true || ss.status === 'COMPLETED');
+                return anaAdimTamam && altAdimlarTamam;
+            });
+            
+            console.log('[MOBILE] allStepsCompleted status:', allStepsCompleted);
+
+            if (!allStepsCompleted) {
+                showAlert(t('common.warning') || 'Uyarı', "Bu montajı tamamlayarak kapatmak için tüm alt iş emirlerini tamamlamanız gerekiyor", [], 'warning');
+                return;
+            }
+            
+            console.log('[MOBILE] Showing choice modal for job completion');
+            setChoiceModalVisible(true);
+        } catch (error) {
+            console.error('[MOBILE] handleCompleteJob error:', error);
+            showAlert('Hata', 'İşlem sırasında bir hata oluştu.', [], 'error');
         }
-        setChoiceModalVisible(true);
     };
 
     const handleConfirmComplete = async () => {
