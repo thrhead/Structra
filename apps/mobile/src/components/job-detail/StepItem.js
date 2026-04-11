@@ -45,6 +45,8 @@ const StepItem = ({
         ]}>
             <View style={styles.stepHeader}>
                 <TouchableOpacity
+                    activeOpacity={0.7}
+                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                     style={[
                         styles.checkbox, 
                         { borderColor: theme.colors.primary },
@@ -53,7 +55,7 @@ const StepItem = ({
                     onPress={() => handleToggleStep(step.id, isCompleted)}
                     disabled={isLocked || isAdmin}
                 >
-                    {isCompleted && <MaterialIcons name="check" size={18} color="#FFFFFF" />}
+                    {isCompleted && <MaterialIcons name="check" size={20} color="#FFFFFF" />}
                 </TouchableOpacity>
                 
                 <View style={{ flex: 1 }}>
@@ -85,18 +87,18 @@ const StepItem = ({
                     <View style={styles.datesContainer}>
                         {step.startedAt && (
                             <Text style={[styles.dateText, { color: theme.colors.subText }]}>
-                                <MaterialIcons name="play-circle-outline" size={12} /> {t('worker.started')}: {formatDate(step.startedAt)}
+                                <MaterialIcons name="play-circle-outline" size={14} /> {t('worker.started')}: {formatDate(step.startedAt)}
                             </Text>
                         )}
                         
                         {step.completedAt && (
                             <View>
                                 <Text style={[styles.dateText, { color: theme.colors.subText, marginTop: 4 }]}>
-                                    <MaterialIcons name="check-circle-outline" size={12} /> {t('worker.finished')}: {formatDate(step.completedAt)}
+                                    <MaterialIcons name="check-circle-outline" size={14} /> {t('worker.finished')}: {formatDate(step.completedAt)}
                                 </Text>
                                 {(step.latitude && step.longitude) && (
                                     <View style={styles.metadataTag}>
-                                        <MaterialIcons name="location-pin" size={12} color={theme.colors.subText} />
+                                        <MaterialIcons name="location-pin" size={14} color={theme.colors.subText} />
                                         <Text style={[styles.metadataText, { color: theme.colors.subText }]}>
                                             {step.latitude.toFixed(4)}, {step.longitude.toFixed(4)}
                                         </Text>
@@ -117,6 +119,7 @@ const StepItem = ({
                         keyExtractor={(p, i) => i.toString()}
                         horizontal
                         showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={{ paddingVertical: 4 }}
                     />
                 </View>
             )}
@@ -124,7 +127,7 @@ const StepItem = ({
             {/* Rejection */}
             {step.approvalStatus === 'REJECTED' && step.rejectionReason && (
                 <View style={[styles.rejectionContainer, { backgroundColor: theme.colors.error + '10', borderColor: theme.colors.error + '30' }]}>
-                    <MaterialIcons name="error-outline" size={16} color={theme.colors.error} style={{ marginTop: 2 }} />
+                    <MaterialIcons name="error-outline" size={18} color={theme.colors.error} style={{ marginTop: 2 }} />
                     <Text style={[styles.rejectionReasonText, { color: theme.colors.error }]}>
                         {step.rejectionReason}
                     </Text>
@@ -135,6 +138,7 @@ const StepItem = ({
             {isManager && isCompleted && step.approvalStatus === 'PENDING' && (
                 <View style={styles.managerActionRow}>
                     <TouchableOpacity
+                        activeOpacity={0.8}
                         style={[styles.managerButton, { backgroundColor: theme.colors.error + '15' }]}
                         onPress={() => {
                             setSelectedStepId(step.id);
@@ -142,14 +146,15 @@ const StepItem = ({
                             setRejectionModalVisible(true);
                         }}
                     >
-                        <MaterialIcons name="close" size={18} color={theme.colors.error} />
+                        <MaterialIcons name="close" size={20} color={theme.colors.error} />
                         <Text style={[styles.managerButtonText, { color: theme.colors.error }]}>{t('common.reject') || 'Reddet'}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
+                        activeOpacity={0.8}
                         style={[styles.managerButton, { backgroundColor: theme.colors.success }]}
                         onPress={() => handleApproveStep(step.id)}
                     >
-                        <MaterialIcons name="check" size={18} color="#fff" />
+                        <MaterialIcons name="check" size={20} color="#fff" />
                         <Text style={[styles.managerButtonText, { color: '#fff' }]}>{t('common.approve') || 'Onayla'}</Text>
                     </TouchableOpacity>
                 </View>
@@ -171,29 +176,29 @@ const StepItem = ({
 
 const styles = StyleSheet.create({
     stepCard: {
-        borderRadius: 16,
-        padding: 16,
-        marginBottom: 16,
+        borderRadius: 20,
+        padding: 20,
+        marginBottom: 20,
         borderWidth: 1,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-        elevation: 2,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
+        elevation: 3,
     },
     lockedCard: {
-        opacity: 0.5,
+        opacity: 0.45,
     },
     stepHeader: {
         flexDirection: 'row',
         alignItems: 'flex-start',
     },
     checkbox: {
-        width: 28,
-        height: 28,
-        borderRadius: 14,
-        borderWidth: 2,
-        marginRight: 14,
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        borderWidth: 2.5,
+        marginRight: 16,
         justifyContent: 'center',
         alignItems: 'center',
         marginTop: 2,
@@ -202,107 +207,116 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 8,
+        marginBottom: 10,
     },
     stepNoBadge: {
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        borderRadius: 6,
-        marginRight: 8,
-    },
-    stepNoText: {
-        fontSize: 12,
-        fontWeight: 'bold',
-        fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    },
-    stepTitle: {
-        fontSize: 16,
-        fontWeight: '600',
-        flexShrink: 1,
-    },
-    completedText: {
-        opacity: 0.6,
-    },
-    badge: {
         paddingHorizontal: 8,
         paddingVertical: 4,
         borderRadius: 8,
-        marginLeft: 8,
+        marginRight: 10,
+    },
+    stepNoText: {
+        fontSize: 13,
+        fontWeight: '800',
+        fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    },
+    stepTitle: {
+        fontSize: 17,
+        fontWeight: '700',
+        flexShrink: 1,
+        lineHeight: 24,
+    },
+    completedText: {
+        opacity: 0.5,
+        textDecorationLine: 'line-through',
+    },
+    badge: {
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 8,
+        marginLeft: 10,
     },
     badgeText: {
-        fontSize: 10,
-        fontWeight: 'bold',
+        fontSize: 11,
+        fontWeight: '800',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
     },
     datesContainer: {
-        marginTop: 2,
+        marginTop: 4,
+        gap: 6,
     },
     dateText: {
-        fontSize: 13,
+        fontSize: 14,
         fontWeight: '500',
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     metadataTag: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 4,
+        marginTop: 6,
     },
     metadataText: {
-        fontSize: 12,
-        marginLeft: 4,
+        fontSize: 13,
+        marginLeft: 6,
+        fontWeight: '500',
     },
     photoContainer: {
-        marginTop: 16,
+        marginTop: 20,
         marginBottom: 4,
-        paddingLeft: 42, // align with text
+        paddingLeft: 48, // align with text
     },
     rejectionContainer: {
-        marginTop: 12,
-        padding: 12,
-        borderRadius: 8,
+        marginTop: 16,
+        padding: 14,
+        borderRadius: 12,
         borderWidth: 1,
         flexDirection: 'row',
         alignItems: 'flex-start',
-        marginLeft: 42, // align with text
-        gap: 8,
+        marginLeft: 48, // align with text
+        gap: 10,
     },
     rejectionReasonText: {
-        fontSize: 13,
-        fontWeight: '500',
+        fontSize: 14,
+        fontWeight: '600',
         flex: 1,
-        lineHeight: 18,
+        lineHeight: 20,
     },
     managerActionRow: {
         flexDirection: 'row',
-        gap: 12,
-        marginTop: 16,
-        paddingLeft: 42, // align with text
+        gap: 16,
+        marginTop: 20,
+        paddingLeft: 48, // align with text
     },
     managerButton: {
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 12,
-        borderRadius: 10,
-        gap: 6,
+        paddingVertical: 14,
+        borderRadius: 12,
+        gap: 8,
+        minHeight: 48,
     },
     managerButtonText: {
-        fontSize: 14,
+        fontSize: 15,
         fontWeight: 'bold',
     },
     substepsWrapper: {
-        marginTop: 16,
+        marginTop: 24,
         position: 'relative',
     },
     timelineLine: {
         position: 'absolute',
-        left: 13, // center of checkbox
+        left: 15, // center of checkbox
         top: 0,
-        bottom: 16,
+        bottom: 20,
         width: 2,
         borderRadius: 1,
     },
     substepsContainer: {
-        paddingLeft: 42,
+        paddingLeft: 48,
     },
 });
 

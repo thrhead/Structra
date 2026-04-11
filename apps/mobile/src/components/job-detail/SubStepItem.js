@@ -42,6 +42,8 @@ const SubStepItem = ({
         ]}>
             <View style={styles.substepRow}>
                 <TouchableOpacity
+                    activeOpacity={0.7}
+                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                     style={[
                         styles.checkbox, 
                         { borderColor: theme.colors.primary },
@@ -50,7 +52,7 @@ const SubStepItem = ({
                     onPress={() => handleSubstepToggle(step.id, substep.id, isCompleted)}
                     disabled={isSubstepLocked || isAdmin}
                 >
-                    {isCompleted && <MaterialIcons name="check" size={12} color="#FFFFFF" />}
+                    {isCompleted && <MaterialIcons name="check" size={16} color="#FFFFFF" />}
                 </TouchableOpacity>
 
                 <View style={styles.substepInfo}>
@@ -75,11 +77,12 @@ const SubStepItem = ({
                     {/* Camera Action Row - More user friendly */}
                     {!isSubstepLocked && !isCompleted && !isAdmin && (
                         <TouchableOpacity
+                            activeOpacity={0.7}
                             onPress={() => pickImage(step.id, substep.id, 'camera')}
                             style={[styles.addPhotoButton, { backgroundColor: theme.colors.primary + '10' }]}
                         >
-                            <MaterialIcons name="add-a-photo" size={18} color={theme.colors.primary} />
-                            <Text style={[styles.addPhotoText, { color: theme.colors.primary }]}>Fotoğraf Çek</Text>
+                            <MaterialIcons name="add-a-photo" size={22} color={theme.colors.primary} />
+                            <Text style={[styles.addPhotoText, { color: theme.colors.primary }]}>Fotoğraf Ekle</Text>
                         </TouchableOpacity>
                     )}
 
@@ -91,13 +94,14 @@ const SubStepItem = ({
                                 keyExtractor={(p, i) => i.toString()}
                                 horizontal
                                 showsHorizontalScrollIndicator={false}
+                                contentContainerStyle={{ paddingVertical: 4 }}
                             />
                         </View>
                     )}
 
                     {substep.approvalStatus === 'REJECTED' && substep.rejectionReason && (
                         <View style={[styles.rejectionContainer, { backgroundColor: theme.colors.error + '10', borderColor: theme.colors.error + '30' }]}>
-                            <MaterialIcons name="error-outline" size={14} color={theme.colors.error} style={{ marginTop: 1 }} />
+                            <MaterialIcons name="error-outline" size={16} color={theme.colors.error} style={{ marginTop: 1 }} />
                             <Text style={[styles.rejectionReasonText, { color: theme.colors.error }]}>
                                 {substep.rejectionReason}
                             </Text>
@@ -108,6 +112,7 @@ const SubStepItem = ({
                     {isManager && isCompleted && substep.approvalStatus === 'PENDING' && (
                         <View style={styles.managerActionRow}>
                             <TouchableOpacity
+                                activeOpacity={0.8}
                                 style={[styles.managerButton, { backgroundColor: theme.colors.error + '15' }]}
                                 onPress={() => {
                                     setSelectedSubstepId(substep.id);
@@ -115,14 +120,15 @@ const SubStepItem = ({
                                     setRejectionModalVisible(true);
                                 }}
                             >
-                                <MaterialIcons name="close" size={16} color={theme.colors.error} />
+                                <MaterialIcons name="close" size={18} color={theme.colors.error} />
                                 <Text style={[styles.managerButtonText, { color: theme.colors.error }]}>Reddet</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
+                                activeOpacity={0.8}
                                 style={[styles.managerButton, { backgroundColor: theme.colors.success }]}
                                 onPress={() => handleApproveSubstep(substep.id)}
                             >
-                                <MaterialIcons name="check" size={16} color="#fff" />
+                                <MaterialIcons name="check" size={18} color="#fff" />
                                 <Text style={[styles.managerButtonText, { color: '#fff' }]}>Onayla</Text>
                             </TouchableOpacity>
                         </View>
@@ -135,24 +141,29 @@ const SubStepItem = ({
 
 const styles = StyleSheet.create({
     substepWrapper: {
-        marginBottom: 12,
-        borderRadius: 12,
-        padding: 12,
+        marginBottom: 16,
+        borderRadius: 16,
+        padding: 16,
         borderWidth: 1,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.04,
+        shadowRadius: 4,
+        elevation: 1,
     },
     lockedCard: {
-        opacity: 0.5,
+        opacity: 0.45,
     },
     substepRow: {
         flexDirection: 'row',
         alignItems: 'flex-start',
     },
     checkbox: {
-        width: 20,
-        height: 20,
-        borderRadius: 10,
-        borderWidth: 2,
-        marginRight: 12,
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        borderWidth: 2.5,
+        marginRight: 14,
         justifyContent: 'center',
         alignItems: 'center',
         marginTop: 0,
@@ -164,15 +175,17 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 6,
+        marginBottom: 8,
     },
     substepTitle: {
-        fontSize: 14,
+        fontSize: 15,
         fontWeight: '600',
         flex: 1,
+        lineHeight: 22,
     },
     completedText: {
-        opacity: 0.6,
+        opacity: 0.5,
+        textDecorationLine: 'line-through',
     },
     actionRow: {
         flexDirection: 'row',
@@ -180,62 +193,65 @@ const styles = StyleSheet.create({
     },
     badge: {
         paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 6,
-        marginLeft: 8,
+        paddingVertical: 6,
+        borderRadius: 8,
+        marginLeft: 10,
     },
     badgeText: {
-        fontSize: 10,
-        fontWeight: 'bold',
+        fontSize: 11,
+        fontWeight: '800',
+        textTransform: 'uppercase',
     },
     addPhotoButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        alignSelf: 'flex-start',
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 8,
-        marginTop: 6,
-        gap: 6,
+        justifyContent: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderRadius: 12,
+        marginTop: 8,
+        gap: 8,
+        minHeight: 48,
     },
     addPhotoText: {
-        fontSize: 13,
-        fontWeight: '600',
+        fontSize: 15,
+        fontWeight: '700',
     },
     photoContainer: {
-        marginTop: 10,
+        marginTop: 12,
     },
     rejectionContainer: {
-        marginTop: 10,
-        padding: 10,
-        borderRadius: 8,
+        marginTop: 12,
+        padding: 12,
+        borderRadius: 10,
         borderWidth: 1,
         flexDirection: 'row',
         alignItems: 'flex-start',
-        gap: 6,
+        gap: 8,
     },
     rejectionReasonText: {
-        fontSize: 12,
-        fontWeight: '500',
+        fontSize: 13,
+        fontWeight: '600',
         flex: 1,
-        lineHeight: 16,
+        lineHeight: 18,
     },
     managerActionRow: {
         flexDirection: 'row',
-        gap: 8,
-        marginTop: 12,
+        gap: 12,
+        marginTop: 16,
     },
     managerButton: {
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 10,
-        borderRadius: 8,
-        gap: 6,
+        paddingVertical: 12,
+        borderRadius: 10,
+        gap: 8,
+        minHeight: 48,
     },
     managerButtonText: {
-        fontSize: 13,
+        fontSize: 14,
         fontWeight: 'bold',
     },
 });
