@@ -44,6 +44,7 @@ import KPICards from "@/components/admin/reports/KPICards"
 import { Progress } from "@/components/ui/progress"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Suspense, useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import ReportFilters from "@/components/admin/reports/ReportFilters"
 import { TeamFinancialCharts } from "@/components/admin/team-financial-charts"
 import { TeamPerformanceTrend } from "@/components/admin/team-performance-trend"
@@ -54,6 +55,8 @@ import { CustomSpinner } from "@/components/ui/custom-spinner"
 export default function AdminReportsPage(props: {
     searchParams?: Promise<{ from?: string; to?: string; jobStatus?: string; jobId?: string; category?: string; status?: string; tab?: string }>
 }) {
+    const router = useRouter()
+    const searchParamsHook = useSearchParams()
     const [loading, setLoading] = useState(true)
     const [data, setData] = useState<any>(null)
     const [selectedTeamId, setSelectedTeamTeamId] = useState<string | null>(null)
@@ -191,7 +194,15 @@ export default function AdminReportsPage(props: {
                 </Suspense>
             </Card>
 
-            <Tabs defaultValue={activeTab === 'overview' ? 'modern' : activeTab} className="space-y-6">
+            <Tabs 
+                value={activeTab === 'overview' ? 'modern' : activeTab} 
+                onValueChange={(val) => {
+                    const params = new URLSearchParams(searchParamsHook.toString());
+                    params.set('tab', val === 'modern' ? 'overview' : val);
+                    router.push(`?${params.toString()}`, { scroll: false });
+                }}
+                className="space-y-6"
+            >
                 <TabsList className="bg-muted p-1 rounded-lg">
                     <TabsTrigger value="modern" className="gap-2"><LayoutDashboard className="w-4 h-4" /> Genel Bakış</TabsTrigger>
                     <TabsTrigger value="strategic" className="gap-2"><BarChart3 className="w-4 h-4" /> Stratejik</TabsTrigger>
