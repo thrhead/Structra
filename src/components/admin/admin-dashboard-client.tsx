@@ -40,25 +40,38 @@ export default function AdminDashboardClient({
   }))
 
   return (
-    <div className="flex flex-col gap-6 py-6 md:gap-10 md:py-8 bg-transparent w-full overflow-x-hidden">
-      {/* 1. Stat Cards (SectionCards) */}
-      <SectionCards stats={stats} />
-      
-      {/* 2. Interactive Chart (ChartAreaInteractive) */}
-      <div className="px-4 lg:px-6 w-full">
-        <ChartAreaInteractive data={pulseData} />
-      </div>
-      
-      {/* 3. Data Table (Recent Customers) */}
-      <div className="w-full">
-        <div className="px-4 lg:px-6 pt-4 pb-2">
-            <h3 className="text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100">Cari Hareketler</h3>
-            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">Sistemdeki son aktif müşteriler tablosu</p>
+    <div className="flex flex-col gap-8 py-2 w-full overflow-x-hidden animate-page-enter">
+      {/* 1. Stat Cards */}
+      <section className="space-y-3">
+        <div className="px-0.5">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Genel Bakış</p>
+        </div>
+        <SectionCards stats={stats} />
+      </section>
+
+      {/* 2. Interactive Chart */}
+      <section className="space-y-3">
+        <div className="px-0.5">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Performans Trendi</p>
         </div>
         <div className="w-full">
+          <ChartAreaInteractive data={pulseData} />
+        </div>
+      </section>
+
+      {/* 3. Data Table */}
+      <section className="space-y-3">
+        <div className="px-0.5 flex items-baseline gap-3">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Cari Hareketler</p>
+            <h3 className="text-lg font-bold tracking-tight text-slate-800 dark:text-slate-100 mt-0.5">Son Aktif Müşteriler</h3>
+          </div>
+        </div>
+        <div className="w-full rounded-3xl border border-slate-200/60 dark:border-slate-800/50 bg-white dark:bg-slate-900/80 shadow-sm overflow-hidden">
           <DataTable data={topCustomers} />
         </div>
-      </div>
+      </section>
     </div>
   )
 }
+

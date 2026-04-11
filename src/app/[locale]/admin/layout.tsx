@@ -57,23 +57,23 @@ export default function AdminLayout({
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center justify-between gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 border-b dark:border-slate-800 border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 dark:border-slate-800/50 dark:bg-slate-950/50 backdrop-blur-md sticky top-0 z-40 px-4">
+        <header className="flex h-14 shrink-0 items-center justify-between gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 border-b border-slate-100/80 dark:border-slate-800/60 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl sticky top-0 z-40 px-4 shadow-[0_1px_0_0_rgba(0,0,0,0.04)] dark:shadow-[0_1px_0_0_rgba(255,255,255,0.03)]">
           <div className="flex items-center gap-2">
-            <SidebarTrigger className="-ml-1 text-slate-500 hover:text-indigo-600 transition-colors" />
+            <SidebarTrigger className="-ml-1 h-8 w-8 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/60 rounded-lg transition-all duration-150" />
             <Separator
               orientation="vertical"
-              className="mr-2 data-[orientation=vertical]:h-4"
+              className="mr-1 data-[orientation=vertical]:h-4 bg-slate-200 dark:bg-slate-800"
             />
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="/admin" className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                  <BreadcrumbLink href="/admin" className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
                     Saha Operasyon
                   </BreadcrumbLink>
                 </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block text-slate-300" />
+                <BreadcrumbSeparator className="hidden md:block text-slate-300 dark:text-slate-700" />
                 <BreadcrumbItem>
-                  <BreadcrumbPage className="text-[10px] font-black uppercase tracking-widest text-indigo-600">
+                  <BreadcrumbPage className="text-[10px] font-bold uppercase tracking-[0.18em] text-indigo-600 dark:text-indigo-400">
                     {pageName}
                   </BreadcrumbPage>
                 </BreadcrumbItem>
@@ -81,7 +81,7 @@ export default function AdminLayout({
             </Breadcrumb>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <ThemeSwitcher />
             <NotificationDropdown />
             
@@ -94,10 +94,10 @@ export default function AdminLayout({
                 variant="ghost" 
                 size="icon" 
                 onClick={() => router.push('/admin/profile')} 
-                className="rounded-xl hover:bg-slate-100 dark:hover:bg-slate-900 overflow-hidden ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 relative z-50 cursor-pointer"
+                className="h-8 w-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-all duration-150 cursor-pointer"
             >
-                <Avatar className="h-8 w-8 border border-slate-200 dark:border-slate-800">
-                <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-indigo-700 text-white font-black text-[10px]">
+                <Avatar className="h-7 w-7 border border-slate-200/80 dark:border-slate-700/60 ring-2 ring-transparent hover:ring-indigo-500/20 transition-all duration-200">
+                <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-indigo-700 text-white font-black text-[9px] tracking-wider">
                     AD
                 </AvatarFallback>
                 </Avatar>
@@ -105,8 +105,8 @@ export default function AdminLayout({
           </div>
         </header>
 
-        <div className="flex flex-1 flex-col gap-4 p-4 lg:p-8 pt-6">
-          <main className="w-full h-full animate-in fade-in duration-500">
+        <div className="flex flex-1 flex-col gap-4 p-4 md:p-6 lg:p-8 pt-6">
+          <main className="w-full h-full animate-page-enter">
             {children}
           </main>
         </div>

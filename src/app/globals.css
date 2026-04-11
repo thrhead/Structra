@@ -315,3 +315,127 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ============================================
+   PREMIUM SAAS UTILITY CLASSES
+   ============================================ */
+
+/* Scrollbar Hide */
+@utility scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+/* Skeleton Shimmer */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@utility skeleton {
+  background: linear-gradient(
+    90deg,
+    oklch(0.92 0.01 260) 25%,
+    oklch(0.96 0.01 260) 50%,
+    oklch(0.92 0.01 260) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-md);
+}
+
+.dark .skeleton,
+.dark @utility skeleton {
+  background: linear-gradient(
+    90deg,
+    oklch(0.25 0.03 260) 25%,
+    oklch(0.30 0.04 260) 50%,
+    oklch(0.25 0.03 260) 75%
+  );
+  background-size: 200% 100%;
+}
+
+/* Staggered Fade-In for lists/grids */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility animate-fade-in-up {
+  animation: fadeInUp 0.4s ease-out both;
+}
+
+.stagger-children > * {
+  animation: fadeInUp 0.4s ease-out both;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 60ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 120ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 180ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 300ms; }
+
+/* Subtle scale pulse for badges (attention ring) */
+@keyframes gentle-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+@utility animate-gentle-pulse {
+  animation: gentle-pulse 2.5s ease-in-out infinite;
+}
+
+/* Premium card hover enhancement */
+@utility card-interactive {
+  @apply transition-all duration-300 ease-out;
+  &:hover {
+    @apply -translate-y-0.5 shadow-lg;
+  }
+}
+
+/* Focus ring for premium feel */
+@utility focus-premium {
+  @apply focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:outline-none;
+}
+
+/* Subtle gradient border on hover */
+@utility border-interactive {
+  @apply border border-border transition-colors duration-200;
+  &:hover {
+    @apply border-primary/30;
+  }
+}
+
+/* Page enter animation */
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility animate-page-enter {
+  animation: pageEnter 0.35s ease-out both;
+}
+
+/* Number count-up visual effect (CSS only glow) */
+@utility stat-value {
+  @apply tabular-nums font-bold tracking-tight;
+  font-feature-settings: "tnum";
+}
+
+/* Responsive padding utility */
+@utility section-padding {
+  @apply px-4 md:px-6 lg:px-8;
+}

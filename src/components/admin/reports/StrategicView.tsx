@@ -1,7 +1,7 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { TrendingUp, Users, DollarSign, BarChart2 } from 'lucide-react'
+import { TrendingUp, DollarSign, BarChart2, ArrowUpRight } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from '@/components/ui/badge'
@@ -12,156 +12,194 @@ const ProjectStatusChart = dynamic(() => import("./charts/ProjectStatusChart"), 
 const WorkloadCostChart = dynamic(() => import("./charts/WorkloadCostChart"), { ssr: false })
 const CompletionChart = dynamic(() => import("./charts/CompletionChart"), { ssr: false })
 
+// ─── Stat Card ───────────────────────────────────────────────────────────────
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  sub,
+  accent,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: React.ReactNode;
+  sub?: string;
+  accent: 'indigo' | 'emerald' | 'blue';
+}) {
+  const colors = {
+    indigo: {
+      icon: 'text-indigo-600 dark:text-indigo-400',
+      iconBg: 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-100 dark:border-indigo-900/40',
+      value: 'text-indigo-700 dark:text-indigo-300',
+      glow: 'hover:shadow-indigo-500/10 dark:hover:shadow-indigo-900/20',
+    },
+    emerald: {
+      icon: 'text-emerald-600 dark:text-emerald-400',
+      iconBg: 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-100 dark:border-emerald-900/40',
+      value: 'text-emerald-700 dark:text-emerald-300',
+      glow: 'hover:shadow-emerald-500/10 dark:hover:shadow-emerald-900/20',
+    },
+    blue: {
+      icon: 'text-blue-600 dark:text-blue-400',
+      iconBg: 'bg-blue-50 dark:bg-blue-950/40 border-blue-100 dark:border-blue-900/40',
+      value: 'text-blue-700 dark:text-blue-300',
+      glow: 'hover:shadow-blue-500/10 dark:hover:shadow-blue-900/20',
+    },
+  }[accent];
+
+  return (
+    <Card className={`group rounded-3xl border border-slate-200/60 dark:border-slate-800/50 bg-white dark:bg-slate-900/80 shadow-sm hover:shadow-xl ${colors.glow} hover:-translate-y-0.5 transition-all duration-300 ease-out flex flex-col justify-between`}>
+      <CardHeader className="pb-3 px-5 pt-5">
+        <div className="flex items-start justify-between">
+          <div className={`p-2 rounded-2xl border ${colors.iconBg} transition-transform duration-300 group-hover:scale-110`}>
+            <Icon className={`w-4 h-4 ${colors.icon}`} />
+          </div>
+          <ArrowUpRight className="w-4 h-4 text-slate-300 dark:text-slate-700 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+        </div>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mt-3">{label}</p>
+      </CardHeader>
+      <CardContent className="px-5 pb-5">
+        <div className={`text-3xl font-bold tabular-nums tracking-tight ${colors.value} leading-none`}>{value}</div>
+        {sub && <p className="text-xs text-slate-400 dark:text-slate-500 mt-1.5">{sub}</p>}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Chart Card ──────────────────────────────────────────────────────────────
+function ChartCard({ title, children, className = '' }: { title: string; children: React.ReactNode; className?: string }) {
+  return (
+    <Card className={`rounded-3xl border border-slate-200/60 dark:border-slate-800/50 bg-white dark:bg-slate-900/80 shadow-sm overflow-hidden hover:shadow-lg hover:shadow-slate-200/60 dark:hover:shadow-slate-900/40 transition-all duration-300 ${className}`}>
+      <CardHeader className="px-5 pt-5 pb-3 border-b border-slate-100 dark:border-slate-800/50">
+        <CardTitle className="text-sm font-semibold text-slate-700 dark:text-slate-200 tracking-tight">{title}</CardTitle>
+      </CardHeader>
+      {children}
+    </Card>
+  );
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
 export default function StrategicView({ data }: { data: any }) {
     if (!data) return null;
 
-    const { 
-        overallProfitMargin = 0, 
-        topCustomersByProfit = [], 
+    const {
+        overallProfitMargin = 0,
+        topCustomersByProfit = [],
         projectStats = { total: 0, completed: 0, percentage: 0 },
         jobStatusStats = [],
-        trends = { costs: [], revenue: [] } 
+        trends = { costs: [], revenue: [] }
     } = data || {};
 
-    // Combine revenue and cost for a unified trend chart
     const combinedTrendData = useMemo(() => {
         const costMap: any = {};
-        trends.costs.forEach((c: any) => costMap[c.date] = c.amount || Object.values(c).filter(v => typeof v === 'number').reduce((a:any, b:any) => a + b, 0));
-        
+        trends.costs.forEach((c: any) => costMap[c.date] = c.amount || Object.values(c).filter(v => typeof v === 'number').reduce((a: any, b: any) => a + b, 0));
         const allDates = Array.from(new Set([...trends.costs.map((c: any) => c.date), ...trends.revenue.map((r: any) => r.date)]));
-        
         return allDates.sort().map(date => {
             const revenue = trends.revenue.find((r: any) => r.date === date)?.amount || 0;
             const cost = costMap[date] || 0;
-            return {
-                date,
-                Gelir: revenue,
-                Maliyet: cost,
-                Kâr: revenue - cost
-            };
+            return { date, Gelir: revenue, Maliyet: cost, Kâr: revenue - cost };
         });
     }, [trends]);
 
+    const totalRevenue = (trends?.revenue || []).reduce((sum: number, r: any) => sum + (r.amount || 0), 0);
+
     return (
-        <div className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-4 items-center">
-                <Card className="bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-950/20 dark:to-slate-900 border-indigo-100 dark:border-indigo-900/50 shadow-sm h-full flex flex-col justify-center">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium text-slate-500 uppercase flex items-center gap-2">
-                            <TrendingUp className="w-4 h-4 text-indigo-500" />
-                            Genel Kâr Marjı
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-3xl font-bold text-indigo-600">%{overallProfitMargin?.toFixed(1) || '0.0'}</div>
-                        <p className="text-xs text-muted-foreground mt-1">Bütçe vs Gerçekleşen</p>
-                    </CardContent>
-                </Card>
+        <div className="space-y-6 animate-page-enter">
+            {/* ─── Header Stats Row ─── */}
+            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 stagger-children">
+                <StatCard
+                    icon={TrendingUp}
+                    label="Genel Kâr Marjı"
+                    value={`%${overallProfitMargin?.toFixed(1) || '0.0'}`}
+                    sub="Bütçe vs Gerçekleşen"
+                    accent="indigo"
+                />
+                <StatCard
+                    icon={DollarSign}
+                    label="Toplam Proje Değeri"
+                    value={`₺${totalRevenue.toLocaleString('tr-TR')}`}
+                    sub="Aktif dönem bütçesi"
+                    accent="emerald"
+                />
+                <StatCard
+                    icon={BarChart2}
+                    label="Toplam İş"
+                    value={projectStats.total}
+                    sub={`${projectStats.completed} tanesi tamamlandı`}
+                    accent="blue"
+                />
 
-                <Card className="bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-950/20 dark:to-slate-900 border-emerald-100 dark:border-emerald-900/50 shadow-sm h-full flex flex-col justify-center">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium text-slate-500 uppercase flex items-center gap-2">
-                            <DollarSign className="w-4 h-4 text-emerald-500" />
-                            Toplam Proje Değeri
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl lg:text-3xl font-bold text-emerald-600">
-                            ₺{(trends?.revenue || []).reduce((sum: number, r: any) => sum + (r.amount || 0), 0).toLocaleString()}
+                {/* Radial Progress Card */}
+                <Card className="group rounded-3xl border border-slate-200/60 dark:border-slate-800/50 bg-white dark:bg-slate-900/80 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-0.5 transition-all duration-300 ease-out flex flex-col items-center justify-center py-5 px-4 relative overflow-hidden">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-3 self-start">Bitirme Oranı</p>
+                    <div className="relative flex items-center justify-center group-hover:scale-105 transition-transform duration-500 ease-out">
+                        <svg className="transform -rotate-90 w-24 h-24 drop-shadow-sm">
+                            <circle cx="50%" cy="50%" r="36%" stroke="currentColor" strokeWidth="7" fill="transparent" className="text-slate-100 dark:text-slate-800" />
+                            <circle
+                                cx="50%" cy="50%" r="36%"
+                                stroke="currentColor" strokeWidth="7" fill="transparent"
+                                strokeDasharray="226"
+                                strokeDashoffset={226 - (projectStats.percentage / 100) * 226}
+                                strokeLinecap="round"
+                                className="text-indigo-500 dark:text-indigo-400"
+                                style={{ transition: 'stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1)' }}
+                            />
+                        </svg>
+                        <div className="absolute flex flex-col items-center">
+                            <span className="text-2xl font-bold tabular-nums text-slate-800 dark:text-slate-100">
+                                %{projectStats.percentage.toFixed(0)}
+                            </span>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-1">Aktif dönem bütçesi</p>
-                    </CardContent>
-                </Card>
-
-                <Card className="bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/20 dark:to-slate-900 border-blue-100 dark:border-blue-900/50 shadow-sm h-full flex flex-col justify-center">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium text-slate-500 uppercase flex items-center gap-2">
-                            <BarChart2 className="w-4 h-4 text-blue-500" />
-                            Ortalama İlerleme
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-3xl font-bold text-blue-600">{projectStats.total} İş</div>
-                        <p className="text-xs text-muted-foreground mt-1">{projectStats.completed} tanesi tamamlandı</p>
-                    </CardContent>
-                </Card>
-
-                {/* Yeni Kare, Yuvarlak Yüzdeli Kart */}
-                <Card className="aspect-square flex flex-col items-center justify-center relative bg-gradient-to-bl from-slate-50 to-white dark:from-slate-900 dark:to-slate-950 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden h-full">
-                    <CardHeader className="absolute top-2 sm:top-4 left-2 sm:left-4 p-0">
-                        <CardTitle className="text-xs sm:text-sm font-semibold text-slate-500 uppercase">Bitirme Oranı</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex items-center justify-center p-0 flex-1 w-full relative mt-4">
-                        <div className="relative flex items-center justify-center">
-                            <svg className="transform -rotate-90 w-24 h-24 sm:w-28 sm:h-28">
-                                <circle cx="50%" cy="50%" r="36%" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-100 dark:text-slate-800" />
-                                <circle 
-                                    cx="50%" 
-                                    cy="50%" 
-                                    r="36%" 
-                                    stroke="currentColor" 
-                                    strokeWidth="8" 
-                                    fill="transparent" 
-                                    strokeDasharray="226" 
-                                    strokeDashoffset={226 - (projectStats.percentage / 100) * 226} 
-                                    strokeLinecap="round" 
-                                    className="text-indigo-500 dark:text-indigo-400 drop-shadow-md" 
-                                    style={{ transition: 'stroke-dashoffset 1s ease-in-out' }}
-                                />
-                            </svg>
-                            <div className="absolute flex flex-col items-center justify-center">
-                                <span className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100">
-                                    %{projectStats.percentage.toFixed(0)}
-                                </span>
-                            </div>
-                        </div>
-                    </CardContent>
+                    </div>
                 </Card>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
-                <Card className="overflow-hidden">
-                    <CardHeader><CardTitle>Gelir & Maliyet Analizi</CardTitle></CardHeader>
-                    <CardContent className="h-[350px] p-0 pb-4">
+            {/* ─── Charts Row ─── */}
+            <div className="grid gap-5 md:grid-cols-2 stagger-children">
+                <ChartCard title="Gelir & Maliyet Analizi">
+                    <CardContent className="h-[320px] p-0 pb-4">
                         <CostTrendChart data={combinedTrendData} categories={['Gelir', 'Maliyet', 'Kâr']} />
                     </CardContent>
-                </Card>
+                </ChartCard>
 
-                <Card className="overflow-hidden">
-                    <CardHeader><CardTitle>Proje Durum Dağılımı</CardTitle></CardHeader>
-                    <CardContent className="h-[350px] p-0 pb-4">
+                <ChartCard title="Proje Durum Dağılımı">
+                    <CardContent className="h-[320px] p-0 pb-4">
                         <ProjectStatusChart data={jobStatusStats} />
                     </CardContent>
-                </Card>
+                </ChartCard>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-5 md:grid-cols-2">
                 <WorkloadCostChart data={{ costs: combinedTrendData }} />
                 <CompletionChart data={projectStats} />
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>En Kârlı Müşteriler</CardTitle>
+            {/* ─── Customer Table ─── */}
+            <Card className="rounded-3xl border border-slate-200/60 dark:border-slate-800/50 bg-white dark:bg-slate-900/80 shadow-sm overflow-hidden">
+                <CardHeader className="px-5 pt-5 pb-3 border-b border-slate-100 dark:border-slate-800/50 flex flex-row items-center justify-between">
+                    <CardTitle className="text-sm font-semibold text-slate-700 dark:text-slate-200">En Kârlı Müşteriler</CardTitle>
+                    <Badge className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-0 rounded-lg">
+                        {topCustomersByProfit.length} müşteri
+                    </Badge>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-0">
                     <Table>
                         <TableHeader>
-                            <TableRow>
-                                <TableHead>Müşteri</TableHead>
-                                <TableHead className="text-right">Toplam Bütçe</TableHead>
-                                <TableHead className="text-right">Net Kâr</TableHead>
-                                <TableHead className="text-center">Marj</TableHead>
+                            <TableRow className="hover:bg-transparent border-b border-slate-100 dark:border-slate-800/50">
+                                <TableHead className="px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Müşteri</TableHead>
+                                <TableHead className="px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Toplam Bütçe</TableHead>
+                                <TableHead className="px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Net Kâr</TableHead>
+                                <TableHead className="px-5 py-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">Marj</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {topCustomersByProfit.map((customer: any, idx: number) => (
-                                <TableRow key={idx}>
-                                    <TableCell className="font-medium">{customer.customer}</TableCell>
-                                    <TableCell className="text-right">₺{customer.budget.toLocaleString()}</TableCell>
-                                    <TableCell className="text-right text-emerald-600 font-bold">₺{customer.profit.toLocaleString()}</TableCell>
-                                    <TableCell className="text-center">
-                                        <Badge variant={customer.profitMargin > 20 ? "success" : "secondary"}>
+                                <TableRow key={idx} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/30 transition-colors duration-150 border-b border-slate-100/60 dark:border-slate-800/30 last:border-0">
+                                    <TableCell className="px-5 py-3.5 font-semibold text-slate-800 dark:text-slate-200 text-sm">{customer.customer}</TableCell>
+                                    <TableCell className="px-5 py-3.5 text-right text-sm text-slate-500 dark:text-slate-400 tabular-nums">₺{customer.budget.toLocaleString('tr-TR')}</TableCell>
+                                    <TableCell className="px-5 py-3.5 text-right font-bold tabular-nums text-emerald-600 dark:text-emerald-400 text-sm">₺{customer.profit.toLocaleString('tr-TR')}</TableCell>
+                                    <TableCell className="px-5 py-3.5 text-center">
+                                        <Badge className={`text-[11px] font-semibold rounded-full px-2.5 border-0 ${customer.profitMargin > 20 ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}>
                                             %{customer.profitMargin.toFixed(1)}
                                         </Badge>
                                     </TableCell>
@@ -172,5 +210,5 @@ export default function StrategicView({ data }: { data: any }) {
                 </CardContent>
             </Card>
         </div>
-    )
+    );
 }

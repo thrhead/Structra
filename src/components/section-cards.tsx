@@ -33,7 +33,7 @@ export function SectionCards({ stats }: SectionCardsProps) {
   }
 
   // Common premium card class with glassmorphism and micro-interactions
-  const premiumCardClass = "@container/card rounded-[2rem] border border-slate-200/60 dark:border-slate-800/60 bg-white/60 dark:bg-slate-900/60 backdrop-blur-2xl shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 ease-out flex flex-col overflow-hidden relative group"
+  const premiumCardClass = "@container/card rounded-3xl border border-slate-200/60 dark:border-slate-800/50 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-out flex flex-col overflow-hidden relative group"
   
   // Subtle glowing blobs inside the card
   const GlowBlob = ({ color }: { color: string }) => (
@@ -41,7 +41,7 @@ export function SectionCards({ stats }: SectionCardsProps) {
   )
 
   return (
-    <div className="grid grid-cols-1 gap-5 px-4 lg:px-6 xl:grid-cols-3 2xl:grid-cols-5 items-stretch relative z-10">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 items-stretch relative z-10">
       
       <Card className={`${premiumCardClass} hover:shadow-indigo-500/10 dark:hover:shadow-indigo-500/5`}>
         <GlowBlob color="bg-indigo-500" />
