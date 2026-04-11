@@ -53,23 +53,24 @@ export default async function UsersPage(props: {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-slate-100">Kullanıcılar</h1>
-          <p className="text-gray-500 dark:text-slate-400 mt-2">Sistemdeki tüm kullanıcıları buradan yönetebilirsiniz.</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Kullanıcı Yönetimi</p>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-0.5">Kullanıcılar</h1>
+          <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">Sistemdeki tüm kullanıcıları buradan yönetebilirsiniz.</p>
         </div>
         <UserDialog />
       </div>
 
-      <div className="bg-white dark:bg-slate-900 dark:border-slate-800 rounded-lg shadow">
-        <div className="p-4 border-b dark:border-slate-800">
+      <div className="rounded-3xl border border-slate-200/60 dark:border-slate-800/50 bg-white dark:bg-slate-900/80 shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-slate-100 dark:border-slate-800/50">
           <div className="relative max-w-sm">
-            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
             <form>
               <Input
                 name="search"
                 placeholder="İsim veya e-posta ara..."
-                className="pl-10"
+                className="pl-10 rounded-xl border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-indigo-500/20"
                 defaultValue={searchParams.search}
               />
             </form>
@@ -145,7 +146,7 @@ export default async function UsersPage(props: {
             ))}
             {users.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-gray-500 dark:text-slate-400">
+                <TableCell colSpan={7} className="text-center py-12 text-slate-400 dark:text-slate-500">
                   Kullanıcı bulunamadı.
                 </TableCell>
               </TableRow>

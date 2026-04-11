@@ -66,51 +66,60 @@ export default async function TeamsPage(props: {
   const membersMap = new Map(teamsWithMembers.map(t => [t.id, t.members.map(m => m.userId)]))
 
   return (
-    <div className="flex-1 space-y-4 p-8 pt-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Ekipler</h2>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Operasyon</p>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100 mt-0.5">Ekipler</h2>
+        </div>
         <TeamDialog users={users} />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-lg border p-4">
-          <div className="flex items-center gap-2">
-            <UsersIcon className="h-5 w-5 text-muted-foreground" />
-            <h3 className="text-sm font-medium">Toplam Ekip</h3>
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3 stagger-children">
+        <div className="group rounded-3xl border border-slate-200/60 dark:border-slate-800/50 bg-white dark:bg-slate-900/80 shadow-sm p-5 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="p-2 rounded-2xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/50 group-hover:scale-110 transition-transform duration-300">
+              <UsersIcon className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+            </div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">Toplam Ekip</p>
           </div>
-          <p className="mt-2 text-3xl font-bold">{stats.total}</p>
+          <p className="text-3xl font-bold tabular-nums text-slate-800 dark:text-slate-100">{stats.total}</p>
         </div>
-        <div className="rounded-lg border p-4">
-          <div className="flex items-center gap-2">
-            <BriefcaseIcon className="h-5 w-5 text-muted-foreground" />
-            <h3 className="text-sm font-medium">Aktif Ekip</h3>
+        <div className="group rounded-3xl border border-emerald-100/80 dark:border-emerald-900/30 bg-white dark:bg-slate-900/80 shadow-sm p-5 hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-0.5 transition-all duration-300">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="p-2 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/40 group-hover:scale-110 transition-transform duration-300">
+              <BriefcaseIcon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">Aktif Ekip</p>
           </div>
-          <p className="mt-2 text-3xl font-bold">{stats.active}</p>
+          <p className="text-3xl font-bold tabular-nums text-emerald-700 dark:text-emerald-300">{stats.active}</p>
         </div>
-        <div className="rounded-lg border p-4">
-          <div className="flex items-center gap-2">
-            <UsersIcon className="h-5 w-5 text-muted-foreground" />
-            <h3 className="text-sm font-medium">Toplam Üye</h3>
+        <div className="group rounded-3xl border border-indigo-100/80 dark:border-indigo-900/30 bg-white dark:bg-slate-900/80 shadow-sm p-5 hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-0.5 transition-all duration-300">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="p-2 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/40 group-hover:scale-110 transition-transform duration-300">
+              <UsersIcon className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500">Toplam Üye</p>
           </div>
-          <p className="mt-2 text-3xl font-bold">{stats.members}</p>
+          <p className="text-3xl font-bold tabular-nums text-indigo-700 dark:text-indigo-300">{stats.members}</p>
         </div>
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="relative flex-1">
-          <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <div className="relative flex-1 max-w-sm">
+          <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <form>
              <Input
                 name="search"
                 placeholder="Ekip ara..."
                 defaultValue={searchParams.search}
-                className="pl-9"
+                className="pl-9 rounded-xl border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-indigo-500/20"
             />
           </form>
         </div>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-3xl border border-slate-200/60 dark:border-slate-800/50 bg-white dark:bg-slate-900/80 shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>

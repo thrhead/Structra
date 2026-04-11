@@ -1,9 +1,12 @@
 'use client'
 
 import React from 'react'
+import dynamic from 'next/dynamic'
 import { SectionCards } from "@/components/section-cards"
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
 import { DataTable } from "@/components/data-table"
+
+const DashboardMiniCharts = dynamic(() => import('@/components/admin/DashboardMiniCharts'), { ssr: false })
 
 interface AdminDashboardClientProps {
   data?: any
@@ -19,24 +22,23 @@ export default function AdminDashboardClient({
   topCustomers: directTopCustomers 
 }: AdminDashboardClientProps) {
   
-  // Mapping real data from getAdminDashboardData() to the dashboard-01 block structure
+  // Map real data from getAdminDashboardData() to the dashboard block structure
   const stats = directStats || {
-    totalCustomers: data?.latestCustomers?.length || 0,
-    activeTeams: data?.activeTeams || 0,
-    pendingJobs: data?.activeJobs || 0,
-    completedJobs: data?.completedJobsToday || 0,
-    growthRate: '+12%', // Mock growth for visual polish
-    completionRate: data?.completedJobsToday > 0 ? '94%' : '0%'
+    totalCustomers: data?.totalCustomers ?? 0,          // Real DB count (active customers)
+    activeTeams: data?.activeTeams ?? 0,
+    pendingJobs: data?.pendingOnlyJobs ?? 0,            // Only PENDING status (not IN_PROGRESS)
+    completedJobs: data?.totalCompletedJobs ?? 0,       // All-time completed jobs
+    growthRate: '+12%',
+    completionRate: `${data?.completionRate ?? 0}%`     // Real completion rate from server
   }
 
   const pulseData = directPulseData || data?.strategicTrend || []
-  
-  // Map latestCustomers to match CustomerData interface in DataTable
+
   const topCustomers = directTopCustomers || (data?.latestCustomers || []).map((c: any) => ({
     name: c.company || "İsimsiz Müşteri",
     email: c.email || "e-posta yok",
-    totalSpent: 0, // In a real app, this would be fetched from invoices
-    jobCount: 0    // In a real app, this would be computed
+    totalSpent: 0,
+    jobCount: 0
   }))
 
   return (
@@ -49,7 +51,7 @@ export default function AdminDashboardClient({
         <SectionCards stats={stats} />
       </section>
 
-      {/* 2. Interactive Chart */}
+      {/* 2. Strategic Analysis Chart */}
       <section className="space-y-3">
         <div className="px-0.5">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Performans Trendi</p>
@@ -59,7 +61,23 @@ export default function AdminDashboardClient({
         </div>
       </section>
 
-      {/* 3. Data Table */}
+      {/* 3. Mini Charts — weekly steps + job status donut + KPI strip */}
+      <section className="space-y-3">
+        <div className="px-0.5">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Operasyonel Metrikler</p>
+        </div>
+        <DashboardMiniCharts
+          weeklyStats={data?.weeklyStats || []}
+          totalJobs={data?.totalJobs || 0}
+          activeJobs={data?.activeJobs || 0}
+          pendingOnlyJobs={data?.pendingOnlyJobs || 0}
+          totalCompletedJobs={data?.totalCompletedJobs || 0}
+          completedJobsToday={data?.completedJobsToday || 0}
+          pendingApprovalsCount={data?.pendingApprovalsCount || 0}
+        />
+      </section>
+
+      {/* 4. Data Table */}
       <section className="space-y-3">
         <div className="px-0.5 flex items-baseline gap-3">
           <div>
@@ -74,4 +92,5 @@ export default function AdminDashboardClient({
     </div>
   )
 }
+
 

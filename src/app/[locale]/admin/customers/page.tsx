@@ -34,23 +34,24 @@ export default async function CustomersPage(props: {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-slate-100">Müşteriler</h1>
-          <p className="text-gray-500 dark:text-slate-400 mt-2">Müşteri firmaları ve yetkili kişileri yönetin.</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Kullanıcı Yönetimi</p>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-0.5">Müşteriler</h1>
+          <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">Müşteri firmaları ve yetkili kişileri yönetin.</p>
         </div>
         <CustomerDialog />
       </div>
 
-      <div className="bg-white dark:bg-slate-900 dark:border-slate-800 rounded-lg shadow">
-        <div className="p-4 border-b dark:border-slate-800">
+      <div className="rounded-3xl border border-slate-200/60 dark:border-slate-800/50 bg-white dark:bg-slate-900/80 shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-slate-100 dark:border-slate-800/50">
           <div className="relative max-w-sm">
-            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
             <form>
               <Input
                 name="search"
                 placeholder="Firma, isim veya e-posta ara..."
-                className="pl-10"
+                className="pl-10 rounded-xl border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-indigo-500/20"
                 defaultValue={searchParams.search}
               />
             </form>
@@ -74,11 +75,11 @@ export default async function CustomersPage(props: {
               <TableRow key={customer.id}>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <div className="p-2 bg-indigo-50 rounded text-indigo-600">
+                    <div className="p-2 bg-indigo-50 dark:bg-indigo-950/30 rounded-xl text-indigo-600 dark:text-indigo-400">
                       <Building2Icon className="h-4 w-4" />
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-slate-100">{customer.company}</p>
+                      <p className="font-medium text-slate-800 dark:text-slate-100">{customer.company}</p>
                       {customer.taxId && (
                         <p className="text-xs text-gray-500 dark:text-slate-400">VN: {customer.taxId}</p>
                       )}
@@ -131,7 +132,7 @@ export default async function CustomersPage(props: {
             ))}
             {customers.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-gray-500 dark:text-slate-400">
+                <TableCell colSpan={6} className="text-center py-12 text-slate-400 dark:text-slate-500">
                   Müşteri bulunamadı.
                 </TableCell>
               </TableRow>

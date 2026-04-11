@@ -126,10 +126,11 @@ export default async function JobsPage(props: {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-slate-100">İşler</h1>
-          <p className="text-gray-500 dark:text-slate-400 mt-2">Montaj ve servis işlerini yönetin.</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Operasyon</p>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-0.5">İşler</h1>
+          <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">Montaj ve servis işlerini yönetin.</p>
         </div>
         <div className="flex items-center gap-2">
           <AdvancedFilter
@@ -144,10 +145,10 @@ export default async function JobsPage(props: {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 dark:border-slate-800 rounded-lg shadow">
+      <div className="rounded-3xl border border-slate-200/60 dark:border-slate-800/50 bg-white dark:bg-slate-900/80 shadow-sm overflow-hidden">
         {/* Active Filters Summary */}
         {(searchParams.status || searchParams.teams || searchParams.search || searchParams.jobNo || searchParams.from) && (
-          <div className="px-6 py-3 border-b dark:border-slate-800 bg-slate-50/50 flex flex-wrap gap-2 items-center">
+          <div className="px-5 py-3 border-b border-slate-100 dark:border-slate-800/50 bg-slate-50/50 dark:bg-slate-900/50 flex flex-wrap gap-2 items-center">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mr-1">Aktif Filtreler:</span>
             {searchParams.search && (
               <Badge variant="secondary" className="gap-1 bg-white dark:bg-slate-900 dark:border-slate-800 border-slate-200">
@@ -184,14 +185,14 @@ export default async function JobsPage(props: {
           </div>
         )}
 
-        <div className="p-4 border-b dark:border-slate-800">
+        <div className="p-4 border-b border-slate-100 dark:border-slate-800/50">
           <div className="relative max-w-sm">
-            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
             <form>
               <Input
                 name="search"
                 placeholder="İş, müşteri veya firma ara..."
-                className="pl-10"
+                className="pl-10 rounded-xl border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-indigo-500/20"
                 defaultValue={searchParams.search}
               />
             </form>
@@ -199,11 +200,11 @@ export default async function JobsPage(props: {
         </div>
 
         <Tabs defaultValue="list" className="w-full">
-          <div className="px-4 py-2 border-b dark:border-slate-800 bg-slate-50 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-slate-700">Görünüm Seçenekleri</h2>
-            <TabsList className="grid w-[300px] grid-cols-2">
-              <TabsTrigger value="list">Liste Görünümü</TabsTrigger>
-              <TabsTrigger value="tree">Ağaç Görünümü</TabsTrigger>
+          <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800/50 bg-slate-50/30 dark:bg-slate-900/30 flex items-center justify-between">
+            <h2 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Görünüm</h2>
+            <TabsList className="grid w-[260px] grid-cols-2 h-8 rounded-xl bg-slate-100 dark:bg-slate-800/60 p-0.5">
+              <TabsTrigger value="list" className="rounded-lg text-xs">Liste</TabsTrigger>
+              <TabsTrigger value="tree" className="rounded-lg text-xs">Ağaç</TabsTrigger>
             </TabsList>
           </div>
 
@@ -241,7 +242,7 @@ export default async function JobsPage(props: {
                     <TableRow key={job.id}>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <div className="p-2 bg-orange-50 rounded text-orange-600">
+                          <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded-xl text-orange-600 dark:text-orange-400">
                             <BriefcaseIcon className="h-4 w-4" />
                           </div>
                           <div>
@@ -253,7 +254,7 @@ export default async function JobsPage(props: {
                                 #{job.id.slice(-6).toUpperCase()}
                               </div>
                             </div>
-                            <Link href={`/admin/jobs/${job.id}`} className="font-medium text-gray-900 dark:text-slate-100 hover:underline hover:text-blue-600 block leading-tight">
+                            <Link href={`/admin/jobs/${job.id}`} className="font-medium text-slate-800 dark:text-slate-100 hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline block leading-tight transition-colors">
                               {job.title}
                             </Link>
                             {job.location && (
@@ -308,9 +309,9 @@ export default async function JobsPage(props: {
                             <span className="text-gray-500 dark:text-slate-400">{completedSteps}/{totalSteps} Adım</span>
                             <span className="font-medium text-gray-700">%{progress}</span>
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                          <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
                             <div
-                              className="bg-blue-600 h-1.5 rounded-full transition-all duration-500"
+                              className="bg-indigo-500 dark:bg-indigo-400 h-1.5 rounded-full transition-all duration-500"
                               style={{ width: `${progress}%` }}
                             ></div>
                           </div>
@@ -355,7 +356,7 @@ export default async function JobsPage(props: {
                             templates={mappedTemplates}
                             job={job}
                             trigger={
-                              <button className="inline-flex items-center justify-center p-2 text-gray-400 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors">
+                              <button className="inline-flex items-center justify-center p-2 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
                                 <EditIcon className="h-4 w-4" />
                               </button>
                             }
@@ -368,7 +369,7 @@ export default async function JobsPage(props: {
                 })}
                 {jobs.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8 text-gray-500 dark:text-slate-400">
+                    <TableCell colSpan={9} className="text-center py-12 text-slate-400 dark:text-slate-500">
                       Kayıtlı iş bulunamadı.
                     </TableCell>
                   </TableRow>

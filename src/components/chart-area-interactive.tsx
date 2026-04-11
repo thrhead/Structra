@@ -51,45 +51,40 @@ export function ChartAreaInteractive({ data = [] }: ChartAreaInteractiveProps) {
   const isMobile = useIsMobile()
   const [timeRange, setTimeRange] = React.useState("90d")
 
-  // Map the raw data to the format expected by the chart
+  // Map the raw data to the format expected by the chart.
+  // strategicTrend returns { name, intensity, cost } — we normalize 'name' → 'date'
   const formattedData = React.useMemo(() => {
-    // Fallback mock data if the incoming data is empty
-    const sourceData = data && data.length > 0 ? data : [
-      { date: "2024-01-01", intensity: 120, cost: 45000 },
-      { date: "2024-01-15", intensity: 135, cost: 48000 },
-      { date: "2024-02-01", intensity: 110, cost: 42000 },
-      { date: "2024-02-15", intensity: 150, cost: 52000 },
-      { date: "2024-03-01", intensity: 165, cost: 58000 },
-      { date: "2024-03-15", intensity: 180, cost: 63000 },
-      { date: "2024-04-01", intensity: 155, cost: 56000 },
-      { date: "2024-04-15", intensity: 190, cost: 68000 },
-      { date: "2024-05-01", intensity: 210, cost: 75000 },
-      { date: "2024-05-15", intensity: 230, cost: 82000 },
-      { date: "2024-06-01", intensity: 215, cost: 79000 },
-      { date: "2024-06-15", intensity: 250, cost: 89000 }
-    ];
+    const now = new Date()
+    const generateFallback = () =>
+      Array.from({ length: 90 }).map((_, i) => {
+        const d = new Date(now)
+        d.setDate(now.getDate() - (89 - i))
+        return {
+          date: d.toISOString().split('T')[0],
+          intensity: Math.floor(Math.random() * 8) + 2,
+          cost: Math.floor(Math.random() * 3000) + 500
+        }
+      })
 
-    return sourceData.map(item => ({
-      date: item.date,
-      intensity: item.intensity,
-      cost: item.cost / 1000 // Show in thousands for better scale
+    const sourceData = data && data.length > 0 ? data : generateFallback()
+
+    return sourceData.map((item: any) => ({
+      // 'name' comes from strategicTrend; 'date' from older formats
+      date: item.date ?? item.name ?? new Date().toISOString().split('T')[0],
+      intensity: item.intensity ?? 0,
+      cost: (item.cost ?? 0) / 1000 // Show in thousands for better scale
     }))
   }, [data])
 
   const filteredData = React.useMemo(() => {
-    return formattedData.filter((item) => {
-      const date = new Date(item.date)
-      // Since our mock data might not be current, we'll take the last item's date as reference
-      const lastDate = formattedData.length > 0 ? new Date(formattedData[formattedData.length - 1].date) : new Date()
-      
-      let daysToSubtract = 90
-      if (timeRange === "30d") daysToSubtract = 30
-      if (timeRange === "7d") daysToSubtract = 7
-      
-      const startDate = new Date(lastDate)
-      startDate.setDate(startDate.getDate() - daysToSubtract)
-      return date >= startDate
-    })
+    if (formattedData.length === 0) return []
+    // Use last entry's date as reference anchor (handles historical/mock data)
+    const lastDate = new Date(formattedData[formattedData.length - 1].date)
+    const daysMap: Record<string, number> = { "90d": 90, "30d": 30, "7d": 7 }
+    const daysToSubtract = daysMap[timeRange] ?? 90
+    const startDate = new Date(lastDate)
+    startDate.setDate(startDate.getDate() - daysToSubtract)
+    return formattedData.filter(item => new Date(item.date) >= startDate)
   }, [formattedData, timeRange])
 
   return (

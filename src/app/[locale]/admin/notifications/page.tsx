@@ -94,16 +94,18 @@ export default function AdminNotificationsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <Bell className="h-6 w-6" />
-                    <h1 className="text-2xl font-bold">Bildirimler</h1>
-                    {unreadCount > 0 && (
-                        <Badge variant="destructive">{unreadCount} Okunmamış</Badge>
-                    )}
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Sistem</p>
+                    <div className="flex items-center gap-3 mt-0.5">
+                        <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Bildirimler</h1>
+                        {unreadCount > 0 && (
+                            <Badge variant="destructive" className="rounded-full text-[11px]">{unreadCount} Okunmamış</Badge>
+                        )}
+                    </div>
                 </div>
                 {unreadCount > 0 && (
-                    <Button variant="outline" onClick={markAllAsRead}>
+                    <Button variant="outline" onClick={markAllAsRead} className="rounded-xl">
                         <CheckCheck className="h-4 w-4 mr-2" />
                         Tümünü Okundu İşaretle
                     </Button>
@@ -111,10 +113,10 @@ export default function AdminNotificationsPage() {
             </div>
 
             {notifications.length === 0 ? (
-                <Card>
-                    <CardContent className="flex flex-col items-center justify-center py-12">
-                        <Bell className="h-12 w-12 text-gray-300 mb-4" />
-                        <p className="text-gray-500">Henüz bildirim yok</p>
+                <Card className="rounded-3xl border border-slate-200/60 dark:border-slate-800/50 bg-white dark:bg-slate-900/80 shadow-sm">
+                    <CardContent className="flex flex-col items-center justify-center py-16">
+                        <Bell className="h-12 w-12 text-slate-200 dark:text-slate-700 mb-4" />
+                        <p className="text-slate-400 dark:text-slate-500">Henüz bildirim yok</p>
                     </CardContent>
                 </Card>
             ) : (
@@ -122,7 +124,7 @@ export default function AdminNotificationsPage() {
                     {notifications.map(notification => (
                         <Card
                             key={notification.id}
-                            className={`transition-all ${!notification.isRead ? 'border-l-4 border-l-blue-500 bg-blue-50/30' : ''}`}
+                            className={`rounded-3xl border border-slate-200/60 dark:border-slate-800/50 bg-white dark:bg-slate-900/80 shadow-sm hover:shadow-lg transition-all duration-200 ${!notification.isRead ? 'border-l-4 border-l-indigo-500 bg-indigo-50/20 dark:bg-indigo-950/10' : ''}`}
                         >
                             <CardContent className="py-4">
                                 <div className="flex items-start justify-between">
@@ -134,8 +136,8 @@ export default function AdminNotificationsPage() {
                                                 <span className="w-2 h-2 rounded-full bg-blue-500"></span>
                                             )}
                                         </div>
-                                        <p className="text-sm text-gray-600 mb-2">{notification.message}</p>
-                                        <p className="text-xs text-gray-400">
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">{notification.message}</p>
+                                        <p className="text-xs text-slate-400 dark:text-slate-500">
                                             {format(new Date(notification.createdAt), 'd MMMM yyyy, HH:mm', { locale: tr })}
                                         </p>
                                     </div>

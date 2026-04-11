@@ -23,9 +23,12 @@ export async function getAdminDashboardData() {
       activeJobsBudgetAgg,
       totalJobs,
       activeJobs,
+      pendingOnlyJobs,
+      totalCompletedJobs,
       completedJobsToday,
       totalWorkers,
       activeTeams,
+      totalCustomers,
       latestLogs,
       pendingApprovals,
       latestCustomers,
@@ -100,12 +103,22 @@ export async function getAdminDashboardData() {
       // 7: totalJobs
       prisma.job.count().catch(e => { console.error("totalJobs fetch failed", e); return 0; }),
 
-      // 8: activeJobs
+      // 8: activeJobs (PENDING + IN_PROGRESS)
       prisma.job.count({ 
         where: { status: { in: ['PENDING', 'IN_PROGRESS'] } } 
       }).catch(e => { console.error("activeJobs fetch failed", e); return 0; }),
 
-      // 9: completedJobsToday
+      // 9: pendingOnlyJobs (only PENDING — for "Bekleyen İşler" card)
+      prisma.job.count({
+        where: { status: 'PENDING' }
+      }).catch(e => { console.error("pendingOnlyJobs fetch failed", e); return 0; }),
+
+      // 10: totalCompletedJobs (all-time, for completion rate)
+      prisma.job.count({
+        where: { status: 'COMPLETED' }
+      }).catch(e => { console.error("totalCompletedJobs fetch failed", e); return 0; }),
+
+      // 11: completedJobsToday
       prisma.job.count({ 
         where: { 
           status: 'COMPLETED', 
@@ -113,7 +126,7 @@ export async function getAdminDashboardData() {
         } 
       }).catch(e => { console.error("completedJobsToday fetch failed", e); return 0; }),
 
-      // 10: totalWorkers
+      // 12: totalWorkers
       prisma.user.count({ 
         where: { 
           role: { in: ['WORKER', 'MANAGER'] },
@@ -121,12 +134,17 @@ export async function getAdminDashboardData() {
         } 
       }).catch(e => { console.error("totalWorkers fetch failed", e); return 0; }),
 
-      // 11: activeTeams
+      // 13: activeTeams
       prisma.team.count({ 
         where: { isActive: true } 
       }).catch(e => { console.error("activeTeams fetch failed", e); return 0; }),
 
-      // 12: latestLogs
+      // 14: totalCustomers (real count, not just last 5)
+      prisma.customer.count({
+        where: { isActive: true }
+      }).catch(e => { console.error("totalCustomers fetch failed", e); return 0; }),
+
+      // 15: latestLogs
       prisma.systemLog.findMany({
         take: 5,
         orderBy: { createdAt: 'desc' },
@@ -188,6 +206,7 @@ export async function getAdminDashboardData() {
           ])
 
           return {
+            date: d.toISOString().split('T')[0],
             name: d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }),
             intensity: jobCount || 0,
             cost: Number(costData._sum.amount || 0)
@@ -217,6 +236,11 @@ export async function getAdminDashboardData() {
       }
     })
 
+    // Compute accurate completion rate from all-time data
+    const completionRate = totalJobs > 0
+      ? Math.round((totalCompletedJobs / totalJobs) * 100)
+      : 0
+
     const result = {
       activeWorkersCount,
       totalCostToday,
@@ -227,7 +251,11 @@ export async function getAdminDashboardData() {
       weeklyStats,
       totalJobs,
       activeJobs,
+      pendingOnlyJobs,
+      totalCompletedJobs,
       completedJobsToday,
+      completionRate,
+      totalCustomers,
       totalWorkers,
       activeTeams,
       latestLogs,
@@ -243,8 +271,11 @@ export async function getAdminDashboardData() {
     console.log("DASHBOARD DEBUG: Fetch successful", {
       jobs: totalJobs,
       active: activeJobs,
+      pending: pendingOnlyJobs,
+      completed: totalCompletedJobs,
+      completionRate,
       workers: totalWorkers,
-      customers: latestCustomers.length,
+      customers: totalCustomers,
       trendPoints: strategicTrendResult.length
     });
 
@@ -261,7 +292,11 @@ export async function getAdminDashboardData() {
       weeklyStats: [],
       totalJobs: 0,
       activeJobs: 0,
+      pendingOnlyJobs: 0,
+      totalCompletedJobs: 0,
       completedJobsToday: 0,
+      completionRate: 0,
+      totalCustomers: 0,
       totalWorkers: 0,
       activeTeams: 0,
       latestLogs: [],
