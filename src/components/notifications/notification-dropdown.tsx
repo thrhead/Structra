@@ -110,15 +110,15 @@ export function NotificationDropdown() {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative z-50 cursor-pointer">
-          <BellIcon className="h-5 w-5" />
+      <PopoverTrigger className="relative z-50 cursor-pointer p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+        <div className="relative flex items-center justify-center">
+          <BellIcon className="h-5 w-5 text-slate-700 dark:text-slate-300" />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
+            <span className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center font-bold shadow-sm">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
-        </Button>
+        </div>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-0 overflow-hidden shadow-2xl rounded-2xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
         <div className="flex items-center justify-between p-3 border-b border-slate-100 dark:border-slate-800">
