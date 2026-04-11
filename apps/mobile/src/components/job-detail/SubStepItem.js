@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import GlassCard from '../ui/GlassCard';
 
 const SubStepItem = ({ 
     substep, 
@@ -36,18 +35,22 @@ const SubStepItem = ({
     };
 
     return (
-        <GlassCard style={[styles.substepWrapper, isSubstepLocked && styles.lockedCard]} theme={theme}>
+        <View style={[
+            styles.substepWrapper, 
+            { backgroundColor: theme.colors.surface || '#F9FAFB', borderColor: theme.colors.border || '#E5E7EB' },
+            isSubstepLocked && styles.lockedCard
+        ]}>
             <View style={styles.substepRow}>
                 <TouchableOpacity
                     style={[
                         styles.checkbox, 
                         { borderColor: theme.colors.primary },
-                        isCompleted && { backgroundColor: theme.colors.primary }
+                        isCompleted && { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary }
                     ]}
                     onPress={() => handleSubstepToggle(step.id, substep.id, isCompleted)}
                     disabled={isSubstepLocked || isAdmin}
                 >
-                    {isCompleted && <MaterialIcons name="check" size={14} color="#FFFFFF" />}
+                    {isCompleted && <MaterialIcons name="check" size={12} color="#FFFFFF" />}
                 </TouchableOpacity>
 
                 <View style={styles.substepInfo}>
@@ -62,21 +65,23 @@ const SubStepItem = ({
                         
                         <View style={styles.actionRow}>
                             {isCompleted && (
-                                <View style={[styles.badge, { backgroundColor: getStatusColor() }]}>
-                                    <Text style={styles.badgeText}>{getStatusText()}</Text>
+                                <View style={[styles.badge, { backgroundColor: getStatusColor() + '15' }]}>
+                                    <Text style={[styles.badgeText, { color: getStatusColor() }]}>{getStatusText()}</Text>
                                 </View>
-                            )}
-
-                            {!isSubstepLocked && !isCompleted && !isAdmin && (
-                                <TouchableOpacity
-                                    onPress={() => pickImage(step.id, substep.id, 'camera')}
-                                    style={[styles.photoButton, { backgroundColor: theme.colors.primary + '15' }]}
-                                >
-                                    <MaterialIcons name="add-a-photo" size={18} color={theme.colors.primary} />
-                                </TouchableOpacity>
                             )}
                         </View>
                     </View>
+
+                    {/* Camera Action Row - More user friendly */}
+                    {!isSubstepLocked && !isCompleted && !isAdmin && (
+                        <TouchableOpacity
+                            onPress={() => pickImage(step.id, substep.id, 'camera')}
+                            style={[styles.addPhotoButton, { backgroundColor: theme.colors.primary + '10' }]}
+                        >
+                            <MaterialIcons name="add-a-photo" size={18} color={theme.colors.primary} />
+                            <Text style={[styles.addPhotoText, { color: theme.colors.primary }]}>Fotoğraf Çek</Text>
+                        </TouchableOpacity>
+                    )}
 
                     {substep.photos && substep.photos.length > 0 && (
                         <View style={styles.photoContainer}>
@@ -91,9 +96,10 @@ const SubStepItem = ({
                     )}
 
                     {substep.approvalStatus === 'REJECTED' && substep.rejectionReason && (
-                        <View style={[styles.rejectionContainer, { backgroundColor: theme.colors.error + '10' }]}>
+                        <View style={[styles.rejectionContainer, { backgroundColor: theme.colors.error + '10', borderColor: theme.colors.error + '30' }]}>
+                            <MaterialIcons name="error-outline" size={14} color={theme.colors.error} style={{ marginTop: 1 }} />
                             <Text style={[styles.rejectionReasonText, { color: theme.colors.error }]}>
-                                {t('worker.rejectionReason')}: {substep.rejectionReason}
+                                {substep.rejectionReason}
                             </Text>
                         </View>
                     )}
@@ -102,28 +108,28 @@ const SubStepItem = ({
                     {isManager && isCompleted && substep.approvalStatus === 'PENDING' && (
                         <View style={styles.managerActionRow}>
                             <TouchableOpacity
-                                style={[styles.managerButton, { backgroundColor: theme.colors.error }]}
+                                style={[styles.managerButton, { backgroundColor: theme.colors.error + '15' }]}
                                 onPress={() => {
                                     setSelectedSubstepId(substep.id);
                                     setRejectionType('SUBSTEP');
                                     setRejectionModalVisible(true);
                                 }}
                             >
-                                <MaterialIcons name="close" size={14} color="#fff" />
-                                <Text style={styles.managerButtonText}>Reddet</Text>
+                                <MaterialIcons name="close" size={16} color={theme.colors.error} />
+                                <Text style={[styles.managerButtonText, { color: theme.colors.error }]}>Reddet</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 style={[styles.managerButton, { backgroundColor: theme.colors.success }]}
                                 onPress={() => handleApproveSubstep(substep.id)}
                             >
-                                <MaterialIcons name="check" size={14} color="#fff" />
-                                <Text style={styles.managerButtonText}>Onayla</Text>
+                                <MaterialIcons name="check" size={16} color="#fff" />
+                                <Text style={[styles.managerButtonText, { color: '#fff' }]}>Onayla</Text>
                             </TouchableOpacity>
                         </View>
                     )}
                 </View>
             </View>
-        </GlassCard>
+        </View>
     );
 };
 
@@ -132,6 +138,7 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         borderRadius: 12,
         padding: 12,
+        borderWidth: 1,
     },
     lockedCard: {
         opacity: 0.5,
@@ -143,12 +150,12 @@ const styles = StyleSheet.create({
     checkbox: {
         width: 20,
         height: 20,
-        borderRadius: 6,
+        borderRadius: 10,
         borderWidth: 2,
-        marginRight: 10,
+        marginRight: 12,
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 2,
+        marginTop: 0,
     },
     substepInfo: {
         flex: 1,
@@ -157,64 +164,78 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+        marginBottom: 6,
     },
     substepTitle: {
         fontSize: 14,
-        fontWeight: '500',
+        fontWeight: '600',
         flex: 1,
     },
     completedText: {
-        textDecorationLine: 'none',
+        opacity: 0.6,
     },
     actionRow: {
         flexDirection: 'row',
         alignItems: 'center',
     },
     badge: {
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        borderRadius: 4,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 6,
         marginLeft: 8,
     },
     badgeText: {
-        color: '#FFFFFF',
-        fontSize: 9,
+        fontSize: 10,
         fontWeight: 'bold',
     },
-    photoButton: {
-        padding: 6,
+    addPhotoButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+        paddingHorizontal: 12,
+        paddingVertical: 8,
         borderRadius: 8,
-        marginLeft: 8,
+        marginTop: 6,
+        gap: 6,
+    },
+    addPhotoText: {
+        fontSize: 13,
+        fontWeight: '600',
     },
     photoContainer: {
-        marginTop: 8,
+        marginTop: 10,
     },
     rejectionContainer: {
-        marginTop: 8,
-        padding: 8,
-        borderRadius: 6,
+        marginTop: 10,
+        padding: 10,
+        borderRadius: 8,
+        borderWidth: 1,
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        gap: 6,
     },
     rejectionReasonText: {
         fontSize: 12,
         fontWeight: '500',
+        flex: 1,
+        lineHeight: 16,
     },
     managerActionRow: {
         flexDirection: 'row',
         gap: 8,
-        marginTop: 10,
+        marginTop: 12,
     },
     managerButton: {
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 6,
-        borderRadius: 6,
-        gap: 4,
+        paddingVertical: 10,
+        borderRadius: 8,
+        gap: 6,
     },
     managerButtonText: {
-        color: '#fff',
-        fontSize: 11,
+        fontSize: 13,
         fontWeight: 'bold',
     },
 });

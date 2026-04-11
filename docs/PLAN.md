@@ -1,44 +1,37 @@
-# 📋 STRUCTRA - Dashboard 2 Implementation Plan
+# 📋 STRUCTRA - Mobile Worker Job Steps Modernization Plan
 
 ## 1. Genel Bakış
-Structra saha operasyonları uygulaması için çevrimdışı öncelikli (offline-first), endüstriyel tasarıma sahip yeni bir Dashboard (Tema 2) ekranı geliştirilecektir. İşlem, Orchestration (Çoklu-Ajan) iş akışına uygun olarak yürütülecektir.
+Saha çalışanlarının mobil uygulamadaki "İş Detayı" ekranında gördüğü İş Emirleri (Steps) ve Alt İş Emirleri (SubSteps) yapısı daha modern, basit ve kullanıcı dostu (user-friendly) hale getirilecektir. Çoklu-Ajan (Orchestration) iş akışı takip edilecektir.
 
-## 2. Teknoloji Yığını
-- **Core:** Expo SDK 51, React Native (0.74+), TypeScript
-- **State & Storage:** Zustand, AsyncStorage
-- **Network:** @react-native-community/netinfo
-- **UI & Animations:** react-native-reanimated, react-native-svg
+## 2. Etkilenecek Dosyalar
+- `apps/mobile/src/components/job-detail/StepItem.js`
+- `apps/mobile/src/components/job-detail/SubStepItem.js`
 
-## 3. Mimari ve Klasör Yapısı
-```text
-/src
- ├── /components
- │    ├── /ui             (Card, Button, Badge)
- │    └── /dashboard      (KPICards, AnalyticsChart, QuickActions, RecentJobsList, SyncStatus)
- ├── /screens
- │    └── Dashboard2Screen.tsx
- ├── /services
- │    └── store.ts        (Zustand store, Queue yönetimi, Mock Data)
- └── /offline
-      └── SyncManager.ts  (Network dinleyici, Queue işleyici)
-```
+## 3. Tasarım ve UX Kararları
+1. **Görsel Sadeleştirme (Minimalizm):**
+   - Karmaşık kenarlıklar ve ağır "GlassCard" görünümleri yerine, daha modern, düz (flat) veya çok hafif gölgeli (soft shadow) kart yapıları kullanılacak.
+   - İç içe geçmiş kutu görünümü azaltılarak daha akıcı bir okuma hiyerarşisi sağlanacak.
+2. **Tipografi ve Hiyerarşi:**
+   - Adım numaraları (Step No) daha belirgin ve şık bir yuvarlak rozet (badge) veya vurgulu metin içine alınacak.
+   - Tamamlanan işlerin üstü çizilmesi yerine daha zarif bir grileşme (opacity) veya yeşil tık vurgusu ile gösterilecek.
+3. **Etkileşim (Touch & Feel):**
+   - Onay kutuları (Checkbox) daha büyük, dokunmatik dostu ve yuvarlak hatlı olacak.
+   - "Fotoğraf Ekle" butonu daha belirgin ve modern bir ikon+metin düğmesi şeklinde tasarlanacak.
+   - Yönetici onay/red butonları daha kibar ve modern olacak.
+4. **Alt Adımlar (Substeps) Yerleşimi:**
+   - Alt adımlar, ana adıma sol taraftan dikey bir çizgi (timeline/stepper görünümü) ile bağlanarak görsel olarak ilişkilendirilecek.
 
 ## 4. Uygulama Aşamaları (Faz 2 - Paralel İşlem)
 
-### Ajan 1: `backend-specialist` (Veri ve Çevrimdışı Altyapı)
-- `src/services/store.ts`: Zustand state yönetimi, AsyncStorage ile çevrimdışı işlem kuyruğu (offline queue).
-- `src/offline/SyncManager.ts`: NetInfo ile internet bağlantısı kontrolü ve arka planda kuyruk işleme mantığı.
+### Ajan 1: `frontend-specialist` (Arayüz ve Tasarım)
+- `StepItem.js` ve `SubStepItem.js` dosyalarını yeni tasarım diliyle baştan kodlayacak.
+- CSS/StyleSheet kurallarını sadeleştirecek ve mobil uyumlu, geniş dokunmatik alanlara sahip (touch-friendly) hale getirecek.
 
-### Ajan 2: `frontend-specialist` (Kullanıcı Arayüzü ve Ekran)
-- `src/components/ui/*`: Reusable endüstriyel UI bileşenleri (Card, Button, Badge).
-- `src/components/dashboard/*`: KPI kartları, SVG bazlı basit analitik grafiği, Hızlı İşlemler, Son İşlemler listesi ve Senkronizasyon Durum çubuğu.
-- `src/screens/Dashboard2Screen.tsx`: Tüm bileşenlerin performanslı bir şekilde (ScrollView/FlatList) birleştirilmesi.
+### Ajan 2: `test-engineer` (Doğrulama)
+- Yapılan UI değişikliklerinin işleyişi (onaylama, reddetme, fotoğraf yükleme) bozup bozmadığını test standartlarında kontrol edecek.
 
-### Ajan 3: `test-engineer` (Doğrulama ve Optimizasyon)
-- Kodların React Native hook kurallarına ve performans standartlarına (memoization vb.) uygunluğunun test edilmesi.
-- Güvenlik ve Lint testlerinin simüle edilmesi/çalıştırılması.
+### Ajan 3: `performance-optimizer` (Performans)
+- FlatList ve React.memo yapılarını koruyarak veya iyileştirerek ekranın akıcılığını (60fps) sağlayacak.
 
-## 5. Çevrimdışı (Offline) Senaryosu
-- İnternet yokken yapılan işlemler (Örn: Yeni İş Oluştur) AsyncStorage'a kaydedilir.
-- Ekranda her zaman "X işlem bekliyor" şeklinde bir bar görünür.
-- İnternet geldiğinde işlemler sırayla simüle edilerek işlenir ve bar güncellenir.
+---
+*Onaylandıktan sonra implementasyon (kodlama) fazına geçilecektir.*

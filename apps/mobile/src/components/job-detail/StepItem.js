@@ -1,7 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import GlassCard from '../ui/GlassCard';
 import { getValidImageUrl } from '../../utils';
 
 const StepItem = ({ 
@@ -39,27 +38,33 @@ const StepItem = ({
     };
 
     return (
-        <GlassCard style={[styles.stepCard, isLocked && styles.lockedCard]} theme={theme}>
+        <View style={[
+            styles.stepCard, 
+            { backgroundColor: theme.colors.card || '#FFFFFF', borderColor: theme.colors.border || '#E5E7EB' },
+            isLocked && styles.lockedCard
+        ]}>
             <View style={styles.stepHeader}>
                 <TouchableOpacity
                     style={[
                         styles.checkbox, 
                         { borderColor: theme.colors.primary },
-                        isCompleted && { backgroundColor: theme.colors.primary }
+                        isCompleted && { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary }
                     ]}
                     onPress={() => handleToggleStep(step.id, isCompleted)}
                     disabled={isLocked || isAdmin}
                 >
-                    {isCompleted && <MaterialIcons name="check" size={16} color="#FFFFFF" />}
+                    {isCompleted && <MaterialIcons name="check" size={18} color="#FFFFFF" />}
                 </TouchableOpacity>
                 
                 <View style={{ flex: 1 }}>
                     <View style={styles.titleRow}>
-                        <View style={{ flex: 1 }}>
+                        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
                             {step.stepNo && (
-                                <Text style={[styles.stepNo, { color: theme.colors.primary }]}>
-                                    {step.stepNo}
-                                </Text>
+                                <View style={[styles.stepNoBadge, { backgroundColor: theme.colors.primary + '15' }]}>
+                                    <Text style={[styles.stepNoText, { color: theme.colors.primary }]}>
+                                        {step.stepNo}
+                                    </Text>
+                                </View>
                             )}
                             <Text style={[
                                 styles.stepTitle, 
@@ -71,37 +76,39 @@ const StepItem = ({
                         </View>
                         
                         {isCompleted && (
-                            <View style={[styles.badge, { backgroundColor: getStatusColor() }]}>
-                                <Text style={styles.badgeText}>{getStatusText()}</Text>
+                            <View style={[styles.badge, { backgroundColor: getStatusColor() + '15' }]}>
+                                <Text style={[styles.badgeText, { color: getStatusColor() }]}>{getStatusText()}</Text>
                             </View>
                         )}
                     </View>
 
-                    {step.startedAt && (
-                        <Text style={[styles.dateText, { color: theme.colors.subText }]}>
-                            {t('worker.started')}: {formatDate(step.startedAt)}
-                        </Text>
-                    )}
-                    
-                    {step.completedAt && (
-                        <View>
+                    <View style={styles.datesContainer}>
+                        {step.startedAt && (
                             <Text style={[styles.dateText, { color: theme.colors.subText }]}>
-                                {t('worker.finished')}: {formatDate(step.completedAt)}
+                                <MaterialIcons name="play-circle-outline" size={12} /> {t('worker.started')}: {formatDate(step.startedAt)}
                             </Text>
-                            {(step.latitude && step.longitude) && (
-                                <View style={styles.metadataTag}>
-                                    <MaterialIcons name="location-pin" size={12} color={theme.colors.subText} />
-                                    <Text style={[styles.metadataText, { color: theme.colors.subText }]}>
-                                        {step.latitude.toFixed(4)}, {step.longitude.toFixed(4)}
-                                    </Text>
-                                </View>
-                            )}
-                        </View>
-                    )}
+                        )}
+                        
+                        {step.completedAt && (
+                            <View>
+                                <Text style={[styles.dateText, { color: theme.colors.subText, marginTop: 4 }]}>
+                                    <MaterialIcons name="check-circle-outline" size={12} /> {t('worker.finished')}: {formatDate(step.completedAt)}
+                                </Text>
+                                {(step.latitude && step.longitude) && (
+                                    <View style={styles.metadataTag}>
+                                        <MaterialIcons name="location-pin" size={12} color={theme.colors.subText} />
+                                        <Text style={[styles.metadataText, { color: theme.colors.subText }]}>
+                                            {step.latitude.toFixed(4)}, {step.longitude.toFixed(4)}
+                                        </Text>
+                                    </View>
+                                )}
+                            </View>
+                        )}
+                    </View>
                 </View>
             </View>
 
-            {/* Photos rendered below the header to prevent overlap */}
+            {/* Photos */}
             {step.photos && step.photos.length > 0 && (
                 <View style={styles.photoContainer}>
                     <FlatList
@@ -114,10 +121,12 @@ const StepItem = ({
                 </View>
             )}
 
+            {/* Rejection */}
             {step.approvalStatus === 'REJECTED' && step.rejectionReason && (
-                <View style={[styles.rejectionContainer, { backgroundColor: theme.colors.error + '10' }]}>
+                <View style={[styles.rejectionContainer, { backgroundColor: theme.colors.error + '10', borderColor: theme.colors.error + '30' }]}>
+                    <MaterialIcons name="error-outline" size={16} color={theme.colors.error} style={{ marginTop: 2 }} />
                     <Text style={[styles.rejectionReasonText, { color: theme.colors.error }]}>
-                        {t('worker.rejectionReason')}: {step.rejectionReason}
+                        {step.rejectionReason}
                     </Text>
                 </View>
             )}
@@ -126,32 +135,37 @@ const StepItem = ({
             {isManager && isCompleted && step.approvalStatus === 'PENDING' && (
                 <View style={styles.managerActionRow}>
                     <TouchableOpacity
-                        style={[styles.managerButton, { backgroundColor: theme.colors.error }]}
+                        style={[styles.managerButton, { backgroundColor: theme.colors.error + '15' }]}
                         onPress={() => {
                             setSelectedStepId(step.id);
                             setRejectionType('STEP');
                             setRejectionModalVisible(true);
                         }}
                     >
-                        <MaterialIcons name="close" size={16} color="#fff" />
-                        <Text style={styles.managerButtonText}>{t('common.reject') || 'Reddet'}</Text>
+                        <MaterialIcons name="close" size={18} color={theme.colors.error} />
+                        <Text style={[styles.managerButtonText, { color: theme.colors.error }]}>{t('common.reject') || 'Reddet'}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={[styles.managerButton, { backgroundColor: theme.colors.success }]}
                         onPress={() => handleApproveStep(step.id)}
                     >
-                        <MaterialIcons name="check" size={16} color="#fff" />
-                        <Text style={styles.managerButtonText}>{t('common.approve') || 'Onayla'}</Text>
+                        <MaterialIcons name="check" size={18} color="#fff" />
+                        <Text style={[styles.managerButtonText, { color: '#fff' }]}>{t('common.approve') || 'Onayla'}</Text>
                     </TouchableOpacity>
                 </View>
             )}
 
-            {!isLocked && step.subSteps && (
-                <View style={[styles.substepsContainer, { borderLeftColor: theme.colors.border }]}>
-                    {children}
+            {/* Substeps Area (Timeline style) */}
+            {!isLocked && step.subSteps && step.subSteps.length > 0 && (
+                <View style={styles.substepsWrapper}>
+                    {/* Vertical line connecting substeps */}
+                    <View style={[styles.timelineLine, { backgroundColor: theme.colors.border }]} />
+                    <View style={styles.substepsContainer}>
+                        {children}
+                    </View>
                 </View>
             )}
-        </GlassCard>
+        </View>
     );
 };
 
@@ -160,20 +174,26 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         padding: 16,
         marginBottom: 16,
+        borderWidth: 1,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        elevation: 2,
     },
     lockedCard: {
-        opacity: 0.6,
+        opacity: 0.5,
     },
     stepHeader: {
         flexDirection: 'row',
         alignItems: 'flex-start',
     },
     checkbox: {
-        width: 24,
-        height: 24,
-        borderRadius: 8,
+        width: 28,
+        height: 28,
+        borderRadius: 14,
         borderWidth: 2,
-        marginRight: 12,
+        marginRight: 14,
         justifyContent: 'center',
         alignItems: 'center',
         marginTop: 2,
@@ -181,36 +201,44 @@ const styles = StyleSheet.create({
     titleRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: 4,
+        alignItems: 'center',
+        marginBottom: 8,
     },
-    stepNo: {
-        fontSize: 10,
+    stepNoBadge: {
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 6,
+        marginRight: 8,
+    },
+    stepNoText: {
+        fontSize: 12,
         fontWeight: 'bold',
         fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-        marginBottom: 2,
     },
     stepTitle: {
         fontSize: 16,
-        fontWeight: '700',
+        fontWeight: '600',
+        flexShrink: 1,
     },
     completedText: {
-        textDecorationLine: 'none',
+        opacity: 0.6,
     },
     badge: {
         paddingHorizontal: 8,
         paddingVertical: 4,
-        borderRadius: 6,
+        borderRadius: 8,
         marginLeft: 8,
     },
     badgeText: {
-        color: '#FFFFFF',
         fontSize: 10,
         fontWeight: 'bold',
     },
-    dateText: {
-        fontSize: 12,
+    datesContainer: {
         marginTop: 2,
+    },
+    dateText: {
+        fontSize: 13,
+        fontWeight: '500',
     },
     metadataTag: {
         flexDirection: 'row',
@@ -218,45 +246,63 @@ const styles = StyleSheet.create({
         marginTop: 4,
     },
     metadataText: {
-        fontSize: 11,
+        fontSize: 12,
         marginLeft: 4,
     },
     photoContainer: {
-        marginTop: 12,
+        marginTop: 16,
         marginBottom: 4,
+        paddingLeft: 42, // align with text
     },
     rejectionContainer: {
         marginTop: 12,
-        padding: 10,
+        padding: 12,
         borderRadius: 8,
+        borderWidth: 1,
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        marginLeft: 42, // align with text
+        gap: 8,
     },
     rejectionReasonText: {
         fontSize: 13,
         fontWeight: '500',
+        flex: 1,
+        lineHeight: 18,
     },
     managerActionRow: {
         flexDirection: 'row',
         gap: 12,
         marginTop: 16,
+        paddingLeft: 42, // align with text
     },
     managerButton: {
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 10,
-        borderRadius: 8,
+        paddingVertical: 12,
+        borderRadius: 10,
         gap: 6,
     },
     managerButtonText: {
-        color: '#fff',
         fontSize: 14,
         fontWeight: 'bold',
     },
-    substepsContainer: {
+    substepsWrapper: {
         marginTop: 16,
-        paddingLeft: 12,
-        borderLeftWidth: 1,
+        position: 'relative',
+    },
+    timelineLine: {
+        position: 'absolute',
+        left: 13, // center of checkbox
+        top: 0,
+        bottom: 16,
+        width: 2,
+        borderRadius: 1,
+    },
+    substepsContainer: {
+        paddingLeft: 42,
     },
 });
 
