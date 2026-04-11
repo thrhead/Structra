@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import { SectionCards } from "@/components/section-cards"
 import { ChartAreaInteractive } from "@/components/chart-area-interactive"
 import { DataTable } from "@/components/data-table"
+import { DashboardQuickActions } from "./DashboardQuickActions"
 
 const DashboardMiniCharts = dynamic(() => import('@/components/admin/DashboardMiniCharts'), { ssr: false })
 
@@ -50,6 +51,13 @@ export default function AdminDashboardClient({
 
   return (
     <div className="flex flex-col gap-8 py-2 w-full overflow-x-hidden animate-page-enter">
+      {/* 0. Header Quick Actions */}
+      <DashboardQuickActions 
+        customers={data?.allCustomers || []} 
+        teams={data?.allTeams || []} 
+        templates={data?.allTemplates || []} 
+      />
+
       {/* 1. Stat Cards */}
       <section className="space-y-3">
         <div className="px-0.5">

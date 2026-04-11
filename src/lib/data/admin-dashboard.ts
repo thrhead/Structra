@@ -37,7 +37,11 @@ export async function getAdminDashboardData() {
       tactical,
       operational,
       // Strategic Trend (14 Days)
-      strategicTrendResult
+      strategicTrendResult,
+      // Shared Data for Quick Actions
+      allCustomers,
+      allTeams,
+      allTemplates
     ] = await Promise.all([
       // 0: activeWorkersCount
       prisma.user.count({
@@ -218,7 +222,28 @@ export async function getAdminDashboardData() {
             cost: Number(costData._sum.amount || 0)
           }
         })
-      ).catch(e => { console.error("strategicTrendResult fetch failed", e); return []; })
+      ).catch(e => { console.error("strategicTrendResult fetch failed", e); return []; }),
+      
+      // 22: allCustomers (for Quick Actions)
+      prisma.customer.findMany({
+        where: { isActive: true },
+        orderBy: { company: 'asc' },
+        include: { user: { select: { name: true } } }
+      }).catch(e => { console.error("allCustomers fetch failed", e); return []; }),
+
+      // 23: allTeams (for Quick Actions)
+      prisma.team.findMany({
+        where: { isActive: true },
+        include: { 
+          lead: { select: { id: true, name: true } },
+          members: { include: { user: { select: { id: true, name: true } } } }
+        }
+      }).catch(e => { console.error("allTeams fetch failed", e); return []; }),
+
+      // 24: allTemplates (for Quick Actions)
+      prisma.jobTemplate.findMany({
+        include: { steps: { include: { subSteps: true } } }
+      }).catch(e => { console.error("allTemplates fetch failed", e); return []; })
     ])
 
     const totalCostToday = todaysCosts.reduce((sum, cost) => sum + (cost.amount || 0), 0)
@@ -271,7 +296,11 @@ export async function getAdminDashboardData() {
       strategic,
       tactical,
       operational,
-      strategicTrend: strategicTrendResult
+      strategicTrend: strategicTrendResult,
+      // Quick Action Data
+      allCustomers,
+      allTeams,
+      allTemplates
     }
 
     console.log("DASHBOARD DEBUG: Fetch successful", {

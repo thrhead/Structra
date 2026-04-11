@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { PlusIcon, Loader2Icon } from 'lucide-react'
+import { Field, FieldGroup } from '@/components/ui/field'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { createCustomerAction } from '@/lib/actions/customers'
@@ -112,77 +113,79 @@ export function CustomerDialog({ customer, trigger }: CustomerDialogProps) {
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Müşteri Düzenle' : 'Yeni Müşteri Ekle'}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Yetkili Kişi</Label>
-              <Input id="name" {...register('name')} placeholder="Ad Soyad" />
-              {errors.name && (
-                <p className="text-sm text-red-500">{errors.name.message}</p>
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-4">
+          <FieldGroup>
+            <div className="grid grid-cols-2 gap-4">
+              <Field>
+                <Label htmlFor="name">Yetkili Kişi</Label>
+                <Input id="name" {...register('name')} placeholder="Ad Soyad" />
+                {errors.name && (
+                  <p className="text-sm text-red-500">{errors.name.message}</p>
+                )}
+              </Field>
+
+              <Field>
+                <Label htmlFor="email">E-posta</Label>
+                <Input id="email" type="email" {...register('email')} placeholder="ornek@email.com" />
+                {errors.email && (
+                  <p className="text-sm text-red-500">{errors.email.message}</p>
+                )}
+              </Field>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Field>
+                <Label htmlFor="password">Şifre {isEditing && '(Değiştirmek istemiyorsanız boş bırakın)'}</Label>
+                <Input id="password" type="password" {...register('password')} />
+                {errors.password && (
+                  <p className="text-sm text-red-500">{errors.password.message}</p>
+                )}
+              </Field>
+
+              <Field>
+                <Label htmlFor="phone">Telefon</Label>
+                <Input id="phone" {...register('phone')} placeholder="555 123 4567" />
+                {errors.phone && (
+                  <p className="text-sm text-red-500">{errors.phone.message}</p>
+                )}
+              </Field>
+            </div>
+
+            <Field>
+              <Label htmlFor="company">Firma Adı</Label>
+              <Input id="company" {...register('company')} placeholder="Firma Ünvanı" />
+              {errors.company && (
+                <p className="text-sm text-red-500">{errors.company.message}</p>
               )}
+            </Field>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Field>
+                <Label htmlFor="taxId">Vergi No</Label>
+                <Input id="taxId" {...register('taxId')} placeholder="Opsiyonel" />
+              </Field>
+
+              <Field>
+                <Label htmlFor="address">Adres</Label>
+                <Input id="address" {...register('address')} placeholder="Opsiyonel" />
+              </Field>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">E-posta</Label>
-              <Input id="email" type="email" {...register('email')} placeholder="ornek@email.com" />
-              {errors.email && (
-                <p className="text-sm text-red-500">{errors.email.message}</p>
-              )}
+            <Field>
+              <Label htmlFor="notes">Notlar</Label>
+              <Textarea id="notes" {...register('notes')} placeholder="Müşteri hakkında notlar..." />
+            </Field>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                İptal
+              </Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading && <CustomSpinner className="mr-2 h-4 w-4 animate-spin" />}
+                {isEditing ? 'Güncelle' : 'Oluştur'}
+              </Button>
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="password">Şifre {isEditing && '(Değiştirmek istemiyorsanız boş bırakın)'}</Label>
-              <Input id="password" type="password" {...register('password')} />
-              {errors.password && (
-                <p className="text-sm text-red-500">{errors.password.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="phone">Telefon</Label>
-              <Input id="phone" {...register('phone')} placeholder="555 123 4567" />
-              {errors.phone && (
-                <p className="text-sm text-red-500">{errors.phone.message}</p>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="company">Firma Adı</Label>
-            <Input id="company" {...register('company')} placeholder="Firma Ünvanı" />
-            {errors.company && (
-              <p className="text-sm text-red-500">{errors.company.message}</p>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="taxId">Vergi No</Label>
-              <Input id="taxId" {...register('taxId')} placeholder="Opsiyonel" />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="address">Adres</Label>
-              <Input id="address" {...register('address')} placeholder="Opsiyonel" />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notlar</Label>
-            <Textarea id="notes" {...register('notes')} placeholder="Müşteri hakkında notlar..." />
-          </div>
-
-          <div className="flex justify-end gap-3 mt-6">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              İptal
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading && <CustomSpinner className="mr-2 h-4 w-4 animate-spin" />}
-              {isEditing ? 'Güncelle' : 'Oluştur'}
-            </Button>
-          </div>
+          </FieldGroup>
         </form>
       </DialogContent>
     </Dialog>

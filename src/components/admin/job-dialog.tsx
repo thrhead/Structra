@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { PlusIcon, Loader2Icon, XIcon, ChevronUpIcon, ChevronDownIcon, CornerDownRightIcon, UserCog } from 'lucide-react'
+import { Field, FieldGroup } from '@/components/ui/field'
 import { useRouter } from 'next/navigation'
 import { createJobAction, updateJobAction } from '@/lib/actions/jobs'
 import { useEffect } from 'react'
@@ -332,207 +333,207 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
         <DialogHeader>
           <DialogTitle>{job ? 'İş Düzenle' : 'Yeni İş Oluştur'}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit, onFormError)} className="space-y-4 mt-4">
-          <div className="grid grid-cols-3 gap-4">
-            <div className="col-span-2 space-y-2">
-              <Label htmlFor="title" className={errors.title ? "text-red-500" : ""}>İş Başlığı *</Label>
-              <Input 
-                id="title" 
-                {...register('title')} 
-                placeholder="Örn: Klima Montajı - A Blok"
-                className={errors.title ? "border-red-500 focus-visible:ring-red-500" : ""}
-                disabled={isLoading}
-              />
-              {errors.title && (
-                <p className="text-xs text-red-500 font-medium">{errors.title.message}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="projectNo">Proje No</Label>
-              <Input id="projectNo" {...register('projectNo')} placeholder="Örn: PRJ-001" disabled={isLoading} />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="customerId" className={errors.customerId ? "text-red-500" : ""}>Müşteri *</Label>
-              <Select value={customerId} onValueChange={(val) => setValue('customerId', val)} disabled={isLoading}>
-                <SelectTrigger className={errors.customerId ? "border-red-500" : ""}>
-                  <SelectValue placeholder="Müşteri seçiniz" />
-                </SelectTrigger>
-                <SelectContent>
-                  {customers.map((customer) => (
-                    <SelectItem key={customer.id} value={customer.id}>
-                      {customer.company} ({customer.user.name})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.customerId && (
-                <p className="text-xs text-red-500 font-medium">{errors.customerId.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="teamId">Atanacak Ekip</Label>
-              <Select value={teamId || 'none'} onValueChange={(val) => {
-                setValue('teamId', val === 'none' ? null : val)
-                const newTeam = teams.find(t => t.id === val)
-                if (newTeam?.lead) {
-                  setValue('jobLeadId', newTeam.lead.id)
-                }
-              }} disabled={isLoading}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Ekip seçiniz (Opsiyonel)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Henüz Atama Yapma</SelectItem>
-                  {teams.map((team) => (
-                    <SelectItem key={team.id} value={team.id}>
-                      {team.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* İş Lideri Seçim Alanı */}
-          {teamId && teamId !== 'none' && (
-            <div className="space-y-2 p-3 bg-indigo-50/50 rounded-lg border border-indigo-100 animate-in fade-in slide-in-from-top-1">
-              <div className="flex items-center gap-2 mb-1">
-                <UserCog className="h-4 w-4 text-indigo-600" />
-                <Label htmlFor="jobLeadId" className="text-indigo-900 font-semibold text-sm">Bu İşten Sorumlu Lider</Label>
-              </div>
-              <Select 
-                value={jobLeadId || 'none'} 
-                onValueChange={(val) => setValue('jobLeadId', val === 'none' ? null : val)}
-                disabled={isLoading}
-              >
-                <SelectTrigger className="bg-white border-indigo-200">
-                  <SelectValue placeholder="İş lideri seçiniz" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Lider Atama</SelectItem>
-                  {selectedTeam?.members?.map((m) => (
-                    <SelectItem key={m.user.id} value={m.user.id}>
-                      {m.user.name} {m.user.id === selectedTeam.lead?.id ? '(Varsayılan Lider)' : ''}
-                    </SelectItem>
-                  ))}
-                  {!selectedTeam?.members?.length && selectedTeam?.lead && (
-                    <SelectItem value={selectedTeam.lead.id}>
-                      {selectedTeam.lead.name} (Varsayılan Lider)
-                    </SelectItem>
+        <form onSubmit={handleSubmit(onSubmit, onFormError)} className="mt-4">
+          <FieldGroup>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="col-span-2">
+                <Field>
+                  <Label htmlFor="title" className={errors.title ? "text-red-500" : ""}>İş Başlığı *</Label>
+                  <Input 
+                    id="title" 
+                    {...register('title')} 
+                    placeholder="Örn: Klima Montajı - A Blok"
+                    className={errors.title ? "border-red-500 focus-visible:ring-red-500" : ""}
+                    disabled={isLoading}
+                  />
+                  {errors.title && (
+                    <p className="text-xs text-red-500 font-medium">{errors.title.message}</p>
                   )}
-                </SelectContent>
-              </Select>
-              <p className="text-[10px] text-indigo-500 italic mt-1">
-                * Seçilen kişi bu işin takibinden ve onaylarından sorumlu olacaktır.
-              </p>
-            </div>
-          )}
-
-          <div className="grid grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="status">İş Durumu</Label>
-              <Select value={status} onValueChange={(val: any) => setValue('status', val)} disabled={isLoading}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Durum" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="PENDING">Beklemede</SelectItem>
-                  <SelectItem value="IN_PROGRESS">Devam Ediyor</SelectItem>
-                  <SelectItem value="COMPLETED">Tamamlandı</SelectItem>
-                  <SelectItem value="CANCELLED">İptal Edildi</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="acceptanceStatus">Kabul Durumu</Label>
-              <Select value={acceptanceStatus} onValueChange={(val: any) => setValue('acceptanceStatus', val)} disabled={isLoading}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Kabul Durumu" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="PENDING">Onay Bekliyor</SelectItem>
-                  <SelectItem value="ACCEPTED">Kabul Edildi</SelectItem>
-                  <SelectItem value="REJECTED">Reddedildi</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="priority">Öncelik</Label>
-              <Select value={priority} onValueChange={(val: any) => setValue('priority', val)} disabled={isLoading}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Öncelik" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="LOW">Düşük</SelectItem>
-                  <SelectItem value="MEDIUM">Orta</SelectItem>
-                  <SelectItem value="HIGH">Yüksek</SelectItem>
-                  <SelectItem value="URGENT">Acil</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="location">Konum / Adres</Label>
-              <Input id="location" {...register('location')} placeholder="Montaj yapılacak adres" disabled={isLoading} />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-6 border-y py-4">
-            <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Planlanan Tarihler</h3>
-              <div className="grid grid-cols-1 gap-2">
-                <div className="space-y-1">
-                  <Label htmlFor="scheduledDate" className="text-xs">Başlangıç</Label>
-                  <Input id="scheduledDate" type="datetime-local" {...register('scheduledDate')} disabled={isLoading} />
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="scheduledEndDate" className="text-xs">Bitiş</Label>
-                  <Input id="scheduledEndDate" type="datetime-local" {...register('scheduledEndDate')} disabled={isLoading} />
-                </div>
+                </Field>
               </div>
+              <Field>
+                <Label htmlFor="projectNo">Proje No</Label>
+                <Input id="projectNo" {...register('projectNo')} placeholder="Örn: PRJ-001" disabled={isLoading} />
+              </Field>
             </div>
 
-            <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Maliyet & Süre Tahmini</h3>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <Label htmlFor="budget" className="text-xs">Bütçe (TL)</Label>
-                  <Input
-                    id="budget"
-                    type="number"
-                    step="0.01"
-                    {...register('budget', { valueAsNumber: true })}
-                    placeholder="0.00"
+            <div className="grid grid-cols-2 gap-4">
+              <Field>
+                <Label htmlFor="customerId" className={errors.customerId ? "text-red-500" : ""}>Müşteri *</Label>
+                <Select value={customerId} onValueChange={(val) => setValue('customerId', val)} disabled={isLoading}>
+                  <SelectTrigger className={errors.customerId ? "border-red-500" : ""}>
+                    <SelectValue placeholder="Müşteri seçiniz" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {customers.map((customer) => (
+                      <SelectItem key={customer.id} value={customer.id}>
+                        {customer.company} ({customer.user.name})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.customerId && (
+                  <p className="text-xs text-red-500 font-medium">{errors.customerId.message}</p>
+                )}
+              </Field>
+
+              <Field>
+                <Label htmlFor="teamId">Atanacak Ekip</Label>
+                <Select value={teamId || 'none'} onValueChange={(val) => {
+                  setValue('teamId', val === 'none' ? null : val)
+                  const newTeam = teams.find(t => t.id === val)
+                  if (newTeam?.lead) {
+                    setValue('jobLeadId', newTeam.lead.id)
+                  }
+                }} disabled={isLoading}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Ekip seçiniz (Opsiyonel)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Henüz Atama Yapma</SelectItem>
+                    {teams.map((team) => (
+                      <SelectItem key={team.id} value={team.id}>
+                        {team.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+            </div>
+
+            {/* İş Lideri Seçim Alanı */}
+            {teamId && teamId !== 'none' && (
+              <div className="p-3 bg-indigo-50/50 rounded-lg border border-indigo-100 animate-in fade-in slide-in-from-top-1">
+                <Field>
+                  <div className="flex items-center gap-2 mb-1">
+                    <UserCog className="h-4 w-4 text-indigo-600" />
+                    <Label htmlFor="jobLeadId" className="text-indigo-900 font-semibold text-sm">Bu İşten Sorumlu Lider</Label>
+                  </div>
+                  <Select 
+                    value={jobLeadId || 'none'} 
+                    onValueChange={(val) => setValue('jobLeadId', val === 'none' ? null : val)}
                     disabled={isLoading}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="estimatedDuration" className="text-xs">Süre (Dk)</Label>
-                  <Input
-                    id="estimatedDuration"
-                    type="number"
-                    {...register('estimatedDuration', { valueAsNumber: true })}
-                    placeholder="Dakika"
-                    disabled={isLoading}
-                  />
-                </div>
+                  >
+                    <SelectTrigger className="bg-white border-indigo-200">
+                      <SelectValue placeholder="İş lideri seçiniz" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Lider Atama</SelectItem>
+                      {selectedTeam?.members?.map((m) => (
+                        <SelectItem key={m.user.id} value={m.user.id}>
+                          {m.user.name} {m.user.id === selectedTeam.lead?.id ? '(Varsayılan Lider)' : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[10px] text-indigo-500 italic mt-1">
+                    * Seçilen kişi bu işin takibinden ve onaylarından sorumlu olacaktır.
+                  </p>
+                </Field>
               </div>
+            )}
+
+            <div className="grid grid-cols-4 gap-4">
+              <Field>
+                <Label htmlFor="status">İş Durumu</Label>
+                <Select value={status} onValueChange={(val: any) => setValue('status', val)} disabled={isLoading}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Durum" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PENDING">Beklemede</SelectItem>
+                    <SelectItem value="IN_PROGRESS">Devam Ediyor</SelectItem>
+                    <SelectItem value="COMPLETED">Tamamlandı</SelectItem>
+                    <SelectItem value="CANCELLED">İptal Edildi</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+
+              <Field>
+                <Label htmlFor="acceptanceStatus">Kabul Durumu</Label>
+                <Select value={acceptanceStatus} onValueChange={(val: any) => setValue('acceptanceStatus', val)} disabled={isLoading}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Kabul Durumu" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PENDING">Onay Bekliyor</SelectItem>
+                    <SelectItem value="ACCEPTED">Kabul Edildi</SelectItem>
+                    <SelectItem value="REJECTED">Reddedildi</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+
+              <Field>
+                <Label htmlFor="priority">Öncelik</Label>
+                <Select value={priority} onValueChange={(val: any) => setValue('priority', val)} disabled={isLoading}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Öncelik" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="LOW">Düşük</SelectItem>
+                    <SelectItem value="MEDIUM">Orta</SelectItem>
+                    <SelectItem value="HIGH">Yüksek</SelectItem>
+                    <SelectItem value="URGENT">Acil</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
+
+              <Field>
+                <Label htmlFor="location">Konum / Adres</Label>
+                <Input id="location" {...register('location')} placeholder="Montaj yapılacak adres" disabled={isLoading} />
+              </Field>
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Açıklama</Label>
-            <Textarea id="description" {...register('description')} placeholder="İş detayları..." rows={3} disabled={isLoading} />
-          </div>
+            <div className="grid grid-cols-2 gap-6 border-y py-4">
+              <FieldGroup>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Planlanan Tarihler</h3>
+                <div className="grid grid-cols-1 gap-2">
+                  <Field>
+                    <Label htmlFor="scheduledDate" className="text-xs">Başlangıç</Label>
+                    <Input id="scheduledDate" type="datetime-local" {...register('scheduledDate')} disabled={isLoading} />
+                  </Field>
+                  <Field>
+                    <Label htmlFor="scheduledEndDate" className="text-xs">Bitiş</Label>
+                    <Input id="scheduledEndDate" type="datetime-local" {...register('scheduledEndDate')} disabled={isLoading} />
+                  </Field>
+                </div>
+              </FieldGroup>
 
-          {/* Checklist Section */}
-          <div className="space-y-3 border-t pt-4">
+              <FieldGroup>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Maliyet & Süre Tahmini</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  <Field>
+                    <Label htmlFor="budget" className="text-xs">Bütçe (TL)</Label>
+                    <Input
+                      id="budget"
+                      type="number"
+                      step="0.01"
+                      {...register('budget', { valueAsNumber: true })}
+                      placeholder="0.00"
+                      disabled={isLoading}
+                    />
+                  </Field>
+                  <Field>
+                    <Label htmlFor="estimatedDuration" className="text-xs">Süre (Dk)</Label>
+                    <Input
+                      id="estimatedDuration"
+                      type="number"
+                      {...register('estimatedDuration', { valueAsNumber: true })}
+                      placeholder="Dakika"
+                      disabled={isLoading}
+                    />
+                  </Field>
+                </div>
+              </FieldGroup>
+            </div>
+
+            <Field>
+              <Label htmlFor="description">Açıklama</Label>
+              <Textarea id="description" {...register('description')} placeholder="İş detayları..." rows={3} disabled={isLoading} />
+            </Field>
+
+            {/* Checklist Section */}
+            <div className="space-y-3 border-t pt-4">
             <div className="flex items-center justify-between">
               <Label className="text-base">Kontrol Listesi (Opsiyonel)</Label>
               <div className="flex gap-2">
@@ -655,7 +656,8 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
                 ))}
               </div>
             )}
-          </div>
+            </div>
+          </FieldGroup>
 
           <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
             <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isLoading}>
