@@ -56,6 +56,7 @@ export default function AdminDashboardClient({
         customers={data?.allCustomers || []} 
         teams={data?.allTeams || []} 
         templates={data?.allTemplates || []} 
+        users={data?.allUsers || []} 
       />
 
       {/* 1. Stat Cards */}

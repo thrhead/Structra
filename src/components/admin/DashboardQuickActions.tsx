@@ -33,9 +33,10 @@ interface DashboardQuickActionsProps {
   customers: any[]
   teams: any[]
   templates: any[]
+  users: any[]
 }
 
-export function DashboardQuickActions({ customers, teams, templates }: DashboardQuickActionsProps) {
+export function DashboardQuickActions({ customers, teams, templates, users }: DashboardQuickActionsProps) {
   const { locale } = useParams()
   const basePrefix = `/${locale}`
 
@@ -100,6 +101,7 @@ export function DashboardQuickActions({ customers, teams, templates }: Dashboard
             {/* 4. Team Creation */}
             <div className="w-full">
               <TeamDialog 
+                users={users}
                 trigger={
                   <div className="relative flex cursor-default select-none items-center rounded-xl px-2 py-2 text-sm outline-none transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 group w-full">
                     <LayoutGrid className="mr-2 h-4 w-4 text-rose-500" />

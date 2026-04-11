@@ -41,7 +41,8 @@ export async function getAdminDashboardData() {
       // Shared Data for Quick Actions
       allCustomers,
       allTeams,
-      allTemplates
+      allTemplates,
+      allUsers
     ] = await Promise.all([
       // 0: activeWorkersCount
       prisma.user.count({
@@ -243,7 +244,14 @@ export async function getAdminDashboardData() {
       // 24: allTemplates (for Quick Actions)
       prisma.jobTemplate.findMany({
         include: { steps: { include: { subSteps: true } } }
-      }).catch(e => { console.error("allTemplates fetch failed", e); return []; })
+      }).catch(e => { console.error("allTemplates fetch failed", e); return []; }),
+
+      // 25: allUsers (for Quick Actions)
+      prisma.user.findMany({
+        where: { isActive: true },
+        select: { id: true, name: true, role: true },
+        orderBy: { name: 'asc' }
+      }).catch(e => { console.error("allUsers fetch failed", e); return []; })
     ])
 
     const totalCostToday = todaysCosts.reduce((sum, cost) => sum + (cost.amount || 0), 0)
@@ -300,7 +308,8 @@ export async function getAdminDashboardData() {
       // Quick Action Data
       allCustomers,
       allTeams,
-      allTemplates
+      allTemplates,
+      allUsers
     }
 
     console.log("DASHBOARD DEBUG: Fetch successful", {
