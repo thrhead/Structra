@@ -13,13 +13,21 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { PlusIcon, Loader2Icon } from 'lucide-react'
-import { Field, FieldGroup } from '@/components/ui/field'
+import { PlusIcon } from 'lucide-react'
+import { 
+  Field, 
+  FieldGroup, 
+  FieldLabel, 
+  FieldDescription, 
+  Fieldset, 
+  FieldLegend,
+  FieldSeparator 
+} from '@/components/ui/field'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
-import { createCustomerAction } from '@/lib/actions/customers'
+import { createCustomerAction, updateCustomerAction } from '@/lib/actions/customers'
+import { CustomSpinner } from '@/components/ui/custom-spinner'
 
 const customerSchema = z.object({
   name: z.string().min(2, 'İsim en az 2 karakter olmalıdır'),
@@ -32,17 +40,12 @@ const customerSchema = z.object({
   notes: z.string().optional(),
 })
 
-
-// Schema for editing (password optional)
 const customerEditSchema = customerSchema.extend({
   password: z.string().optional().or(z.literal('')),
 })
 
 type FormData = z.infer<typeof customerEditSchema>
 
-import { updateCustomerAction } from '@/lib/actions/customers'
-
-import { CustomSpinner } from '@/components/ui/custom-spinner';
 interface CustomerDialogProps {
   customer?: any
   trigger?: React.ReactNode
@@ -93,7 +96,7 @@ export function CustomerDialog({ customer, trigger }: CustomerDialogProps) {
       router.refresh()
     } catch (error: any) {
       console.error(error)
-      toast.error(error.message || 'Müşteri oluşturulurken bir hata oluştu')
+      toast.error(error.message || 'Bir hata oluştu')
     } finally {
       setIsLoading(false)
     }
@@ -109,80 +112,94 @@ export function CustomerDialog({ customer, trigger }: CustomerDialogProps) {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto rounded-3xl p-6">
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Müşteri Düzenle' : 'Yeni Müşteri Ekle'}</DialogTitle>
+          <DialogTitle className="text-xl font-bold tracking-tight">
+            {isEditing ? 'Müşteri Düzenle' : 'Yeni Müşteri Ekle'}
+          </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-6">
           <FieldGroup>
-            <div className="grid grid-cols-2 gap-4">
-              <Field>
-                <Label htmlFor="name">Yetkili Kişi</Label>
-                <Input id="name" {...register('name')} placeholder="Ad Soyad" />
-                {errors.name && (
-                  <p className="text-sm text-red-500">{errors.name.message}</p>
-                )}
-              </Field>
+            <Fieldset>
+              <FieldLegend>Yetkili Bilgileri</FieldLegend>
+              <FieldGroup>
+                <div className="grid grid-cols-2 gap-4">
+                  <Field>
+                    <FieldLabel htmlFor="c-name">Yetkili Kişi *</FieldLabel>
+                    <Input id="c-name" {...register('name')} placeholder="Ad Soyad" required />
+                    {errors.name && <FieldDescription className="text-destructive font-medium">{errors.name.message}</FieldDescription>}
+                  </Field>
 
-              <Field>
-                <Label htmlFor="email">E-posta</Label>
-                <Input id="email" type="email" {...register('email')} placeholder="ornek@email.com" />
-                {errors.email && (
-                  <p className="text-sm text-red-500">{errors.email.message}</p>
-                )}
-              </Field>
-            </div>
+                  <Field>
+                    <FieldLabel htmlFor="c-email">E-posta Adresi *</FieldLabel>
+                    <Input id="c-email" type="email" {...register('email')} placeholder="ornek@email.com" required />
+                    {errors.email && <FieldDescription className="text-destructive font-medium">{errors.email.message}</FieldDescription>}
+                  </Field>
+                </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <Field>
-                <Label htmlFor="password">Şifre {isEditing && '(Değiştirmek istemiyorsanız boş bırakın)'}</Label>
-                <Input id="password" type="password" {...register('password')} />
-                {errors.password && (
-                  <p className="text-sm text-red-500">{errors.password.message}</p>
-                )}
-              </Field>
+                <div className="grid grid-cols-2 gap-4">
+                  <Field>
+                    <FieldLabel htmlFor="c-pass">
+                      Giriş Şifresi {isEditing && "(Değişim için doldurun)"}
+                    </FieldLabel>
+                    <Input id="c-pass" type="password" {...register('password')} />
+                    {errors.password && <FieldDescription className="text-destructive font-medium">{errors.password.message}</FieldDescription>}
+                  </Field>
 
-              <Field>
-                <Label htmlFor="phone">Telefon</Label>
-                <Input id="phone" {...register('phone')} placeholder="555 123 4567" />
-                {errors.phone && (
-                  <p className="text-sm text-red-500">{errors.phone.message}</p>
-                )}
-              </Field>
-            </div>
+                  <Field>
+                    <FieldLabel htmlFor="c-phone">Telefon Numarası</FieldLabel>
+                    <Input id="c-phone" {...register('phone')} placeholder="555 123 45 67" />
+                    {errors.phone && <FieldDescription className="text-destructive font-medium">{errors.phone.message}</FieldDescription>}
+                  </Field>
+                </div>
+              </FieldGroup>
+            </Fieldset>
 
-            <Field>
-              <Label htmlFor="company">Firma Adı</Label>
-              <Input id="company" {...register('company')} placeholder="Firma Ünvanı" />
-              {errors.company && (
-                <p className="text-sm text-red-500">{errors.company.message}</p>
-              )}
-            </Field>
+            <FieldSeparator />
 
-            <div className="grid grid-cols-2 gap-4">
-              <Field>
-                <Label htmlFor="taxId">Vergi No</Label>
-                <Input id="taxId" {...register('taxId')} placeholder="Opsiyonel" />
-              </Field>
+            <Fieldset>
+              <FieldLegend>Firma Detayları</FieldLegend>
+              <FieldGroup>
+                <Field>
+                  <FieldLabel htmlFor="c-company">Firma Ünvanı *</FieldLabel>
+                  <Input id="c-company" {...register('company')} placeholder="Örn: Yapı Denetim A.Ş." required />
+                  {errors.company && <FieldDescription className="text-destructive font-medium">{errors.company.message}</FieldDescription>}
+                </Field>
 
-              <Field>
-                <Label htmlFor="address">Adres</Label>
-                <Input id="address" {...register('address')} placeholder="Opsiyonel" />
-              </Field>
-            </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <Field>
+                    <FieldLabel htmlFor="c-tax">Vergi Numarası / T.C.</FieldLabel>
+                    <Input id="c-tax" {...register('taxId')} placeholder="Opsiyonel" />
+                  </Field>
 
-            <Field>
-              <Label htmlFor="notes">Notlar</Label>
-              <Textarea id="notes" {...register('notes')} placeholder="Müşteri hakkında notlar..." />
-            </Field>
+                  <Field>
+                    <FieldLabel htmlFor="c-address">Firma Adresi</FieldLabel>
+                    <Input id="c-address" {...register('address')} placeholder="Opsiyonel" />
+                  </Field>
+                </div>
 
-            <div className="flex justify-end gap-3 mt-6">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                <Field>
+                  <FieldLabel htmlFor="c-notes">Özel Notlar</FieldLabel>
+                  <Textarea id="c-notes" {...register('notes')} placeholder="Müşteri hakkında ek detaylar..." className="resize-none" />
+                </Field>
+              </FieldGroup>
+            </Fieldset>
+
+            <FieldSeparator />
+
+            <div className="flex justify-end gap-3 pt-2">
+              <Button type="button" variant="outline" onClick={() => setOpen(false)} className="rounded-xl">
                 İptal
               </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading && <CustomSpinner className="mr-2 h-4 w-4 animate-spin" />}
-                {isEditing ? 'Güncelle' : 'Oluştur'}
+              <Button type="submit" disabled={isLoading} className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white min-w-[120px]">
+                {isLoading ? (
+                  <>
+                    <CustomSpinner className="mr-2 h-4 w-4 animate-spin" />
+                    İşleniyor
+                  </>
+                ) : (
+                  isEditing ? 'Güncelle' : 'Müşteriyi Kaydet'
+                )}
               </Button>
             </div>
           </FieldGroup>

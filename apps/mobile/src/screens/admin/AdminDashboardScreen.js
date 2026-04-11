@@ -86,7 +86,6 @@ export default function AdminDashboardScreen({ navigation }) {
         { id: 'calendar', title: t('navigation.calendar') || 'Calendar', icon: Calendar, route: 'Calendar', color: '#a855f7' }, // Purple
         { id: 'planning', title: t('navigation.planning') || 'Planning', icon: TrendingUp, route: 'AdvancedPlanning', color: theme.colors.primary },
         { id: 'reports', title: t('navigation.reports') || 'Reports', icon: BarChart3, route: 'Reports', color: '#3b82f6' }, // Blue
-        { id: 'dashboard2', title: 'Tema 2 (Endüstriyel)', icon: BarChart3, route: 'Dashboard2', color: '#10B981' }, // Emerald
         { id: 'webhooks', title: 'Webhook Monitoring', icon: ShieldCheck, route: 'Webhooks', color: '#6366f1' }, // Indigo
     ];
 

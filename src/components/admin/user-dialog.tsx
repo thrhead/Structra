@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { registerSchema, CreateUserAdminInput } from '@/lib/validations-edge'
+import { registerSchema } from '@/lib/validations-edge'
 import {
   Dialog,
   DialogContent,
@@ -14,23 +14,30 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { PlusIcon, Loader2Icon } from 'lucide-react'
-import { Field, FieldGroup } from '@/components/ui/field'
+import { PlusIcon, UserCircle, Shield, Phone, Mail, UserCog } from 'lucide-react'
+import { 
+  Field, 
+  FieldGroup, 
+  FieldLabel, 
+  FieldDescription, 
+  Fieldset, 
+  FieldLegend,
+  FieldSeparator 
+} from '@/components/ui/field'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { updateUserAction, createUserAction } from '@/lib/actions/users'
 import { Switch } from "@/components/ui/switch"
+import { CustomSpinner } from '@/components/ui/custom-spinner'
 
-import { CustomSpinner } from '@/components/ui/custom-spinner';
-// Schema for editing (password optional)
 const userEditSchema = registerSchema.extend({
   password: z.string().optional().or(z.literal('')),
   isActive: z.boolean().optional(),
@@ -71,7 +78,6 @@ export function UserDialog({ user, trigger }: UserDialogProps) {
     }
   })
 
-  // Watch role to conditionally show fields if needed, or ensuring value updates
   const currentRole = watch('role')
   const currentStatus = watch('isActive')
 
@@ -111,85 +117,108 @@ export function UserDialog({ user, trigger }: UserDialogProps) {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px] rounded-3xl p-6">
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Kullanıcı Düzenle' : 'Yeni Kullanıcı Ekle'}</DialogTitle>
+          <DialogTitle className="text-xl font-bold tracking-tight">
+            {isEditing ? 'Kullanıcı Düzenle' : 'Yeni Kullanıcı Ekle'}
+          </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-6">
           <FieldGroup>
-            <Field>
-              <Label htmlFor="name">Ad Soyad</Label>
-              <Input id="name" {...register('name')} placeholder="Ahmet Yılmaz" />
-              {errors.name && (
-                <p className="text-sm text-red-500">{errors.name.message}</p>
-              )}
-            </Field>
+            <Fieldset>
+              <FieldLegend>Kişisel Bilgiler</FieldLegend>
+              <FieldGroup>
+                <Field>
+                  <FieldLabel htmlFor="u-name" className="flex items-center gap-2">
+                    <UserCircle className="h-4 w-4 text-slate-400" /> Ad Soyad *
+                  </FieldLabel>
+                  <Input id="u-name" {...register('name')} placeholder="Örn: Ahmet Yılmaz" required />
+                  {errors.name && <FieldDescription className="text-destructive font-medium">{errors.name.message}</FieldDescription>}
+                </Field>
 
-            <Field>
-              <Label htmlFor="email">E-posta</Label>
-              <Input id="email" type="email" {...register('email')} placeholder="ornek@email.com" />
-              {errors.email && (
-                <p className="text-sm text-red-500">{errors.email.message}</p>
-              )}
-            </Field>
+                <div className="grid grid-cols-2 gap-4">
+                  <Field>
+                    <FieldLabel htmlFor="u-email" className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-slate-400" /> E-posta *
+                    </FieldLabel>
+                    <Input id="u-email" type="email" {...register('email')} placeholder="ahmet@structra.com" required />
+                    {errors.email && <FieldDescription className="text-destructive font-medium">{errors.email.message}</FieldDescription>}
+                  </Field>
 
-            <Field>
-              <Label htmlFor="password">Şifre {isEditing && '(Değiştirmek istemiyorsanız boş bırakın)'}</Label>
-              <Input id="password" type="password" {...register('password')} />
-              {errors.password && (
-                <p className="text-sm text-red-500">{errors.password.message}</p>
-              )}
-            </Field>
-
-            <Field>
-              <Label htmlFor="phone">Telefon</Label>
-              <Input id="phone" {...register('phone')} placeholder="555 123 4567" />
-              {errors.phone && (
-                <p className="text-sm text-red-500">{errors.phone.message}</p>
-              )}
-            </Field>
-
-            <Field>
-              <Label htmlFor="role">Rol</Label>
-              <Select onValueChange={(val) => setValue('role', val as any)} defaultValue={user?.role || "WORKER"}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Rol seçiniz" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ADMIN">Yönetici (Admin)</SelectItem>
-                  <SelectItem value="MANAGER">Müdür (Manager)</SelectItem>
-                  <SelectItem value="TEAM_LEAD">Ekip Lideri</SelectItem>
-                  <SelectItem value="WORKER">Çalışan (Worker)</SelectItem>
-                  <SelectItem value="CUSTOMER">Müşteri</SelectItem>
-                </SelectContent>
-              </Select>
-              {errors.role && (
-                <p className="text-sm text-red-500">{errors.role.message}</p>
-              )}
-            </Field>
-
-            {isEditing && (
-              <div className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
-                <div className="space-y-0.5">
-                  <Label>Hesap Durumu</Label>
-                  <div className="text-sm text-muted-foreground">
-                    {currentStatus ? 'Aktif' : 'Pasif/Engelli'}
-                  </div>
+                  <Field>
+                    <FieldLabel htmlFor="u-phone" className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-slate-400" /> Telefon
+                    </FieldLabel>
+                    <Input id="u-phone" {...register('phone')} placeholder="555 123 45 67" />
+                  </Field>
                 </div>
-                <Switch
-                  checked={currentStatus}
-                  onCheckedChange={(checked) => setValue('isActive', checked)}
-                />
-              </div>
-            )}
+              </FieldGroup>
+            </Fieldset>
 
-            <div className="flex justify-end gap-3 mt-6">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <FieldSeparator />
+
+            <Fieldset>
+              <FieldLegend>Hesap Ayarları</FieldLegend>
+              <FieldGroup>
+                <div className="grid grid-cols-2 gap-4 items-start">
+                  <Field>
+                    <FieldLabel htmlFor="u-pass" className="flex items-center gap-2">
+                      <Shield className="h-4 w-4 text-slate-400" />
+                      Şifre {isEditing && "(Opsiyonel)"}
+                    </FieldLabel>
+                    <Input id="u-pass" type="password" {...register('password')} placeholder="••••••••" />
+                    {errors.password && <FieldDescription className="text-destructive font-medium">{errors.password.message}</FieldDescription>}
+                  </Field>
+
+                  <Field>
+                    <FieldLabel htmlFor="u-role" className="flex items-center gap-2">
+                      <UserCog className="h-4 w-4 text-slate-400" /> Rol
+                    </FieldLabel>
+                    <Select value={currentRole} onValueChange={(val) => setValue('role', val as any)}>
+                      <SelectTrigger id="u-role">
+                        <SelectValue placeholder="Rol seçiniz" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectItem value="ADMIN">Yönetici (Admin)</SelectItem>
+                          <SelectItem value="MANAGER">Müdür (Manager)</SelectItem>
+                          <SelectItem value="TEAM_LEAD">Ekip Lideri</SelectItem>
+                          <SelectItem value="WORKER">Saha Çalışanı</SelectItem>
+                          <SelectItem value="CUSTOMER">Müşteri Temsilcisi</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                </div>
+
+                {isEditing && (
+                  <Field orientation="horizontal" className="flex items-center justify-between rounded-2xl border border-slate-200 dark:border-slate-800 p-4 bg-slate-50/50 dark:bg-slate-900/50">
+                    <div className="flex flex-col gap-0.5">
+                      <FieldLabel className="font-bold">Hesap Durumu</FieldLabel>
+                      <FieldDescription>{currentStatus ? 'Kullanıcı sistemde aktif' : 'Kullanıcı girişi engellenmiş'}</FieldDescription>
+                    </div>
+                    <Switch
+                      checked={currentStatus}
+                      onCheckedChange={(checked) => setValue('isActive', checked)}
+                    />
+                  </Field>
+                )}
+              </FieldGroup>
+            </Fieldset>
+
+            <div className="flex justify-end gap-3 mt-6 pt-2">
+              <Button type="button" variant="outline" onClick={() => setOpen(false)} className="rounded-xl px-6">
                 İptal
               </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading && <CustomSpinner className="mr-2 h-4 w-4 animate-spin" />}
-                {isEditing ? 'Güncelle' : 'Oluştur'}
+              <Button type="submit" disabled={isLoading} className="rounded-xl bg-slate-900 dark:bg-slate-50 text-white dark:text-slate-900 px-8">
+                {isLoading ? (
+                  <>
+                    <CustomSpinner className="mr-2 h-4 w-4 animate-spin" />
+                    İşleniyor
+                  </>
+                ) : (
+                  isEditing ? 'Güncelle' : 'Kullanıcı Oluştur'
+                )}
               </Button>
             </div>
           </FieldGroup>
