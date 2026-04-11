@@ -199,11 +199,6 @@ function AppNavigator() {
                 options={{ title: 'Admin Dashboard', headerShown: false }}
               />
               <Stack.Screen
-                name="Dashboard2"
-                component={Dashboard2Screen}
-                options={{ title: 'Theme 2 (Industrial)', headerShown: false }}
-              />
-              <Stack.Screen
                 name="UserManagement"
                 component={UserManagementScreen}
                 options={{ title: t('navigation.userManagement') || 'User Management' }}
