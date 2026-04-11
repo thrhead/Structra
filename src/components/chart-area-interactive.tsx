@@ -53,7 +53,23 @@ export function ChartAreaInteractive({ data = [] }: ChartAreaInteractiveProps) {
 
   // Map the raw data to the format expected by the chart
   const formattedData = React.useMemo(() => {
-    return data.map(item => ({
+    // Fallback mock data if the incoming data is empty
+    const sourceData = data && data.length > 0 ? data : [
+      { date: "2024-01-01", intensity: 120, cost: 45000 },
+      { date: "2024-01-15", intensity: 135, cost: 48000 },
+      { date: "2024-02-01", intensity: 110, cost: 42000 },
+      { date: "2024-02-15", intensity: 150, cost: 52000 },
+      { date: "2024-03-01", intensity: 165, cost: 58000 },
+      { date: "2024-03-15", intensity: 180, cost: 63000 },
+      { date: "2024-04-01", intensity: 155, cost: 56000 },
+      { date: "2024-04-15", intensity: 190, cost: 68000 },
+      { date: "2024-05-01", intensity: 210, cost: 75000 },
+      { date: "2024-05-15", intensity: 230, cost: 82000 },
+      { date: "2024-06-01", intensity: 215, cost: 79000 },
+      { date: "2024-06-15", intensity: 250, cost: 89000 }
+    ];
+
+    return sourceData.map(item => ({
       date: item.date,
       intensity: item.intensity,
       cost: item.cost / 1000 // Show in thousands for better scale
