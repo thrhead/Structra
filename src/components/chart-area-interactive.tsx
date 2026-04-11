@@ -93,11 +93,12 @@ export function ChartAreaInteractive({ data = [] }: ChartAreaInteractiveProps) {
   }, [formattedData, timeRange])
 
   return (
-    <Card className="@container/card rounded-3xl border-none shadow-sm overflow-hidden">
-      <CardHeader className="flex flex-col gap-4 space-y-0 pb-4 md:flex-row md:items-center">
-        <div className="flex flex-1 flex-col gap-1">
-          <CardTitle className="text-lg font-black uppercase italic tracking-tight">Stratejik Analiz</CardTitle>
-          <CardDescription className="text-xs font-bold uppercase tracking-widest text-slate-400">
+    <Card className="@container/card rounded-[2rem] border border-slate-200/60 dark:border-slate-800/60 bg-white/60 dark:bg-slate-900/60 backdrop-blur-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 ease-out flex flex-col group overflow-hidden relative">
+      <div className="absolute -inset-10 opacity-30 dark:opacity-10 pointer-events-none transition-transform duration-1000 ease-in-out group-hover:scale-105" style={{ background: 'radial-gradient(ellipse at top right, rgba(99,102,241,0.15), transparent 70%)' }}></div>
+      <CardHeader className="flex flex-col gap-4 space-y-0 p-6 md:flex-row md:items-center relative z-10 border-b border-slate-100/50 dark:border-slate-800/50">
+        <div className="flex flex-1 flex-col gap-1.5">
+          <CardTitle className="text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100">Stratejik Analiz</CardTitle>
+          <CardDescription className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
             İş Yoğunluğu & Operasyonel Maliyetler
           </CardDescription>
         </div>
@@ -115,20 +116,20 @@ export function ChartAreaInteractive({ data = [] }: ChartAreaInteractiveProps) {
           </ToggleGroup>
           <Select value={timeRange} onValueChange={setTimeRange}>
             <SelectTrigger
-              className="flex w-32 rounded-xl text-[10px] font-black uppercase @[767px]/card:hidden"
+              className="flex w-32 rounded-xl text-xs font-semibold @[767px]/card:hidden bg-white/50 dark:bg-slate-900/50 backdrop-blur-md border border-slate-200/50 dark:border-slate-800/50 shadow-sm"
               size="sm"
             >
               <SelectValue placeholder="Süre Seçin" />
             </SelectTrigger>
-            <SelectContent className="rounded-xl">
-              <SelectItem value="90d" className="text-[10px] font-black uppercase">90 Gün</SelectItem>
-              <SelectItem value="30d" className="text-[10px] font-black uppercase">30 Gün</SelectItem>
-              <SelectItem value="7d" className="text-[10px] font-black uppercase">7 Gün</SelectItem>
+            <SelectContent className="rounded-xl border border-slate-200/50 dark:border-slate-800/50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-xl">
+              <SelectItem value="90d" className="text-xs font-medium cursor-pointer rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">90 Gün</SelectItem>
+              <SelectItem value="30d" className="text-xs font-medium cursor-pointer rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">30 Gün</SelectItem>
+              <SelectItem value="7d" className="text-xs font-medium cursor-pointer rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">7 Gün</SelectItem>
             </SelectContent>
           </Select>
         </CardAction>
       </CardHeader>
-      <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6 bg-slate-50/30 dark:bg-slate-900/10">
+      <CardContent className="p-6 relative z-10 flex-1">
         <ChartContainer
           config={chartConfig}
           className="aspect-auto h-[350px] w-full"
