@@ -41,7 +41,7 @@ export function DashboardQuickActions({ customers, teams, templates, users }: Da
   return (
     <div className="flex items-center gap-3 mb-6 relative z-50">
       <DropdownMenu>
-        <DropdownMenuTrigger render={
+        <DropdownMenuTrigger asChild>
           <Button 
             variant="default" 
             className="rounded-2xl h-11 px-5 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 transition-all duration-300 group"
@@ -50,11 +50,13 @@ export function DashboardQuickActions({ customers, teams, templates, users }: Da
             <span className="font-bold tracking-tight text-sm">Hızlı İşlemler</span>
             <ChevronDown className="ml-2 h-4 w-4 opacity-50 transition-transform duration-300 group-data-[state=open]:rotate-180" />
           </Button>
-        } />
+        </DropdownMenuTrigger>
         
-        <DropdownMenuContent className="w-64 p-2 rounded-2xl shadow-xl border-slate-200 dark:border-slate-800 bg-popover" align="start">
+        <DropdownMenuContent className="w-64 p-2 rounded-2xl shadow-xl border-slate-200 dark:border-slate-800 bg-popover" align="start" sideOffset={8}>
           <DropdownMenuGroup>
-            <DropdownMenuLabel>Yeni Oluştur</DropdownMenuLabel>
+            <DropdownMenuLabel className="px-2 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400">
+              Yeni Oluştur
+            </DropdownMenuLabel>
             
             <JobDialog 
               customers={customers} 
@@ -109,10 +111,12 @@ export function DashboardQuickActions({ customers, teams, templates, users }: Da
             />
           </DropdownMenuGroup>
           
-          <DropdownMenuSeparator />
+          <DropdownMenuSeparator className="my-2" />
           
           <DropdownMenuGroup>
-            <DropdownMenuLabel>Yönetim</DropdownMenuLabel>
+            <DropdownMenuLabel className="px-2 py-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400">
+              Yönetim
+            </DropdownMenuLabel>
             <Link href={`${basePrefix}/admin/jobs`} prefetch={false}>
               <DropdownMenuItem className="rounded-xl px-2 py-2 font-semibold cursor-pointer">
                 <ClipboardList className="mr-2 h-4 w-4 text-slate-400" />
