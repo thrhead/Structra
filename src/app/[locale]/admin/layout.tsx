@@ -43,9 +43,15 @@ export default function AdminLayout({
   // Dynamic page name for breadcrumb
   const pathSegments = pathname.split('/').filter(Boolean)
   const lastSegment = pathSegments[pathSegments.length - 1]
-  const pageName = lastSegment 
+  
+  let pageName = lastSegment 
     ? lastSegment.charAt(0).toUpperCase() + lastSegment.slice(1).replace(/-/g, ' ')
     : 'Dashboard'
+
+  // Special handling for job detail pages to show short ID
+  if (pathname.includes('/admin/jobs/') && lastSegment && lastSegment.length > 20) {
+    pageName = `#${lastSegment.slice(-6).toUpperCase()}`
+  }
 
   return (
     <SidebarProvider>

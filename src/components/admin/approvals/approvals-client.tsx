@@ -7,7 +7,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2Icon, XCircleIcon, BanknoteIcon, WrenchIcon, AlertCircleIcon } from "lucide-react";
+import { CheckCircle2Icon, XCircleIcon, BanknoteIcon, WrenchIcon, AlertCircleIcon, ImageIcon, SearchIcon } from "lucide-react";
+import Image from 'next/image';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface ApprovalsClientProps {
   initialCosts: any[];
@@ -19,6 +21,7 @@ export default function ApprovalsClient({ initialCosts, initialSteps }: Approval
   const [costs, setCosts] = useState(initialCosts);
   const [steps, setSteps] = useState(initialSteps);
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 
   const handleAction = async (id: string, type: 'COST' | 'STEP' | 'SUB_STEP', action: 'APPROVE' | 'REJECT') => {
     try {
@@ -163,6 +166,40 @@ export default function ApprovalsClient({ initialCosts, initialSteps }: Approval
                     <span>Tamamlayan: <span className="font-semibold">{step.completedBy?.name || 'Sistem'}</span></span>
                     <span>Tarih: {new Date(step.completedAt || step.startedAt || Date.now()).toLocaleDateString("tr-TR")}</span>
                   </div>
+
+                  {/* Photos Section */}
+                  {step.photos && step.photos.length > 0 ? (
+                    <div className="mt-4">
+                      <div className="flex items-center gap-2 mb-2">
+                         <ImageIcon className="w-4 h-4 text-emerald-500" />
+                         <span className="text-sm font-medium">Fotoğraflar ({step.photos.length})</span>
+                      </div>
+                      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                        {step.photos.map((photo: any) => (
+                          <div 
+                            key={photo.id} 
+                            className="relative w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0 cursor-pointer border-2 border-slate-50 hover:border-emerald-500 transition-all group shadow-sm"
+                            onClick={() => setSelectedPhoto(photo.url)}
+                          >
+                            <Image 
+                              src={photo.url} 
+                              alt="İş adımı fotoğrafı" 
+                              fill 
+                              className="object-cover group-hover:scale-110 transition-transform duration-300" 
+                            />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                              <SearchIcon className="w-5 h-5 text-white" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mt-4 p-3 bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 rounded-2xl flex items-center gap-2 text-rose-600 dark:text-rose-400 text-xs">
+                      <AlertCircleIcon className="w-4 h-4 shrink-0" />
+                      <span>Bu onay talebi için henüz fotoğraf yüklenmemiş!</span>
+                    </div>
+                  )}
                 </CardContent>
                 <CardFooter className="pt-3 border-t border-slate-100 dark:border-slate-800/50 flex gap-2">
                   <Button 
@@ -188,6 +225,34 @@ export default function ApprovalsClient({ initialCosts, initialSteps }: Approval
           </div>
         )}
       </TabsContent>
+
+      <Dialog open={!!selectedPhoto} onOpenChange={(open) => !open && setSelectedPhoto(null)}>
+        <DialogContent className="max-w-4xl p-0 overflow-hidden bg-transparent border-none shadow-none">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Fotoğraf Önizleme</DialogTitle>
+          </DialogHeader>
+          <div className="relative w-full aspect-[4/3] md:aspect-video rounded-3xl overflow-hidden shadow-2xl">
+            {selectedPhoto && (
+              <Image 
+                src={selectedPhoto} 
+                alt="Büyük boy fotoğraf" 
+                fill 
+                className="object-contain bg-black/90" 
+                priority
+              />
+            )}
+          </div>
+          <div className="flex justify-center mt-4">
+             <Button 
+               variant="secondary" 
+               className="rounded-full px-6 bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border border-white/20"
+               onClick={() => setSelectedPhoto(null)}
+             >
+               Kapat
+             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Tabs>
   );
 }
