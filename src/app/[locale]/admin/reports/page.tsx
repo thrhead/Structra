@@ -112,15 +112,6 @@ export default function AdminReportsPage(props: {
                         activeTab
                     })
                 }
-
-                if (isMounted) {
-                    setData({
-                        ...tabData,
-                        filterJobs,
-                        filterCategories,
-                        activeTab
-                    })
-                }
             } catch (error) {
                 console.error('Error loading reports:', error);
             } finally {
