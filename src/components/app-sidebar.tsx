@@ -89,6 +89,10 @@ const data = {
           title: 'İş Şablonları',
           url: '/admin/templates',
         },
+        {
+          title: 'Onaylar',
+          url: '/admin/approvals',
+        },
       ]
     },
     {
