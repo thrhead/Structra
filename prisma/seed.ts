@@ -1,5 +1,5 @@
 // Simple TypeScript seed script
-import { prisma } from '../lib/db'
+import { prisma } from '../src/lib/db'
 import { hash } from 'bcryptjs'
 
 async function main() {

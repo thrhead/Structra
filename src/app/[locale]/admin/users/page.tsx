@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic"
 import { auth } from "@/lib/auth"
 import { redirect } from "@/lib/navigation"
 import { UserDialog } from "@/components/admin/user-dialog"
