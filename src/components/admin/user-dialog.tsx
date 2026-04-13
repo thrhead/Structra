@@ -83,16 +83,24 @@ export function UserDialog({ user, trigger }: UserDialogProps) {
 
   const onSubmit = async (data: FormData) => {
     setIsLoading(true)
+    
+    // Prevent Zod/Next.js serialization errors
+    const safeData = {
+      ...data,
+      phone: data.phone || '',
+      password: data.password || ''
+    }
+
     try {
       if (isEditing) {
         await updateUserAction({
           id: user.id,
-          ...data,
-          password: data.password || undefined
+          ...safeData,
+          password: safeData.password || undefined
         })
         toast.success('Kullanıcı güncellendi')
       } else {
-        await createUserAction(data as any)
+        await createUserAction(safeData as any)
         toast.success('Kullanıcı başarıyla oluşturuldu')
       }
 

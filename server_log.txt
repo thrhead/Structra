@@ -1,5 +1,0 @@
-
-> assembly_tracker@0.1.0 dev
-> next dev
-
-sh: line 1: next: command not found

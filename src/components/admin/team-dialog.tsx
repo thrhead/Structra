@@ -27,7 +27,7 @@ import { CustomSpinner } from '@/components/ui/custom-spinner'
 
 const teamSchema = z.object({
   name: z.string().min(2, 'Ekip adı en az 2 karakter olmalıdır'),
-  description: z.string().optional(),
+  description: z.string().optional().nullable(),
   leadId: z.string().optional().nullable(),
   isActive: z.boolean(),
   memberIds: z.array(z.string()).optional()
@@ -98,12 +98,21 @@ export function TeamDialog({ team, users, currentMembers = [], trigger }: TeamDi
 
   const onSubmit = async (data: TeamFormData) => {
     setLoading(true)
+    
+    // Convert undefined to null to prevent serialization errors
+    const safeData = {
+      ...data,
+      description: data.description || null,
+      leadId: data.leadId === 'none' ? null : data.leadId,
+      memberIds: data.memberIds || []
+    }
+
     try {
       if (team) {
-        await updateTeamAction(team.id, data)
+        await updateTeamAction(team.id, safeData)
         toast.success('Ekip güncellendi')
       } else {
-        await createTeamAction(data)
+        await createTeamAction(safeData)
         toast.success('Ekip oluşturuldu')
       }
 

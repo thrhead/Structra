@@ -66,6 +66,10 @@ const data = {
           title: 'Müşteriler',
           url: '/admin/customers',
         },
+        {
+          title: 'Ekipler',
+          url: '/admin/teams',
+        },
       ]
     },
     {
@@ -73,10 +77,6 @@ const data = {
       url: '#',
       icon: Briefcase,
       items: [
-        {
-          title: 'Ekipler',
-          url: '/admin/teams',
-        },
         {
           title: 'İşler',
           url: '/admin/jobs',
