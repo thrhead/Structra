@@ -67,7 +67,7 @@ export function TeamDialog({ team, users, currentMembers = [], trigger }: TeamDi
     setValue,
     watch
   } = useForm<TeamFormData>({
-    // resolver removed
+    resolver: zodResolver(teamSchema),
     defaultValues: {
       name: team?.name || '',
       description: team?.description || '',
