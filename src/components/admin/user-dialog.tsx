@@ -39,7 +39,7 @@ import { Switch } from "@/components/ui/switch"
 import { CustomSpinner } from '@/components/ui/custom-spinner'
 
 const userEditSchema = registerSchema.extend({
-  password: z.string().optional().or(z.literal('')),
+  password: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional().or(z.literal('')),
   isActive: z.boolean().optional(),
 })
 

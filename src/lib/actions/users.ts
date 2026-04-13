@@ -7,7 +7,7 @@ import { auth } from '@/lib/auth'
 import { registerSchema } from '@/lib/validations-edge'
 import { hash } from 'bcryptjs'
 
-export async function createUserAction(data: z.infer<typeof registerSchema>) {
+export async function createUserAction(data: any) {
     const session = await auth()
 
     if (!session || session.user.role !== 'ADMIN') {
@@ -55,16 +55,16 @@ export async function createUserAction(data: z.infer<typeof registerSchema>) {
 
 // Update schema: password optional
 const userUpdateSchema = z.object({
-    id: z.string(),
-    name: z.string().min(2, 'İsim en az 2 karakter olmalıdır'),
-    email: z.string().email('Geçerli bir e-posta adresi giriniz'),
-    password: z.string().optional().or(z.literal('')),
-    phone: z.string().optional(),
+    id: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }),
+    name: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).min(2, 'İsim en az 2 karakter olmalıdır'),
+    email: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).email('Geçerli bir e-posta adresi giriniz'),
+    password: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional().or(z.literal('')),
+    phone: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional(),
     role: z.enum(['ADMIN', 'MANAGER', 'TEAM_LEAD', 'WORKER', 'CUSTOMER']),
     isActive: z.boolean().optional(),
 })
 
-export async function updateUserAction(data: z.infer<typeof userUpdateSchema>) {
+export async function updateUserAction(data: any) {
     const session = await auth()
 
     if (!session || session.user.role !== 'ADMIN') {

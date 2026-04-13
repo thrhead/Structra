@@ -11,36 +11,36 @@ import { logAudit, AuditAction } from '@/lib/audit'
 import { generateJobNumber, generateStepNumber, generateSubStepNumber } from '@/lib/utils/job-number'
 
 const jobSchema = z.object({
-  title: z.string().min(3, 'İş başlığı en az 3 karakter olmalıdır'),
-  projectNo: z.string().optional().nullable(),
-  description: z.string().optional().nullable(),
-  customerId: z.string().min(1, 'Müşteri seçilmelidir'),
-  teamId: z.string().optional().nullable(),
-  workerId: z.string().optional().nullable(),
-  jobLeadId: z.string().optional().nullable(),
+  title: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).min(3, 'İş başlığı en az 3 karakter olmalıdır'),
+  projectNo: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional().nullable(),
+  description: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional().nullable(),
+  customerId: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).min(1, 'Müşteri seçilmelidir'),
+  teamId: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional().nullable(),
+  workerId: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional().nullable(),
+  jobLeadId: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional().nullable(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
-  location: z.string().optional().nullable(),
-  scheduledDate: z.string().optional().nullable(),
-  scheduledEndDate: z.string().optional().nullable(),
+  location: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional().nullable(),
+  scheduledDate: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional().nullable(),
+  scheduledEndDate: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional().nullable(),
   budget: z.number().optional().nullable(),
   estimatedDuration: z.number().optional().nullable(),
   steps: z.array(z.object({
-    id: z.string().optional(),
-    title: z.string(),
-    description: z.string().optional().nullable(),
+    id: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional(),
+    title: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }),
+    description: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional().nullable(),
     subSteps: z.array(z.object({
-      id: z.string().optional(),
-      title: z.string()
+      id: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional(),
+      title: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' })
     })).optional()
   })).optional().nullable()
 })
 
 const updateJobSchema = jobSchema.extend({
-  id: z.string(),
+  id: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }),
   status: z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).optional(),
   acceptanceStatus: z.enum(['PENDING', 'ACCEPTED', 'REJECTED']).optional(),
-  startedAt: z.string().optional(),
-  completedDate: z.string().optional(),
+  startedAt: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional(),
+  completedDate: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional(),
 })
 
 export type CreateJobState = {

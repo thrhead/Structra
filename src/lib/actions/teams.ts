@@ -8,14 +8,14 @@ import { logger } from '@/lib/logger'
 import { logAudit, AuditAction } from '@/lib/audit'
 
 const teamSchema = z.object({
-  name: z.string().min(2, 'Ekip adı en az 2 karakter olmalıdır'),
-  description: z.string().optional(),
-  leadId: z.string().optional().nullable(),
+  name: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).min(2, 'Ekip adı en az 2 karakter olmalıdır'),
+  description: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional().nullable(),
+  leadId: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional().nullable(),
   isActive: z.boolean().default(true),
-  memberIds: z.array(z.string()).optional()
+  memberIds: z.array(z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' })).optional()
 })
 
-export async function createTeamAction(data: z.infer<typeof teamSchema>) {
+export async function createTeamAction(data: any) {
     const session = await auth()
 
     if (!session || session.user.role !== 'ADMIN') {
@@ -68,7 +68,7 @@ export async function createTeamAction(data: z.infer<typeof teamSchema>) {
     }
 }
 
-export async function updateTeamAction(id: string, data: z.infer<typeof teamSchema>) {
+export async function updateTeamAction(id: string, data: any) {
     const session = await auth()
 
     if (!session || session.user.role !== 'ADMIN') {

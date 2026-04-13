@@ -50,29 +50,29 @@ import { createJobAction, updateJobAction } from '@/lib/actions/jobs'
 import { CustomSpinner } from '@/components/ui/custom-spinner'
 
 const jobSchema = z.object({
-  title: z.string().min(3, 'İş başlığı en az 3 karakter olmalıdır'),
-  projectNo: z.string().optional().nullable(),
-  description: z.string().optional(),
-  customerId: z.string().min(1, 'Müşteri seçilmelidir'),
-  teamId: z.string().optional().nullable(),
-  jobLeadId: z.string().optional().nullable(),
+  title: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).min(3, 'İş başlığı en az 3 karakter olmalıdır'),
+  projectNo: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional().nullable(),
+  description: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional(),
+  customerId: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).min(1, 'Müşteri seçilmelidir'),
+  teamId: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional().nullable(),
+  jobLeadId: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional().nullable(),
   status: z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).optional(),
   acceptanceStatus: z.enum(['PENDING', 'ACCEPTED', 'REJECTED']).optional(),
-  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
-  location: z.string().optional(),
-  scheduledDate: z.string().optional(),
-  scheduledEndDate: z.string().optional(),
-  startedAt: z.string().optional(),
-  completedDate: z.string().optional(),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT'], { required_error: 'Öncelik seçilmelidir' }),
+  location: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional(),
+  scheduledDate: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional(),
+  scheduledEndDate: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional(),
+  startedAt: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional(),
+  completedDate: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional(),
   budget: z.preprocess((val) => (val === '' || val === null ? undefined : Number(val)), z.number().optional()),
   estimatedDuration: z.preprocess((val) => (val === '' || val === null ? undefined : Number(val)), z.number().optional()),
   steps: z.array(z.object({
-    id: z.string().optional(),
-    title: z.string(),
-    description: z.string().optional(),
+    id: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional(),
+    title: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }),
+    description: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional(),
     subSteps: z.array(z.object({
-      id: z.string().optional(),
-      title: z.string()
+      id: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional(),
+      title: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' })
     })).optional()
   })).optional().nullable()
 })

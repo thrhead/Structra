@@ -26,11 +26,11 @@ import { createTeamAction, updateTeamAction } from '@/lib/actions/teams'
 import { CustomSpinner } from '@/components/ui/custom-spinner'
 
 const teamSchema = z.object({
-  name: z.string().min(2, 'Ekip adı en az 2 karakter olmalıdır'),
-  description: z.string().optional().nullable(),
-  leadId: z.string().optional().nullable(),
-  isActive: z.boolean(),
-  memberIds: z.array(z.string()).optional()
+  name: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).min(2, 'Ekip adı en az 2 karakter olmalıdır'),
+  description: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional().nullable(),
+  leadId: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional().nullable(),
+  isActive: z.boolean({ required_error: 'Durum zorunludur' }),
+  memberIds: z.array(z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' })).optional()
 })
 
 type TeamFormData = z.infer<typeof teamSchema>
