@@ -10,8 +10,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+  DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -21,8 +20,7 @@ import {
   SelectGroup,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  SelectValue } from '@/components/ui/select'
 import { 
   PlusIcon, 
   XIcon, 
@@ -50,29 +48,29 @@ import { createJobAction, updateJobAction } from '@/lib/actions/jobs'
 import { CustomSpinner } from '@/components/ui/custom-spinner'
 
 const jobSchema = z.object({
-  title: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).min(3, 'İş başlığı en az 3 karakter olmalıdır'),
+  title: z.string({ error: 'Bu alan zorunludur' }).min(3, 'İş başlığı en az 3 karakter olmalıdır'),
   projectNo: z.string().optional().nullable().or(z.literal('')),
-  description: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional(),
-  customerId: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).min(1, 'Müşteri seçilmelidir'),
-  teamId: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional().nullable(),
-  jobLeadId: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional().nullable(),
+  description: z.string({ error: 'Bu alan zorunludur' }).optional(),
+  customerId: z.string({ error: 'Bu alan zorunludur' }).min(1, 'Müşteri seçilmelidir'),
+  teamId: z.string({ error: 'Bu alan zorunludur' }).optional().nullable(),
+  jobLeadId: z.string({ error: 'Bu alan zorunludur' }).optional().nullable(),
   status: z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).optional(),
   acceptanceStatus: z.enum(['PENDING', 'ACCEPTED', 'REJECTED']).optional(),
-  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT'], { required_error: 'Öncelik seçilmelidir' }),
-  location: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional(),
-  scheduledDate: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional(),
-  scheduledEndDate: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional(),
-  startedAt: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional(),
-  completedDate: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional(),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT'], { error: 'Öncelik seçilmelidir' }),
+  location: z.string({ error: 'Bu alan zorunludur' }).optional(),
+  scheduledDate: z.string({ error: 'Bu alan zorunludur' }).optional(),
+  scheduledEndDate: z.string({ error: 'Bu alan zorunludur' }).optional(),
+  startedAt: z.string({ error: 'Bu alan zorunludur' }).optional(),
+  completedDate: z.string({ error: 'Bu alan zorunludur' }).optional(),
   budget: z.preprocess((val) => (val === '' || val === null ? undefined : Number(val)), z.number().optional()),
   estimatedDuration: z.preprocess((val) => (val === '' || val === null ? undefined : Number(val)), z.number().optional()),
   steps: z.array(z.object({
-    id: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional(),
-    title: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }),
-    description: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional(),
+    id: z.string({ error: 'Bu alan zorunludur' }).optional(),
+    title: z.string({ error: 'Bu alan zorunludur' }),
+    description: z.string({ error: 'Bu alan zorunludur' }).optional(),
     subSteps: z.array(z.object({
-      id: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional(),
-      title: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' })
+      id: z.string({ error: 'Bu alan zorunludur' }).optional(),
+      title: z.string({ error: 'Bu alan zorunludur' })
     })).optional()
   })).optional().nullable()
 })
@@ -125,8 +123,7 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
     formState: { errors },
     reset,
     setValue,
-    watch,
-  } = useForm<FormData>({
+    watch } = useForm<FormData>({
     resolver: zodResolver(jobSchema),
     defaultValues: {
       title: '',
@@ -152,8 +149,7 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
         startedAt: job.startedAt ? new Date(job.startedAt).toISOString().slice(0, 16) : '',
         completedDate: job.completedDate ? new Date(job.completedDate).toISOString().slice(0, 16) : '',
         budget: job.budget,
-        estimatedDuration: job.estimatedDuration,
-      }
+        estimatedDuration: job.estimatedDuration }
     }
   })
 

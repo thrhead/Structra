@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -26,16 +26,11 @@ import { createTeamAction, updateTeamAction } from '@/lib/actions/teams'
 import { CustomSpinner } from '@/components/ui/custom-spinner'
 
 const teamSchema = z.object({
-  name: z.string({ required_error: 'Bu alan zorunludur' }).min(2, 'Ekip adı en az 2 karakter olmalıdır'),
+  name: z.string({ error: 'Bu alan zorunludur' }).min(2, 'Ekip adı en az 2 karakter olmalıdır'),
   description: z.string().optional().nullable().or(z.literal('')),
   leadId: z.string().optional().nullable().or(z.literal('none')),
-  isActive: z.boolean().default(true),
+  isActive: z.boolean({ error: 'Durum zorunludur' }),
   memberIds: z.array(z.string()).optional()
-}).min(2, 'Ekip adı en az 2 karakter olmalıdır'),
-  description: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional().nullable(),
-  leadId: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional().nullable(),
-  isActive: z.boolean({ required_error: 'Durum zorunludur' }),
-  memberIds: z.array(z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' })).optional()
 })
 
 type TeamFormData = z.infer<typeof teamSchema>
@@ -149,6 +144,7 @@ export function TeamDialog({ team, users, currentMembers = [], trigger }: TeamDi
           <DialogTitle className="text-xl font-bold tracking-tight">
             {team ? 'Ekip Düzenle' : 'Yeni Ekip Ekle'}
           </DialogTitle>
+          <DialogDescription className="sr-only">Ekip oluşturma veya düzenleme formu.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="mt-6">
           <FieldGroup>

@@ -8,11 +8,11 @@ import { logger } from '@/lib/logger'
 import { logAudit, AuditAction } from '@/lib/audit'
 
 const teamSchema = z.object({
-  name: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).min(2, 'Ekip adı en az 2 karakter olmalıdır'),
-  description: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional().nullable(),
-  leadId: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional().nullable(),
+  name: z.string({ error: 'Alan zorunlu' }).min(2, 'Ekip adı en az 2 karakter olmalıdır'),
+  description: z.string({ error: 'Alan zorunlu' }).optional().nullable(),
+  leadId: z.string({ error: 'Alan zorunlu' }).optional().nullable(),
   isActive: z.boolean().default(true),
-  memberIds: z.array(z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' })).optional()
+  memberIds: z.array(z.string({ error: 'Alan zorunlu' })).optional()
 })
 
 export async function createTeamAction(data: any) {

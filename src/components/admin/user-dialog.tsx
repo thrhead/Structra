@@ -10,8 +10,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+  DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -20,8 +19,7 @@ import {
   SelectGroup,
   SelectItem,
   SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  SelectValue } from '@/components/ui/select'
 import { PlusIcon, UserCircle, Shield, Phone, Mail, UserCog } from 'lucide-react'
 import { 
   Field, 
@@ -39,9 +37,8 @@ import { Switch } from "@/components/ui/switch"
 import { CustomSpinner } from '@/components/ui/custom-spinner'
 
 const userEditSchema = registerSchema.extend({
-  password: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional().or(z.literal('')),
-  isActive: z.boolean().optional(),
-})
+  password: z.string({ error: 'Bu alan zorunludur' }).optional().or(z.literal('')),
+  isActive: z.boolean().optional() })
 
 type FormData = z.infer<typeof userEditSchema>
 
@@ -62,8 +59,7 @@ export function UserDialog({ user, trigger }: UserDialogProps) {
     formState: { errors },
     reset,
     setValue,
-    watch,
-  } = useForm<FormData>({
+    watch } = useForm<FormData>({
     resolver: zodResolver(isEditing ? userEditSchema : registerSchema),
     defaultValues: user ? {
       name: user.name || '',

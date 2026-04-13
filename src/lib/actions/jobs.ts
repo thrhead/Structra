@@ -11,37 +11,36 @@ import { logAudit, AuditAction } from '@/lib/audit'
 import { generateJobNumber, generateStepNumber, generateSubStepNumber } from '@/lib/utils/job-number'
 
 const jobSchema = z.object({
-  title: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).min(3, 'İş başlığı en az 3 karakter olmalıdır'),
-  projectNo: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional().nullable(),
-  description: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional().nullable(),
-  customerId: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).min(1, 'Müşteri seçilmelidir'),
-  teamId: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional().nullable(),
-  workerId: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional().nullable(),
-  jobLeadId: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional().nullable(),
+  title: z.string({ error: 'Alan zorunlu' }).min(3, 'İş başlığı en az 3 karakter olmalıdır'),
+  projectNo: z.string({ error: 'Alan zorunlu' }).optional().nullable(),
+  description: z.string({ error: 'Alan zorunlu' }).optional().nullable(),
+  customerId: z.string({ error: 'Alan zorunlu' }).min(1, 'Müşteri seçilmelidir'),
+  teamId: z.string({ error: 'Alan zorunlu' }).optional().nullable(),
+  workerId: z.string({ error: 'Alan zorunlu' }).optional().nullable(),
+  jobLeadId: z.string({ error: 'Alan zorunlu' }).optional().nullable(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
-  location: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional().nullable(),
-  scheduledDate: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional().nullable(),
-  scheduledEndDate: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional().nullable(),
+  location: z.string({ error: 'Alan zorunlu' }).optional().nullable(),
+  scheduledDate: z.string({ error: 'Alan zorunlu' }).optional().nullable(),
+  scheduledEndDate: z.string({ error: 'Alan zorunlu' }).optional().nullable(),
   budget: z.number().optional().nullable(),
   estimatedDuration: z.number().optional().nullable(),
   steps: z.array(z.object({
-    id: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional(),
-    title: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }),
-    description: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional().nullable(),
+    id: z.string({ error: 'Alan zorunlu' }).optional(),
+    title: z.string({ error: 'Alan zorunlu' }),
+    description: z.string({ error: 'Alan zorunlu' }).optional().nullable(),
     subSteps: z.array(z.object({
-      id: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional(),
-      title: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' })
+      id: z.string({ error: 'Alan zorunlu' }).optional(),
+      title: z.string({ error: 'Alan zorunlu' })
     })).optional()
   })).optional().nullable()
 })
 
 const updateJobSchema = jobSchema.extend({
-  id: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }),
+  id: z.string({ error: 'Alan zorunlu' }),
   status: z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).optional(),
   acceptanceStatus: z.enum(['PENDING', 'ACCEPTED', 'REJECTED']).optional(),
-  startedAt: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional(),
-  completedDate: z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' }).optional(),
-})
+  startedAt: z.string({ error: 'Alan zorunlu' }).optional(),
+  completedDate: z.string({ error: 'Alan zorunlu' }).optional() })
 
 export type CreateJobState = {
   success?: boolean
@@ -86,8 +85,7 @@ export async function createJobAction(data: any) {
           scheduledEndDate: validated.data.scheduledEndDate ? new Date(validated.data.scheduledEndDate) : null,
           budget: validated.data.budget,
           estimatedDuration: validated.data.estimatedDuration,
-          creatorId: session.user.id,
-        }
+          creatorId: session.user.id }
       })
 
       // 2. Create Assignment
@@ -223,8 +221,7 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
           startedAt: parseDate(startedAt),
           completedDate: parseDate(completedDate),
           budget: budget,
-          estimatedDuration: estimatedDuration,
-        }
+          estimatedDuration: estimatedDuration }
       })
 
       // 2. Update Assignment
