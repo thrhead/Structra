@@ -127,7 +127,7 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
     setValue,
     watch,
   } = useForm<FormData>({
-    resolver: zodResolver(jobSchema),
+    // resolver removed
     defaultValues: {
       title: '',
       projectNo: '',

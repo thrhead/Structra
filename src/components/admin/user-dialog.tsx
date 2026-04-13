@@ -64,7 +64,7 @@ export function UserDialog({ user, trigger }: UserDialogProps) {
     setValue,
     watch,
   } = useForm<FormData>({
-    resolver: zodResolver(isEditing ? userEditSchema : registerSchema),
+    // resolver removed
     defaultValues: user ? {
       name: user.name || '',
       email: user.email || '',

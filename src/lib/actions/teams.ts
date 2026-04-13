@@ -15,35 +15,27 @@ const teamSchema = z.object({
   memberIds: z.array(z.string({ required_error: 'Alan zorunlu', invalid_type_error: 'Format hatası' })).optional()
 })
 
+
+
+
 export async function createTeamAction(data: any) {
     const session = await auth()
-
-    if (!session || session.user.role !== 'ADMIN') {
-        throw new Error('Yetkisiz işlem')
-    }
-
-    const validated = teamSchema.safeParse(data)
-
-    if (!validated.success) {
-        throw new Error('Geçersiz veri: ' + JSON.stringify(validated.error.flatten()))
-    }
-
-    const { name, description, leadId, isActive, memberIds } = validated.data
+    if (!session || session.user.role !== 'ADMIN') throw new Error('Yetkisiz işlem')
 
     try {
         const team = await prisma.$transaction(async (tx) => {
             const newTeam = await tx.team.create({
                 data: {
-                    name,
-                    description,
-                    leadId: leadId === 'none' ? null : leadId,
-                    isActive
+                    name: data.name,
+                    description: data.description || null,
+                    leadId: data.leadId === 'none' ? null : data.leadId,
+                    isActive: data.isActive !== undefined ? data.isActive : true
                 }
             })
 
-            if (memberIds && memberIds.length > 0) {
+            if (data.memberIds && data.memberIds.length > 0) {
                 await tx.teamMember.createMany({
-                    data: memberIds.map(userId => ({
+                    data: data.memberIds.map(userId => ({
                         teamId: newTeam.id,
                         userId
                     }))
@@ -52,7 +44,6 @@ export async function createTeamAction(data: any) {
             return newTeam;
         })
 
-        // LOGGING: Audit log for team creation
         await logAudit(session.user.id, AuditAction.TEAM_MEMBER_ADD, {
             teamId: team.id,
             teamName: team.name,
@@ -63,10 +54,10 @@ export async function createTeamAction(data: any) {
         return { success: true }
     } catch (error: any) {
         console.error('Team creation error:', error)
-        logger.error('Failed to create team', { error: error.message });
         throw new Error(error.message || 'Ekip oluşturulurken bir hata oluştu')
     }
 }
+
 
 export async function updateTeamAction(id: string, data: any) {
     const session = await auth()
