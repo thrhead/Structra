@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from '@/lib/navigation'
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { UserIcon, LockIcon, Loader2Icon, CheckCircle2Icon, AlertCircleIcon, PaletteIcon } from 'lucide-react'
+import { UserIcon, LockIcon, Loader2Icon, CheckCircle2Icon, AlertCircleIcon, PaletteIcon, LogOutIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface ProfileViewProps {
@@ -283,6 +283,24 @@ export function ProfileView({ role }: ProfileViewProps) {
                     </form>
                 </CardContent>
             </Card>
+
+            <Card className="border-red-200">
+                <CardHeader>
+                    <div className="flex items-center gap-2">
+                        <LogOutIcon className="h-5 w-5 text-red-600" />
+                        <CardTitle className="text-red-600">Oturumu Kapat</CardTitle>
+                    </div>
+                    <CardDescription>
+                        Cihazınızdaki aktif oturumunuzu sonlandırır.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Button onClick={() => signOut({ callbackUrl: '/login' })} variant="destructive" className="w-full sm:w-auto">
+                        Güvenli Çıkış Yap
+                    </Button>
+                </CardContent>
+            </Card>
         </div>
     )
 }
+

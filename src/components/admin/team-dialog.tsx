@@ -26,7 +26,12 @@ import { createTeamAction, updateTeamAction } from '@/lib/actions/teams'
 import { CustomSpinner } from '@/components/ui/custom-spinner'
 
 const teamSchema = z.object({
-  name: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).min(2, 'Ekip adı en az 2 karakter olmalıdır'),
+  name: z.string({ required_error: 'Bu alan zorunludur' }).min(2, 'Ekip adı en az 2 karakter olmalıdır'),
+  description: z.string().optional().nullable().or(z.literal('')),
+  leadId: z.string().optional().nullable().or(z.literal('none')),
+  isActive: z.boolean().default(true),
+  memberIds: z.array(z.string()).optional()
+}).min(2, 'Ekip adı en az 2 karakter olmalıdır'),
   description: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional().nullable(),
   leadId: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional().nullable(),
   isActive: z.boolean({ required_error: 'Durum zorunludur' }),
@@ -73,7 +78,7 @@ export function TeamDialog({ team, users, currentMembers = [], trigger }: TeamDi
       description: team?.description || '',
       leadId: team?.leadId || 'none',
       isActive: team?.isActive ?? true,
-      memberIds: currentMembers
+      memberIds: currentMembers || []
     }
   })
 

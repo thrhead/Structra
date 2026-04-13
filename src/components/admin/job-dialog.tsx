@@ -51,7 +51,7 @@ import { CustomSpinner } from '@/components/ui/custom-spinner'
 
 const jobSchema = z.object({
   title: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).min(3, 'İş başlığı en az 3 karakter olmalıdır'),
-  projectNo: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional().nullable(),
+  projectNo: z.string().optional().nullable().or(z.literal('')),
   description: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional(),
   customerId: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).min(1, 'Müşteri seçilmelidir'),
   teamId: z.string({ required_error: 'Bu alan zorunludur', invalid_type_error: 'Geçersiz metin formatı' }).optional().nullable(),
