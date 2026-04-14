@@ -5,6 +5,7 @@ import { Clock, AlertTriangle, CheckCircle2, Zap, ArrowRight } from 'lucide-reac
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from '@/components/ui/badge'
 import { Progress } from "@/components/ui/progress"
+import { Button } from '@/components/ui/button'
 import { useRouter } from '@/lib/navigation'
 import { Link } from '@/lib/navigation'
 
@@ -210,18 +211,6 @@ export default function OperationalView({ data }: { data: any }) {
                     </CardContent>
                 </Card>
             </div>
-                            {totalPending === 0 && topBottlenecks.length === 0 && (
-                                <div className="flex flex-col items-center justify-center py-10 text-slate-400 dark:text-slate-500 gap-2">
-                                    <CheckCircle2 className="w-8 h-8 text-emerald-500 dark:text-emerald-400" />
-                                    <p className="text-sm font-medium">Tüm operasyonlar SLA sınırları dahilinde.</p>
-                                </div>
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
         </div>
     )
 }
-
-import { Button } from '@/components/ui/button'
