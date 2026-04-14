@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
 import { checkConflict } from '@/lib/conflict-check'
 import { publishToJob } from '@/lib/ably'
+import { logAudit, AuditAction, getDeviceInfo } from '@/lib/audit'
 
 export async function POST(
   req: Request,
@@ -111,6 +112,22 @@ export async function POST(
         approvedAt: null
       }
     })
+
+    // Detailed Audit Logging
+    const deviceInfo = getDeviceInfo(req);
+    await logAudit(
+        session.user.id,
+        updatedStep.isCompleted ? AuditAction.JOB_STEP_COMPLETE : AuditAction.JOB_UPDATE,
+        {
+            jobId: step.jobId,
+            stepId: params.stepId,
+            title: step.title,
+            userName: session.user.name || session.user.email,
+            ...deviceInfo,
+            snapshot: step // Original state
+        },
+        deviceInfo.platform
+    );
 
     // Real-time update
     await publishToJob(step.jobId, 'job:updated', { id: step.jobId, updatedAt: new Date() });

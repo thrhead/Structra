@@ -1,5 +1,15 @@
 
 import { prisma } from './db';
+
+/**
+ * Extracts device information from Request headers
+ */
+export function getDeviceInfo(req: Request) {
+    const ua = req.headers.get('user-agent') || 'Bilinmiyor';
+    const device = ua.split(')')[0].split('(')[1] || ua;
+    const platform = ua.toLowerCase().includes('mobile') ? 'mobile' : 'web';
+    return { device, platform, userAgent: ua };
+}
 import { v4 as uuidv4 } from 'uuid';
 
 export enum AuditAction {
@@ -17,6 +27,11 @@ export enum AuditAction {
     JOB_UPDATE = 'JOB_UPDATE',
     JOB_DELETE = 'JOB_DELETE',
     JOB_STATUS_CHANGE = 'JOB_STATUS_CHANGE',
+    JOB_STARTED = 'JOB_STARTED',
+    JOB_COMPLETED = 'JOB_COMPLETED',
+    JOB_PHOTO_UPLOAD = 'JOB_PHOTO_UPLOAD',
+    JOB_STEP_COMPLETE = 'JOB_STEP_COMPLETE',
+    JOB_SUBSTEP_COMPLETE = 'JOB_SUBSTEP_COMPLETE',
 
     // Team
     TEAM_ASSIGNMENT = 'TEAM_ASSIGNMENT',
@@ -36,6 +51,9 @@ export enum AuditAction {
 export interface AuditDetails {
     resourceId?: string;
     resourceName?: string;
+    userName?: string;
+    device?: string;
+    snapshot?: any;
     before?: Record<string, any>;
     after?: Record<string, any>;
     ipAddress?: string;
@@ -48,29 +66,47 @@ export interface AuditDetails {
  */
 function formatAuditMessage(action: AuditAction | string, details: AuditDetails): string {
     const resourceId = details.resourceId || details.jobId || details.userId || 'Bilinmiyor';
+    const userName = details.userName || 'Bilinmiyor';
+    const device = details.device ? `[${details.device}]` : '';
+    const jobTitle = details.title || details.resourceName || '';
+
+    const prefix = `${userName} ${device} :`.replace(/\s+/g, ' ').trim();
     
     switch (action) {
         case AuditAction.JOB_CREATE:
-            const jobInfo = [];
-            if (details.title) jobInfo.push(details.title);
-            if (details.jobNo) jobInfo.push(`#${details.jobNo}`);
-            jobInfo.push(`(ID: ${resourceId})`);
-            return `İş oluşturuldu: ${jobInfo.join(' ')}`.trim();
+            return `${prefix} İş oluşturuldu: ${jobTitle} (#${details.jobNo || 'Yeni'})`.trim();
+
+        case AuditAction.JOB_STARTED:
+        case 'Job started':
+            return `${prefix} İş başlatıldı: ${jobTitle} (ID: ${resourceId})`.trim();
+
+        case AuditAction.JOB_COMPLETED:
+        case 'Job completed':
+            return `${prefix} İş tamamlandı: ${jobTitle} (ID: ${resourceId})`.trim();
+
+        case AuditAction.JOB_PHOTO_UPLOAD:
+            return `${prefix} Fotoğraf yüklendi: ${jobTitle} (ID: ${resourceId})`.trim();
+
+        case AuditAction.JOB_STEP_COMPLETE:
+            return `${prefix} Adım tamamlandı: ${jobTitle} (ID: ${resourceId})`.trim();
+
+        case AuditAction.JOB_SUBSTEP_COMPLETE:
+            return `${prefix} Alt görev tamamlandı: ${jobTitle} (ID: ${resourceId})`.trim();
 
         case AuditAction.JOB_UPDATE:
-            return `İş güncellendi: ${details.title || resourceId}`;
+            return `${prefix} İş güncellendi: ${jobTitle || resourceId}`;
 
         case AuditAction.JOB_DELETE:
-            return `İş silindi: ${details.title || resourceId}`;
+            return `${prefix} İş silindi: ${jobTitle || resourceId}`;
 
         case AuditAction.JOB_STATUS_CHANGE:
-            return `İş durumu değişti: ${details.title || ''} (${details.before?.status} -> ${details.after?.status}) (ID: ${resourceId})`;
+            return `${prefix} İş durumu değişti: ${jobTitle} (${details.before?.status} -> ${details.after?.status})`;
 
         case AuditAction.USER_CREATE:
-            return `Yeni kullanıcı oluşturuldu: ${details.email || details.name || resourceId}`;
+            return `${prefix} Yeni kullanıcı oluşturuldu: ${details.email || details.name || resourceId}`;
 
         default:
-            return action;
+            return `${prefix} ${action}`.trim();
     }
 }
 

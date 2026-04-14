@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
 import cloudinary from '@/lib/cloudinary'
+import { logAudit, AuditAction, getDeviceInfo } from '@/lib/audit'
 
 export async function POST(
     req: Request,
@@ -153,6 +154,24 @@ export async function POST(
                 }
             }
         })
+
+        // Detailed Audit Logging
+        const deviceInfo = getDeviceInfo(req);
+        await logAudit(
+            session.user.id,
+            AuditAction.JOB_PHOTO_UPLOAD,
+            {
+                jobId: params.id,
+                stepId: params.stepId,
+                subStepId: subStepId || null,
+                title: job?.title || 'Unknown Job',
+                photoUrl: photoUrl,
+                userName: session.user.name || session.user.email,
+                ...deviceInfo,
+                snapshot: photo // The created photo record
+            },
+            deviceInfo.platform
+        );
 
         // Emit Ably event
         const ablyPayload = {

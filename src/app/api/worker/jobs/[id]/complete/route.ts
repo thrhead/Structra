@@ -8,6 +8,7 @@ import { notifyAdminsOfJobCompletion } from '@/lib/notifications'
 import cloudinary from '@/lib/cloudinary'
 import { EventBus } from '@/lib/event-bus'
 import { checkConflict } from '@/lib/conflict-check'
+import { logAudit, AuditAction, getDeviceInfo } from '@/lib/audit'
 
 export async function POST(
   req: Request,
@@ -94,6 +95,26 @@ export async function POST(
         signatureLongitude: signatureLongitude ? parseFloat(signatureLongitude) : null
       }
     })
+
+    // Detailed Audit Logging
+    const deviceInfo = getDeviceInfo(req);
+    await logAudit(
+        session.user.id,
+        AuditAction.JOB_COMPLETED,
+        {
+            jobId: jobId,
+            title: job.title,
+            userName: session.user.name || session.user.email,
+            signatureUrl,
+            location: {
+                lat: signatureLatitude,
+                lng: signatureLongitude
+            },
+            ...deviceInfo,
+            snapshot: job // Final state before marking as pending approval
+        },
+        deviceInfo.platform
+    );
 
     const approvers = await prisma.user.findMany({
       where: {

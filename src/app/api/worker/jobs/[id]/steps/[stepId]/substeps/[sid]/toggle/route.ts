@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
 import { sendAdminNotification } from '@/lib/notification-helper'
 import { broadcast } from '@/lib/ably'
+import { logAudit, AuditAction, getDeviceInfo } from '@/lib/audit'
 
 export async function POST(
     req: Request,
@@ -54,6 +55,23 @@ export async function POST(
                 rejectionReason: (!subStep.isCompleted && subStep.approvalStatus === 'REJECTED') ? null : subStep.rejectionReason
             }
         })
+
+        // Detailed Audit Logging
+        const deviceInfo = getDeviceInfo(req);
+        await logAudit(
+            session.user.id,
+            updatedSubStep.isCompleted ? AuditAction.JOB_SUBSTEP_COMPLETE : AuditAction.JOB_UPDATE,
+            {
+                jobId: params.id,
+                stepId: params.stepId,
+                substepId: params.sid,
+                title: subStep.title,
+                userName: session.user.name || session.user.email,
+                ...deviceInfo,
+                snapshot: subStep // Original state
+            },
+            deviceInfo.platform
+        );
 
         console.log('Toggle Substep:', {
             id: params.sid,

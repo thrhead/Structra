@@ -5,6 +5,7 @@ import { sendAdminNotification } from '@/lib/notification-helper';
 import { triggerWebhook } from '@/lib/webhook-service';
 import { checkConflict } from '@/lib/conflict-check';
 import { publishToJob } from '@/lib/ably';
+import { logAudit, AuditAction, getDeviceInfo } from '@/lib/audit';
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
@@ -64,6 +65,21 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
                 updatedAt: new Date()
             }
         });
+
+        // Detailed Audit Logging
+        const deviceInfo = getDeviceInfo(request);
+        await logAudit(
+            session.user.id,
+            AuditAction.JOB_STARTED,
+            {
+                jobId: id,
+                title: job.title,
+                userName: session.user.name || session.user.email,
+                ...deviceInfo,
+                snapshot: job // Original state before update
+            },
+            deviceInfo.platform
+        );
 
         // Notify admins
         console.log('[JOB START] About to send admin notification for job:', job.id, job.title);

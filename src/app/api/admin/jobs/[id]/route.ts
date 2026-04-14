@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { EventBus } from '@/lib/event-bus'
 import { checkConflict } from '@/lib/conflict-check'
 import { logger } from '@/lib/logger'
-import { logAudit, AuditAction } from '@/lib/audit'
+import { logAudit, AuditAction, getDeviceInfo } from '@/lib/audit'
 
 const updateJobSchema = z.object({
     startedAt: z.string().optional().nullable(),
@@ -85,13 +85,16 @@ export async function PUT(
         await EventBus.emit('job.updated', updatedJob);
 
         // LOGGING: Audit log for job update
+        const deviceInfo = getDeviceInfo(req);
         await logAudit(session.user.id, AuditAction.JOB_UPDATE, {
             jobId: updatedJob.id,
             title: updatedJob.title,
             jobNo: updatedJob.jobNo,
+            userName: session.user.name || session.user.email,
             updates: Object.keys(data),
-            platform: platform
-        }, platform);
+            ...deviceInfo,
+            snapshot: currentJob // State before update
+        }, deviceInfo.platform);
 
         return NextResponse.json({ success: true, job: updatedJob })
     } catch (error) {
@@ -148,13 +151,16 @@ export async function PATCH(
         await EventBus.emit('job.updated', updatedJob);
 
         // LOGGING: Audit log for job update (PATCH)
+        const deviceInfo = getDeviceInfo(req);
         await logAudit(session.user.id, AuditAction.JOB_UPDATE, {
             jobId: updatedJob.id,
             title: updatedJob.title,
             jobNo: updatedJob.jobNo,
+            userName: session.user.name || session.user.email,
             updates: Object.keys(body),
-            platform: platform
-        }, platform);
+            ...deviceInfo,
+            snapshot: currentJob // State before update
+        }, deviceInfo.platform);
 
         return NextResponse.json({ success: true, job: updatedJob })
     } catch (error) {
@@ -202,12 +208,15 @@ export async function DELETE(
         await EventBus.emit('job.deleted', { id: params.id });
 
         // LOGGING: Audit log for job deletion
+        const deviceInfo = getDeviceInfo(req);
         await logAudit(session.user.id, AuditAction.JOB_DELETE, {
             jobId: params.id,
             title: job.title,
             jobNo: job.jobNo,
-            platform: platform
-        }, platform);
+            userName: session.user.name || session.user.email,
+            ...deviceInfo,
+            snapshot: job // Final state before deletion
+        }, deviceInfo.platform);
 
         return NextResponse.json({ success: true, message: 'Job deleted successfully' })
     } catch (error) {

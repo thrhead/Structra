@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "@/lib/navigation"
 import { CustomerDialog } from "@/components/admin/customer-dialog"
+import { DeleteCustomerButton } from "@/components/admin/delete-customer-button"
 import {
   Table,
   TableBody,
@@ -118,15 +119,22 @@ export default async function CustomersPage(props: {
                   {format(new Date(customer.createdAt), 'd MMM yyyy', { locale: tr })}
                 </TableCell>
                 <TableCell>
-                  <CustomerDialog
-                    customer={customer}
-                    trigger={
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <span className="sr-only">Düzenle</span>
-                        <PencilIcon className="h-4 w-4 text-gray-500 dark:text-slate-400" />
-                      </Button>
-                    }
-                  />
+                  <div className="flex items-center gap-1">
+                    <CustomerDialog
+                      customer={customer}
+                      trigger={
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <span className="sr-only">Düzenle</span>
+                          <PencilIcon className="h-4 w-4 text-gray-500 dark:text-slate-400" />
+                        </Button>
+                      }
+                    />
+                    <DeleteCustomerButton
+                      customerId={customer.id}
+                      companyName={customer.company}
+                      hasActiveJobs={customer._count.jobs > 0}
+                    />
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

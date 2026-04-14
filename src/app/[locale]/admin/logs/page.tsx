@@ -234,6 +234,11 @@ export default function LogsPage() {
                                                     <TableCell className="py-4">
                                                         <div className="flex flex-col gap-1 max-w-xl">
                                                             <span className="font-medium text-sm leading-tight truncate block">{log.message}</span>
+                                                            {meta.device && (
+                                                                <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded w-fit">
+                                                                    {meta.device}
+                                                                </span>
+                                                            )}
                                                         </div>
                                                     </TableCell>
                                                     <TableCell className="py-4">
@@ -270,13 +275,21 @@ export default function LogsPage() {
                                                                             </p>
                                                                         </div>
 
-                                                                        <div className="grid grid-cols-2 gap-4 text-sm mt-4">
+                                                                        <div className="grid grid-cols-3 gap-4 text-sm mt-4">
                                                                             <div>
                                                                                 <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
                                                                                     Duration
                                                                                 </p>
                                                                                 <p className="font-mono text-foreground font-medium">
                                                                                     {meta?.duration || log.duration || '-'}
+                                                                                </p>
+                                                                            </div>
+                                                                            <div>
+                                                                                <p className="mb-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                                                                                    Device / Platform
+                                                                                </p>
+                                                                                <p className="font-mono text-foreground font-medium">
+                                                                                    {meta.device || 'Bilinmiyor'} ({log.platform})
                                                                                 </p>
                                                                             </div>
                                                                             <div>
@@ -318,6 +331,18 @@ export default function LogsPage() {
                                                                                 </p>
                                                                                 <pre className="p-3 bg-card rounded-lg overflow-x-auto shadow-sm border border-border/50 font-mono whitespace-pre text-[11px] text-foreground">
                                                                                     {stack}
+                                                                                </pre>
+                                                                            </div>
+                                                                        )}
+
+                                                                        {meta.snapshot && (
+                                                                            <div className="mt-4">
+                                                                                <p className="mb-2 text-[11px] font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+                                                                                    <RefreshCcw className="w-3 h-3" />
+                                                                                    <span>Data Snapshot (Veri Yedeği)</span>
+                                                                                </p>
+                                                                                <pre className="p-3 bg-primary/5 rounded-lg overflow-x-auto shadow-sm border border-primary/10 font-mono whitespace-pre text-[11px] text-primary/80">
+                                                                                    {JSON.stringify(meta.snapshot, null, 2)}
                                                                                 </pre>
                                                                             </div>
                                                                         )}

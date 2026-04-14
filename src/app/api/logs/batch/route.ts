@@ -1,7 +1,6 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import { z } from "zod";
-import { auth } from "@/lib/auth";
+import { verifyAuth } from "@/lib/auth-helper";
+import { logAudit } from "@/lib/audit";
 
 const logSchema = z.object({
   level: z.string(), // Use string to be more flexible, will validate in mapping
@@ -22,65 +21,70 @@ const logSchema = z.object({
 const batchSchema = z.array(logSchema);
 
 export async function POST(req: Request) {
-  console.log("[LOG_BATCH] Request received");
   try {
-    const session = await auth();
+    const session = await verifyAuth(req);
     const body = await req.json();
-    console.log(`[LOG_BATCH] Processing ${Array.isArray(body) ? body.length : 0} logs`);
-    
     const parsed = batchSchema.safeParse(body);
 
     if (!parsed.success) {
-        console.error("[LOG_BATCH] Validation failed:", parsed.error.format());
         return NextResponse.json({ error: parsed.error.format() }, { status: 400 });
     }
 
     const logs = parsed.data;
-
-    // Protection against future dates (e.g. wrong device clock) which break sorting/visibility
     const now = new Date();
-    const futureThreshold = new Date(now.getTime() + 5 * 60 * 1000); // 5 minutes buffer
+    const futureThreshold = new Date(now.getTime() + 5 * 60 * 1000);
 
-    // Map fields to match the Prisma model exactly
-    const logsToCreate = logs.map((log) => {
-      let finalDate = log.createdAt;
-      // If date is in the future, reset to server time to preserve log order
-      if (finalDate > futureThreshold) {
-          finalDate = new Date();
-      }
+    const systemLogsToCreate = [];
+    const auditLogsToProcess = [];
 
-      return {
-        level: ['DEBUG', 'INFO', 'WARN', 'ERROR', 'AUDIT'].includes(log.level) ? log.level : 'INFO',
-        message: log.message || 'No message',
-        platform: (log.platform as string) || 'web',
-        createdAt: finalDate,
-        userId: session?.user?.id || null,
-        meta: (log.context || log.stack)
-            ? {
-                context: log.context || null,
-                stack: log.stack || null,
-              }
-            : undefined, // Use undefined instead of null to satisfy Prisma's NullableJsonNullValueInput type
-      };
-    });
+    for (const log of logs) {
+        let finalDate = log.createdAt;
+        if (finalDate > futureThreshold) finalDate = new Date();
 
-    if (logsToCreate.length > 0) {
-        console.log(`[LOG_BATCH] Attempting to create ${logsToCreate.length} logs in DB`);
-        try {
-            const result = await prisma.systemLog.createMany({
-                data: logsToCreate,
-                skipDuplicates: true
+        const level = ['DEBUG', 'INFO', 'WARN', 'ERROR', 'AUDIT'].includes(log.level) ? log.level : 'INFO';
+        const platform = (log.platform as string) || (req.headers.get('user-agent')?.toLowerCase().includes('mobile') ? 'mobile' : 'web');
+        
+        const details = {
+            ...(log.context || {}),
+            stack: log.stack || null,
+            platform,
+            userName: session?.user?.name || 'Sistem'
+        };
+
+        if (level === 'AUDIT') {
+            auditLogsToProcess.push(logAudit(
+                session?.user?.id || 'system',
+                log.message,
+                details,
+                platform
+            ));
+        } else {
+            systemLogsToCreate.push({
+                level,
+                message: session?.user?.name ? `${session.user.name}: ${log.message}` : log.message,
+                platform,
+                createdAt: finalDate,
+                userId: session?.user?.id || null,
+                meta: details as any,
             });
-            console.log(`[LOG_BATCH] Successfully created ${result.count} logs`);
-        } catch (dbError) {
-            console.error("[LOG_BATCH] Database error:", dbError);
-            throw dbError; // Re-throw to be caught by outer try-catch
         }
     }
 
-    return NextResponse.json({ success: true, count: logsToCreate.length }, { status: 201 });
+    // Process everything
+    if (auditLogsToProcess.length > 0) {
+        await Promise.all(auditLogsToProcess);
+    }
+
+    if (systemLogsToCreate.length > 0) {
+        await prisma.systemLog.createMany({
+            data: systemLogsToCreate,
+            skipDuplicates: true
+        });
+    }
+
+    return NextResponse.json({ success: true, count: logs.length }, { status: 201 });
   } catch (error) {
     console.error("Log batch sync error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
-}
+}

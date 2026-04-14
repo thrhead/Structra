@@ -1,6 +1,7 @@
-import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { prisma } from '@/lib/db'; // Correct: Import prisma to interact with the DB
+import { prisma } from '@/lib/db';
+import { verifyAuth } from '@/lib/auth-helper';
+import { logAudit } from '@/lib/audit';
 
 // Gelen isteğin gövdesi için bir Zod şeması tanımlıyoruz.
 // Bu, veri bütünlüğünü ve güvenliği sağlar.
@@ -13,6 +14,7 @@ const logSchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    const session = await verifyAuth(request);
     const body = await request.json();
     const validation = logSchema.safeParse(body);
 
@@ -23,23 +25,45 @@ export async function POST(request: Request) {
       );
     }
 
-    const { level, message, meta } = validation.data;
+    const { level, message, meta = {} } = validation.data;
+    const userAgent = request.headers.get('user-agent') || 'Bilinmiyor';
+    
+    // Determine platform and device info
+    const platform = meta.platform || (userAgent.toLowerCase().includes('mobile') ? 'mobile' : 'web');
+    const device = meta.deviceModel || meta.device || userAgent.split(')')[0].split('(')[1] || userAgent;
 
-    // Logu veritabanına kaydet
-    await prisma.systemLog.create({
-      data: {
-        level,
-        message,
-        meta: meta || undefined, // Use undefined instead of null
-        platform: 'web', // Set default platform for web logs
-      },
-    });
+    const auditDetails = {
+        ...meta,
+        device,
+        userAgent,
+        platform,
+        userName: session?.user?.name || 'Sistem'
+    };
+
+    if (level === 'AUDIT') {
+        // Use the centralized audit logger for audit level logs
+        await logAudit(
+            session?.user?.id || 'system',
+            message,
+            auditDetails,
+            platform
+        );
+    } else {
+        // Standard system log
+        await prisma.systemLog.create({
+          data: {
+            level,
+            message: session?.user?.name ? `${session.user.name}: ${message}` : message,
+            userId: session?.user?.id || null,
+            meta: auditDetails as any,
+            platform,
+          },
+        });
+    }
 
     return NextResponse.json({ message: 'Log received' }, { status: 201 });
   } catch (error) {
     console.error('[LOG API] Failed to process log:', error);
-    // Burada hata durumunda bir loglama döngüsü oluşturmamak için
-    // sadece konsola yazdırıyoruz.
     return NextResponse.json(
       { message: 'Internal Server Error' },
       { status: 500 }

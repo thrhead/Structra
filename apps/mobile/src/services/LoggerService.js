@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from './api';
 import NetInfo from '@react-native-community/netinfo';
+import * as Device from 'expo-device';
 
 const STORAGE_KEY = 'SYSTEM_LOGS';
 const BATCH_SIZE = 5; // Reduced from 20 for faster testing
@@ -63,7 +64,14 @@ export const LoggerService = {
             const newLog = {
                 level,
                 message,
-                context,
+                context: {
+                    ...(context || {}),
+                    deviceModel: Device.modelName,
+                    osName: Device.osName,
+                    osVersion: Device.osVersion,
+                    brand: Device.brand,
+                    platform: 'mobile',
+                },
                 stack,
                 platform: 'mobile',
                 createdAt: new Date().toISOString(),

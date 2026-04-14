@@ -3,6 +3,8 @@ import { redirect } from "@/lib/navigation"
 import { Link } from "@/lib/navigation"
 import { ArrowLeft, Mail, Phone, MapPin, Building2, Briefcase } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { CustomerDialog } from "@/components/admin/customer-dialog"
+import { DeleteCustomerButton } from "@/components/admin/delete-customer-button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getCustomer } from "@/lib/data/customers"
@@ -49,9 +51,27 @@ export default async function CustomerDetailsPage({
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                 </Link>
-                <div>
+                <div className="flex-1">
                     <h1 className="text-3xl font-bold text-gray-900">{customer.company}</h1>
                     <p className="text-gray-500">Müşteri detayları ve iş geçmişi</p>
+                </div>
+                <div className="flex items-center gap-3">
+                    <CustomerDialog
+                        customer={customer}
+                        trigger={
+                            <Button variant="outline" className="rounded-xl">
+                                Düzenle
+                            </Button>
+                        }
+                    />
+                    <DeleteCustomerButton
+                        customerId={customer.id}
+                        companyName={customer.company}
+                        showText
+                        variant="destructive"
+                        size="default"
+                        hasActiveJobs={customer._count.jobs > 0}
+                    />
                 </div>
             </div>
 
