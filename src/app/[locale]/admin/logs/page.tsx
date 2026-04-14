@@ -35,6 +35,7 @@ import {
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 export default function LogsPage() {
     const t = useTranslations('Admin.logs')
@@ -46,6 +47,8 @@ export default function LogsPage() {
     const [page, setPage] = useState(1)
     const [pagination, setPagination] = useState({ totalPages: 1, total: 0 })
     const [expandedId, setExpandedId] = useState<string | null>(null)
+    const [showPruneConfirm, setShowPruneConfirm] = useState(false)
+    const [isPruning, setIsPruning] = useState(false)
 
     const fetchLogs = async () => {
         setLoading(true)
@@ -74,8 +77,7 @@ export default function LogsPage() {
     }, [page, level, platform])
 
     const handlePrune = async () => {
-        if (!confirm(t('pruneConfirm'))) return
-
+        setIsPruning(true)
         try {
             const res = await fetch('/api/admin/logs', { method: 'DELETE' })
             const data = await res.json()
@@ -85,6 +87,9 @@ export default function LogsPage() {
             }
         } catch (error) {
             toast.error('Prune failed')
+        } finally {
+            setIsPruning(false)
+            setShowPruneConfirm(false)
         }
     }
 
@@ -118,7 +123,7 @@ export default function LogsPage() {
                     <Button variant="outline" size="icon" onClick={() => fetchLogs()} disabled={loading}>
                         <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                     </Button>
-                    <Button variant="destructive" onClick={handlePrune} className="shadow-sm">
+                    <Button variant="destructive" onClick={() => setShowPruneConfirm(true)} className="shadow-sm">
                         <Trash2 className="w-4 h-4 mr-2" />
                         <span className="hidden sm:inline">{t('prune')}</span>
                     </Button>
@@ -360,6 +365,18 @@ export default function LogsPage() {
                     </div>
                 </CardContent>
             </Card>
+
+            <ConfirmDialog
+                open={showPruneConfirm}
+                onOpenChange={setShowPruneConfirm}
+                title="Loglar Temizlenecek"
+                description={t('pruneConfirm')}
+                confirmText="Evet, Temizle"
+                cancelText="Vazgeç"
+                onConfirm={handlePrune}
+                variant="destructive"
+                isLoading={isPruning}
+            />
         </div>
     )
 }

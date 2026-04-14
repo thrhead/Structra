@@ -24,6 +24,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 
 interface JobEditViewProps {
     job: any
@@ -44,6 +45,7 @@ export function JobEditView({ job, workers, teams }: JobEditViewProps) {
     const [costs, setCosts] = useState(job.costs)
     const [isAddingCost, setIsAddingCost] = useState(false)
     const [newCost, setNewCost] = useState({ description: '', amount: '', category: 'OTHER' })
+    const [deleteCostConfirm, setDeleteCostConfirm] = useState<{ id: string, open: boolean }>({ id: '', open: false })
 
     const totalCost = job.costs.reduce((sum: number, cost: any) => sum + cost.amount, 0)
 
@@ -99,8 +101,6 @@ export function JobEditView({ job, workers, teams }: JobEditViewProps) {
     }
 
     const handleDeleteCost = async (costId: string) => {
-        if (!confirm('Bu masrafı silmek istediğinize emin misiniz?')) return
-
         setLoading(true)
         try {
             const response = await fetch(`/api/admin/jobs/${job.id}/costs?id=${costId}`, {
@@ -112,11 +112,13 @@ export function JobEditView({ job, workers, teams }: JobEditViewProps) {
             toast.success('Masraf silindi')
             router.refresh()
         } catch (error) {
-            toast.error('Bir hata oluştu')
+            toast.error('Silme başarısız')
         } finally {
             setLoading(false)
+            setDeleteCostConfirm({ id: '', open: false })
         }
     }
+
 
     return (
         <div className="space-y-6">
@@ -342,7 +344,7 @@ export function JobEditView({ job, workers, teams }: JobEditViewProps) {
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <span className="font-bold">₺{cost.amount.toLocaleString('tr-TR')}</span>
-                                    <Button variant="ghost" size="icon" onClick={() => handleDeleteCost(cost.id)}>
+                                    <Button variant="ghost" size="icon" onClick={() => setDeleteCostConfirm({ id: cost.id, open: true })}>
                                         <Trash2 className="h-4 w-4 text-red-500" />
                                     </Button>
                                 </div>
@@ -395,6 +397,18 @@ export function JobEditView({ job, workers, teams }: JobEditViewProps) {
                     )}
                 </CardContent>
             </Card>
+
+            <ConfirmDialog
+                open={deleteCostConfirm.open}
+                onOpenChange={(open) => setDeleteCostConfirm(prev => ({ ...prev, open }))}
+                title="Masraf Silinecek"
+                description="Bu masrafı silmek istediğinize emin misiniz?"
+                confirmText="Evet, Sil"
+                cancelText="Vazgeç"
+                onConfirm={() => handleDeleteCost(deleteCostConfirm.id)}
+                variant="destructive"
+                isLoading={loading}
+            />
         </div>
     )
 }

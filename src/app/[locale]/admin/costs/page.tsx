@@ -27,6 +27,8 @@ import { useSearchParams } from 'next/navigation'
 import { getJobsListForFilter, getCategoriesForFilter } from '@/lib/data/reports'
 
 import { CustomSpinner } from '@/components/ui/custom-spinner';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+
 interface Cost {
     id: string
     amount: number
@@ -63,7 +65,6 @@ function CostsTable() {
 
     // Delete states
     const [deleteDialog, setDeleteDialog] = useState<{ id: string, open: boolean }>({ id: '', open: false })
-    const [doubleConfirmDialog, setDoubleConfirmDialog] = useState(false)
     const [deleting, setDeleting] = useState(false)
 
     // Data for filters
@@ -159,11 +160,11 @@ function CostsTable() {
                 method: 'DELETE'
             })
             if (res.ok) {
-                toast.success('Masraf silindi')
+                toast.success('Masraf kaydı başarıyla silindi')
                 fetchCosts()
                 setDeleteDialog({ id: '', open: false })
-                setDoubleConfirmDialog(false)
             } else {
+
                 toast.error('Silme işlemi başarısız')
             }
         } catch (error) {
@@ -324,17 +325,17 @@ function CostsTable() {
 
             {/* Receipt Preview Dialog */}
             <Dialog open={!!selectedReceipt} onOpenChange={(open) => !open && setSelectedReceipt(null)}>
-                <DialogContent className="max-w-3xl">
-                    <DialogHeader>
-                        <DialogTitle>Fiş Görüntüle</DialogTitle>
+                <DialogContent className="max-w-4xl p-0 overflow-hidden rounded-3xl border-none shadow-2xl backdrop-blur-xl bg-white/95 dark:bg-slate-900/95">
+                    <DialogHeader className="p-6 pb-0">
+                        <DialogTitle className="text-xl font-bold">Fiş Görüntüle</DialogTitle>
                     </DialogHeader>
                     {selectedReceipt && (
-                        <div className="relative h-[60vh] w-full rounded-md overflow-hidden bg-black/5 flex items-center justify-center">
+                        <div className="relative h-[70vh] w-full bg-black/5 flex items-center justify-center p-4">
                             <Image 
                                 src={selectedReceipt} 
                                 alt="Receipt" 
                                 fill 
-                                className="object-contain" 
+                                className="object-contain p-4" 
                                 unoptimized 
                             />
                         </div>
@@ -344,87 +345,63 @@ function CostsTable() {
 
             {/* Rejection Dialog */}
             <Dialog open={rejectDialog.open} onOpenChange={(open) => setRejectDialog(prev => ({ ...prev, open }))}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Red Nedeni</DialogTitle>
+                <DialogContent className="sm:max-w-[450px] rounded-3xl p-8 border-none shadow-2xl backdrop-blur-xl bg-white/95 dark:bg-slate-900/95">
+                    <DialogHeader className="space-y-3">
+                        <div className="h-12 w-12 rounded-2xl bg-red-50 dark:bg-red-950/30 flex items-center justify-center mb-2">
+                            <XCircleIcon className="h-6 w-6 text-red-600 dark:text-red-400" />
+                        </div>
+                        <DialogTitle className="text-2xl font-bold tracking-tight">Red Nedeni</DialogTitle>
+                        <DialogDescription className="text-slate-500 dark:text-slate-400">
+                            Masrafın neden reddedildiğini açıklayın.
+                        </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-4">
+                    <div className="space-y-6 mt-4">
                         <div className="space-y-2">
-                            <Label>Açıklama</Label>
+                            <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Açıklama</Label>
                             <Input
                                 placeholder="Neden reddedildiğini yazın..."
                                 value={rejectionReason}
                                 onChange={(e) => setRejectionReason(e.target.value)}
+                                className="rounded-xl h-12 border-slate-200 focus:ring-red-500/20"
                             />
                         </div>
-                        <div className="flex justify-end gap-2">
-                            <Button variant="outline" onClick={() => setRejectDialog({ id: '', open: false })}>İptal</Button>
+                        <DialogFooter className="flex flex-col sm:flex-row gap-3">
+                            <Button 
+                                variant="outline" 
+                                onClick={() => setRejectDialog({ id: '', open: false })}
+                                className="rounded-2xl h-11 px-6 font-semibold flex-1"
+                            >
+                                İptal
+                            </Button>
                             <Button
                                 variant="destructive"
                                 onClick={() => handleUpdateStatus(rejectDialog.id, 'REJECTED', rejectionReason)}
                                 disabled={!rejectionReason || processing === rejectDialog.id}
+                                className="rounded-2xl h-11 px-6 font-bold bg-red-600 hover:bg-red-700 shadow-lg shadow-red-600/20 flex-1"
                             >
-                                {processing === rejectDialog.id && <CustomSpinner className="mr-2 h-4 w-4 animate-spin" />}
-                                Reddet
+                                {processing === rejectDialog.id ? (
+                                    <CustomSpinner className="mr-2 h-4 w-4 animate-spin" />
+                                ) : (
+                                    'Reddet'
+                                )}
                             </Button>
-                        </div>
+                        </DialogFooter>
                     </div>
                 </DialogContent>
             </Dialog>
 
-            {/* Delete Confirmation Dialog 1 */}
-            <Dialog open={deleteDialog.open && !doubleConfirmDialog} onOpenChange={(open) => setDeleteDialog(prev => ({ ...prev, open }))}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Maliyet Silinecek</DialogTitle>
-                        <DialogDescription>
-                            Bu maliyet kaydını silmek istediğinizden emin misiniz?
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setDeleteDialog({ id: '', open: false })}>İptal</Button>
-                        <Button variant="destructive" onClick={() => setDoubleConfirmDialog(true)}>Sil</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            {/* Delete Confirmation Dialog 2 (Double Confirm) */}
-            <Dialog open={doubleConfirmDialog} onOpenChange={(open) => {
-                if (!open) {
-                    setDoubleConfirmDialog(false)
-                    setDeleteDialog({ id: '', open: false })
-                }
-            }}>
-                <DialogContent className="border-red-500 border-2">
-                    <DialogHeader>
-                        <DialogTitle className="text-red-600 flex items-center gap-2">
-                            <AlertTriangle className="h-5 w-5" />
-                            DİKKAT! Kesin Olarak Siliniyor
-                        </DialogTitle>
-                        <DialogDescription className="font-bold text-gray-700 pt-2">
-                            Bu işlem geri alınamaz! Veritabanından kalıcı olarak silinecektir. Devam etmek istiyor musunuz?
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="bg-red-50 p-3 rounded-md text-sm text-red-800 my-2">
-                        Onayladıktan sonra bu kayda bir daha ulaşılamayacaktır.
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => {
-                            setDoubleConfirmDialog(false)
-                            setDeleteDialog({ id: '', open: false })
-                        }}>Vazgeç</Button>
-                        <Button
-                            variant="destructive"
-                            onClick={handleDelete}
-                            disabled={deleting}
-                            className="bg-red-700 hover:bg-red-800"
-                        >
-                            {deleting && <CustomSpinner className="mr-2 h-4 w-4 animate-spin" />}
-                            Evet, Kalıcı Olarak Sil
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            {/* Delete Confirmation Dialog */}
+            <ConfirmDialog
+                open={deleteDialog.open}
+                onOpenChange={(open) => setDeleteDialog(prev => ({ ...prev, open }))}
+                title="Maliyet Kaydı Silinecek"
+                description="Bu maliyet kaydını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve veritabanından kalıcı olarak silinecektir."
+                confirmText="Evet, Kalıcı Olarak Sil"
+                cancelText="Vazgeç"
+                onConfirm={handleDelete}
+                variant="destructive"
+                isLoading={deleting}
+            />
         </div>
     )
 }

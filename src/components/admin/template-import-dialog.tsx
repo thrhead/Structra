@@ -5,18 +5,20 @@ import { Button } from '@/components/ui/button'
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
+    DialogFooter
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { FileSpreadsheetIcon, Loader2Icon, DownloadIcon, AlertCircleIcon, CheckCircleIcon } from 'lucide-react'
+import { FileSpreadsheetIcon, DownloadIcon, AlertCircleIcon, CheckCircleIcon, UploadIcon, InfoIcon } from 'lucide-react'
 import * as XLSX from 'xlsx'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
+import { CustomSpinner } from '@/components/ui/custom-spinner'
 
-import { CustomSpinner } from '@/components/ui/custom-spinner';
 export function TemplateImportDialog() {
     const [open, setOpen] = useState(false)
     const [file, setFile] = useState<File | null>(null)
@@ -106,57 +108,86 @@ export function TemplateImportDialog() {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline" className="gap-2">
+                <Button variant="outline" className="gap-2 rounded-xl h-10 px-4 border-slate-200 hover:bg-indigo-50 hover:text-indigo-600 transition-all duration-200">
                     <FileSpreadsheetIcon className="h-4 w-4" />
                     Excel ile Şablon Yükle
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
-                <DialogHeader>
-                    <DialogTitle>Excel ile İş Şablonu Yükle</DialogTitle>
-                </DialogHeader>
+            <DialogContent className="sm:max-w-[600px] rounded-3xl p-8 border-none shadow-2xl backdrop-blur-xl bg-white/95 dark:bg-slate-900/95">
+                <div className="flex flex-col items-center text-center mb-2">
+                    <div className="h-14 w-14 rounded-2xl bg-indigo-50 dark:bg-indigo-950/30 flex items-center justify-center mb-4 shadow-sm text-indigo-600 dark:text-indigo-400">
+                        <FileSpreadsheetIcon className="h-8 w-8" />
+                    </div>
+                    <DialogHeader className="text-center sm:text-center space-y-3">
+                        <DialogTitle className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+                            Excel ile İş Şablonu Yükle
+                        </DialogTitle>
+                        <DialogDescription className="text-base text-slate-500 dark:text-slate-400 leading-relaxed">
+                            Excel dosyası üzerinden toplu şablon oluşturun.
+                        </DialogDescription>
+                    </DialogHeader>
+                </div>
 
-                <div className="space-y-6 py-4">
-                    <div className="bg-blue-50 p-4 rounded-lg flex items-start gap-3">
-                        <AlertCircleIcon className="h-5 w-5 text-blue-600 mt-0.5" />
-                        <div className="text-sm text-blue-800">
-                            <p className="font-medium mb-1">Bilgilendirme</p>
-                            <p>1. Şablon formatını indirin.</p>
-                            <p>2. &quot;Template Name&quot; (Şablon Adı) aynı olan satırlar gruplanır.</p>
-                            <p>3. Aynı şablona ait adımlar ve alt adımlar otomatik oluşturulur.</p>
+                <div className="space-y-6 py-6">
+                    <div className="bg-blue-50/50 dark:bg-blue-950/20 p-5 rounded-2xl border border-blue-100/50 dark:border-blue-900/30 flex items-start gap-3 shadow-sm">
+                        <InfoIcon className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+                        <div className="text-sm text-blue-800 dark:text-blue-300 space-y-2">
+                            <p className="font-bold">Nasıl Kullanılır?</p>
+                            <ul className="list-decimal pl-4 space-y-1 opacity-90">
+                                <li>Şablon formatını indirin.</li>
+                                <li>&quot;Template Name&quot; (Şablon Adı) aynı olan satırlar gruplanır.</li>
+                                <li>Aynı şablona ait adımlar ve alt adımlar otomatik oluşturulur.</li>
+                            </ul>
                         </div>
                     </div>
 
-                    <div className="flex flex-col gap-4">
-                        <Button variant="outline" onClick={downloadTemplate} className="w-full">
-                            <DownloadIcon className="h-4 w-4 mr-2" />
-                            Formatı İndir
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <Button 
+                            variant="outline" 
+                            onClick={downloadTemplate} 
+                            className="h-14 rounded-2xl border-slate-200 hover:bg-slate-50 transition-all duration-200 flex flex-col items-center justify-center gap-1 group"
+                        >
+                            <DownloadIcon className="h-5 w-5 text-slate-400 group-hover:text-indigo-600 transition-colors" />
+                            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Formatı İndir</span>
                         </Button>
 
-                        <div className="grid w-full max-w-sm items-center gap-1.5">
-                            <Label htmlFor="template-file">Excel Dosyası</Label>
-                            <Input id="template-file" type="file" accept=".xlsx, .xls" onChange={handleFileChange} />
+                        <div className="relative group h-14">
+                            <Label htmlFor="template-file" className="absolute -top-2.5 left-4 bg-white dark:bg-slate-900 px-2 text-[10px] font-black uppercase tracking-widest text-slate-400 z-10">Excel Dosyası</Label>
+                            <div className="relative flex items-center h-full">
+                                <Input 
+                                    id="template-file" 
+                                    type="file" 
+                                    accept=".xlsx, .xls" 
+                                    onChange={handleFileChange}
+                                    className="rounded-2xl h-full border-slate-200 group-hover:border-indigo-400 transition-all cursor-pointer file:hidden pt-4 text-xs font-semibold" 
+                                />
+                                <UploadIcon className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 group-hover:text-indigo-500 transition-colors" />
+                            </div>
                         </div>
                     </div>
 
                     {result && (
-                        <div className={`rounded-lg p-4 ${result.success && (!result.errors || result.errors.length === 0) ? 'bg-green-50' : 'bg-red-50'}`}>
-                            <div className="flex items-center gap-2 mb-2">
+                        <div className={`rounded-2xl p-5 animate-in fade-in slide-in-from-top-2 duration-300 border ${result.success && (!result.errors || result.errors.length === 0) ? 'bg-green-50/50 border-green-100 text-green-800' : 'bg-red-50/50 border-red-100 text-red-800'}`}>
+                            <div className="flex items-center gap-3 mb-3">
                                 {result.success && (!result.errors || result.errors.length === 0) ? (
-                                    <CheckCircleIcon className="h-5 w-5 text-green-600" />
+                                    <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                                        <CheckCircleIcon className="h-6 w-6 text-green-600" />
+                                    </div>
                                 ) : (
-                                    <AlertCircleIcon className="h-5 w-5 text-red-600" />
+                                    <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+                                        <AlertCircleIcon className="h-6 w-6 text-red-600" />
+                                    </div>
                                 )}
-                                <span className={`font-medium ${result.success && (!result.errors || result.errors.length === 0) ? 'text-green-800' : 'text-red-800'}`}>
-                                    {result.success ? "İşlem Tamamlandı" : "Hata Oluştu"}
+                                <span className="font-bold text-lg">
+                                    {result.success ? "İşlem Başarılı" : "Hata Oluştu"}
                                 </span>
                             </div>
                             {result.count !== undefined && (
-                                <p className="text-sm text-green-700 mb-2">{result.count} şablon oluşturuldu.</p>
+                                <p className="text-sm font-semibold mb-2 opacity-90">{result.count} şablon başarıyla oluşturuldu.</p>
                             )}
                             {result.errors && result.errors.length > 0 && (
-                                <div className="text-sm text-red-700 max-h-[150px] overflow-y-auto">
-                                    <ul className="list-disc pl-5 space-y-1">
+                                <div className="text-sm max-h-[150px] overflow-y-auto scrollbar-hide bg-white/50 dark:bg-black/20 rounded-xl p-3">
+                                    <ul className="list-disc pl-5 space-y-1 font-medium opacity-80">
                                         {result.errors.map((err, i) => (
                                             <li key={i}>{err}</li>
                                         ))}
@@ -165,15 +196,31 @@ export function TemplateImportDialog() {
                             )}
                         </div>
                     )}
-
-                    <div className="flex justify-end gap-3 pt-4 border-t">
-                        <Button variant="outline" onClick={() => setOpen(false)}>İptal</Button>
-                        <Button onClick={handleUpload} disabled={!file || isLoading}>
-                            {isLoading && <CustomSpinner className="mr-2 h-4 w-4 animate-spin" />}
-                            Yükle
-                        </Button>
-                    </div>
                 </div>
+
+                <DialogFooter className="mt-4 flex flex-col sm:flex-row gap-3 w-full sm:justify-center border-t pt-6">
+                    <Button 
+                        variant="outline" 
+                        onClick={() => setOpen(false)}
+                        className="rounded-2xl h-11 px-8 font-semibold border-slate-200 flex-1"
+                    >
+                        İptal
+                    </Button>
+                    <Button 
+                        onClick={handleUpload} 
+                        disabled={!file || isLoading}
+                        className="rounded-2xl h-11 px-8 font-bold bg-indigo-600 hover:bg-indigo-700 border-none shadow-lg shadow-indigo-600/20 text-white flex-1 transition-all duration-200 active:scale-95 disabled:opacity-50"
+                    >
+                        {isLoading ? (
+                            <div className="flex items-center gap-2">
+                                <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                Yükleniyor...
+                            </div>
+                        ) : (
+                            'Hemen Yükle'
+                        )}
+                    </Button>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
     )

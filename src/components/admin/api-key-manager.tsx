@@ -12,6 +12,7 @@ import { format, formatDistanceToNow } from 'date-fns'
 import { tr } from 'date-fns/locale'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 interface ApiKey {
     id: string
@@ -38,6 +39,7 @@ export function ApiKeyManager() {
     const [creating, setCreating] = useState(false)
     const [newKeyData, setNewKeyData] = useState<{ name: string, apiKey: string } | null>(null)
     const [copied, setCopied] = useState(false)
+    const [deleteConfirm, setDeleteConfirm] = useState<{ id: string, open: boolean }>({ id: '', open: false })
 
     useEffect(() => {
         fetchKeys()
@@ -105,8 +107,6 @@ export function ApiKeyManager() {
     }
 
     const deleteKey = async (id: string) => {
-        if (!confirm('Bu API anahtarını silmek istediğinize emin misiniz?')) return
-
         try {
             await fetch(`/api/admin/api-keys/${id}`, { method: 'DELETE' })
             setKeys(keys.filter(k => k.id !== id))
@@ -250,21 +250,32 @@ export function ApiKeyManager() {
                                         variant="ghost"
                                         size="sm"
                                         className="text-[10px] h-7 px-2 text-destructive"
-                                        onClick={() => deleteKey(key.id)}
+                                        onClick={() => setDeleteConfirm({ id: key.id, open: true })}
                                     >
                                         <Trash2Icon className="w-3 h-3 mr-1" />
                                         Sil
                                     </Button>
-                                </div>
-                            </div>
-                        </Card>
-                    ))
-                ) : (
-                    <div className="col-span-full p-12 text-center bg-muted/10 rounded-2xl border-2 border-dashed border-muted">
-                        <p className="text-muted-foreground text-sm">Henüz bir API anahtarı oluşturulmamış.</p>
-                    </div>
-                )}
-            </div>
-        </div>
-    )
-}
+                                    </div>
+                                    </div>
+                                    </Card>
+                                    ))
+                                    ) : (
+                                    <div className="col-span-full p-12 text-center bg-muted/10 rounded-2xl border-2 border-dashed border-muted">
+                                    <p className="text-muted-foreground text-sm">Henüz bir API anahtarı oluşturulmamış.</p>
+                                    </div>
+                                    )}
+                                    </div>
+
+                                    <ConfirmDialog
+                                    open={deleteConfirm.open}
+                                    onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}
+                                    title="API Anahtarı Silinecek"
+                                    description="Bu API anahtarını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+                                    confirmText="Evet, Sil"
+                                    cancelText="Vazgeç"
+                                    onConfirm={() => deleteKey(deleteConfirm.id)}
+                                    variant="destructive"
+                                    />
+                                    </div>
+                                    )
+                                    }

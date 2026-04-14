@@ -6,6 +6,7 @@ import { X, Download, Maximize2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { toast } from 'sonner'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 interface Photo {
     url: string
@@ -24,6 +25,7 @@ export function PhotoGallery({ photos, canDelete = false, onDelete }: PhotoGalle
     const [lightboxOpen, setLightboxOpen] = useState(false)
     const [currentIndex, setCurrentIndex] = useState(0)
     const [deleting, setDeleting] = useState<string | null>(null)
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
     if (!photos || photos.length === 0) {
         return (
@@ -133,8 +135,8 @@ export function PhotoGallery({ photos, canDelete = false, onDelete }: PhotoGalle
                                     size="icon"
                                     variant="destructive"
                                     aria-label="Sil"
-                                    onClick={() => handleDelete(photos[currentIndex].publicId)}
-                                    disabled={deleting === photos[currentIndex].publicId}
+                                    onClick={() => setShowDeleteConfirm(true)}
+                                    disabled={deleting === photos[currentIndex]?.publicId}
                                 >
                                     <X className="h-4 w-4" />
                                 </Button>
@@ -179,6 +181,18 @@ export function PhotoGallery({ photos, canDelete = false, onDelete }: PhotoGalle
                     </div>
                 </DialogContent>
             </Dialog>
+
+            <ConfirmDialog
+                open={showDeleteConfirm}
+                onOpenChange={setShowDeleteConfirm}
+                title="Fotoğraf Silinecek"
+                description="Bu fotoğrafı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+                confirmText="Evet, Sil"
+                cancelText="Vazgeç"
+                onConfirm={() => handleDelete(photos[currentIndex]?.publicId)}
+                variant="destructive"
+                isLoading={!!deleting}
+            />
         </>
     )
 }

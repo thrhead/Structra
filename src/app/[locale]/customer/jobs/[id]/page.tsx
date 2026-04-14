@@ -33,6 +33,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 
 import { CustomSpinner } from '@/components/ui/custom-spinner';
 interface JobDetail {
@@ -114,6 +115,7 @@ export default function CustomerJobDetailPage(props: { params: Promise<{ id: str
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
+  const [approveConfirmOpen, setApproveConfirmOpen] = useState(false)
   const [rejectionNote, setRejectionNote] = useState('')
   const [previewImage, setPreviewImage] = useState<string | null>(null)
 
@@ -138,8 +140,6 @@ export default function CustomerJobDetailPage(props: { params: Promise<{ id: str
   }
 
   const handleApprove = async () => {
-    if (!confirm('İşi onaylamak istediğinize emin misiniz?')) return
-
     try {
       setActionLoading(true)
       const response = await fetch(`/api/customer/jobs/${params.id}/approve`, {
@@ -157,6 +157,7 @@ export default function CustomerJobDetailPage(props: { params: Promise<{ id: str
       toast.error('Sunucu hatası oluştu.')
     } finally {
       setActionLoading(false)
+      setApproveConfirmOpen(false)
     }
   }
 
@@ -542,6 +543,17 @@ export default function CustomerJobDetailPage(props: { params: Promise<{ id: str
           )}
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={approveConfirmOpen}
+        onOpenChange={setApproveConfirmOpen}
+        title="İşi Onayla"
+        description="İşin başarıyla tamamlandığını onaylamak istediğinize emin misiniz?"
+        confirmText="Evet, Onayla"
+        cancelText="Vazgeç"
+        onConfirm={handleApprove}
+        isLoading={actionLoading}
+      />
     </div>
   )
 }

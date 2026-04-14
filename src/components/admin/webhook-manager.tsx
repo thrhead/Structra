@@ -12,6 +12,7 @@ import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { tr } from 'date-fns/locale'
 import { WebhookLogsDialog } from './webhook-logs-dialog'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 interface Webhook {
     id: string
@@ -34,6 +35,7 @@ export function WebhookManager() {
     const [submitting, setSubmitting] = useState(false)
     const [logsOpen, setLogsOpen] = useState(false)
     const [selectedWebhookId, setSelectedWebhookId] = useState<string | undefined>()
+    const [deleteConfirm, setDeleteConfirm] = useState<{ id: string, open: boolean }>({ id: '', open: false })
 
     useEffect(() => {
         fetchWebhooks()
@@ -93,8 +95,6 @@ export function WebhookManager() {
     }
 
     const deleteWebhook = async (id: string) => {
-        if (!confirm('Bu Webhook kaydını silmek istediğinize emin misiniz?')) return
-
         try {
             await fetch(`/api/admin/webhooks/${id}`, { method: 'DELETE' })
             setWebhooks(webhooks.filter(w => w.id !== id))
@@ -200,7 +200,7 @@ export function WebhookManager() {
                                     variant="ghost"
                                     size="icon"
                                     className="h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                                    onClick={() => deleteWebhook(webhook.id)}
+                                    onClick={() => setDeleteConfirm({ id: webhook.id, open: true })}
                                 >
                                     <Trash2Icon className="w-4 h-4" />
                                 </Button>
@@ -218,6 +218,17 @@ export function WebhookManager() {
                 open={logsOpen}
                 onOpenChange={setLogsOpen}
                 webhookId={selectedWebhookId}
+            />
+
+            <ConfirmDialog
+                open={deleteConfirm.open}
+                onOpenChange={(open) => setDeleteConfirm(prev => ({ ...prev, open }))}
+                title="Webhook Silinecek"
+                description="Bu Webhook kaydını silmek istediğinize emin misiniz? Bu işlem geri alınamaz."
+                confirmText="Evet, Sil"
+                cancelText="Vazgeç"
+                onConfirm={() => deleteWebhook(deleteConfirm.id)}
+                variant="destructive"
             />
         </div>
     )

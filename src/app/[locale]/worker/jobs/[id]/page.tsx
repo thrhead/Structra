@@ -23,6 +23,7 @@ import { toast } from 'sonner'
 import { PhotoUploadDialog } from '@/components/worker/photo-upload-dialog'
 import { apiClient } from '@/lib/api-client'
 import { ChatPanel } from '@/components/chat/ChatPanel'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 import { CustomSpinner } from '@/components/ui/custom-spinner';
 interface JobDetail {
@@ -76,6 +77,8 @@ export default function JobDetailPage(props: { params: any }) {
   const [uploadingPhoto, setUploadingPhoto] = useState<string | null>(null)
   const [blockingTask, setBlockingTask] = useState<{ id: string, type: 'step' | 'substep', parentId?: string, title: string } | null>(null)
   const [showCostDialog, setShowCostDialog] = useState(false)
+  const [showCompleteConfirm, setShowCompleteConfirm] = useState(false)
+  const [isCompleting, setIsCompleting] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -209,7 +212,6 @@ export default function JobDetailPage(props: { params: any }) {
 
   const completeJob = async () => {
     if (!id) return
-    // ...
     const allSubStepsCompleted = job?.steps.every(step => 
       step.subSteps.length === 0 || step.subSteps.every(ss => ss.isCompleted)
     )
@@ -219,11 +221,12 @@ export default function JobDetailPage(props: { params: any }) {
       return
     }
 
-    if (!confirm('İşi tamamlamak istediğinizden emin misiniz? Bu işlem onay için gönderilecektir.')) {
-      return
-    }
+    setShowCompleteConfirm(true)
+  }
 
+  const handleConfirmComplete = async () => {
     try {
+      setIsCompleting(true)
       const res = await apiClient.post(`/api/worker/jobs/${id}/complete`, {})
 
       if (res.ok) {
@@ -239,7 +242,10 @@ export default function JobDetailPage(props: { params: any }) {
       }
     } catch (error) {
       console.error(error)
-      alert('Bir hata oluştu')
+      toast.error('Bir hata oluştu')
+    } finally {
+      setIsCompleting(false)
+      setShowCompleteConfirm(false)
     }
   }
 
@@ -606,6 +612,17 @@ export default function JobDetailPage(props: { params: any }) {
           toast.success('Masraf başarıyla kaydedildi')
           // Optional: fetchJob() if we want to show costs
         }}
+      />
+      
+      <ConfirmDialog
+        open={showCompleteConfirm}
+        onOpenChange={setShowCompleteConfirm}
+        title="İş Tamamlanacak"
+        description="İşi tamamlamak istediğinizden emin misiniz? Bu işlem onay için yöneticiye gönderilecektir."
+        confirmText="Evet, Tamamla"
+        cancelText="Vazgeç"
+        onConfirm={handleConfirmComplete}
+        isLoading={isCompleting}
       />
     </div>
   )
