@@ -14,6 +14,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import { MaterialIcons } from '@expo/vector-icons';
 import VoiceRecorder from '../../common/VoiceRecorder';
+import LoadingOverlay from '../../common/LoadingOverlay';
 // Duplicate imports removed
 // import { COLORS } from '../../../constants/theme'; // Removed legacy
 import { CATEGORIES } from './ExpenseFilter';
@@ -69,6 +70,7 @@ export const CreateExpenseModal = ({ visible, onClose, onSubmit, projects, defau
     const [receiptImage, setReceiptImage] = useState(null);
     const [audioUri, setAudioUri] = useState(null);
     const [showDatePicker, setShowDatePicker] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
 
     // Update jobId when default changes if not set
     React.useEffect(() => {
@@ -78,9 +80,14 @@ export const CreateExpenseModal = ({ visible, onClose, onSubmit, projects, defau
     }, [defaultJobId]);
 
     const handleSubmit = async () => {
-        const success = await onSubmit(formData, receiptImage, audioUri);
-        if (success) {
-            handleClose();
+        setSubmitting(true);
+        try {
+            const success = await onSubmit(formData, receiptImage, audioUri);
+            if (success) {
+                handleClose();
+            }
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -264,6 +271,8 @@ export const CreateExpenseModal = ({ visible, onClose, onSubmit, projects, defau
                         <Text style={[styles.submitButtonText, { color: theme.colors.textInverse }]}>Kaydet</Text>
                     </TouchableOpacity>
                 </ScrollView>
+
+                <LoadingOverlay visible={submitting} theme={theme} />
             </View>
         </View>
     );

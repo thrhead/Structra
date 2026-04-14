@@ -42,6 +42,7 @@ import StepItem from '../../components/job-detail/StepItem';
 import SubStepItem from '../../components/job-detail/SubStepItem';
 import JobActionFooter from '../../components/job-detail/JobActionFooter';
 import JobDetailModals from '../../components/job-detail/JobDetailModals';
+import LoadingOverlay from '../../components/common/LoadingOverlay';
 
 import CustomSpinner from '../../components/CustomSpinner';
 export default function JobDetailScreen({ route, navigation }) {
@@ -183,6 +184,7 @@ export default function JobDetailScreen({ route, navigation }) {
 
     const handleSubstepToggle = async (stepId, substepId, currentStatus) => {
         try {
+            setLoading(true);
             if (!currentStatus) {
                 const step = job.steps.find(s => s.id === stepId);
                 const substep = step?.subSteps.find(ss => ss.id === substepId);
@@ -200,21 +202,28 @@ export default function JobDetailScreen({ route, navigation }) {
             }
             await jobService.toggleSubstep(jobId, stepId, substepId, !currentStatus, job.updatedAt);
             loadJobDetails();
-        } catch (error) {
-            console.error('[MOBILE] Error toggling substep:', error);
+            } catch (error) {
+            console.error('Substep toggle error:', error);
             showAlert(t('common.error'), t('alerts.processError'), [], 'error');
-        }
-    };
+            } finally {
+            setLoading(false);
+            }
+            };
+
 
     const handleToggleStep = async (stepId, currentStatus) => {
         try {
+            setLoading(true);
             await jobService.toggleStep(jobId, stepId, !currentStatus, job.updatedAt);
             loadJobDetails();
         } catch (error) {
-            console.error('[MOBILE] Error toggling step:', error);
+            console.error('Step toggle error:', error);
             showAlert(t('common.error'), t('alerts.processError'), [], 'error');
+        } finally {
+            setLoading(false);
         }
     };
+
 
     const optimizeImage = async (uri) => {
         try {
@@ -270,6 +279,7 @@ export default function JobDetailScreen({ route, navigation }) {
         } catch (error) {
             console.error("ImagePicker error:", error);
             showAlert(t('common.error'), t('alerts.photoSelectError'), [], 'error');
+            setUploading(false);
         }
     };
 
@@ -793,6 +803,12 @@ export default function JobDetailScreen({ route, navigation }) {
                 createExpense={createExpense}
                 signatureModalVisible={signatureModalVisible}
                 handleSaveSignature={handleSaveSignature}
+            />
+
+            <LoadingOverlay 
+                visible={(loading && job !== null) || uploading || completing} 
+                message={uploading ? t('common.uploading') : t('common.pleaseWait')}
+                theme={theme}
             />
         </SafeAreaView>
     );

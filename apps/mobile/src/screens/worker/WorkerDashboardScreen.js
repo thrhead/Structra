@@ -27,6 +27,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import StatCard from '../../components/StatCard';
 import JobCard from '../../components/JobCard';
 import { useAlert } from '../../context/AlertContext';
+import LoadingOverlay from '../../components/common/LoadingOverlay';
 
 import CustomSpinner from '../../components/CustomSpinner';
 if (Platform.OS === 'android') {
@@ -355,6 +356,10 @@ export default function WorkerDashboardScreen({ navigation }) {
                         </>
                     )}
                 </ScrollView>
+                <LoadingOverlay 
+                    visible={loading && !refreshing} 
+                    theme={theme}
+                />
             </SafeAreaView>
         </LinearGradient>
     );

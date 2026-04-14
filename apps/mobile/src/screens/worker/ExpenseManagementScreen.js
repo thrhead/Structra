@@ -15,7 +15,7 @@ import { ProjectFilter, CategoryFilter } from '../../components/worker/expense/E
 import { ExpenseList } from '../../components/worker/expense/ExpenseList';
 import { ExpenseSummary } from '../../components/worker/expense/ExpenseSummary';
 import { CreateExpenseModal } from '../../components/worker/expense/CreateExpenseModal';
-// import { COLORS } from '../../constants/theme'; // Removed legacy import
+import LoadingOverlay from '../../components/common/LoadingOverlay';
 import { useTheme } from '../../context/ThemeContext';
 
 export default function ExpenseManagementScreen({ navigation, route }) {
@@ -121,6 +121,10 @@ export default function ExpenseManagementScreen({ navigation, route }) {
                 onSubmit={createExpense}
                 projects={projects}
                 defaultJobId={selectedProject?.id}
+                theme={theme}
+            />
+            <LoadingOverlay 
+                visible={loading} 
                 theme={theme}
             />
         </SafeAreaView>

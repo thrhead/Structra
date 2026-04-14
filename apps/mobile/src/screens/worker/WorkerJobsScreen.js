@@ -25,6 +25,7 @@ import { useJobFiltering } from '../../hooks/useJobFiltering';
 import JobFilterTabs from '../../components/worker/JobFilterTabs';
 import JobSearchHeader from '../../components/worker/JobSearchHeader';
 import { useAlert } from '../../context/AlertContext';
+import LoadingOverlay from '../../components/common/LoadingOverlay';
 
 import CustomSpinner from '../../components/CustomSpinner';
 export default function WorkerJobsScreen() {
@@ -156,6 +157,10 @@ export default function WorkerJobsScreen() {
                 }}
             />
 
+            <LoadingOverlay 
+                visible={loading && !refreshing} 
+                theme={theme}
+            />
         </SafeAreaView >
     );
 }
