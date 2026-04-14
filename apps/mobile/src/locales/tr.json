@@ -20,7 +20,12 @@
     "updating": "Güncelleniyor...",
     "select": "Seç",
     "noData": "Veri bulunmuyor",
-    "confirmDelete": "Silmek istediğinize emin misiniz?"
+    "confirmDelete": "Silmek istediğinize emin misiniz?",
+    "pendingApproval": "Onay Bekliyor",
+    "approved": "Onaylandı",
+    "rejected": "Reddedildi",
+    "approve": "Onayla",
+    "reject": "Reddet"
   },
   "alerts": {
     "jobNotFound": "İş bulunamadı",

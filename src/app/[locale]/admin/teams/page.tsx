@@ -36,7 +36,7 @@ export default async function TeamsPage(props: {
     getTeamStats(),
     prisma.user.findMany({
         where: {
-            role: { in: ['TEAM_LEAD', 'WORKER'] },
+            role: { in: ['TEAM_LEAD', 'WORKER', 'ADMIN', 'MANAGER'] },
             isActive: true
         },
         select: { id: true, name: true, role: true }

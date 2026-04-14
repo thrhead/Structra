@@ -625,7 +625,7 @@ export default function JobDetailScreen({ route, navigation }) {
                             <GlassCard style={[styles.statusCard, { borderColor: theme.colors.warning }]} theme={theme}>
                                 <View style={styles.statusHeader}>
                                     <MaterialIcons name="info-outline" size={24} color={theme.colors.warning} />
-                                    <Text style={[styles.statusTitle, { color: theme.colors.text }]}>Onay Bekliyor</Text>
+                                    <Text style={[styles.statusTitle, { color: theme.colors.text }]}>{t('common.pendingApproval')}</Text>
                                 </View>
                                 <Text style={[styles.statusText, { color: theme.colors.subText }]}>
                                     Bu iş tamamlandı ve yönetici onayını bekliyor.

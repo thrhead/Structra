@@ -127,7 +127,8 @@ export function TeamDialog({ team, users, currentMembers = [], trigger }: TeamDi
     }
   }
 
-  const workerUsers = users.filter(u => u.role === 'WORKER' || u.role === 'TEAM_LEAD')
+  const workerUsers = users.filter(u => u.role === 'WORKER' || u.role === 'TEAM_LEAD' || u.role === 'ADMIN' || u.role === 'MANAGER')
+  const leadEligibleUsers = users.filter(u => u.role === 'TEAM_LEAD' || u.role === 'WORKER' || u.role === 'ADMIN' || u.role === 'MANAGER')
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -187,7 +188,7 @@ export function TeamDialog({ team, users, currentMembers = [], trigger }: TeamDi
                     <SelectContent>
                       <SelectGroup>
                         <SelectItem value="none">Lider Atanmadı</SelectItem>
-                        {users.map((user) => (
+                        {leadEligibleUsers.map((user) => (
                           <SelectItem key={user.id} value={user.id}>
                             {user.name} ({user.role})
                           </SelectItem>

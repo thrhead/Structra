@@ -20,7 +20,12 @@
     "updating": "Updating...",
     "select": "Select",
     "noData": "No data available",
-    "confirmDelete": "Are you sure you want to delete?"
+    "confirmDelete": "Are you sure you want to delete?",
+    "pendingApproval": "Pending Approval",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "approve": "Approve",
+    "reject": "Reject"
   },
   "alerts": {
     "jobNotFound": "Job not found",

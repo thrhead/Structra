@@ -225,9 +225,8 @@ export async function getAdminDashboardData() {
         })
       ).catch(e => { console.error("strategicTrendResult fetch failed", e); return []; }),
       
-      // 22: allCustomers (for Quick Actions)
+      // 22: allCustomers (for Quick Actions) - Removed strict isActive filter to match Jobs page
       prisma.customer.findMany({
-        where: { isActive: true },
         orderBy: { company: 'asc' },
         include: { user: { select: { name: true } } }
       }).catch(e => { console.error("allCustomers fetch failed", e); return []; }),
@@ -246,9 +245,12 @@ export async function getAdminDashboardData() {
         include: { steps: { include: { subSteps: true } } }
       }).catch(e => { console.error("allTemplates fetch failed", e); return []; }),
 
-      // 25: allUsers (for Quick Actions)
+      // 25: allUsers (for Quick Actions) - Filtered roles to match Teams page (No Customers)
       prisma.user.findMany({
-        where: { isActive: true },
+        where: { 
+          isActive: true,
+          role: { in: ['TEAM_LEAD', 'WORKER', 'ADMIN', 'MANAGER'] }
+        },
         select: { id: true, name: true, role: true },
         orderBy: { name: 'asc' }
       }).catch(e => { console.error("allUsers fetch failed", e); return []; })
