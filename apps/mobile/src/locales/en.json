@@ -15,6 +15,11 @@
     "warning": "Warning",
     "all": "All",
     "status": "Status",
+    "pleaseWait": "Please wait...",
+    "uploading": "Uploading...",
+    "updating": "Updating...",
+    "select": "Select",
+    "noData": "No data available",
     "confirmDelete": "Are you sure you want to delete?"
   },
   "alerts": {

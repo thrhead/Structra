@@ -15,6 +15,11 @@
     "warning": "Uyarı",
     "all": "Hepsi",
     "status": "Durum",
+    "pleaseWait": "Lütfen bekleyin...",
+    "uploading": "Yükleniyor...",
+    "updating": "Güncelleniyor...",
+    "select": "Seç",
+    "noData": "Veri bulunmuyor",
     "confirmDelete": "Silmek istediğinize emin misiniz?"
   },
   "alerts": {
