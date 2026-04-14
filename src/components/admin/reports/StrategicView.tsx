@@ -11,6 +11,7 @@ const CostTrendChart = dynamic(() => import("./charts/CostTrendChart"), { ssr: f
 const ProjectStatusChart = dynamic(() => import("./charts/ProjectStatusChart"), { ssr: false })
 const WorkloadCostChart = dynamic(() => import("./charts/WorkloadCostChart"), { ssr: false })
 const CompletionChart = dynamic(() => import("./charts/CompletionChart"), { ssr: false })
+const StrategicPulseChart = dynamic(() => import("@/components/charts/strategic-pulse-chart"), { ssr: false })
 
 // ─── Stat Card ───────────────────────────────────────────────────────────────
 function StatCard({
@@ -87,6 +88,10 @@ export default function StrategicView({ data }: { data: any }) {
         topCustomersByProfit = [],
         projectStats = { total: 0, completed: 0, percentage: 0 },
         jobStatusStats = [],
+        slaCompliance = 0,
+        resourceUtilization = 0,
+        revenuePerJob = 0,
+        categoryTotals = 0,
         trends = { costs: [], revenue: [] }
     } = data || {};
 
@@ -129,29 +134,47 @@ export default function StrategicView({ data }: { data: any }) {
                     accent="blue"
                 />
 
-                {/* Radial Progress Card */}
-                <Card className="group rounded-3xl border border-slate-200/60 dark:border-slate-800/50 bg-white dark:bg-slate-900/80 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-0.5 transition-all duration-300 ease-out flex flex-col items-center justify-center py-5 px-4 relative overflow-hidden">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-3 self-start">Bitirme Oranı</p>
-                    <div className="relative flex items-center justify-center group-hover:scale-105 transition-transform duration-500 ease-out">
-                        <svg className="transform -rotate-90 w-24 h-24 drop-shadow-sm">
-                            <circle cx="50%" cy="50%" r="36%" stroke="currentColor" strokeWidth="7" fill="transparent" className="text-slate-100 dark:text-slate-800" />
-                            <circle
-                                cx="50%" cy="50%" r="36%"
-                                stroke="currentColor" strokeWidth="7" fill="transparent"
-                                strokeDasharray="226"
-                                strokeDashoffset={226 - (projectStats.percentage / 100) * 226}
-                                strokeLinecap="round"
-                                className="text-indigo-500 dark:text-indigo-400"
-                                style={{ transition: 'stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1)' }}
-                            />
-                        </svg>
-                        <div className="absolute flex flex-col items-center">
-                            <span className="text-2xl font-bold tabular-nums text-slate-800 dark:text-slate-100">
-                                %{projectStats.percentage.toFixed(0)}
-                            </span>
-                        </div>
-                    </div>
-                </Card>
+                <StatCard
+                    icon={BarChart2}
+                    label="Toplam Kategori"
+                    value={categoryTotals}
+                    sub="Maliyet kalemleri"
+                    accent="indigo"
+                />
+            </div>
+
+            {/* ─── Strategic Pulse Row ─── */}
+            <div className="grid gap-5 lg:grid-cols-3">
+                <div className="lg:col-span-2">
+                    <ChartCard title="Stratejik Nabız (İş Yoğunluğu & Harcama)">
+                        <CardContent className="h-[360px] p-0 pb-4">
+                            <StrategicPulseChart data={combinedTrendData} />
+                        </CardContent>
+                    </ChartCard>
+                </div>
+                <div className="grid gap-4 content-start">
+                    <StatCard
+                        icon={TrendingUp}
+                        label="SLA Uyumluluğu"
+                        value={`%${slaCompliance.toFixed(1)}`}
+                        sub="Zamanında bitirme oranı"
+                        accent="emerald"
+                    />
+                    <StatCard
+                        icon={BarChart2}
+                        label="Kaynak Kullanımı"
+                        value={`%${resourceUtilization.toFixed(1)}`}
+                        sub="Aktif iş gücü oranı"
+                        accent="blue"
+                    />
+                    <StatCard
+                        icon={DollarSign}
+                        label="İş Başına Gelir"
+                        value={`₺${revenuePerJob.toLocaleString('tr-TR')}`}
+                        sub="Ortalama proje bütçesi"
+                        accent="indigo"
+                    />
+                </div>
             </div>
 
             {/* ─── Charts Row ─── */}

@@ -475,3 +475,74 @@ function setupPDF(doc: jsPDF) {
     doc.addFont('DejaVuSans-Bold.ttf', 'DejaVuSans', 'bold');
     doc.setFont('DejaVuSans');
 }
+// 6. Ýþ Akýþý Denetimi PDF
+export function generateWorkflowAuditPDF(data: any[]) {
+    const doc = new jsPDF();
+    setupPDF(doc);
+    let yPos = 20;
+
+    doc.setFontSize(18);
+    doc.text('ÝÞ AKIÞI DENETÝM RAPORU', 105, yPos, { align: 'center' });
+    yPos += 15;
+
+    data.forEach((job, index) => {
+        if (yPos > 240) { doc.addPage(); yPos = 20; }
+        
+        doc.setFontSize(10);
+        doc.setFont('DejaVuSans', 'bold');
+        doc.text(${job.jobNo} -  (), 20, yPos);
+        yPos += 7;
+
+        const tableData = job.steps.map((step: any) => [
+            step.title,
+            step.completedBy,
+            step.completedAt ? format(new Date(step.completedAt), 'dd.MM HH:mm') : '-',
+            step.approvedBy,
+            ${Math.round(step.duration)} dk
+        ]);
+
+        autoTable(doc, {
+            startY: yPos,
+            head: [['Adým', 'Bitiren', 'Zaman', 'Onaylayan', 'Süre']],
+            body: tableData,
+            theme: 'striped',
+            headStyles: { font: 'DejaVuSans', fontStyle: 'bold', fillColor: [71, 85, 105], fontSize: 8 },
+            styles: { font: 'DejaVuSans', fontSize: 7, cellPadding: 2 }
+        });
+
+        yPos = (doc as any).lastAutoTable.finalY + 10;
+    });
+
+    return doc;
+}
+
+// 7. Detaylý Maliyet Analizi PDF
+export function generateCostDetailsPDF(data: any[]) {
+    const doc = new jsPDF();
+    setupPDF(doc);
+    let yPos = 20;
+
+    doc.setFontSize(18);
+    doc.text('DETAYLI MALÝYET ANALÝZÝ', 105, yPos, { align: 'center' });
+    yPos += 15;
+
+    const tableData = data.map(item => [
+        format(new Date(item.date), 'dd.MM.yyyy'),
+        item.jobNo,
+        item.jobTitle,
+        item.category || '-',
+        item.description,
+        ?
+    ]);
+
+    autoTable(doc, {
+        startY: yPos,
+        head: [['Tarih', 'Ýþ No', 'Ýþ Baþlýðý', 'Kategori', 'Açýklama', 'Tutar']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: { font: 'DejaVuSans', fontStyle: 'bold', fillColor: [22, 163, 74] },
+        styles: { font: 'DejaVuSans', fontSize: 7 }
+    });
+
+    return doc;
+}

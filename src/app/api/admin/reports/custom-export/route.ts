@@ -78,6 +78,35 @@ export async function GET(req: Request) {
                     return serveExcel(wb, `${filename}.xlsx`);
                 }
 
+            case 'workflow_audit':
+                data = await ReportsData.getWorkflowAuditData(startDate, endDate);
+                if (format === 'pdf') {
+                    const doc = PDFGen.generateWorkflowAuditPDF(data);
+                    return servePDF(doc, `${filename}.pdf`);
+                } else {
+                    const wb = XLSX.utils.book_new();
+                    const ws = XLSX.utils.json_to_sheet(data.flatMap(j => j.steps.map(s => ({ 
+                        ...s, 
+                        jobNo: j.jobNo, 
+                        title: j.title, 
+                        customer: j.customer 
+                    }))));
+                    XLSX.utils.book_append_sheet(wb, ws, 'Is_Akisi');
+                    return serveExcel(wb, `${filename}.xlsx`);
+                }
+
+            case 'cost_details':
+                data = await ReportsData.getCostDetailsData(startDate, endDate);
+                if (format === 'pdf') {
+                    const doc = PDFGen.generateCostDetailsPDF(data);
+                    return servePDF(doc, `${filename}.pdf`);
+                } else {
+                    const wb = XLSX.utils.book_new();
+                    const ws = XLSX.utils.json_to_sheet(data);
+                    XLSX.utils.book_append_sheet(wb, ws, 'Maliyet_Detay');
+                    return serveExcel(wb, `${filename}.xlsx`);
+                }
+
             default:
                 return NextResponse.json({ error: 'Invalid report type' }, { status: 400 });
         }

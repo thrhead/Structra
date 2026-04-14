@@ -1,37 +1,28 @@
-# 📋 STRUCTRA - Mobile Worker Job Steps Modernization Plan
+# Project Orchestration Plan - Issue #74
 
-## 1. Genel Bakış
-Saha çalışanlarının mobil uygulamadaki "İş Detayı" ekranında gördüğü İş Emirleri (Steps) ve Alt İş Emirleri (SubSteps) yapısı daha modern, basit ve kullanıcı dostu (user-friendly) hale getirilecektir. Çoklu-Ajan (Orchestration) iş akışı takip edilecektir.
+**Task**: Fix Strategic, Tactical, and Operational dashboards by integrating real data and polishing UI.
 
-## 2. Etkilenecek Dosyalar
-- `apps/mobile/src/components/job-detail/StepItem.js`
-- `apps/mobile/src/components/job-detail/SubStepItem.js`
+## Phase 1: Planning (COMPLETED)
+- [x] Codebase mapping (Explorer Agent)
+- [x] Socratic questioning (Orchestrator)
+- [x] Implementation Plan generation (Project Planner)
 
-## 3. Tasarım ve UX Kararları
-1. **Görsel Sadeleştirme (Minimalizm):**
-   - Karmaşık kenarlıklar ve ağır "GlassCard" görünümleri yerine, daha modern, düz (flat) veya çok hafif gölgeli (soft shadow) kart yapıları kullanılacak.
-   - İç içe geçmiş kutu görünümü azaltılarak daha akıcı bir okuma hiyerarşisi sağlanacak.
-2. **Tipografi ve Hiyerarşi:**
-   - Adım numaraları (Step No) daha belirgin ve şık bir yuvarlak rozet (badge) veya vurgulu metin içine alınacak.
-   - Tamamlanan işlerin üstü çizilmesi yerine daha zarif bir grileşme (opacity) veya yeşil tık vurgusu ile gösterilecek.
-3. **Etkileşim (Touch & Feel):**
-   - Onay kutuları (Checkbox) daha büyük, dokunmatik dostu ve yuvarlak hatlı olacak.
-   - "Fotoğraf Ekle" butonu daha belirgin ve modern bir ikon+metin düğmesi şeklinde tasarlanacak.
-   - Yönetici onay/red butonları daha kibar ve modern olacak.
-4. **Alt Adımlar (Substeps) Yerleşimi:**
-   - Alt adımlar, ana adıma sol taraftan dikey bir çizgi (timeline/stepper görünümü) ile bağlanarak görsel olarak ilişkilendirilecek.
+## Phase 2: Implementation (PENDING APPROVAL)
+### Parallel Groups:
+1. **Foundation & Backend** (`backend-specialist`)
+   - Update `src/lib/data/reports.ts` with real calculation logic.
+   - Fix API data structures to support missing metrics.
+2. **Core UI & Polish** (`frontend-specialist`)
+   - Integrate `StrategicPulseChart` and fix UI cards in Dashboards.
+   - Implement clickability for SLA alerts.
+   - Enhance "Special Reports" layout.
+3. **Verification & Testing** (`test-engineer`)
+   - Run verification scripts.
+   - Manual UI/Data audit.
 
-## 4. Uygulama Aşamaları (Faz 2 - Paralel İşlem)
-
-### Ajan 1: `frontend-specialist` (Arayüz ve Tasarım)
-- `StepItem.js` ve `SubStepItem.js` dosyalarını yeni tasarım diliyle baştan kodlayacak.
-- CSS/StyleSheet kurallarını sadeleştirecek ve mobil uyumlu, geniş dokunmatik alanlara sahip (touch-friendly) hale getirecek.
-
-### Ajan 2: `test-engineer` (Doğrulama)
-- Yapılan UI değişikliklerinin işleyişi (onaylama, reddetme, fotoğraf yükleme) bozup bozmadığını test standartlarında kontrol edecek.
-
-### Ajan 3: `performance-optimizer` (Performans)
-- FlatList ve React.memo yapılarını koruyarak veya iyileştirerek ekranın akıcılığını (60fps) sağlayacak.
-
----
-*Onaylandıktan sonra implementasyon (kodlama) fazına geçilecektir.*
+## Exit Criteria
+- [ ] All Strategic cards show real data.
+- [ ] Tactical cards verified.
+- [ ] Operational alerts are clickable and accurate.
+- [ ] Special reports are re-organized.
+- [ ] All tests passing.

@@ -15,33 +15,34 @@ export default function OperationalView({ data }: { data: any }) {
     const { 
         jobStatusDist = {}, 
         topBottlenecks = [], 
-        pendingApprovals = { costs: 0, steps: 0 }, 
+        pendingApprovals = { costs: 0, steps: 0, delayedCosts: 0, delayedSteps: 0, totalDelayed: 0 }, 
         bottleneckScore = 0 
     } = data || {};
 
-    const safePendingApprovals = pendingApprovals || { costs: 0, steps: 0 };
+    const safePendingApprovals = pendingApprovals || { costs: 0, steps: 0, delayedCosts: 0, delayedSteps: 0, totalDelayed: 0 };
     const safeJobStatusDist = jobStatusDist || {};
     const totalPending = (safePendingApprovals.costs || 0) + (safePendingApprovals.steps || 0);
+    const totalDelayed = safePendingApprovals.totalDelayed || 0;
 
     return (
         <div className="space-y-6 animate-page-enter">
             <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 stagger-children">
                 <Card
-                    className="group rounded-3xl border border-yellow-100/80 dark:border-yellow-900/30 bg-white dark:bg-slate-900/80 shadow-sm cursor-pointer hover:shadow-xl hover:shadow-yellow-500/10 hover:-translate-y-0.5 transition-all duration-300"
-                    onClick={() => router.push('/admin/approvals')}
+                    className={`group rounded-3xl border ${totalDelayed > 0 ? 'border-rose-100/80 dark:border-rose-900/30 shadow-rose-500/5' : 'border-yellow-100/80 dark:border-yellow-900/30'} bg-white dark:bg-slate-900/80 shadow-sm cursor-pointer hover:shadow-xl transition-all duration-300`}
+                    onClick={() => router.push('/admin/approvals?filter=delayed')}
                 >
                     <CardHeader className="pb-2 px-5 pt-5">
                         <div className="flex items-center justify-between">
-                            <div className="p-2 rounded-2xl bg-yellow-50 dark:bg-yellow-950/40 border border-yellow-100 dark:border-yellow-900/40 group-hover:scale-110 transition-transform duration-300">
-                                <AlertTriangle className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
+                            <div className={`p-2 rounded-2xl ${totalDelayed > 0 ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-100 dark:border-rose-900/40' : 'bg-yellow-50 dark:bg-yellow-950/40 border-yellow-100 dark:border-yellow-900/40'} group-hover:scale-110 transition-transform duration-300`}>
+                                <AlertTriangle className={`w-4 h-4 ${totalDelayed > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-yellow-600 dark:text-yellow-400'}`} />
                             </div>
-                            <ArrowRight className="w-4 h-4 text-yellow-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <ArrowRight className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mt-3">Bekleyen Onaylar</p>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mt-3">Kritik Gecikmeler</p>
                     </CardHeader>
                     <CardContent className="px-5 pb-5">
-                        <div className="text-3xl font-bold tabular-nums text-yellow-700 dark:text-yellow-300">{totalPending}</div>
-                        <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">{safePendingApprovals.costs || 0} Maliyet, {safePendingApprovals.steps || 0} Adım</p>
+                        <div className={`text-3xl font-bold tabular-nums ${totalDelayed > 0 ? 'text-rose-700 dark:text-rose-300' : 'text-yellow-700 dark:text-yellow-300'}`}>{totalDelayed}</div>
+                        <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">{totalPending} toplam bekleyen onay</p>
                     </CardContent>
                 </Card>
 
@@ -162,29 +163,53 @@ export default function OperationalView({ data }: { data: any }) {
                     </CardHeader>
                     <CardContent className="px-5 py-4">
                         <div className="space-y-3">
-                            {totalPending > 0 && (
-                                <Link href="/admin/approvals" className="block">
+                            {totalDelayed > 0 ? (
+                                <Link href="/admin/approvals?filter=delayed" className="block">
                                     <div className="flex items-start gap-4 p-3.5 rounded-2xl border bg-rose-50 dark:bg-rose-950/20 border-rose-100 dark:border-rose-900/40 hover:border-rose-300 dark:hover:border-rose-700 transition-all group">
                                         <AlertTriangle className="w-5 h-5 text-rose-600 dark:text-rose-400 mt-0.5" />
                                         <div className="flex-1">
                                             <div className="font-bold text-rose-700 dark:text-rose-300 text-sm flex justify-between items-center">
-                                                Gecikmiş Onaylar
+                                                Gecikmiş Onaylar (>48s)
                                                 <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                                             </div>
-                                            <p className="text-xs text-rose-600/80 dark:text-rose-400/70 mt-0.5">Sistemde onay bekleyen {totalPending} adet kayıt bulunuyor.</p>
+                                            <p className="text-xs text-rose-600/80 dark:text-rose-400/70 mt-0.5">Sistemde 48 saati aşan {totalDelayed} adet bekleyen onay bulunuyor.</p>
                                         </div>
                                     </div>
                                 </Link>
-                            )}
+                            ) : totalPending > 0 ? (
+                                <Link href="/admin/approvals" className="block">
+                                    <div className="flex items-start gap-4 p-3.5 rounded-2xl border bg-yellow-50 dark:bg-yellow-950/20 border-yellow-100 dark:border-yellow-900/40 hover:border-yellow-300 dark:hover:border-yellow-700 transition-all group">
+                                        <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+                                        <div className="flex-1">
+                                            <div className="font-bold text-yellow-700 dark:text-yellow-300 text-sm flex justify-between items-center">
+                                                Bekleyen Onaylar
+                                                <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            </div>
+                                            <p className="text-xs text-yellow-600/80 dark:text-yellow-400/70 mt-0.5">Sistemde onay bekleyen {totalPending} adet kayıt bulunuyor.</p>
+                                        </div>
+                                    </div>
+                                </Link>
+                            ) : null}
+                            
                             {topBottlenecks.length > 0 && (
-                                <div className="flex items-start gap-4 p-3.5 rounded-2xl border bg-yellow-50 dark:bg-yellow-950/20 border-yellow-100 dark:border-yellow-900/40">
-                                    <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+                                <div className="flex items-start gap-4 p-3.5 rounded-2xl border bg-blue-50 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900/40">
+                                    <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                                     <div>
-                                        <div className="font-bold text-yellow-700 dark:text-yellow-300 text-sm">Gecikme Uyarısı</div>
-                                        <p className="text-xs text-yellow-600/80 dark:text-yellow-400/70 mt-0.5">{topBottlenecks.length} iş planlanan sürenin üzerinde seyrediyor.</p>
+                                        <div className="font-bold text-blue-700 dark:text-blue-300 text-sm">Gecikme Analizi</div>
+                                        <p className="text-xs text-blue-600/80 dark:text-blue-400/70 mt-0.5">{topBottlenecks.length} iş planlanan sürenin üzerinde seyrediyor.</p>
                                     </div>
                                 </div>
                             )}
+                            {totalPending === 0 && topBottlenecks.length === 0 && (
+                                <div className="flex flex-col items-center justify-center py-10 text-slate-400 dark:text-slate-500 gap-2">
+                                    <CheckCircle2 className="w-8 h-8 text-emerald-500 dark:text-emerald-400" />
+                                    <p className="text-sm font-medium">Tüm operasyonlar SLA sınırları dahilinde.</p>
+                                </div>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
                             {totalPending === 0 && topBottlenecks.length === 0 && (
                                 <div className="flex flex-col items-center justify-center py-10 text-slate-400 dark:text-slate-500 gap-2">
                                     <CheckCircle2 className="w-8 h-8 text-emerald-500 dark:text-emerald-400" />

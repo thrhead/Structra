@@ -188,34 +188,75 @@ function ExportsContent() {
                     </Card>
                 </TabsContent>
 
-                <TabsContent value="custom" className="space-y-4">
-                    <div className="grid gap-4 md:grid-cols-2">
-                        {[
-                            { id: 'profitability', title: 'Kârlılık Raporu', desc: 'İş bazlı bütçe ve maliyet karşılaştırması' },
-                            { id: 'delay', title: 'Gecikme ve Darboğaz Analizi', desc: 'Planlanan vs Gerçekleşen süreler' },
-                            { id: 'capacity', title: 'Ekip Kapasite Raporu', desc: 'Ekip doluluk ve iş yükü dağılımı' },
-                            { id: 'personnel', title: 'Personel Performans', desc: 'Personel bazlı tamamlanan iş sayıları' },
-                            { id: 'financial', title: 'Finansal Özet Tablo', desc: 'Genel gider ve bütçe durumu' },
-                            { id: 'cost_details', title: 'Detaylı Maliyet Analizi', desc: 'Kategori bazlı harcama detayları' }
-                        ].map((report) => (
-                            <Card key={report.id} className="hover:border-primary transition-colors">
-                                <CardHeader className="pb-2">
-                                    <CardTitle className="text-lg">{report.title}</CardTitle>
-                                    <p className="text-sm text-muted-foreground">{report.desc}</p>
-                                </CardHeader>
-                                <CardContent className="flex gap-2">
-                                    <Button size="sm" variant="outline" className="flex-1" onClick={() => downloadCustomReport(report.id, 'pdf')}>
-                                        <FileIcon className="w-4 h-4 mr-2 text-red-600" /> PDF
-                                    </Button>
-                                    <Button size="sm" variant="outline" className="flex-1" onClick={() => downloadCustomReport(report.id, 'excel')}>
-                                        <TableIcon className="w-4 h-4 mr-2 text-green-600" /> EXCEL
-                                    </Button>
-                                </CardContent>
-                            </Card>
-                        ))}
+                <TabsContent value="custom" className="space-y-8">
+                    {/* Business & Financial Reports */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 px-1">
+                            <DollarSign className="w-4 h-4" /> İşletme ve Finans
+                        </div>
+                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                            {[
+                                { id: 'profitability', title: 'Kârlılık Raporu', desc: 'İş bazlı bütçe ve maliyet karşılaştırması, kâr marjı analizi.' },
+                                { id: 'financial', title: 'Finansal Özet Tablo', desc: 'Genel gider ve bütçe durumu, dönem bazlı özet.' },
+                                { id: 'cost_details', title: 'Detaylı Maliyet Analizi', desc: 'Kategori bazlı harcama detayları ve fatura dökümü.' }
+                            ].map((report) => (
+                                <ReportCard key={report.id} report={report} onDownload={downloadCustomReport} />
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Operational Efficiency */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 px-1">
+                            <Clock className="w-4 h-4" /> Operasyonel Verimlilik
+                        </div>
+                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                            {[
+                                { id: 'delay', title: 'Gecikme ve Darboğaz Analizi', desc: 'Planlanan vs Gerçekleşen süreler, SLA ihlalleri.' },
+                                { id: 'workflow_audit', title: 'İş Akışı Denetimi', desc: 'Adım bazlı tamamlama süreleri ve onay gecikmeleri.' }
+                            ].map((report) => (
+                                <ReportCard key={report.id} report={report} onDownload={downloadCustomReport} />
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Team & Performance */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 px-1">
+                            <BarChart2 className="w-4 h-4" /> Ekip ve Performans
+                        </div>
+                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                            {[
+                                { id: 'capacity', title: 'Ekip Kapasite Raporu', desc: 'Ekip doluluk ve iş yükü dağılımı, zaman analizi.' },
+                                { id: 'personnel', title: 'Personel Performans', desc: 'Personel bazlı tamamlanan iş sayıları ve kalite puanı.' }
+                            ].map((report) => (
+                                <ReportCard key={report.id} report={report} onDownload={downloadCustomReport} />
+                            ))}
+                        </div>
                     </div>
                 </TabsContent>
             </Tabs>
         </div>
     )
 }
+
+function ReportCard({ report, onDownload }: { report: any, onDownload: any }) {
+    return (
+        <Card className="group hover:border-indigo-200 dark:hover:border-indigo-900 transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/5 bg-white dark:bg-slate-900/80 rounded-2xl overflow-hidden">
+            <CardHeader className="pb-2">
+                <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{report.title}</CardTitle>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{report.desc}</p>
+            </CardHeader>
+            <CardContent className="flex gap-2 pt-2">
+                <Button size="sm" variant="outline" className="flex-1 text-[11px] h-8 rounded-xl bg-slate-50/50 dark:bg-slate-800/50" onClick={() => onDownload(report.id, 'pdf')}>
+                    <FileIcon className="w-3.5 h-3.5 mr-1.5 text-rose-500" /> PDF
+                </Button>
+                <Button size="sm" variant="outline" className="flex-1 text-[11px] h-8 rounded-xl bg-slate-50/50 dark:bg-slate-800/50" onClick={() => onDownload(report.id, 'excel')}>
+                    <TableIcon className="w-3.5 h-3.5 mr-1.5 text-emerald-500" /> EXCEL
+                </Button>
+            </CardContent>
+        </Card>
+    )
+}
+
+import { DollarSign, Clock, BarChart2 } from 'lucide-react'

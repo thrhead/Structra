@@ -600,32 +600,77 @@ export async function getCostList(startDate: Date, endDate: Date, status?: strin
 
 // 1. STRATEGIC DASHBOARD: Focus on business health and long-term trends
 export async function getStrategicDashboard(startDate: Date, endDate: Date) {
+    // Shared filters
+    const dateRange = { gte: startDate, lte: endDate };
+
     // Customer Profitability (CPI)
     const profitabilityData = await getProfitabilityData(startDate, endDate);
     
-    // Revenue vs Cost Trend
+    // Revenue vs Cost Trend (Grouped by Date)
     const totalCostTrend = await getTotalCostTrend(startDate, endDate);
-    const revenueTrend = await prisma.job.groupBy({
-        by: ['createdAt'],
-        _sum: { budget: true },
-        where: { createdAt: { gte: startDate, lte: endDate } }
+    
+    const jobsInRange = await prisma.job.findMany({
+        where: { createdAt: dateRange },
+        select: { createdAt: true, budget: true, status: true, startedAt: true, completedDate: true, estimatedDuration: true }
     });
 
-    // Project Status Summary (New for Issue #74)
+    // Grouping revenue by date
+    const revenueTrendMap: Record<string, number> = {};
+    jobsInRange.forEach(j => {
+        const dateStr = j.createdAt.toISOString().split('T')[0];
+        revenueTrendMap[dateStr] = (revenueTrendMap[dateStr] || 0) + (j.budget || 0);
+    });
+
+    const revenueTrend = Object.entries(revenueTrendMap).map(([date, amount]) => ({ date, amount }));
+
+    // Project Status Summary
     const jobStatusStats = await prisma.job.groupBy({
         by: ['status'],
         _count: true,
-        where: { createdAt: { gte: startDate, lte: endDate } }
+        where: { createdAt: dateRange }
     });
 
+    const totalJobs = jobStatusStats.reduce((sum, s) => sum + s._count, 0);
+    const completedJobs = jobStatusStats.find(s => s.status === 'COMPLETED')?._count || 0;
+    
     const projectCompletionStats = {
-        total: jobStatusStats.reduce((sum, s) => sum + s._count, 0),
-        completed: jobStatusStats.find(s => s.status === 'COMPLETED')?._count || 0,
-        percentage: 0
+        total: totalJobs,
+        completed: completedJobs,
+        percentage: totalJobs > 0 ? (completedJobs / totalJobs) * 100 : 0
     };
-    projectCompletionStats.percentage = projectCompletionStats.total > 0 
-        ? (projectCompletionStats.completed / projectCompletionStats.total) * 100 
-        : 0;
+
+    // --- NEW METRICS FOR ISSUE #74 ---
+    
+    // 1. SLA Compliance: % of jobs completed within estimated time
+    const completedJobsWithTime = jobsInRange.filter(j => j.status === 'COMPLETED' && j.startedAt && j.completedDate && j.estimatedDuration);
+    const withinSLA = completedJobsWithTime.filter(j => {
+        const actualMinutes = (j.completedDate!.getTime() - j.startedAt!.getTime()) / (1000 * 60);
+        return actualMinutes <= j.estimatedDuration!;
+    }).length;
+    const slaCompliance = completedJobsWithTime.length > 0 ? (withinSLA / completedJobsWithTime.length) * 100 : 0;
+
+    // 2. Resource Utilization: Active workers vs Total workers
+    const activeWorkersCount = await prisma.user.count({
+        where: { 
+            role: { in: ['WORKER', 'MANAGER'] }, 
+            isActive: true,
+            assignedJobs: { some: { job: { status: { in: ['PENDING', 'IN_PROGRESS'] } } } }
+        }
+    });
+    const totalWorkersCount = await prisma.user.count({
+        where: { role: { in: ['WORKER', 'MANAGER'] }, isActive: true }
+    });
+    const resourceUtilization = totalWorkersCount > 0 ? (activeWorkersCount / totalWorkersCount) * 100 : 0;
+
+    // 3. Revenue per Job (Average budget of completed jobs)
+    const completedJobsTotalBudget = jobsInRange
+        .filter(j => j.status === 'COMPLETED')
+        .reduce((sum, j) => sum + (j.budget || 0), 0);
+    const revenuePerJob = completedJobs > 0 ? completedJobsTotalBudget / completedJobs : 0;
+
+    // 4. Category Totals (For "Toplam Kategori" card)
+    const costBreakdown = await getCostBreakdown(startDate, endDate);
+    const categoryTotals = Object.keys(costBreakdown).length;
 
     const topCustomersByProfit = profitabilityData
         .sort((a, b) => b.profit - a.profit)
@@ -642,12 +687,13 @@ export async function getStrategicDashboard(startDate: Date, endDate: Date) {
         profitabilityData,
         projectStats: projectCompletionStats,
         jobStatusStats: jobStatusStats.map(s => ({ status: s.status, count: s._count })),
+        slaCompliance,
+        resourceUtilization,
+        revenuePerJob,
+        categoryTotals,
         trends: {
             costs: totalCostTrend,
-            revenue: revenueTrend.map(r => ({ 
-                date: r.createdAt.toISOString().split('T')[0], 
-                amount: r._sum.budget || 0 
-            }))
+            revenue: revenueTrend
         }
     };
 }
@@ -698,12 +744,23 @@ export async function getTacticalDashboard(startDate: Date, endDate: Date) {
 
 // 3. OPERATIONAL DASHBOARD: Focus on daily flow and bottlenecks
 export async function getOperationalDashboard(startDate: Date, endDate: Date) {
+    const now = new Date();
+    const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+
     // Bottleneck Analysis (Step Completion Time Trend)
     const delayAnalysis = await getDelayAnalysisData(startDate, endDate);
     
     // Pending Approvals (Urgent)
     const pendingCosts = await prisma.costTracking.count({ where: { status: 'PENDING' } });
     const pendingSteps = await prisma.jobStep.count({ where: { approvalStatus: 'PENDING' } });
+    
+    // SLA Alerts: Approvals older than 48 hours
+    const delayedCosts = await prisma.costTracking.count({ 
+        where: { status: 'PENDING', createdAt: { lt: fortyEightHoursAgo } } 
+    });
+    const delayedSteps = await prisma.jobStep.count({ 
+        where: { approvalStatus: 'PENDING', startedAt: { lt: fortyEightHoursAgo } } 
+    });
 
     // Active Jobs Distribution
     const jobStatusDist = await getJobStatusDistribution(startDate, endDate);
@@ -719,8 +776,70 @@ export async function getOperationalDashboard(startDate: Date, endDate: Date) {
         topBottlenecks,
         pendingApprovals: {
             costs: pendingCosts,
-            steps: pendingSteps
+            steps: pendingSteps,
+            delayedCosts,
+            delayedSteps,
+            totalDelayed: delayedCosts + delayedSteps
         },
         bottleneckScore: delayAnalysis.reduce((sum, d) => sum + (d.delay > 0 ? 1 : 0), 0) / (delayAnalysis.length || 1) * 100
     };
+}
+export async function getWorkflowAuditData(startDate: Date, endDate: Date) {
+    const jobs = await prisma.job.findMany({
+        where: { 
+            status: 'COMPLETED', 
+            completedDate: { gte: startDate, lte: endDate } 
+        },
+        include: {
+            steps: {
+                orderBy: { order: 'asc' },
+                include: {
+                    completedBy: { select: { name: true } },
+                    approvedBy: { select: { name: true } }
+                }
+            },
+            customer: { select: { company: true } }
+        }
+    });
+
+    return jobs.map(job => ({
+        id: job.id,
+        jobNo: job.jobNo,
+        customer: job.customer.company,
+        title: job.title,
+        steps: job.steps.map(step => ({
+            title: step.title,
+            completedBy: step.completedBy?.name || 'N/A',
+            completedAt: step.completedAt,
+            approvedBy: step.approvedBy?.name || 'N/A',
+            approvedAt: step.approvedAt,
+            duration: step.startedAt && step.completedAt 
+                ? (step.completedAt.getTime() - step.startedAt.getTime()) / (1000 * 60) 
+                : 0
+        }))
+    }));
+}
+
+export async function getCostDetailsData(startDate: Date, endDate: Date) {
+    const costs = await prisma.costTracking.findMany({
+        where: {
+            date: { gte: startDate, lte: endDate },
+            status: 'APPROVED'
+        },
+        include: {
+            job: { select: { title: true, jobNo: true } },
+            user: { select: { name: true } }
+        },
+        orderBy: { date: 'desc' }
+    });
+
+    return costs.map(c => ({
+        date: c.date,
+        jobNo: c.job.jobNo,
+        jobTitle: c.job.title,
+        category: c.category,
+        description: c.description,
+        amount: c.amount,
+        createdBy: c.user?.name || 'Sistem'
+    }));
 }
