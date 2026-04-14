@@ -41,7 +41,7 @@ const JobActionFooter = ({
                     >
                         {completing ? (
                             <CustomSpinner color={theme.colors.textInverse} />
-                        : (
+                        ) : (
                             <Text style={[styles.mainCompleteButtonText, { color: theme.colors.textInverse }]}>
                                 {job.status === 'COMPLETED' ? t('common.success') :
                                     job.status === 'PENDING_APPROVAL' ? t('common.pendingApproval') :

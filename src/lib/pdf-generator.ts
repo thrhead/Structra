@@ -475,14 +475,15 @@ function setupPDF(doc: jsPDF) {
     doc.addFont('DejaVuSans-Bold.ttf', 'DejaVuSans', 'bold');
     doc.setFont('DejaVuSans');
 }
-// 6. Ýþ Akýþý Denetimi PDF
+
+// 6. Ä°ÅŸ AkÄ±ÅŸÄ± Denetimi PDF
 export function generateWorkflowAuditPDF(data: any[]) {
     const doc = new jsPDF();
     setupPDF(doc);
     let yPos = 20;
 
     doc.setFontSize(18);
-    doc.text('ÝÞ AKIÞI DENETÝM RAPORU', 105, yPos, { align: 'center' });
+    doc.text('Ä°Åž AKIÅžI DENETÄ°M RAPORU', 105, yPos, { align: 'center' });
     yPos += 15;
 
     data.forEach((job, index) => {
@@ -490,7 +491,7 @@ export function generateWorkflowAuditPDF(data: any[]) {
         
         doc.setFontSize(10);
         doc.setFont('DejaVuSans', 'bold');
-        doc.text(${job.jobNo} -  (), 20, yPos);
+        doc.text(`${job.jobNo} - ${job.title} (${job.customer})`, 20, yPos);
         yPos += 7;
 
         const tableData = job.steps.map((step: any) => [
@@ -498,12 +499,12 @@ export function generateWorkflowAuditPDF(data: any[]) {
             step.completedBy,
             step.completedAt ? format(new Date(step.completedAt), 'dd.MM HH:mm') : '-',
             step.approvedBy,
-            ${Math.round(step.duration)} dk
+            `${Math.round(step.duration)} dk`
         ]);
 
         autoTable(doc, {
             startY: yPos,
-            head: [['Adým', 'Bitiren', 'Zaman', 'Onaylayan', 'Süre']],
+            head: [['AdÄ±m', 'Bitiren', 'Zaman', 'Onaylayan', 'SÃ¼re']],
             body: tableData,
             theme: 'striped',
             headStyles: { font: 'DejaVuSans', fontStyle: 'bold', fillColor: [71, 85, 105], fontSize: 8 },
@@ -516,14 +517,14 @@ export function generateWorkflowAuditPDF(data: any[]) {
     return doc;
 }
 
-// 7. Detaylý Maliyet Analizi PDF
+// 7. DetaylÄ± Maliyet Analizi PDF
 export function generateCostDetailsPDF(data: any[]) {
     const doc = new jsPDF();
     setupPDF(doc);
     let yPos = 20;
 
     doc.setFontSize(18);
-    doc.text('DETAYLI MALÝYET ANALÝZÝ', 105, yPos, { align: 'center' });
+    doc.text('DETAYLI MALÄ°YET ANALÄ°ZÄ°', 105, yPos, { align: 'center' });
     yPos += 15;
 
     const tableData = data.map(item => [
@@ -532,12 +533,12 @@ export function generateCostDetailsPDF(data: any[]) {
         item.jobTitle,
         item.category || '-',
         item.description,
-        ?
+        `â‚º${item.amount.toLocaleString('tr-TR')}`
     ]);
 
     autoTable(doc, {
         startY: yPos,
-        head: [['Tarih', 'Ýþ No', 'Ýþ Baþlýðý', 'Kategori', 'Açýklama', 'Tutar']],
+        head: [['Tarih', 'Ä°ÅŸ No', 'Ä°ÅŸ BaÅŸlÄ±ÄŸÄ±', 'Kategori', 'AÃ§Ä±klama', 'Tutar']],
         body: tableData,
         theme: 'grid',
         headStyles: { font: 'DejaVuSans', fontStyle: 'bold', fillColor: [22, 163, 74] },
