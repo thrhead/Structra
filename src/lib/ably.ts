@@ -1,6 +1,7 @@
-import * as Ably from 'ably'
+// Use the node-specific build to ensure crypto and other Node primitives are available
+const Ably = require('ably/build/ably-node');
 
-let ablyRest: Ably.Rest | null = null
+let ablyRest: any = null;
 
 export const getAblyRestClient = () => {
     const ABLY_API_KEY = process.env.ABLY_API_KEY
@@ -12,25 +13,8 @@ export const getAblyRestClient = () => {
 
     if (!ablyRest) {
         try {
-            console.log('--- Initializing Ably.Rest ---')
-            console.log('Ably import type:', typeof Ably)
-            // @ts-ignore
-            console.log('Ably.Rest type:', typeof Ably.Rest)
-            // @ts-ignore
-            console.log('Ably.default type:', typeof Ably.default)
-            
-            // Check if Ably is actually the constructor (sometimes happens in certain build environments)
-            if (typeof Ably.Rest === 'function') {
-                ablyRest = new Ably.Rest({ key: ABLY_API_KEY })
-            } else if (typeof Ably === 'function') {
-                // @ts-ignore
-                ablyRest = new (Ably as any)({ key: ABLY_API_KEY })
-            } else if (Ably.default && typeof (Ably.default as any).Rest === 'function') {
-                ablyRest = new (Ably.default as any).Rest({ key: ABLY_API_KEY })
-            } else {
-                console.error('❌ Could not find Ably.Rest constructor. Ably object keys:', Object.keys(Ably))
-                throw new Error('Ably.Rest is not a constructor')
-            }
+            console.log('--- Initializing Ably.Rest (Node-specific) ---')
+            ablyRest = new Ably.Rest({ key: ABLY_API_KEY })
             console.log('--- Ably.Rest Initialized successfully ---')
         } catch (error) {
             console.error('❌ Error initializing Ably.Rest:', error)
