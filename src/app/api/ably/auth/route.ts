@@ -12,6 +12,7 @@ export async function GET(request: Request) {
 
         const client = getAblyRestClient()
         if (!client) {
+            console.error('❌ Ably not configured: ABLY_API_KEY environment variable is missing on the server.')
             return NextResponse.json({ error: 'Ably not configured' }, { status: 500 })
         }
 

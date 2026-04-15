@@ -10,7 +10,15 @@ const config = {
     // Main Stack (conditionally rendered)
     WorkerDashboard: 'dashboard',
     Jobs: 'jobs',
-    JobDetail: 'jobs/:jobId', // Deep link: assemblytracker://jobs/123
+    JobDetail: {
+        path: 'jobs/:jobId',
+        parse: {
+          jobId: (id) => `${id}`,
+        },
+    },
+    // Adding support for web-style links from backend
+    WorkerJobDetail: 'worker/jobs/:jobId',
+    AdminJobDetail: 'admin/jobs/:jobId',
     ExpenseManagement: 'expenses',
     
     ManagerDashboard: 'manager',

@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
 import { verifyAuth } from "@/lib/auth-helper";
 import { logAudit } from "@/lib/audit";
 

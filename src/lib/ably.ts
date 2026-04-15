@@ -1,10 +1,10 @@
 import * as Ably from 'ably'
 
-const ABLY_API_KEY = process.env.ABLY_API_KEY
-
 let ablyRest: Ably.Rest | null = null
 
 export const getAblyRestClient = () => {
+    const ABLY_API_KEY = process.env.ABLY_API_KEY
+
     if (!ABLY_API_KEY) {
         console.warn('⚠️ ABLY_API_KEY is not defined. Real-time features will not work.')
         return null

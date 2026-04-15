@@ -76,6 +76,8 @@ export async function sendNotificationToUsers(
                 }
 
                 // Debug logging
+                console.log(`[PushNotification] Attempting for ${userIds.length} users. Total tokens: ${totalTokens}, Valid: ${validTokens}`);
+                
                 if (totalTokens > 0) {
                     await prisma.systemLog.create({
                         data: {
