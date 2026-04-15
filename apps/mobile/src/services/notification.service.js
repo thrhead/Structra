@@ -93,7 +93,8 @@ const notificationService = {
     getNotifications: async () => {
         try {
             const response = await api.get('/api/notifications');
-            return response.data;
+            // Return the notifications array from the response object
+            return response.data?.notifications || response.data;
         } catch (error) {
             throw error;
         }

@@ -310,10 +310,13 @@ export const SocketProvider = ({ children }) => {
 
             if (response.ok) {
                 const data = await response.json();
-                // Filter unread
-                const unread = data.filter(n => !n.isRead).length;
-                setUnreadCount(unread);
-                setNotifications(data);
+                // API returns { notifications: Array, unreadCount: Number }
+                // Handle both object with 'notifications' key and direct array for robustness
+                const notificationsList = data.notifications || (Array.isArray(data) ? data : []);
+                const count = typeof data.unreadCount === 'number' ? data.unreadCount : notificationsList.filter(n => !n.isRead).length;
+                
+                setUnreadCount(count);
+                setNotifications(notificationsList);
             }
         } catch (error) {
             console.error('[Socket] Error fetching notifications:', error);
