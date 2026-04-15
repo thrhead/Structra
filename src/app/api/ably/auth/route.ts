@@ -28,7 +28,11 @@ export async function GET(request: Request) {
 
         return NextResponse.json(tokenRequestData)
     } catch (error) {
-        console.error('❌ Ably auth error:', error)
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+        console.error('❌ Ably auth error details:', error)
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        return NextResponse.json({ 
+            error: 'Internal server error', 
+            details: errorMessage 
+        }, { status: 500 })
     }
 }

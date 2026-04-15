@@ -14,7 +14,7 @@ const withPWA = require("@ducanh2912/next-pwa").default({
     swcMinify: true,
     workboxOptions: {
         disableDevLogs: true,
-        exclude: [/middleware-manifest\.json$/, /build-manifest\.json$/, /react-loadable-manifest\.json$/, /\/uploads\//, /\.map$/, /marker-icon.*\.png$/],
+        exclude: [/middleware-manifest\.json$/, /build-manifest\.json$/, /react-loadable-manifest\.json$/, /uploads\/.*$/, /\.map$/, /marker-icon.*\.png$/],
         runtimeCaching: [
             {
                 urlPattern: /^https:\/\/fonts\.(?:gstatic)\.com\/.*/i,
