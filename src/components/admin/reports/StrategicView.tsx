@@ -11,7 +11,7 @@ const CostTrendChart = dynamic(() => import("./charts/CostTrendChart"), { ssr: f
 const ProjectStatusChart = dynamic(() => import("./charts/ProjectStatusChart"), { ssr: false })
 const WorkloadCostChart = dynamic(() => import("./charts/WorkloadCostChart"), { ssr: false })
 const CompletionChart = dynamic(() => import("./charts/CompletionChart"), { ssr: false })
-const StrategicPulseChart = dynamic(() => import("@/components/charts/strategic-pulse-chart"), { ssr: false })
+const StrategicPulseChart = dynamic(() => import("./charts/StrategicPulseChart"), { ssr: false })
 
 // ─── Stat Card ───────────────────────────────────────────────────────────────
 function StatCard({
