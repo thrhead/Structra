@@ -100,10 +100,11 @@ const withPWA = require("@ducanh2912/next-pwa").default({
 
 const nextConfig = {
     output: 'standalone',
+    serverExternalPackages: ['ably'],
     typescript: {
         ignoreBuildErrors: true,
     },
-    transpilePackages: ['swagger-ui-react', 'ably'],
+    transpilePackages: ['swagger-ui-react'],
     images: {
         remotePatterns: [
             {

@@ -52,6 +52,7 @@ export async function GET(request: Request) {
 
             tokenRequestData = await client.auth.createTokenRequest({
                 clientId: session.user.id,
+                timestamp: Date.now(), // Use local server time to avoid failing internal getTimestamp call
                 capability: {
                     [`user:${session.user.id}`]: ['subscribe', 'publish', 'presence'],
                     'job:*': ['subscribe', 'publish', 'presence'],
