@@ -2,9 +2,10 @@ import { auth } from "@/lib/auth"
 import { jwtVerify } from "jose"
 
 export async function verifyAuth(req: Request) {
+    console.log('--- verifyAuth Start ---')
     // 1. Check Authorization header (Mobile) first for performance
     const authHeader = req.headers.get("Authorization")
-    // console.log("verifyAuth: Auth header present:", !!authHeader)
+    console.log("verifyAuth: Auth header present:", !!authHeader)
 
     if (authHeader?.startsWith("Bearer ")) {
         const token = authHeader.split(" ")[1]
@@ -16,6 +17,12 @@ export async function verifyAuth(req: Request) {
                 return null;
             }
             const secret = new TextEncoder().encode(secretKey)
+            
+            console.log("verifyAuth: Verifying JWT with jose...")
+            if (typeof jwtVerify !== 'function') {
+                console.error("verifyAuth: jwtVerify is NOT a function!", typeof jwtVerify);
+            }
+            
             const { payload } = await jwtVerify(token, secret)
             console.log("verifyAuth: JWT verified for user:", payload.id, "Role:", payload.role);
 
@@ -40,7 +47,20 @@ export async function verifyAuth(req: Request) {
 
     // 2. Fallback to NextAuth session (Web / Cookies)
     try {
-        const session = await auth()
+        console.log("verifyAuth: No Bearer token, trying NextAuth auth()...")
+        
+        let authFn = auth;
+        if (typeof authFn !== 'function' && (auth as any)?.auth) {
+            authFn = (auth as any).auth;
+        }
+        
+        if (typeof authFn !== 'function') {
+            console.error("verifyAuth: auth is NOT a function!", typeof authFn)
+            return null
+        }
+
+        const session = await authFn()
+        console.log("verifyAuth: NextAuth session result:", session ? `User ID: ${session.user?.id}` : 'No session')
         if (session) return session
     } catch (e) {
         console.error("verifyAuth: NextAuth auth() failed:", e)

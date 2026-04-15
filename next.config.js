@@ -103,7 +103,7 @@ const nextConfig = {
     typescript: {
         ignoreBuildErrors: true,
     },
-    transpilePackages: ['swagger-ui-react'],
+    transpilePackages: ['swagger-ui-react', 'ably'],
     images: {
         remotePatterns: [
             {
