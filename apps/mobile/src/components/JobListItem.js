@@ -39,6 +39,15 @@ const renderStatusBadge = (status, theme, isDark) => {
             </View>
         );
     }
+    if (status === 'PENDING_APPROVAL') {
+        const bgColor = isDark ? 'rgba(245, 158, 11, 0.2)' : 'rgba(245, 158, 11, 0.1)';
+        const textColor = isDark ? '#fbbf24' : '#d97706';
+        return (
+            <View style={[styles.badge, { backgroundColor: bgColor }]}>
+                <Text style={[styles.badgeText, { color: textColor }]}>Onay Bekliyor</Text>
+            </View>
+        );
+    }
     return null;
 };
 

@@ -22,6 +22,7 @@
     "noData": "No data available",
     "confirmDelete": "Are you sure you want to delete?",
     "pendingApproval": "Pending Approval",
+    "pendingapproval": "Pending Approval",
     "approved": "Approved",
     "rejected": "Rejected",
     "approve": "Approve",
@@ -226,5 +227,34 @@
   },
   "settings": {
     "language": "Language"
+  },
+  "status": {
+    "PENDING": "Pending",
+    "IN_PROGRESS": "In Progress",
+    "COMPLETED": "Completed",
+    "CANCELLED": "Cancelled"
+  },
+  "acceptance": {
+    "PENDING": "Pending Approval",
+    "ACCEPTED": "Accepted",
+    "REJECTED": "Rejected"
+  },
+  "editJob": {
+    "title": "Edit Job",
+    "projectNo": "Project No",
+    "projectNoPlaceholder": "e.g. PRJ-2024-001",
+    "jobStatus": "Job Status",
+    "acceptanceStatus": "Acceptance Status",
+    "plannedDates": "Planned Dates",
+    "actualDates": "Actual Dates",
+    "actualStart": "Actual Start",
+    "actualEnd": "Actual End",
+    "notSpecified": "Not Specified",
+    "update": "Update",
+    "updateSuccess": "Job updated successfully.",
+    "confirmUpdateTitle": "Confirm Update",
+    "confirmUpdateDesc": "Are you sure you want to save changes to this job order?",
+    "yesSave": "Yes, Save",
+    "selectDate": "Select Date"
   }
 }

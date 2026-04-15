@@ -22,6 +22,7 @@
     "noData": "Veri bulunmuyor",
     "confirmDelete": "Silmek istediğinize emin misiniz?",
     "pendingApproval": "Onay Bekliyor",
+    "pendingapproval": "Onay Bekliyor",
     "approved": "Onaylandı",
     "rejected": "Reddedildi",
     "approve": "Onayla",
