@@ -42,7 +42,7 @@ const chartConfig = {
     color: "var(--indigo-500)",
   },
   cost: {
-    label: "Maliyet (k TL)",
+    label: "Maliyet (TL)",
     color: "var(--rose-500)",
   },
 } satisfies ChartConfig
@@ -72,7 +72,7 @@ export function ChartAreaInteractive({ data = [] }: ChartAreaInteractiveProps) {
       // 'name' comes from strategicTrend; 'date' from older formats
       date: item.date ?? item.name ?? new Date().toISOString().split('T')[0],
       intensity: item.intensity ?? 0,
-      cost: (item.cost ?? 0) / 1000 // Show in thousands for better scale
+      cost: item.cost ?? 0
     }))
   }, [data])
 
@@ -168,6 +168,12 @@ export function ChartAreaInteractive({ data = [] }: ChartAreaInteractiveProps) {
                       day: "numeric",
                     })
                   }}
+                  formatter={(value, name) => (
+                    <div className="flex items-center gap-1 font-mono font-medium text-foreground tabular-nums">
+                      {Number(value).toLocaleString("tr-TR")}
+                      {name === "cost" && <span className="text-[10px] font-normal text-muted-foreground">TL</span>}
+                    </div>
+                  )}
                   indicator="dot"
                 />
               }

@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { CheckCircle2, Clock, Briefcase } from 'lucide-react'
+import { useRouter, useParams } from 'next/navigation'
 
 interface TeamStatsProps {
     stats: {
@@ -21,16 +22,32 @@ interface TeamStatsProps {
 const COLORS = ['#10b981', '#f59e0b', '#3b82f6']
 
 export function TeamStats({ stats }: TeamStatsProps) {
+    const router = useRouter()
+    const { locale } = useParams()
+    const basePrefix = `/${locale}`
+
     const pieData = [
         { name: 'Tamamlanan', value: stats.overview.completed },
         { name: 'Aktif', value: stats.overview.active },
     ]
 
+    const handleBarClick = () => {
+        router.push(`${basePrefix}/admin/jobs?status=COMPLETED`)
+    }
+
+    const handlePieClick = (entry: any) => {
+        if (entry && entry.name === 'Tamamlanan') {
+            router.push(`${basePrefix}/admin/jobs?status=COMPLETED`)
+        } else if (entry && entry.name === 'Aktif') {
+            router.push(`${basePrefix}/admin/jobs?status=IN_PROGRESS`)
+        }
+    }
+
     return (
         <div className="space-y-6">
             {/* Overview Cards */}
             <div className="grid gap-4 md:grid-cols-3">
-                <Card>
+                <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => router.push(`${basePrefix}/admin/jobs`)}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Toplam İş</CardTitle>
                         <Briefcase className="h-4 w-4 text-muted-foreground" />
@@ -39,7 +56,7 @@ export function TeamStats({ stats }: TeamStatsProps) {
                         <div className="text-2xl font-bold">{stats.overview.total}</div>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => router.push(`${basePrefix}/admin/jobs?status=COMPLETED`)}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Tamamlanan</CardTitle>
                         <CheckCircle2 className="h-4 w-4 text-green-500" />
@@ -48,7 +65,7 @@ export function TeamStats({ stats }: TeamStatsProps) {
                         <div className="text-2xl font-bold">{stats.overview.completed}</div>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => router.push(`${basePrefix}/admin/jobs?status=IN_PROGRESS`)}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Aktif İşler</CardTitle>
                         <Clock className="h-4 w-4 text-yellow-500" />
@@ -76,7 +93,14 @@ export function TeamStats({ stats }: TeamStatsProps) {
                                         contentStyle={{ backgroundColor: 'white', borderRadius: '8px' }}
                                         cursor={{ fill: 'transparent' }}
                                     />
-                                    <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Tamamlanan İş" />
+                                    <Bar 
+                                        dataKey="value" 
+                                        fill="#3b82f6" 
+                                        radius={[4, 4, 0, 0]} 
+                                        name="Tamamlanan İş" 
+                                        onClick={handleBarClick}
+                                        className="cursor-pointer"
+                                    />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
@@ -99,6 +123,8 @@ export function TeamStats({ stats }: TeamStatsProps) {
                                         outerRadius={80}
                                         paddingAngle={5}
                                         dataKey="value"
+                                        onClick={handlePieClick}
+                                        className="cursor-pointer"
                                     >
                                         {pieData.map((entry, index) => (
                                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -108,11 +134,11 @@ export function TeamStats({ stats }: TeamStatsProps) {
                                 </PieChart>
                             </ResponsiveContainer>
                             <div className="flex justify-center gap-4 mt-4 text-sm">
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded transition-colors" onClick={() => router.push(`${basePrefix}/admin/jobs?status=COMPLETED`)}>
                                     <div className="w-3 h-3 rounded-full bg-[#10b981]" />
                                     <span>Tamamlanan</span>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-1 rounded transition-colors" onClick={() => router.push(`${basePrefix}/admin/jobs?status=IN_PROGRESS`)}>
                                     <div className="w-3 h-3 rounded-full bg-[#f59e0b]" />
                                     <span>Aktif</span>
                                 </div>

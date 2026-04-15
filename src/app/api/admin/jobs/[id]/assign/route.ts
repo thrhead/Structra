@@ -73,6 +73,10 @@ export async function POST(
             })
         }
 
+        // Send notification to the assigned worker
+        const { notifyJobAssignment } = await import('@/lib/notifications')
+        notifyJobAssignment(jobId, [workerId]).catch(console.error)
+
         return NextResponse.json(assignment)
     } catch (error) {
         console.error('Job assignment error:', error)

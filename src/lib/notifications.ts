@@ -69,18 +69,43 @@ export async function notifyJobCompletion(jobId: string, approverId: string) {
  */
 export async function notifyApprovalApproved(jobId: string, workerId: string) {
   const job = await prisma.job.findUnique({
-    where: { id: jobId }
+    where: { id: jobId },
+    include: {
+      assignments: {
+        include: {
+          team: {
+            include: {
+              members: true
+            }
+          }
+        }
+      }
+    }
   })
 
   if (!job) return
 
-  await createNotification({
-    userId: workerId,
-    title: 'İş Onaylandı',
-    message: `${job.title} işiniz onaylandı. Tebrikler!`,
-    type: 'SUCCESS',
-    link: `/worker/jobs/${jobId}`
-  })
+  // Get all unique worker IDs associated with this job
+  const workerIds = new Set<string>();
+  workerIds.add(workerId); // The requester
+  
+  job.assignments.forEach(a => {
+    if (a.workerId) workerIds.add(a.workerId);
+    if (a.teamId && a.team) {
+      a.team.members.forEach(m => workerIds.add(m.userId));
+    }
+  });
+
+  const ids = Array.from(workerIds);
+
+  await sendNotificationToUsers(
+    ids,
+    'İş Onaylandı',
+    `${job.title} işiniz onaylandı. Tebrikler!`,
+    'SUCCESS',
+    `/worker/jobs/${jobId}`,
+    { jobId }
+  )
 }
 
 /**
@@ -88,22 +113,47 @@ export async function notifyApprovalApproved(jobId: string, workerId: string) {
  */
 export async function notifyApprovalRejected(jobId: string, workerId: string, notes?: string) {
   const job = await prisma.job.findUnique({
-    where: { id: jobId }
+    where: { id: jobId },
+    include: {
+      assignments: {
+        include: {
+          team: {
+            include: {
+              members: true
+            }
+          }
+        }
+      }
+    }
   })
 
   if (!job) return
+
+  // Get all unique worker IDs
+  const workerIds = new Set<string>();
+  workerIds.add(workerId);
+  
+  job.assignments.forEach(a => {
+    if (a.workerId) workerIds.add(a.workerId);
+    if (a.teamId && a.team) {
+      a.team.members.forEach(m => workerIds.add(m.userId));
+    }
+  });
+
+  const ids = Array.from(workerIds);
 
   const message = notes
     ? `${job.title} işiniz reddedildi. Not: ${notes}`
     : `${job.title} işiniz reddedildi. Lütfen tekrar kontrol edin.`
 
-  await createNotification({
-    userId: workerId,
-    title: 'İş Reddedildi',
+  await sendNotificationToUsers(
+    ids,
+    'İş Reddedildi',
     message,
-    type: 'ERROR',
-    link: `/worker/jobs/${jobId}`
-  })
+    'ERROR',
+    `/worker/jobs/${jobId}`,
+    { jobId }
+  )
 }
 
 /**
@@ -171,10 +221,10 @@ export async function notifyAdminsOfApprovalResult(
     where: { id: approverId }
   })
 
-  // Get all admins and managers
+  // Get all admins, managers and team leads
   const admins = await prisma.user.findMany({
     where: {
-      role: { in: ['ADMIN', 'MANAGER'] },
+      role: { in: ['ADMIN', 'MANAGER', 'TEAM_LEAD'] },
       isActive: true
     }
   })
@@ -206,10 +256,10 @@ export async function notifyAdminsOfJobCompletion(jobId: string) {
 
   if (!job) return
 
-  // Get all admins and managers
+  // Get all admins, managers and team leads
   const admins = await prisma.user.findMany({
     where: {
-      role: { in: ['ADMIN', 'MANAGER'] },
+      role: { in: ['ADMIN', 'MANAGER', 'TEAM_LEAD'] },
       isActive: true
     }
   })

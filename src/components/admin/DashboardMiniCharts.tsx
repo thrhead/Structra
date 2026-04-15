@@ -3,12 +3,12 @@
 import React from 'react'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend
+  PieChart, Pie, Cell
 } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { CheckCircle2, Clock, Zap, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 
 interface DashboardMiniChartsProps {
   weeklyStats: { name: string; count: number }[]
@@ -51,6 +51,10 @@ export default function DashboardMiniCharts({
   completedJobsToday,
   pendingApprovalsCount,
 }: DashboardMiniChartsProps) {
+  const router = useRouter()
+  const { locale } = useParams()
+  const basePrefix = `/${locale}`
+
   const donutData = [
     { name: 'Aktif (Devam)', value: activeJobs - pendingOnlyJobs },
     { name: 'Bekleyen', value: pendingOnlyJobs },
@@ -60,8 +64,22 @@ export default function DashboardMiniCharts({
   const hasWeeklyData = weeklyStats.some(d => d.count > 0)
   const hasJobData = totalJobs > 0
 
-  const { locale } = useParams()
-  const basePrefix = `/${locale}`
+  const handleBarClick = () => {
+    router.push(`${basePrefix}/admin/jobs?status=COMPLETED`)
+  }
+
+  const getStatusUrl = (name: string) => {
+    if (name.includes('Aktif')) return `${basePrefix}/admin/jobs?status=IN_PROGRESS`
+    if (name.includes('Bekleyen')) return `${basePrefix}/admin/approvals`
+    if (name.includes('Tamamlanan')) return `${basePrefix}/admin/jobs?status=COMPLETED`
+    return `${basePrefix}/admin/jobs`
+  }
+
+  const handleDonutClick = (entry: any) => {
+    if (entry && entry.name) {
+      router.push(getStatusUrl(entry.name))
+    }
+  }
 
   // Stats strip
   const statsStrip = [
@@ -123,11 +141,18 @@ export default function DashboardMiniCharts({
                 />
                 <YAxis hide allowDecimals={false} />
                 <Tooltip content={<CustomBarTooltip />} cursor={{ fill: 'rgba(99,102,241,0.06)', radius: 8 } as any} />
-                <Bar dataKey="count" radius={[8, 8, 0, 0]} name="Tamamlanan">
+                <Bar 
+                  dataKey="count" 
+                  radius={[8, 8, 0, 0]} 
+                  name="Tamamlanan"
+                  onClick={handleBarClick}
+                  className="cursor-pointer"
+                >
                   {weeklyStats.map((_, i) => (
                     <Cell
                       key={i}
                       fill={`hsl(${240 + i * 8}, ${65 + i * 2}%, ${52 + i}%)`}
+                      className="hover:opacity-80 transition-opacity cursor-pointer"
                     />
                   ))}
                 </Bar>
@@ -166,9 +191,11 @@ export default function DashboardMiniCharts({
                     paddingAngle={3}
                     dataKey="value"
                     stroke="none"
+                    onClick={handleDonutClick}
+                    className="cursor-pointer"
                   >
                     {donutData.map((_, i) => (
-                      <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />
+                      <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} className="hover:opacity-80 transition-opacity cursor-pointer" />
                     ))}
                   </Pie>
                   <Tooltip content={<CustomDonutTooltip />} />
@@ -176,7 +203,11 @@ export default function DashboardMiniCharts({
               </ResponsiveContainer>
               <div className="flex flex-col gap-2.5 flex-1">
                 {donutData.map((item, i) => (
-                  <div key={i} className="flex items-center justify-between">
+                  <div 
+                    key={i} 
+                    className="flex items-center justify-between cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 p-1.5 -mx-1.5 rounded-md transition-colors"
+                    onClick={() => handleDonutClick(item)}
+                  >
                     <div className="flex items-center gap-2">
                       <span
                         className="w-2.5 h-2.5 rounded-full flex-shrink-0"
@@ -188,7 +219,7 @@ export default function DashboardMiniCharts({
                   </div>
                 ))}
                 <div className="mt-1 pt-2 border-t border-slate-100 dark:border-slate-800/50">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between px-1.5">
                     <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Toplam</span>
                     <span className="text-sm font-bold tabular-nums text-slate-800 dark:text-slate-100">{totalJobs}</span>
                   </div>

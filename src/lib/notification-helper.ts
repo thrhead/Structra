@@ -32,57 +32,104 @@ export async function sendNotificationToUsers(
             }))
         });
 
-        // 2. Emit Ably events for real-time web updates
-        for (const userId of userIds) {
+        // 2. Run Ably and Push notifications in parallel
+        const ablyPromises = userIds.map(userId => 
+            publishToUser(userId, 'notification:new', {
+                title,
+                message,
+                type: type.toLowerCase(),
+                link
+            }).catch(err => console.error(`Ably error for user ${userId}:`, err))
+        );
+
+        const pushPromise = (async () => {
             try {
-                await publishToUser(userId, 'notification:new', {
-                    title,
-                    message,
-                    type: type.toLowerCase(),
-                    link
+                const users = await prisma.user.findMany({
+                    where: { id: { in: userIds } },
+                    include: { pushTokens: true }
                 });
-            } catch (err) {
-                console.error(`Ably error for user ${userId}:`, err);
-            }
-        }
 
-        // 3. Send Push Notifications (Expo)
-        const users = await prisma.user.findMany({
-            where: { id: { in: userIds } },
-            include: { pushTokens: true }
-        });
+                const messages: ExpoPushMessage[] = [];
+                let totalTokens = 0;
+                let validTokens = 0;
 
-        const messages: ExpoPushMessage[] = [];
-        for (const user of users) {
-            const tokens = new Set<string>();
-            if (user.pushToken) tokens.add(user.pushToken);
-            user.pushTokens.forEach(pt => tokens.add(pt.token));
+                for (const user of users) {
+                    const tokens = new Set<string>();
+                    if (user.pushToken) tokens.add(user.pushToken);
+                    user.pushTokens.forEach(pt => tokens.add(pt.token));
 
-            for (const token of tokens) {
-                if (Expo.isExpoPushToken(token)) {
-                    messages.push({
-                        to: token,
-                        sound: 'default',
-                        title,
-                        body: message,
-                        data: { ...data, link, type },
-                        priority: 'high',
-                        channelId: 'default',
-                    });
+                    for (const token of tokens) {
+                        totalTokens++;
+                        if (Expo.isExpoPushToken(token)) {
+                            validTokens++;
+                            messages.push({
+                                to: token,
+                                sound: 'default',
+                                title,
+                                body: message,
+                                data: { ...data, link, type },
+                                priority: 'high',
+                                channelId: 'default',
+                            });
+                        }
+                    }
                 }
-            }
-        }
 
-        if (messages.length > 0) {
-            const chunks = expo.chunkPushNotifications(messages);
-            for (const chunk of chunks) {
-                try {
-                    await expo.sendPushNotificationsAsync(chunk);
-                } catch (error) {
-                    console.error('Error sending push notification chunk:', error);
+                // Debug logging
+                if (totalTokens > 0) {
+                    await prisma.systemLog.create({
+                        data: {
+                            level: 'INFO',
+                            message: `Push notification attempt for ${userIds.length} users`,
+                            platform: 'server',
+                            meta: {
+                                userIds,
+                                totalTokens,
+                                validTokens,
+                                messagesCount: messages.length,
+                                title
+                            }
+                        }
+                    }).catch(() => {}); // Ignore logging errors
                 }
+
+                if (messages.length > 0) {
+                    const chunks = expo.chunkPushNotifications(messages);
+                    for (const chunk of chunks) {
+                        try {
+                            const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
+                            // Log success for each chunk
+                            await prisma.systemLog.create({
+                                data: {
+                                    level: 'INFO',
+                                    message: `Push notification chunk sent`,
+                                    platform: 'server',
+                                    meta: {
+                                        chunkSize: chunk.length,
+                                        tickets: ticketChunk
+                                    }
+                                }
+                            }).catch(() => {});
+                        } catch (error) {
+                            console.error('Error sending push notification chunk:', error);
+                            await prisma.systemLog.create({
+                                data: {
+                                    level: 'ERROR',
+                                    message: `Push notification chunk failed`,
+                                    platform: 'server',
+                                    meta: { error: error instanceof Error ? error.message : String(error) }
+                                }
+                            }).catch(() => {});
+                        }
+                    }
+                }
+            } catch (pushError) {
+                console.error('Push notification error:', pushError);
             }
-        }
+        })();
+
+        // Wait for all to complete (or at least start)
+        await Promise.all([...ablyPromises, pushPromise]);
     } catch (error) {
         console.error('General error in sendNotificationToUsers:', error);
     }
@@ -149,7 +196,7 @@ export async function sendAdminNotification(
     try {
         const admins = await prisma.user.findMany({
             where: {
-                role: { in: ['ADMIN', 'MANAGER'] },
+                role: { in: ['ADMIN', 'MANAGER', 'TEAM_LEAD'] },
                 isActive: true,
                 id: excludeUserId ? { not: excludeUserId } : undefined
             },
@@ -162,6 +209,23 @@ export async function sendAdminNotification(
         }
     } catch (error) {
         console.error('Error sending admin notification:', error);
+    }
+}
+
+/**
+ * Helper to handle Expo push tickets and cleanup invalid tokens
+ */
+async function handlePushTickets(tickets: any[]) {
+    const invalidTokens: string[] = [];
+    
+    for (const ticket of tickets) {
+        if (ticket.status === 'error') {
+            console.error(`Expo push error: ${ticket.message}`);
+            if (ticket.details?.error === 'DeviceNotRegistered') {
+                // We don't have the token here easily from the ticket alone in this version of SDK
+                // But we can log it
+            }
+        }
     }
 }
 
