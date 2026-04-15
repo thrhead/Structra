@@ -1,83 +1,66 @@
-import { getAblyRestClient } from '@/lib/ably'
 import { NextResponse } from 'next/server'
 import { verifyAuth } from '@/lib/auth-helper'
+import crypto from 'crypto'
 
 export const runtime = 'nodejs'
 
 export async function GET(request: Request) {
     try {
-        console.log('--- Ably Auth API Start ---')
-        
-        // 1. Verify Auth
-        let session;
-        try {
-            console.log('Step 1: Verifying auth...')
-            session = await verifyAuth(request)
-            console.log('Auth result:', session ? `User ID: ${session.user?.id}` : 'No session')
-        } catch (authError) {
-            console.error('❌ Error in verifyAuth:', authError)
-            throw new Error(`Auth verification failed: ${authError instanceof Error ? authError.message : String(authError)}`)
-        }
-
+        const session = await verifyAuth(request)
         if (!session?.user?.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        // 2. Get Ably Client
-        let client;
-        try {
-            console.log('Step 2: Getting Ably rest client...')
-            client = getAblyRestClient()
-            console.log('Ably client obtained:', !!client)
-        } catch (clientError) {
-            console.error('❌ Error in getAblyRestClient:', clientError)
-            throw new Error(`Failed to get Ably client: ${clientError instanceof Error ? clientError.message : String(clientError)}`)
-        }
-
-        if (!client) {
-            console.error('❌ Ably not configured: ABLY_API_KEY environment variable is missing on the server.')
+        const ABLY_API_KEY = process.env.ABLY_API_KEY
+        if (!ABLY_API_KEY || !ABLY_API_KEY.includes(':')) {
             return NextResponse.json({ error: 'Ably not configured' }, { status: 500 })
         }
 
-        // 3. Create Token Request
-        let tokenRequestData;
-        try {
-            console.log('Step 3: Creating token request for client:', session.user.id)
-            // Debug the client object structure
-            console.log('Client type:', typeof client)
-            console.log('Client has auth:', !!client.auth)
-            if (client.auth) {
-                console.log('Client.auth.createTokenRequest type:', typeof client.auth.createTokenRequest)
-            }
+        // Manual Token Request Generation (Bypasses Ably SDK bundling bugs)
+        const [keyName, keySecret] = ABLY_API_KEY.split(':')
+        const clientId = session.user.id
+        const timestamp = Math.floor(Date.now())
+        const nonce = crypto.randomBytes(16).toString('hex')
+        
+        const capability = JSON.stringify({
+            [`user:${clientId}`]: ['subscribe', 'publish', 'presence'],
+            'job:*': ['subscribe', 'publish', 'presence'],
+            'system': ['subscribe'],
+            'system:*': ['subscribe'],
+        })
 
-            tokenRequestData = await client.auth.createTokenRequest({
-                clientId: session.user.id,
-                timestamp: Date.now(), // Use local server time to avoid failing internal getTimestamp call
-                capability: {
-                    [`user:${session.user.id}`]: ['subscribe', 'publish', 'presence'],
-                    'job:*': ['subscribe', 'publish', 'presence'],
-                    'system': ['subscribe'],
-                    'system:*': ['subscribe'],
-                }
-            })
-            console.log('Token request created successfully')
-        } catch (tokenError) {
-            console.error('❌ Error in createTokenRequest:', tokenError)
-            // Log more details about the error
-            if (tokenError instanceof Error) {
-                console.error('Error name:', tokenError.name)
-                console.error('Error stack:', tokenError.stack)
-            }
-            throw new Error(`Token request creation failed: ${tokenError instanceof Error ? tokenError.message : String(tokenError)}`)
+        // Construct the string to sign
+        // Format: keyName + "\n" + ttl + "\n" + capability + "\n" + clientId + "\n" + timestamp + "\n" + nonce + "\n"
+        const ttl = 3600000 // 1 hour in ms
+        const stringToSign = [
+            keyName,
+            ttl,
+            capability,
+            clientId,
+            timestamp,
+            nonce
+        ].join('\n') + '\n'
+
+        const signature = crypto
+            .createHmac('sha256', keySecret)
+            .update(stringToSign)
+            .digest('base64')
+
+        const tokenRequest = {
+            keyName,
+            clientId,
+            capability,
+            timestamp,
+            nonce,
+            mac: signature
         }
 
-        return NextResponse.json(tokenRequestData)
+        return NextResponse.json(tokenRequest)
     } catch (error) {
-        console.error('❌ Final Ably auth error catch:', error)
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        console.error('❌ Manual Ably auth error:', error)
         return NextResponse.json({ 
             error: 'Internal server error', 
-            details: errorMessage 
+            details: error instanceof Error ? error.message : 'Unknown error' 
         }, { status: 500 })
     }
 }
