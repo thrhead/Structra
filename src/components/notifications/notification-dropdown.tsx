@@ -65,8 +65,10 @@ export function NotificationDropdown() {
     // Mark as read
     if (!notification.isRead) {
       try {
-        await fetch(`/api/notifications/${notification.id}/read`, {
-          method: 'PATCH'
+        await fetch('/api/notifications', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: notification.id })
         })
         fetchNotifications()
       } catch (error) {
@@ -84,7 +86,7 @@ export function NotificationDropdown() {
   const handleMarkAllAsRead = async () => {
     setLoading(true)
     try {
-      await fetch('/api/notifications/mark-all-read', {
+      await fetch('/api/notifications', {
         method: 'PATCH'
       })
       fetchNotifications()

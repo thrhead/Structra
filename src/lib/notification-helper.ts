@@ -33,14 +33,15 @@ export async function sendNotificationToUsers(
         });
 
         // 2. Run Ably and Push notifications in parallel
-        const ablyPromises = userIds.map(userId => 
-            publishToUser(userId, 'notification:new', {
+        const ablyPromises = userIds.map(userId => {
+            console.log(`[Ably-Server] Publishing to user:${userId}`, { title, type });
+            return publishToUser(userId, 'notification:new', {
                 title,
                 message,
                 type: type.toLowerCase(),
                 link
-            }).catch(err => console.error(`Ably error for user ${userId}:`, err))
-        );
+            }).catch(err => console.error(`❌ Ably error for user ${userId}:`, err));
+        });
 
         const pushPromise = (async () => {
             try {

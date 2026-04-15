@@ -208,71 +208,63 @@ export const SocketProvider = ({ children }) => {
         ably.connection.on('connected', () => {
             console.log('[Ably] ✅ Connected:', ably.clientId);
             setIsConnected(true);
+            console.log('[Ably] Subscribing to user channel (catch-all):', `user:${user.id}`);
+            
+            // Generic handler for all messages on user channel
+            const handleMessage = (message) => {
+                const eventName = message.name;
+                const data = message.data;
+                console.log(`[Ably-Mobile] Received event "${eventName}":`, data);
 
-            // Subscribe to user-specific channel for notifications
+                switch (eventName) {
+                    case 'notification:new':
+                    case 'notification:refresh':
+                        console.log('[Ably-Mobile] Refreshing notifications...');
+                        setUnreadCount(prev => prev + 1);
+                        if (data && typeof data === 'object') {
+                            setNotifications(prev => [data, ...prev]);
+                            if (Platform.OS !== 'web' && data.title && data.message) {
+                                const { Alert } = require('react-native');
+                                Alert.alert(data.title, data.message);
+                            }
+                        }
+                        fetchUnreadCount(); // Full sync
+                        break;
+                    
+                    case 'job:completed':
+                        if (Platform.OS !== 'web') {
+                            const { Alert } = require('react-native');
+                            Alert.alert('İş Tamamlandı', `${data?.title || 'İş'} tamamlandı.`);
+                        }
+                        break;
+
+                    case 'photo:uploaded':
+                        if (Platform.OS !== 'web') {
+                            const { Alert } = require('react-native');
+                            Alert.alert('Fotoğraf Yüklendi', `${data?.uploadedBy || 'Kullanıcı'} yeni bir fotoğraf yükledi.`);
+                        }
+                        break;
+
+                    case 'cost:submitted':
+                    case 'cost:approved':
+                    case 'cost:rejected':
+                        console.log(`[Ably-Mobile] Cost event received: ${eventName}`);
+                        if (Platform.OS !== 'web') {
+                            const { Alert } = require('react-native');
+                            const statusText = eventName === 'cost:approved' ? 'Onaylandı' : (eventName === 'cost:rejected' ? 'Reddedildi' : 'Gönderildi');
+                            Alert.alert('Masraf Güncellemesi', `Masraf durumu: ${statusText}`);
+                        }
+                        fetchUnreadCount();
+                        break;
+
+                    default:
+                        console.log(`[Ably-Mobile] Unhandled event: ${eventName}`);
+                }
+            };
+
+            // Catch-all subscription
             const userChannel = ably.channels.get(`user:${user.id}`);
-            channelRef.current = userChannel;
-
-            // Subscribe to system channel for broadcasts
-            const systemChannel = ably.channels.get('system');
-
-            console.log('[Ably] Subscribing to user channel:', `user:${user.id}`);
-
-            const handleNotification = (message) => {
-                console.log('[Ably] 🔔 New notification received:', message.data);
-                setUnreadCount(prev => prev + 1);
-                setNotifications(prev => [message.data, ...prev]);
-
-                // Show alert for notification
-                if (Platform.OS !== 'web') {
-                    const { Alert } = require('react-native');
-                    if (message.data.title && message.data.message) {
-                        Alert.alert(message.data.title, message.data.message);
-                    }
-                }
-            };
-
-            const handleJobCompleted = (message) => {
-                console.log('[Ably] ✅ Job completed:', message.data);
-                if (Platform.OS !== 'web') {
-                    const { Alert } = require('react-native');
-                    Alert.alert('İş Tamamlandı', `${message.data?.title || 'İş'} tamamlandı.`);
-                }
-            };
-
-            const handleJobStatusChanged = (message) => {
-                console.log('[Ably] 📊 Job status changed:', message.data);
-            };
-
-            const handlePhotoUploaded = (message) => {
-                console.log('[Ably] 📸 Photo uploaded:', message.data);
-                if (Platform.OS !== 'web') {
-                    const { Alert } = require('react-native');
-                    Alert.alert('Fotoğraf Yüklendi', `${message.data?.uploadedBy || 'Kullanıcı'} yeni bir fotoğraf yükledi.`);
-                }
-            };
-
-            const handleCostSubmitted = (message) => {
-                console.log('[Ably] 💰 Cost submitted:', message.data);
-                if (Platform.OS !== 'web') {
-                    const { Alert } = require('react-native');
-                    Alert.alert('Maliyet Gönderildi', 'Yeni bir maliyet gönderildi.');
-                }
-            };
-
-            // Listen on user channel
-            userChannel.subscribe('notification:new', handleNotification);
-            userChannel.subscribe('job:completed', handleJobCompleted);
-            userChannel.subscribe('job:status_changed', handleJobStatusChanged);
-            userChannel.subscribe('photo:uploaded', handlePhotoUploaded);
-            userChannel.subscribe('cost:submitted', handleCostSubmitted);
-
-            // Listen on system channel for the same events (broadcasts)
-            systemChannel.subscribe('notification:new', handleNotification);
-            systemChannel.subscribe('job:completed', handleJobCompleted);
-            systemChannel.subscribe('job:status_changed', handleJobStatusChanged);
-            systemChannel.subscribe('photo:uploaded', handlePhotoUploaded);
-            systemChannel.subscribe('cost:submitted', handleCostSubmitted);
+            userChannel.subscribe(handleMessage);
 
             // Fetch initial unread count
             fetchUnreadCount();
