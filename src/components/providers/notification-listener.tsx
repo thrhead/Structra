@@ -19,48 +19,45 @@ export function NotificationListener() {
     useEffect(() => {
         if (!client || !isConnected || !session?.user?.id) return
 
+        console.log(`[Ably] Web Listener: Subscribing to user:${session.user.id} and system channels`)
+
         // Subscribe to user-specific channel
         const userChannel = client.channels.get(`user:${session.user.id}`)
         
         // Subscribe to system-wide channel
         const systemChannel = client.channels.get('system')
 
-        const handleJobCompleted = (message: any) => {
-            const data = message.data as JobCompletedPayload
+        const handleJobCompleted = (data: JobCompletedPayload) => {
             toast.success('İş Tamamlandı', {
                 description: `${data.title} işi ${data.completedBy} tarafından tamamlandı.`,
             })
         }
 
-        const handleCostSubmitted = (message: any) => {
-            const data = message.data as CostSubmittedPayload
+        const handleCostSubmitted = (data: CostSubmittedPayload) => {
             toast.info('Yeni Masraf', {
                 description: `${data.submittedBy} tarafından ${data.amount} ₺ masraf kaydedildi.`,
             })
         }
 
-        const handleCostApproved = (message: any) => {
-            const data = message.data as CostApprovedPayload
+        const handleCostApproved = (data: CostApprovedPayload) => {
             toast.success('Masraf Onaylandı', {
                 description: `${data.amount} ₺ tutarındaki masraf onaylandı.`,
             })
         }
 
-        const handleStepCompleted = (message: any) => {
-            const data = message.data as StepCompletedPayload
+        const handleStepCompleted = (data: StepCompletedPayload) => {
             toast.success('Adım Tamamlandı', {
                 description: `${data.stepTitle} adımı tamamlandı.`,
             })
         }
 
-        const handleGenericNotification = (message: any) => {
-            const data = message.data as NotificationPayload
+        const handleGenericNotification = (data: NotificationPayload) => {
             const toastFn = data.type === 'success' ? toast.success :
                 data.type === 'error' ? toast.error :
                     data.type === 'warning' ? toast.warning :
                         toast.info
 
-            toastFn(data.title, {
+            toastFn(data.title || 'Bildirim', {
                 description: data.message,
             })
 
@@ -68,19 +65,41 @@ export function NotificationListener() {
             window.dispatchEvent(new CustomEvent('notification:refresh'))
         }
 
-        // Add listeners to user channel
-        userChannel.subscribe('job:completed', handleJobCompleted)
-        userChannel.subscribe('cost:submitted', handleCostSubmitted)
-        userChannel.subscribe('cost:approved', handleCostApproved)
-        userChannel.subscribe('step:completed', handleStepCompleted)
-        userChannel.subscribe('notification:new', handleGenericNotification)
+        // Catch-all message handler for better robustness and logging
+        const onMessage = (message: any) => {
+            console.log('[Ably] Received message:', message.name, message.data);
+            
+            const data = message.data;
+            
+            switch (message.name) {
+                case 'job:completed':
+                    handleJobCompleted(data as JobCompletedPayload);
+                    break;
+                case 'cost:submitted':
+                    handleCostSubmitted(data as CostSubmittedPayload);
+                    break;
+                case 'cost:approved':
+                    handleCostApproved(data as CostApprovedPayload);
+                    break;
+                case 'step:completed':
+                    handleStepCompleted(data as StepCompletedPayload);
+                    break;
+                case 'notification:new':
+                    handleGenericNotification(data as NotificationPayload);
+                    break;
+                default:
+                    console.warn('[Ably] Unknown event name:', message.name);
+            }
+        };
 
-        // Add listeners to system channel (redundant if also sent to user channel, but good for global broadcasts)
-        systemChannel.subscribe('notification:new', handleGenericNotification)
+        // Subscribe to all events on both channels
+        userChannel.subscribe(onMessage);
+        systemChannel.subscribe(onMessage);
 
         return () => {
-            userChannel.unsubscribe()
-            systemChannel.unsubscribe()
+            console.log('[Ably] Web Listener: Unsubscribing from channels');
+            userChannel.unsubscribe(onMessage);
+            systemChannel.unsubscribe(onMessage);
         }
     }, [client, isConnected, session?.user?.id])
 
