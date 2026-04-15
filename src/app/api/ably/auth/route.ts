@@ -52,6 +52,7 @@ export async function GET(request: Request) {
             capability,
             timestamp,
             nonce,
+            ttl, // Added missing ttl field
             mac: signature
         }
 
