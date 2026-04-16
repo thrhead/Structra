@@ -134,7 +134,9 @@ const notificationService = {
      */
     deleteNotification: async (id) => {
         try {
-            const response = await api.delete(`/api/notifications?id=${id}`);
+            const response = await api.delete('/api/notifications', {
+                params: { id }
+            });
             return response.data;
         } catch (error) {
             throw error;

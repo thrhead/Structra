@@ -60,8 +60,12 @@ export const useNotifications = () => {
         try {
             await notificationService.deleteAllNotifications();
             setNotifications([]);
+            const { Alert } = require('react-native');
+            Alert.alert('Başarılı', 'Tüm bildirimler silindi.');
         } catch (error) {
             console.error('Error deleting all notifications:', error);
+            const { Alert } = require('react-native');
+            Alert.alert('Hata', 'Bildirimler silinirken bir hata oluştu.');
         }
     };
 
