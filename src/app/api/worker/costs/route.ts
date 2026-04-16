@@ -87,7 +87,7 @@ export async function POST(req: Request) {
                 const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'costs', data.jobId)
                 await fs.mkdir(uploadDir, { recursive: true })
 
-                const filename = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`
+                const filename = `${Date.now()}_${(file.name || 'receipt.jpg').replace(/[^a-zA-Z0-9.]/g, '_')}`
                 const filepath = path.join(uploadDir, filename)
 
                 await fs.writeFile(filepath, buffer)

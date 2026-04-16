@@ -40,7 +40,7 @@ const WebInput = ({ style, value, onChangeText, placeholder, inputMode, theme, .
                     width: '100%',
                     boxSizing: 'border-box',
                     outline: 'none',
-                    fontFamily: 'inherit',
+                    fontFamily: theme.fonts.regular.fontFamily,
                     ...StyleSheet.flatten(style)
                 }}
             />
@@ -48,7 +48,7 @@ const WebInput = ({ style, value, onChangeText, placeholder, inputMode, theme, .
     }
     return (
         <TextInput
-            style={style}
+            style={[style, { fontFamily: theme.fonts.regular.fontFamily }]}
             value={value}
             onChangeText={onChangeText}
             placeholder={placeholder}
@@ -331,6 +331,7 @@ const styles = StyleSheet.create({
     modalTitle: {
         fontSize: 20,
         fontWeight: 'bold',
+        fontFamily: theme.fonts.bold.fontFamily,
     },
     formGroup: {
         marginBottom: 20,
@@ -339,12 +340,14 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '500',
         marginBottom: 8,
+        fontFamily: theme.fonts.medium.fontFamily,
     },
     input: {
         borderRadius: 12,
         padding: 16,
         fontSize: 16,
         borderWidth: 1,
+        fontFamily: theme.fonts.regular.fontFamily,
         // Web/Safari iOS fixes
         outlineStyle: 'none',
         ...(Platform.OS === 'web' && {
@@ -361,7 +364,8 @@ const styles = StyleSheet.create({
         gap: 12
     },
     dateText: {
-        fontSize: 16
+        fontSize: 16,
+        fontFamily: theme.fonts.regular.fontFamily,
     },
     textArea: {
         height: 100,
@@ -383,6 +387,7 @@ const styles = StyleSheet.create({
     },
     categoryOptionText: {
         fontWeight: '500',
+        fontFamily: theme.fonts.medium.fontFamily,
     },
     submitButton: {
         padding: 16,
@@ -411,6 +416,7 @@ const styles = StyleSheet.create({
     uploadText: {
         marginTop: 8,
         fontSize: 14,
+        fontFamily: theme.fonts.regular.fontFamily,
     },
     removeImageButton: {
         marginTop: 8,
@@ -418,9 +424,11 @@ const styles = StyleSheet.create({
     },
     removeImageText: {
         fontSize: 14,
+        fontFamily: theme.fonts.medium.fontFamily,
     },
     submitButtonText: {
         fontSize: 16,
         fontWeight: 'bold',
+        fontFamily: theme.fonts.bold.fontFamily,
     },
 });

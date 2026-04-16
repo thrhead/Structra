@@ -60,14 +60,18 @@ export const useWorkerExpenses = () => {
             data.append('date', formData.date.toISOString());
 
             if (receiptImage) {
-                const filename = receiptImage.split('/').pop();
-                const match = /\.(\w+)$/.exec(filename);
-                const type = match ? `image/${match[1]}` : 'image/jpeg';
+                // Ensure we have a filename
+                const uriParts = receiptImage.split('/');
+                const filename = uriParts[uriParts.length - 1] || `receipt_${Date.now()}.jpg`;
+                
+                // Extract extension
+                const fileType = filename.split('.').pop();
+                const type = fileType ? `image/${fileType}` : 'image/jpeg';
 
                 data.append('receipt', {
                     uri: receiptImage,
                     name: filename,
-                    type
+                    type: type
                 });
             }
 
