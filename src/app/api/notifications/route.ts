@@ -79,21 +79,25 @@ export async function DELETE(req: Request) {
     const { searchParams } = new URL(req.url)
     const id = searchParams.get('id')
 
+    console.log(`[API-Notifications] DELETE request received. ID: ${id || 'ALL'}, User: ${session.user.id}`);
+
     if (id) {
       // Delete specific notification
-      await prisma.notification.delete({
+      const result = await prisma.notification.delete({
         where: {
           id,
           userId: session.user.id
         }
       })
+      console.log(`[API-Notifications] Deleted single notification: ${id}`);
     } else {
       // Delete all notifications for the user
-      await prisma.notification.deleteMany({
+      const result = await prisma.notification.deleteMany({
         where: {
           userId: session.user.id
         }
       })
+      console.log(`[API-Notifications] Bulk deleted notifications. Count: ${result.count}`);
     }
 
     return NextResponse.json({ success: true })

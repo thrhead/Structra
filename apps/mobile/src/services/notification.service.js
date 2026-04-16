@@ -149,7 +149,10 @@ const notificationService = {
      */
     deleteAllNotifications: async () => {
         try {
-            const response = await api.delete('/api/notifications');
+            // Explicitly ensure no id is passed in params
+            const response = await api.delete('/api/notifications', {
+                params: { id: null }
+            });
             return response.data;
         } catch (error) {
             throw error;
