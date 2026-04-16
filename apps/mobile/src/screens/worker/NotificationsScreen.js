@@ -43,12 +43,20 @@ export default function NotificationsScreen({ navigation }) {
     }, [deleteNotification]);
 
     const handleDeleteAll = React.useCallback(() => {
+        console.log('[NotificationsScreen] Bulk delete button pressed');
         Alert.alert(
             "Tümünü Sil",
             "Tüm bildirimleri silmek istediğinize emin misiniz?",
             [
                 { text: "Vazgeç", style: "cancel" },
-                { text: "Sil", style: "destructive", onPress: deleteAllNotifications }
+                { 
+                    text: "Sil", 
+                    style: "destructive", 
+                    onPress: () => {
+                        console.log('[NotificationsScreen] Confirming bulk delete');
+                        deleteAllNotifications();
+                    }
+                }
             ]
         );
     }, [deleteAllNotifications]);

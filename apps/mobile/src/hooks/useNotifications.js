@@ -47,30 +47,30 @@ export const useNotifications = () => {
         }
     };
 
-    const deleteNotification = async (id) => {
+    const deleteNotification = useCallback(async (id) => {
         try {
             await notificationService.deleteNotification(id);
             setNotifications(prev => prev.filter(n => n.id !== id));
         } catch (error) {
             console.error('Error deleting notification:', error);
         }
-    };
+    }, []);
 
-    const deleteAllNotifications = async () => {
+    const deleteAllNotifications = useCallback(async () => {
         const { Alert } = require('react-native');
-        console.log('[useNotifications] Attempting to delete all notifications...');
+        console.log('[useNotifications] 🔥 START: deleteAllNotifications');
         
         try {
-            await notificationService.deleteAllNotifications();
-            console.log('[useNotifications] Delete all success');
+            const result = await notificationService.deleteAllNotifications();
+            console.log('[useNotifications] ✅ SUCCESS: deleteAllNotifications', result);
             setNotifications([]);
             Alert.alert('Başarılı', 'Tüm bildirimler silindi.');
         } catch (error) {
-            console.error('[useNotifications] Error deleting all notifications:', error);
+            console.error('[useNotifications] ❌ ERROR: deleteAllNotifications', error);
             const errorMsg = error.response?.data?.error || error.message || 'Bilinmeyen bir hata oluştu.';
             Alert.alert('Hata', `Bildirimler silinirken bir hata oluştu: ${errorMsg}`);
         }
-    };
+    }, []);
 
     return {
         notifications,
