@@ -59,8 +59,8 @@ export function NotificationListener() {
         }
 
         // Catch-all message handler for better robustness and logging
-        const onMessage = (message: any) => {
-            console.log('[Ably] Received message:', message.name, message.data);
+        const onMessage = (message: any, channelName: string) => {
+            console.log(`[Ably] 📥 Received on "${channelName}":`, message.name, message.data);
             
             const data = message.data;
             
@@ -78,19 +78,26 @@ export function NotificationListener() {
                 case 'notification:refresh':
                     handleGenericNotification(data as NotificationPayload);
                     break;
+                case 'cost:submitted':
+                    // Silent ignore to prevent double/triple notifications
+                    console.log('[Ably] 🔇 Silently ignoring cost:submitted');
+                    break;
                 default:
-                    console.log('[Ably] Event ignored or handled elsewhere:', message.name);
+                    console.log('[Ably] ℹ️ Event ignored or handled elsewhere:', message.name);
             }
         };
 
         // Subscribe to all events on both channels
-        userChannel.subscribe(onMessage);
-        systemChannel.subscribe(onMessage);
+        const userHandler = (m: any) => onMessage(m, `user:${session.user.id}`);
+        const systemHandler = (m: any) => onMessage(m, 'system');
+
+        userChannel.subscribe(userHandler);
+        systemChannel.subscribe(systemHandler);
 
         return () => {
             console.log('[Ably] Web Listener: Unsubscribing from channels');
-            userChannel.unsubscribe(onMessage);
-            systemChannel.unsubscribe(onMessage);
+            userChannel.unsubscribe(userHandler);
+            systemChannel.unsubscribe(systemHandler);
         }
     }, [client, isConnected, session?.user?.id])
 

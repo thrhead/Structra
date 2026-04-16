@@ -29,6 +29,7 @@ export const publishToUser = async (userId: string, event: string, data: any) =>
     if (!client) return
 
     try {
+        console.log(`[Ably-Server] 📡 Publishing event "${event}" to user:${userId}`);
         const channel = client.channels.get(`user:${userId}`)
         await channel.publish(event, data)
     } catch (error) {
@@ -41,6 +42,7 @@ export const publishToJob = async (jobId: string, event: string, data: any) => {
     if (!client) return
 
     try {
+        console.log(`[Ably-Server] 📡 Publishing event "${event}" to job:${jobId}`);
         const channel = client.channels.get(`job:${jobId}`)
         await channel.publish(event, data)
     } catch (error) {
@@ -53,6 +55,7 @@ export const broadcast = async (event: string, data: any) => {
     if (!client) return
 
     try {
+        console.log(`[Ably-Server] 📢 Broadcasting event "${event}" to system`);
         const channel = client.channels.get('system')
         await channel.publish(event, data)
     } catch (error) {
