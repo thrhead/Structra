@@ -44,21 +44,28 @@ export default function NotificationsScreen({ navigation }) {
 
     const handleDeleteAll = React.useCallback(() => {
         console.log('[NotificationsScreen] Bulk delete button pressed');
-        Alert.alert(
-            "Tümünü Sil",
-            "Tüm bildirimleri silmek istediğinize emin misiniz?",
-            [
-                { text: "Vazgeç", style: "cancel" },
-                { 
-                    text: "Sil", 
-                    style: "destructive", 
-                    onPress: () => {
-                        console.log('[NotificationsScreen] Confirming bulk delete');
-                        deleteAllNotifications();
-                    }
-                }
-            ]
-        );
+        
+        const confirmMessage = "Tüm bildirimleri silmek istediğinize emin misiniz?";
+        
+        const performDelete = () => {
+            console.log('[NotificationsScreen] Executing bulk delete');
+            deleteAllNotifications();
+        };
+
+        if (Platform.OS === 'web') {
+            if (window.confirm(confirmMessage)) {
+                performDelete();
+            }
+        } else {
+            Alert.alert(
+                "Tümünü Sil",
+                confirmMessage,
+                [
+                    { text: "Vazgeç", style: "cancel" },
+                    { text: "Sil", style: "destructive", onPress: performDelete }
+                ]
+            );
+        }
     }, [deleteAllNotifications]);
 
     const renderItem = React.useCallback(({ item }) => (

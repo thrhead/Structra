@@ -70,11 +70,21 @@ export const useNotifications = () => {
             console.log('[useNotifications] API Response:', response);
             
             setNotifications([]);
-            Alert.alert('Başarılı', 'Tüm bildirimler silindi.');
+            
+            if (Platform.OS === 'web') {
+                window.alert('Tüm bildirimler silindi.');
+            } else {
+                Alert.alert('Başarılı', 'Tüm bildirimler silindi.');
+            }
         } catch (error) {
             console.error('[useNotifications] FAILED to delete all:', error);
             const errorMessage = error.response?.data?.error || error.message || 'Bilinmeyen bir ağ hatası.';
-            Alert.alert('İşlem Başarısız', `Hata: ${errorMessage}`);
+            
+            if (Platform.OS === 'web') {
+                window.alert(`İşlem Başarısız: ${errorMessage}`);
+            } else {
+                Alert.alert('İşlem Başarısız', `Hata: ${errorMessage}`);
+            }
         }
     }, []);
 
