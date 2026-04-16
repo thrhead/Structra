@@ -8,7 +8,7 @@ import NotificationItem from '../../components/worker/NotificationItem';
 import CustomSpinner from '../../components/CustomSpinner';
 export default function NotificationsScreen({ navigation }) {
     const { theme, isDark } = useTheme();
-    const { notifications, loading, refreshing, onRefresh, markAsRead } = useNotifications();
+    const { notifications, loading, refreshing, onRefresh, markAsRead, deleteNotification, deleteAllNotifications } = useNotifications();
 
     const handleNotificationPress = React.useCallback(async (notification) => {
         if (!notification.isRead) {
