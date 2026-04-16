@@ -15,8 +15,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { MaterialIcons } from '@expo/vector-icons';
 import VoiceRecorder from '../../common/VoiceRecorder';
 import LoadingOverlay from '../../common/LoadingOverlay';
-// Duplicate imports removed
-// import { COLORS } from '../../../constants/theme'; // Removed legacy
 import { CATEGORIES } from './ExpenseFilter';
 
 // Safari iOS compatible input component
@@ -59,6 +57,7 @@ const WebInput = ({ style, value, onChangeText, placeholder, inputMode, theme, .
 };
 
 export const CreateExpenseModal = ({ visible, onClose, onSubmit, projects, defaultJobId, theme }) => {
+    const styles = getStyles(theme);
     const [formData, setFormData] = useState({
         title: '',
         amount: '',
@@ -230,7 +229,7 @@ export const CreateExpenseModal = ({ visible, onClose, onSubmit, projects, defau
                             style={[styles.imageUploadButton, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
                             onPress={async () => {
                                 const result = await ImagePicker.launchImageLibraryAsync({
-                                    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                                    mediaTypes: ImagePicker.MediaType.Images,
                                     allowsEditing: true,
                                     aspect: [4, 3],
                                     quality: 0.5,
@@ -295,7 +294,7 @@ export const CreateExpenseModal = ({ visible, onClose, onSubmit, projects, defau
     );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
     modalOverlay: {
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
