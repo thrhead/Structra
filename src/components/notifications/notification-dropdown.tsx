@@ -97,6 +97,40 @@ export function NotificationDropdown() {
     }
   }
 
+  const handleDeleteNotification = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation()
+    try {
+      const response = await fetch(`/api/notifications?id=${id}`, {
+        method: 'DELETE'
+      })
+      if (response.ok) {
+        setNotifications(prev => prev.filter(n => n.id !== id))
+        fetchNotifications()
+      }
+    } catch (error) {
+      console.error('Failed to delete notification:', error)
+    }
+  }
+
+  const handleDeleteAllNotifications = async () => {
+    if (!confirm('Tüm bildirimleri silmek istediğinize emin misiniz?')) return
+    setLoading(true)
+    try {
+      const response = await fetch('/api/notifications', {
+        method: 'DELETE'
+      })
+      if (response.ok) {
+        setNotifications([])
+        setUnreadCount(0)
+        setOpen(false)
+      }
+    } catch (error) {
+      console.error('Failed to delete all notifications:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'SUCCESS':

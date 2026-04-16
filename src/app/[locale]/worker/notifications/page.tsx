@@ -62,6 +62,35 @@ export default function NotificationsPage() {
     }
   }
 
+  const handleMarkAllAsRead = async () => {
+    try {
+      const res = await fetch('/api/notifications/mark-all-read', {
+        method: 'PATCH'
+      })
+      if (res.ok) {
+        setNotifications(prev => prev.map(n => ({ ...n, isRead: true })))
+        toast.success('Tüm bildirimler okundu olarak işaretlendi.')
+      }
+    } catch (error) {
+      console.error('Mark all read error:', error)
+    }
+  }
+
+  const handleDeleteAllNotifications = async () => {
+    if (!confirm('Tüm bildirimleri silmek istediğinize emin misiniz?')) return
+    try {
+      const res = await fetch('/api/notifications', {
+        method: 'DELETE'
+      })
+      if (res.ok) {
+        setNotifications([])
+        toast.success('Tüm bildirimler silindi.')
+      }
+    } catch (error) {
+      console.error('Delete all error:', error)
+    }
+  }
+
   const groupNotificationsByDate = (notifications: any[]) => {
     const now = new Date()
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
