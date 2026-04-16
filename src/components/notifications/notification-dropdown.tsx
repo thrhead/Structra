@@ -155,7 +155,7 @@ export function NotificationDropdown() {
               <div
                 key={notification.id}
                 onClick={() => handleNotificationClick(notification)}
-                className={`flex items-start gap-3 p-3 cursor-pointer transition-colors border-b border-slate-50 dark:border-slate-900/50 hover:bg-slate-50 dark:hover:bg-slate-900 ${
+                className={`flex items-start gap-3 p-3 cursor-pointer transition-colors border-b border-slate-50 dark:border-slate-900/50 hover:bg-slate-50 dark:hover:bg-slate-900 group relative ${
                   !notification.isRead ? 'bg-indigo-50/50 dark:bg-indigo-950/20' : ''
                 }`}
               >
@@ -174,9 +174,18 @@ export function NotificationDropdown() {
                       })}
                     </p>
                   </div>
-                  {!notification.isRead && (
-                    <div className="h-2 w-2 rounded-full bg-indigo-500 shrink-0 mt-2 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
-                  )}
+                  <div className="flex flex-col items-end gap-2 shrink-0 mt-1">
+                    {!notification.isRead && (
+                      <div className="h-2 w-2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
+                    )}
+                    <button
+                      onClick={(e) => handleDeleteNotification(e, notification.id)}
+                      className="opacity-0 group-hover:opacity-100 p-1 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-md transition-all text-slate-400 hover:text-red-500"
+                      title="Sil"
+                    >
+                      <XIcon className="h-3 w-3" />
+                    </button>
+                  </div>
               </div>
             ))}
             
@@ -186,6 +195,26 @@ export function NotificationDropdown() {
                 setOpen(false)
               }}
               className="w-full p-3 text-center text-sm text-indigo-600 dark:text-indigo-400 font-bold hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
+            >
+              Tümünü Gör
+            </button>
+          </div>
+        )}
+      </PopoverContent>
+    </Popover>
+  )
+}
+ont-bold hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
+            >
+              Tümünü Gör
+            </button>
+          </div>
+        )}
+      </PopoverContent>
+    </Popover>
+  )
+}
+hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
             >
               Tümünü Gör
             </button>

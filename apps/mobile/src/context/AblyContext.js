@@ -101,10 +101,6 @@ export const AblyProvider = ({ children }) => {
             userChannel.subscribe('photo:uploaded', (message) => {
                 console.log('[Ably] 📸 Photo uploaded:', message.data);
             });
-
-            userChannel.subscribe('cost:submitted', (message) => {
-                console.log('[Ably] 💰 Cost submitted:', message.data);
-            });
         });
 
         ably.connection.on('disconnected', () => {

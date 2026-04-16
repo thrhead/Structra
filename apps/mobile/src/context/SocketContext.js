@@ -245,13 +245,12 @@ export const SocketProvider = ({ children }) => {
                         }
                         break;
 
-                    case 'cost:submitted':
                     case 'cost:approved':
                     case 'cost:rejected':
                         console.log(`[Ably-Mobile] Cost event received: ${eventName}`);
                         if (Platform.OS !== 'web') {
                             const { Alert } = require('react-native');
-                            const statusText = eventName === 'cost:approved' ? 'Onaylandı' : (eventName === 'cost:rejected' ? 'Reddedildi' : 'Gönderildi');
+                            const statusText = eventName === 'cost:approved' ? 'Onaylandı' : 'Reddedildi';
                             Alert.alert('Masraf Güncellemesi', `Masraf durumu: ${statusText}`);
                         }
                         fetchUnreadCount();
@@ -264,6 +263,7 @@ export const SocketProvider = ({ children }) => {
 
             // Catch-all subscription
             const userChannel = ably.channels.get(`user:${user.id}`);
+            channelRef.current = userChannel;
             userChannel.subscribe(handleMessage);
 
             // Fetch initial unread count

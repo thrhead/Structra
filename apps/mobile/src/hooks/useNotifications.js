@@ -41,9 +41,27 @@ export const useNotifications = () => {
     const markAsRead = async (id) => {
         try {
             await notificationService.markAsRead(id);
-            setNotifications(prev => prev.filter(n => n.id !== id));
+            setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
         } catch (error) {
             console.error('Error marking notification as read:', error);
+        }
+    };
+
+    const deleteNotification = async (id) => {
+        try {
+            await notificationService.deleteNotification(id);
+            setNotifications(prev => prev.filter(n => n.id !== id));
+        } catch (error) {
+            console.error('Error deleting notification:', error);
+        }
+    };
+
+    const deleteAllNotifications = async () => {
+        try {
+            await notificationService.deleteAllNotifications();
+            setNotifications([]);
+        } catch (error) {
+            console.error('Error deleting all notifications:', error);
         }
     };
 
@@ -52,6 +70,8 @@ export const useNotifications = () => {
         loading,
         refreshing,
         onRefresh,
-        markAsRead
+        markAsRead,
+        deleteNotification,
+        deleteAllNotifications
     };
 };

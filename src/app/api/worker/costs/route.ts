@@ -2,10 +2,8 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
 import { z } from 'zod'
-import { broadcast, publishToUser } from '@/lib/ably'
-import { CostSubmittedPayload } from '@/lib/socket-events'
 import { sendCostApprovalEmail } from '@/lib/email'
-import { sendAdminNotification } from '@/lib/notification-helper'
+import { sendNotificationToUsers } from '@/lib/notification-helper'
 
 const createCostSchema = z.object({
     jobId: z.string().min(1),
@@ -118,31 +116,35 @@ export async function POST(req: Request) {
             }
         })
 
-        // Emit Ably event for real-time notification
-        const ablyPayload: CostSubmittedPayload = {
-            costId: cost.id,
-            jobId: data.jobId,
-            amount: data.amount,
-            category: data.category,
-            submittedBy: session.user.name || session.user.email || 'Unknown'
+        const notificationMessage = `${session.user.name || session.user.email} - ${data.amount} ${data.currency} (${data.category})`
+
+        // Collect all unique recipient IDs
+        const admins = await prisma.user.findMany({
+            where: {
+                role: { in: ['ADMIN', 'MANAGER', 'TEAM_LEAD'] },
+                isActive: true,
+                id: { not: session.user.id }
+            },
+            select: { id: true }
+        })
+
+        const recipientIds = new Set(admins.map(a => a.id))
+        
+        // Add job creator if they are not the submitter
+        if (job.creator?.id && job.creator.id !== session.user.id) {
+            recipientIds.add(job.creator.id)
         }
 
-        // Notify job creator
-        if (job.creator?.id) {
-            await publishToUser(job.creator.id, 'cost:submitted', ablyPayload)
+        // Send notifications in one go
+        if (recipientIds.size > 0) {
+            await sendNotificationToUsers(
+                Array.from(recipientIds),
+                'Yeni Masraf Eklendi',
+                notificationMessage,
+                'INFO',
+                `/admin/costs`
+            )
         }
-
-        // Broadcast to all admins/managers
-        await broadcast('cost:submitted', ablyPayload)
-
-        // Send push notification to admins
-        await sendAdminNotification(
-            'Yeni Masraf Eklendi',
-            `${session.user.name || session.user.email} - ${data.amount} ${data.currency} (${data.category})`,
-            'INFO',
-            `/admin/costs`,
-            session.user.id
-        )
 
         return NextResponse.json(cost, { status: 201 })
     } catch (error) {

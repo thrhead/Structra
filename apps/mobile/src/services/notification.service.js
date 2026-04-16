@@ -125,6 +125,33 @@ const notificationService = {
         } catch (error) {
             throw error;
         }
+    },
+
+    /**
+     * Delete a specific notification
+     * @param {string} id 
+     * @returns {Promise<Object>}
+     */
+    deleteNotification: async (id) => {
+        try {
+            const response = await api.delete(`/api/notifications?id=${id}`);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    /**
+     * Delete all notifications for the user
+     * @returns {Promise<Object>}
+     */
+    deleteAllNotifications: async () => {
+        try {
+            const response = await api.delete('/api/notifications');
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
     }
 };
 

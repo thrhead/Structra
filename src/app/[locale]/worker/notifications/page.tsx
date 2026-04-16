@@ -97,10 +97,10 @@ export default function NotificationsPage() {
 
   const getNotificationBgColor = (type: string) => {
     switch (type) {
-      case 'SUCCESS': return 'bg-green-50 border-green-200'
-      case 'WARNING': return 'bg-yellow-50 border-yellow-200'
-      case 'ERROR': return 'bg-red-50 border-red-200'
-      default: return 'bg-blue-50 border-blue-200'
+      case 'SUCCESS': return 'bg-emerald-50/50 dark:bg-emerald-950/10 border-emerald-100 dark:border-emerald-900/30'
+      case 'WARNING': return 'bg-amber-50/50 dark:bg-amber-950/10 border-amber-100 dark:border-amber-900/30'
+      case 'ERROR': return 'bg-rose-50/50 dark:bg-rose-950/10 border-rose-100 dark:border-rose-900/30'
+      default: return 'bg-indigo-50/50 dark:bg-indigo-950/10 border-indigo-100 dark:border-indigo-900/30'
     }
   }
 
@@ -165,14 +165,34 @@ export default function NotificationsPage() {
 
   return (
     <div className="p-4 lg:p-8 max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Bildirimler</h1>
-          <p className="text-gray-600">Güncel tüm bildirimleriniz ve duyurular.</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Bildirimler</h1>
+          <p className="text-slate-600 dark:text-slate-400">Güncel tüm bildirimleriniz ve duyurular.</p>
         </div>
-        <Badge variant="secondary" className="px-3 py-1">
-          {notifications.length} Bildirim
-        </Badge>
+        <div className="flex items-center gap-2">
+          {notifications.length > 0 && (
+            <>
+              <button
+                onClick={handleMarkAllAsRead}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors border border-slate-200 dark:border-slate-800"
+              >
+                <Check className="h-3.5 w-3.5" />
+                Tümünü Oku
+              </button>
+              <button
+                onClick={handleDeleteAllNotifications}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors border border-red-200 dark:border-red-900/50"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Tümünü Sil
+              </button>
+            </>
+          )}
+          <Badge variant="secondary" className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-none">
+            {notifications.length} Bildirim
+          </Badge>
+        </div>
       </div>
 
       {notifications.length === 0 ? (
@@ -188,6 +208,12 @@ export default function NotificationsPage() {
           <NotificationGroup title="Dün" items={grouped.yesterday} />
           <NotificationGroup title="Bu Hafta" items={grouped.thisWeek} />
           <NotificationGroup title="Daha Eski" items={grouped.older} />
+        </>
+      )}
+    </div>
+  )
+}
+p title="Daha Eski" items={grouped.older} />
         </>
       )}
     </div>

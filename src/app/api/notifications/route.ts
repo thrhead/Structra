@@ -79,16 +79,22 @@ export async function DELETE(req: Request) {
     const { searchParams } = new URL(req.url)
     const id = searchParams.get('id')
 
-    if (!id) {
-      return NextResponse.json({ error: 'Missing notification ID' }, { status: 400 })
+    if (id) {
+      // Delete specific notification
+      await prisma.notification.delete({
+        where: {
+          id,
+          userId: session.user.id
+        }
+      })
+    } else {
+      // Delete all notifications for the user
+      await prisma.notification.deleteMany({
+        where: {
+          userId: session.user.id
+        }
+      })
     }
-
-    await prisma.notification.delete({
-      where: {
-        id,
-        userId: session.user.id
-      }
-    })
 
     return NextResponse.json({ success: true })
   } catch (error) {

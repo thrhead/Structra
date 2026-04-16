@@ -6,7 +6,6 @@ import { useSession } from 'next-auth/react'
 import { toast } from 'sonner'
 import {
     JobCompletedPayload,
-    CostSubmittedPayload,
     CostApprovedPayload,
     StepCompletedPayload,
     NotificationPayload,
@@ -30,12 +29,6 @@ export function NotificationListener() {
         const handleJobCompleted = (data: JobCompletedPayload) => {
             toast.success('İş Tamamlandı', {
                 description: `${data.title} işi ${data.completedBy} tarafından tamamlandı.`,
-            })
-        }
-
-        const handleCostSubmitted = (data: CostSubmittedPayload) => {
-            toast.info('Yeni Masraf', {
-                description: `${data.submittedBy} tarafından ${data.amount} ₺ masraf kaydedildi.`,
             })
         }
 
@@ -75,9 +68,6 @@ export function NotificationListener() {
                 case 'job:completed':
                     handleJobCompleted(data as JobCompletedPayload);
                     break;
-                case 'cost:submitted':
-                    handleCostSubmitted(data as CostSubmittedPayload);
-                    break;
                 case 'cost:approved':
                     handleCostApproved(data as CostApprovedPayload);
                     break;
@@ -85,10 +75,11 @@ export function NotificationListener() {
                     handleStepCompleted(data as StepCompletedPayload);
                     break;
                 case 'notification:new':
+                case 'notification:refresh':
                     handleGenericNotification(data as NotificationPayload);
                     break;
                 default:
-                    console.warn('[Ably] Unknown event name:', message.name);
+                    console.log('[Ably] Event ignored or handled elsewhere:', message.name);
             }
         };
 
