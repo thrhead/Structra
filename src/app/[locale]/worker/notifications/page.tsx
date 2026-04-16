@@ -213,9 +213,3 @@ export default function NotificationsPage() {
     </div>
   )
 }
-p title="Daha Eski" items={grouped.older} />
-        </>
-      )}
-    </div>
-  )
-}

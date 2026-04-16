@@ -204,23 +204,3 @@ export function NotificationDropdown() {
     </Popover>
   )
 }
-ont-bold hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
-            >
-              Tümünü Gör
-            </button>
-          </div>
-        )}
-      </PopoverContent>
-    </Popover>
-  )
-}
-hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
-            >
-              Tümünü Gör
-            </button>
-          </div>
-        )}
-      </PopoverContent>
-    </Popover>
-  )
-}
