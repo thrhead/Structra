@@ -126,12 +126,11 @@ const styles = StyleSheet.create({
     },
     header: {
         flexDirection: 'row',
-        justifyContent: 'between',
+        justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 16,
         paddingVertical: 12,
         borderBottomWidth: 1,
-        justifyContent: 'space-between',
     },
     headerTitle: {
         fontSize: 16,

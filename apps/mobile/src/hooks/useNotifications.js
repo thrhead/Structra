@@ -11,7 +11,7 @@ export const useNotifications = () => {
     const loadNotifications = useCallback(async () => {
         try {
             const data = await notificationService.getNotifications();
-            setNotifications(data);
+            setNotifications(data || []);
         } catch (error) {
             console.error('Error loading notifications:', error);
         } finally {
@@ -58,17 +58,23 @@ export const useNotifications = () => {
 
     const deleteAllNotifications = useCallback(async () => {
         const { Alert } = require('react-native');
-        console.log('[useNotifications] 🔥 START: deleteAllNotifications');
+        console.log('[useNotifications] Triggering deleteAllNotifications...');
         
         try {
-            const result = await notificationService.deleteAllNotifications();
-            console.log('[useNotifications] ✅ SUCCESS: deleteAllNotifications', result);
+            // Check if service exists
+            if (!notificationService || !notificationService.deleteAllNotifications) {
+                throw new Error('Notification service is not properly initialized.');
+            }
+
+            const response = await notificationService.deleteAllNotifications();
+            console.log('[useNotifications] API Response:', response);
+            
             setNotifications([]);
             Alert.alert('Başarılı', 'Tüm bildirimler silindi.');
         } catch (error) {
-            console.error('[useNotifications] ❌ ERROR: deleteAllNotifications', error);
-            const errorMsg = error.response?.data?.error || error.message || 'Bilinmeyen bir hata oluştu.';
-            Alert.alert('Hata', `Bildirimler silinirken bir hata oluştu: ${errorMsg}`);
+            console.error('[useNotifications] FAILED to delete all:', error);
+            const errorMessage = error.response?.data?.error || error.message || 'Bilinmeyen bir ağ hatası.';
+            Alert.alert('İşlem Başarısız', `Hata: ${errorMessage}`);
         }
     }, []);
 
