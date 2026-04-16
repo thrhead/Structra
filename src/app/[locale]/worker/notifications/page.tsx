@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { formatDistanceToNow } from 'date-fns'
 import { tr } from 'date-fns/locale'
 import { Link } from '@/lib/navigation'
-import { CheckCircle2, AlertTriangle, XCircle, Bell, Loader2 } from 'lucide-react'
+import { CheckCircle2, AlertTriangle, XCircle, Bell, Loader2, Trash2, Check, X } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { CustomSpinner } from '@/components/ui/custom-spinner';

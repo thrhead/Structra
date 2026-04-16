@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { BellIcon, CheckIcon, Loader2Icon } from 'lucide-react'
+import { BellIcon, CheckIcon, Loader2Icon, Trash2Icon, XIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Popover,
@@ -125,24 +125,44 @@ export function NotificationDropdown() {
       <PopoverContent align="end" className="w-80 p-0 overflow-hidden shadow-2xl rounded-2xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
         <div className="flex items-center justify-between p-3 border-b border-slate-100 dark:border-slate-800">
           <span className="font-semibold text-sm">Bildirimler</span>
-          {unreadCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleMarkAllAsRead}
-              disabled={loading}
-              className="h-6 text-xs px-2"
-            >
-              {loading ? (
-                <CustomSpinner className="h-3 w-3 animate-spin" />
-              ) : (
-                <>
-                  <CheckIcon className="h-3 w-3 mr-1" />
-                  Tümünü Okundu İşaretle
-                </>
-              )}
-            </Button>
-          )}
+          <div className="flex items-center gap-1">
+            {unreadCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleMarkAllAsRead}
+                disabled={loading}
+                className="h-6 text-[10px] px-2"
+              >
+                {loading ? (
+                  <CustomSpinner className="h-3 w-3 animate-spin" />
+                ) : (
+                  <>
+                    <CheckIcon className="h-3 w-3 mr-1" />
+                    Oku
+                  </>
+                )}
+              </Button>
+            )}
+            {notifications.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleDeleteAllNotifications}
+                disabled={loading}
+                className="h-6 text-[10px] px-2 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+              >
+                {loading ? (
+                  <CustomSpinner className="h-3 w-3 animate-spin" />
+                ) : (
+                  <>
+                    <Trash2Icon className="h-3 w-3 mr-1" />
+                    Temizle
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
         </div>
         
         {notifications.length === 0 ? (
