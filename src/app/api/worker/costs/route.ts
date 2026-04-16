@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
 import { z } from 'zod'
-import { sendCostApprovalEmail } from '@/lib/email'
+import { uploadToCloudinary } from '@/lib/cloudinary'
 import { sendNotificationToUsers } from '@/lib/notification-helper'
 
 const createCostSchema = z.object({
@@ -36,23 +36,12 @@ export async function POST(req: Request) {
                 amount: parseFloat(formData.get('amount') as string),
                 currency: formData.get('currency') || 'TRY',
                 category: formData.get('category'),
-                description: formData.get('description'),
+                description: formData.get('description') || '',
                 date: formData.get('date') ? new Date(formData.get('date') as string) : new Date()
             }
         } else {
             const body = await req.json()
             data = createCostSchema.parse(body)
-        }
-
-        // Log request to file
-        try {
-            const fs = require('fs');
-            const path = require('path');
-            const logPath = path.join(process.cwd(), 'api_debug.log');
-            const logEntry = `${new Date().toISOString()} - [API] Cost Create Request (Multipart: ${contentType.includes('multipart/form-data')}): ${JSON.stringify(data)}\n`;
-            fs.appendFileSync(logPath, logEntry);
-        } catch (e) {
-            console.error('Failed to write to log file:', e);
         }
 
         // Verify job exists
@@ -70,30 +59,12 @@ export async function POST(req: Request) {
         let receiptUrl = data.receiptUrl
 
         // Handle file upload if present
-        if (file) {
+        if (file && file.size > 0) {
             try {
-                const fs = require('fs').promises
-                const path = require('path')
-
-                let buffer: Buffer
-                if (typeof file.arrayBuffer === 'function') {
-                    const bytes = await file.arrayBuffer()
-                    buffer = Buffer.from(bytes)
-                } else {
-                    const bytes = await new Response(file).arrayBuffer()
-                    buffer = Buffer.from(bytes)
-                }
-
-                const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'costs', data.jobId)
-                await fs.mkdir(uploadDir, { recursive: true })
-
-                const filename = `${Date.now()}_${(file.name || 'receipt.jpg').replace(/[^a-zA-Z0-9.]/g, '_')}`
-                const filepath = path.join(uploadDir, filename)
-
-                await fs.writeFile(filepath, buffer)
-                receiptUrl = `/uploads/costs/${data.jobId}/${filename}`
+                const uploadResult: any = await uploadToCloudinary(file, `costs/${data.jobId}`)
+                receiptUrl = uploadResult.secure_url
             } catch (err) {
-                console.error('File upload error:', err)
+                console.error('Cloudinary upload error:', err)
                 return NextResponse.json({ error: 'Failed to upload receipt image' }, { status: 500 })
             }
         }
@@ -150,19 +121,6 @@ export async function POST(req: Request) {
     } catch (error) {
         console.error('Create cost error:', error)
         if (error instanceof z.ZodError) {
-            console.error('Create Cost Validation Error:', JSON.stringify(error.issues, null, 2))
-
-            // Log error to file
-            try {
-                const fs = require('fs');
-                const path = require('path');
-                const logPath = path.join(process.cwd(), 'api_debug.log');
-                const logEntry = `${new Date().toISOString()} - [API] Cost Create Validation Error: ${JSON.stringify(error.issues)}\n`;
-                fs.appendFileSync(logPath, logEntry);
-            } catch (e) {
-                console.error('Failed to write to log file:', e);
-            }
-
             return NextResponse.json({ error: 'Invalid data', details: error.issues }, { status: 400 })
         }
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })

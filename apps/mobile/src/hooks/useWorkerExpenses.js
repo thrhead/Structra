@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
+import { Platform } from 'react-native';
 import costService from '../services/cost.service';
 import jobService from '../services/job.service';
 import { useAlert } from '../context/AlertContext';
@@ -60,19 +61,26 @@ export const useWorkerExpenses = () => {
             data.append('date', formData.date.toISOString());
 
             if (receiptImage) {
-                // Ensure we have a filename
-                const uriParts = receiptImage.split('/');
-                const filename = uriParts[uriParts.length - 1] || `receipt_${Date.now()}.jpg`;
-                
-                // Extract extension
-                const fileType = filename.split('.').pop();
-                const type = fileType ? `image/${fileType}` : 'image/jpeg';
+                if (Platform.OS === 'web') {
+                    const response = await fetch(receiptImage);
+                    const blob = await response.blob();
+                    const filename = receiptImage.split('/').pop() || 'receipt.jpg';
+                    data.append('receipt', blob, filename);
+                } else {
+                    // Ensure we have a filename
+                    const uriParts = receiptImage.split('/');
+                    const filename = uriParts[uriParts.length - 1] || `receipt_${Date.now()}.jpg`;
+                    
+                    // Extract extension
+                    const fileType = filename.split('.').pop();
+                    const type = fileType ? `image/${fileType}` : 'image/jpeg';
 
-                data.append('receipt', {
-                    uri: receiptImage,
-                    name: filename,
-                    type: type
-                });
+                    data.append('receipt', {
+                        uri: receiptImage,
+                        name: filename,
+                        type: type
+                    });
+                }
             }
 
             await costService.create(data);

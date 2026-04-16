@@ -537,14 +537,28 @@ export default function JobDetailScreen({ route, navigation }) {
             data.append('date', formData.date.toISOString());
 
             if (receiptImage) {
-                const filename = receiptImage.split('/').pop();
-                const match = /\.(\w+)$/.exec(filename);
-                const type = match ? `image/${match[1]}` : 'image/jpeg';
-                data.append('receipt', { uri: receiptImage, name: filename, type });
+                if (Platform.OS === 'web') {
+                    const response = await fetch(receiptImage);
+                    const blob = await response.blob();
+                    const filename = receiptImage.split('/').pop() || 'receipt.jpg';
+                    data.append('receipt', blob, filename);
+                } else {
+                    const filename = receiptImage.split('/').pop();
+                    const match = /\.(\w+)$/.exec(filename);
+                    const type = match ? `image/${match[1]}` : 'image/jpeg';
+                    data.append('receipt', { uri: receiptImage, name: filename, type });
+                }
             }
             if (audioUri) {
-                const filename = audioUri.split('/').pop();
-                data.append('audio', { uri: audioUri, name: filename, type: 'audio/m4a' });
+                if (Platform.OS === 'web') {
+                    const response = await fetch(audioUri);
+                    const blob = await response.blob();
+                    const filename = audioUri.split('/').pop() || 'audio.m4a';
+                    data.append('audio', blob, filename);
+                } else {
+                    const filename = audioUri.split('/').pop();
+                    data.append('audio', { uri: audioUri, name: filename, type: 'audio/m4a' });
+                }
             }
             await costService.create(data);
             setSuccessMessage(t('common.success'));
