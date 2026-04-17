@@ -87,35 +87,42 @@ export async function POST(req: Request) {
             }
         })
 
-        const notificationMessage = `${session.user.name || session.user.email} - ${data.amount} ${data.currency} (${data.category})`
+        // Run post-processing asynchronously
+        (async () => {
+            try {
+                const notificationMessage = `${session.user.name || session.user.email} - ${data.amount} ${data.currency} (${data.category})`
 
-        // Collect all unique recipient IDs
-        const admins = await prisma.user.findMany({
-            where: {
-                role: { in: ['ADMIN', 'MANAGER', 'TEAM_LEAD'] },
-                isActive: true,
-                id: { not: session.user.id }
-            },
-            select: { id: true }
-        })
+                // Collect all unique recipient IDs
+                const admins = await prisma.user.findMany({
+                    where: {
+                        role: { in: ['ADMIN', 'MANAGER', 'TEAM_LEAD'] },
+                        isActive: true,
+                        id: { not: session.user.id }
+                    },
+                    select: { id: true }
+                })
 
-        const recipientIds = new Set(admins.map(a => a.id))
-        
-        // Add job creator if they are not the submitter
-        if (job.creator?.id && job.creator.id !== session.user.id) {
-            recipientIds.add(job.creator.id)
-        }
+                const recipientIds = new Set(admins.map(a => a.id))
+                
+                // Add job creator if they are not the submitter
+                if (job.creator?.id && job.creator.id !== session.user.id) {
+                    recipientIds.add(job.creator.id)
+                }
 
-        // Send notifications in one go
-        if (recipientIds.size > 0) {
-            await sendNotificationToUsers(
-                Array.from(recipientIds),
-                'Yeni Masraf Eklendi',
-                notificationMessage,
-                'INFO',
-                `/admin/costs`
-            )
-        }
+                // Send notifications in one go
+                if (recipientIds.size > 0) {
+                    await sendNotificationToUsers(
+                        Array.from(recipientIds),
+                        'Yeni Masraf Eklendi',
+                        notificationMessage,
+                        'INFO',
+                        `/admin/costs`
+                    )
+                }
+            } catch (asyncErr) {
+                console.error('[Cost Creation] Async post-processing error (non-blocking):', asyncErr);
+            }
+        })();
 
         return NextResponse.json(cost, { status: 201 })
     } catch (error) {

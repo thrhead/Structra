@@ -155,91 +155,103 @@ export async function POST(
             }
         })
 
-        // Notify team lead/manager/admin
-        // Find relevant users (e.g. job creator, team lead)
-        const job = await prisma.job.findUnique({
-            where: { id: params.id },
-            include: {
-                creator: true,
-                assignments: { include: { team: true } }
+        // Notify team lead/manager/admin (Don't await non-critical tasks to speed up response)
+        (async () => {
+            try {
+                // Find relevant users (e.g. job creator, team lead)
+                const job = await prisma.job.findUnique({
+                    where: { id: params.id },
+                    include: {
+                        creator: true,
+                        assignments: { include: { team: true } }
+                    }
+                })
+
+                // Detailed Audit Logging
+                const deviceInfo = getDeviceInfo(req);
+                await logAudit(
+                    session.user.id,
+                    AuditAction.JOB_PHOTO_UPLOAD,
+                    {
+                        jobId: params.id,
+                        stepId: params.stepId,
+                        subStepId: subStepId || null,
+                        title: job?.title || 'Unknown Job',
+                        photoUrl: photoUrl,
+                        userName: session.user.name || session.user.email,
+                        ...deviceInfo,
+                        snapshot: photo // The created photo record
+                    },
+                    deviceInfo.platform
+                );
+
+                // Import ably/notification functions dynamically
+                const { publishToUser, broadcast } = await import('@/lib/ably')
+                const { sendAdminNotification } = await import('@/lib/notification-helper')
+
+                // Downgrade approval status if it was APPROVED
+                let wasDowngraded = false;
+                let downgradedTargetName = '';
+
+                if (subStepId) {
+                    const ss = await prisma.jobSubStep.findUnique({ where: { id: subStepId } });
+                    if (ss && ss.approvalStatus === 'APPROVED') {
+                        await prisma.jobSubStep.update({
+                            where: { id: subStepId },
+                            data: { approvalStatus: 'PENDING', approvedById: null, approvedAt: null }
+                        });
+                        wasDowngraded = true;
+                        downgradedTargetName = `Alt Adım: ${ss.title}`;
+                    }
+                } else {
+                    const st = await prisma.jobStep.findUnique({ where: { id: params.stepId } });
+                    if (st && st.approvalStatus === 'APPROVED') {
+                        await prisma.jobStep.update({
+                            where: { id: params.stepId },
+                            data: { approvalStatus: 'PENDING', approvedById: null, approvedAt: null }
+                        });
+                        wasDowngraded = true;
+                        downgradedTargetName = `Adım: ${st.title}`;
+                    }
+                }
+
+                if (wasDowngraded && job) {
+                    await sendAdminNotification(
+                        'Onay İptal Edildi',
+                        `"${job.title}" işindeki onaylı "${downgradedTargetName}" için yeni fotoğraf yüklendi. Yeniden onay gerekiyor.`,
+                        'WARNING',
+                        `/admin/jobs/${params.id}`,
+                        session.user.id
+                    );
+                }
+
+                if (job) {
+                    const ablyPayload = {
+                        jobId: params.id,
+                        stepId: params.stepId,
+                        subStepId: subStepId || null,
+                        photoUrl: photoUrl,
+                        uploadedBy: session.user.name || session.user.email || 'Unknown',
+                        uploadedAt: new Date()
+                    }
+                    if (job.creatorId) await publishToUser(job.creatorId, 'photo:uploaded', ablyPayload)
+                    await broadcast('photo:uploaded', ablyPayload)
+                }
+            } catch (asyncErr) {
+                console.error('[Photo Upload] Async post-processing error (non-blocking):', asyncErr);
             }
-        })
+        })();
 
-        // Detailed Audit Logging
-        const deviceInfo = getDeviceInfo(req);
-        await logAudit(
-            session.user.id,
-            AuditAction.JOB_PHOTO_UPLOAD,
-            {
-                jobId: params.id,
-                stepId: params.stepId,
-                subStepId: subStepId || null,
-                title: job?.title || 'Unknown Job',
-                photoUrl: photoUrl,
-                userName: session.user.name || session.user.email,
-                ...deviceInfo,
-                snapshot: photo // The created photo record
-            },
-            deviceInfo.platform
-        );
-
-        // Emit Ably event
-        const ablyPayload = {
-            jobId: params.id,
-            stepId: params.stepId,
-            subStepId: subStepId || null,
-            photoUrl: photoUrl,
-            uploadedBy: session.user.name || session.user.email || 'Unknown',
-            uploadedAt: new Date()
-        }
-
-        // Import ably functions dynamically to avoid circular deps if any
-        const { publishToUser, broadcast } = await import('@/lib/ably')
-        const { sendAdminNotification } = await import('@/lib/notification-helper')
-
-        // Downgrade approval status if it was APPROVED
-        let wasDowngraded = false;
-        let downgradedTargetName = '';
-
-        if (subStepId) {
-            const ss = await prisma.jobSubStep.findUnique({ where: { id: subStepId } });
-            if (ss && ss.approvalStatus === 'APPROVED') {
-                await prisma.jobSubStep.update({
-                    where: { id: subStepId },
-                    data: { approvalStatus: 'PENDING', approvedById: null, approvedAt: null }
-                });
-                wasDowngraded = true;
-                downgradedTargetName = `Alt Adım: ${ss.title}`;
+        // Return immediately after DB record is created to avoid client timeouts
+        return NextResponse.json({
+            id: photo.id,
+            url: photo.url,
+            uploadedAt: photo.uploadedAt,
+            subStepId: photo.subStepId,
+            uploadedBy: {
+                name: session.user.name || session.user.email
             }
-        } else {
-            const st = await prisma.jobStep.findUnique({ where: { id: params.stepId } });
-            if (st && st.approvalStatus === 'APPROVED') {
-                await prisma.jobStep.update({
-                    where: { id: params.stepId },
-                    data: { approvalStatus: 'PENDING', approvedById: null, approvedAt: null }
-                });
-                wasDowngraded = true;
-                downgradedTargetName = `Adım: ${st.title}`;
-            }
-        }
-
-        if (wasDowngraded && job) {
-            await sendAdminNotification(
-                'Onay İptal Edildi',
-                `"${job.title}" işindeki onaylı "${downgradedTargetName}" için yeni fotoğraf yüklendi. Yeniden onay gerekiyor.`,
-                'WARNING',
-                `/admin/jobs/${params.id}`,
-                session.user.id
-            );
-        }
-
-        if (job) {
-            if (job.creatorId) await publishToUser(job.creatorId, 'photo:uploaded', ablyPayload)
-            // Broadcast to admins/managers
-            await broadcast('photo:uploaded', ablyPayload)
-        }
-
-        return NextResponse.json(photo)
+        }, { status: 201 });
     } catch (error: any) {
         console.error('[Photo Upload CRITICAL ERROR]:', {
             message: error.message,

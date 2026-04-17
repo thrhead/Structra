@@ -47,63 +47,69 @@ export async function DELETE(
             where: { id: photoId }
         });
 
-        // Downgrade approval status if it was APPROVED
-        let wasDowngraded = false;
-        let downgradedTargetName = '';
+        // Run post-processing asynchronously to avoid blocking the response
+        (async () => {
+            try {
+                // Downgrade approval status if it was APPROVED
+                let wasDowngraded = false;
+                let downgradedTargetName = '';
 
-        if (photo.subStepId) {
-            const ss = await prisma.jobSubStep.findUnique({ where: { id: photo.subStepId } });
-            if (ss && ss.approvalStatus === 'APPROVED') {
-                await prisma.jobSubStep.update({
-                    where: { id: photo.subStepId },
-                    data: { approvalStatus: 'PENDING', approvedById: null, approvedAt: null }
+                if (photo.subStepId) {
+                    const ss = await prisma.jobSubStep.findUnique({ where: { id: photo.subStepId } });
+                    if (ss && ss.approvalStatus === 'APPROVED') {
+                        await prisma.jobSubStep.update({
+                            where: { id: photo.subStepId },
+                            data: { approvalStatus: 'PENDING', approvedById: null, approvedAt: null }
+                        });
+                        wasDowngraded = true;
+                        downgradedTargetName = `Alt Adım: ${ss.title}`;
+                    }
+                } else {
+                    const st = await prisma.jobStep.findUnique({ where: { id: stepId } });
+                    if (st && st.approvalStatus === 'APPROVED') {
+                        await prisma.jobStep.update({
+                            where: { id: stepId },
+                            data: { approvalStatus: 'PENDING', approvedById: null, approvedAt: null }
+                        });
+                        wasDowngraded = true;
+                        downgradedTargetName = `Adım: ${st.title}`;
+                    }
+                }
+
+                const { publishToUser, broadcast } = await import('@/lib/ably');
+                const { sendAdminNotification } = await import('@/lib/notification-helper');
+
+                const job = await prisma.job.findUnique({
+                    where: { id: jobId },
+                    include: { creator: true }
                 });
-                wasDowngraded = true;
-                downgradedTargetName = `Alt Adım: ${ss.title}`;
+
+                if (wasDowngraded && job) {
+                    await sendAdminNotification(
+                        'Onay İptal Edildi',
+                        `"${job.title}" işindeki onaylı "${downgradedTargetName}" için fotoğraf silindi. Yeniden onay gerekiyor.`,
+                        'WARNING',
+                        `/admin/jobs/${jobId}`,
+                        session.user.id
+                    );
+                }
+
+                if (job) {
+                    // Notify via Ably
+                    const ablyPayload = {
+                        jobId,
+                        stepId,
+                        subStepId: photo.subStepId,
+                        photoId: photo.id,
+                        deletedBy: session.user.name || session.user.email
+                    };
+                    if (job.creatorId) await publishToUser(job.creatorId, 'photo:deleted', ablyPayload);
+                    await broadcast('photo:deleted', ablyPayload);
+                }
+            } catch (asyncErr) {
+                console.error('[Photo Delete] Async post-processing error (non-blocking):', asyncErr);
             }
-        } else {
-            const st = await prisma.jobStep.findUnique({ where: { id: stepId } });
-            if (st && st.approvalStatus === 'APPROVED') {
-                await prisma.jobStep.update({
-                    where: { id: stepId },
-                    data: { approvalStatus: 'PENDING', approvedById: null, approvedAt: null }
-                });
-                wasDowngraded = true;
-                downgradedTargetName = `Adım: ${st.title}`;
-            }
-        }
-
-        // Notify via Ably
-        const ablyPayload = {
-            jobId,
-            stepId,
-            subStepId: photo.subStepId,
-            photoId: photo.id,
-            deletedBy: session.user.name || session.user.email
-        };
-
-        const { publishToUser, broadcast } = await import('@/lib/ably');
-        const { sendAdminNotification } = await import('@/lib/notification-helper');
-
-        const job = await prisma.job.findUnique({
-            where: { id: jobId },
-            include: { creator: true }
-        });
-
-        if (wasDowngraded && job) {
-            await sendAdminNotification(
-                'Onay İptal Edildi',
-                `"${job.title}" işindeki onaylı "${downgradedTargetName}" için fotoğraf silindi. Yeniden onay gerekiyor.`,
-                'WARNING',
-                `/admin/jobs/${jobId}`,
-                session.user.id
-            );
-        }
-
-        if (job) {
-            if (job.creatorId) await publishToUser(job.creatorId, 'photo:deleted', ablyPayload);
-            await broadcast('photo:deleted', ablyPayload);
-        }
+        })();
 
         return NextResponse.json({ success: true });
 

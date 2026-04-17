@@ -371,7 +371,10 @@ export default function JobDetailScreen({ route, navigation }) {
             setSuccessModalVisible(true);
             await loadJobDetails();
         } catch (error) {
-            console.error('Error uploading photo:', error);
+            console.error('[Upload Photo] Error uploading photo:', error);
+            if (error.response) {
+                console.error('[Upload Photo] Server Response:', error.response.status, error.response.data);
+            }
             showAlert(t('common.error'), t('alerts.photoUploadError'), [], 'error');
         } finally {
             setUploading(false);
