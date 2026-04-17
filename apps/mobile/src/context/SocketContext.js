@@ -138,8 +138,13 @@ export const SocketProvider = ({ children }) => {
         console.log(`[Ably] Leaving job room: job:${jobId}`);
         const channel = jobChannelsRef.current[jobId];
         if (channel) {
-            channel.unsubscribe();
-            channel.detach();
+            try {
+                channel.unsubscribe();
+                // Detach returns a promise that can throw if connection is dropped
+                channel.detach().catch(e => console.warn('[Ably] detach warning:', e));
+            } catch (error) {
+                console.warn('[Ably] unsubscribe warning:', error);
+            }
             delete jobChannelsRef.current[jobId];
         }
     };

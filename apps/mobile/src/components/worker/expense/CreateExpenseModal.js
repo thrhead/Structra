@@ -229,7 +229,7 @@ export const CreateExpenseModal = ({ visible, onClose, onSubmit, projects, defau
                             style={[styles.imageUploadButton, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
                             onPress={async () => {
                                 const result = await ImagePicker.launchImageLibraryAsync({
-                                    mediaTypes: ImagePicker.MediaType.Images,
+                                    mediaTypes: ImagePicker.MediaTypeOptions?.Images || ImagePicker.MediaType?.Images || 'Images',
                                     allowsEditing: true,
                                     aspect: [4, 3],
                                     quality: 0.5,
