@@ -148,6 +148,11 @@ export async function sendJobNotification(
     type: NotificationType,
     link?: string
 ) {
+    const job = await prisma.job.findUnique({
+        where: { id: jobId },
+        select: { jobLeadId: true }
+    });
+
     const assignments = await prisma.jobAssignment.findMany({
         where: { jobId },
         include: {
@@ -160,6 +165,13 @@ export async function sendJobNotification(
     });
 
     const recipientIds = new Set<string>();
+    
+    // Add Job Lead if exists
+    if (job?.jobLeadId) {
+        recipientIds.add(job.jobLeadId);
+    }
+
+    // Add assigned workers and team members
     for (const assignment of assignments) {
         if (assignment.workerId) recipientIds.add(assignment.workerId);
         if (assignment.teamId && assignment.team) {

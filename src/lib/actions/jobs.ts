@@ -140,6 +140,19 @@ export async function createJobAction(data: any) {
 
     await EventBus.emit('job.created', job);
 
+    // Notify assigned team, worker or job lead
+    if ((validated.data.teamId && validated.data.teamId !== 'none') || 
+        (validated.data.workerId && validated.data.workerId !== 'none') ||
+        (validated.data.jobLeadId && validated.data.jobLeadId !== 'none')) {
+      await sendJobNotification(
+        job.id,
+        'Yeni İş Atandı',
+        `"${job.title}" başlıklı yeni bir iş size atandı.`,
+        'INFO',
+        `/worker/jobs/${job.id}`
+      ).catch(err => console.error('Failed to send job creation notification:', err));
+    }
+
     await logAudit(session.user.id, AuditAction.JOB_CREATE, {
       jobId: job.id,
       title: job.title,
@@ -300,6 +313,20 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
     await EventBus.emit('job.updated', { id, status, acceptanceStatus });
     if (status === 'COMPLETED') {
       await EventBus.emit('job.completed', { id });
+    }
+
+    // Notify assigned team, worker or job lead
+    const effectiveTeamId = (teamId && teamId !== 'none') ? teamId : null;
+    const effectiveWorkerId = (workerId && workerId !== 'none') ? workerId : null;
+    const effectiveJobLeadId = (jobLeadId && jobLeadId !== 'none') ? jobLeadId : null;
+    if (effectiveTeamId || effectiveWorkerId || effectiveJobLeadId) {
+        await sendJobNotification(
+            id,
+            'İş Güncellendi / Atandı',
+            `"${title}" başlıklı iş güncellendi veya size atandı.`,
+            'INFO',
+            `/worker/jobs/${id}`
+        ).catch(err => console.error('Failed to send job update notification:', err));
     }
 
     // LOGGING: Audit log for job update

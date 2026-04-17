@@ -6,6 +6,7 @@ import { EventBus } from '@/lib/event-bus'
 import { checkConflict } from '@/lib/conflict-check'
 import { logger } from '@/lib/logger'
 import { logAudit, AuditAction, getDeviceInfo } from '@/lib/audit'
+import { sendJobNotification } from '@/lib/notification-helper'
 
 const updateJobSchema = z.object({
     startedAt: z.string().optional().nullable(),
@@ -19,6 +20,8 @@ const fullUpdateJobSchema = z.object({
     description: z.string().optional().nullable(),
     customerId: z.string().min(1),
     teamId: z.string().optional().nullable(),
+    workerId: z.string().optional().nullable(),
+    jobLeadId: z.string().optional().nullable(),
     priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
     status: z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).optional(),
     acceptanceStatus: z.enum(['PENDING', 'ACCEPTED', 'REJECTED']).optional(),
@@ -66,9 +69,13 @@ export async function PUT(
                 title: data.title,
                 description: data.description,
                 customerId: data.customerId,
-                assignments: data.teamId && data.teamId !== 'none' ? {
+                jobLeadId: data.jobLeadId || null,
+                assignments: (data.teamId || data.workerId) ? {
                     deleteMany: {},
-                    create: { teamId: data.teamId }
+                    create: { 
+                        teamId: (data.teamId && data.teamId !== 'none') ? data.teamId : null,
+                        workerId: (data.workerId && data.workerId !== 'none') ? data.workerId : null
+                    }
                 } : undefined,
                 priority: data.priority,
                 status: data.status,
@@ -83,6 +90,21 @@ export async function PUT(
 
         // Trigger side effects
         await EventBus.emit('job.updated', updatedJob);
+
+        // Notify assigned team, worker or job lead
+        const hasAssignment = (data.teamId && data.teamId !== 'none') || 
+                            (data.workerId && data.workerId !== 'none') || 
+                            (data.jobLeadId && data.jobLeadId !== 'none');
+        
+        if (hasAssignment) {
+            await sendJobNotification(
+                updatedJob.id,
+                'İş Güncellendi / Atandı',
+                `"${updatedJob.title}" başlıklı iş güncellendi veya size atandı.`,
+                'INFO',
+                `/worker/jobs/${updatedJob.id}`
+            ).catch(err => console.error('Failed to send job update (PUT) notification:', err));
+        }
 
         // LOGGING: Audit log for job update
         const deviceInfo = getDeviceInfo(req);

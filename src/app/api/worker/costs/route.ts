@@ -85,7 +85,7 @@ export async function POST(req: Request) {
             include: {
                 createdBy: true
             }
-        })
+        });
 
         // Run post-processing asynchronously
         (async () => {
