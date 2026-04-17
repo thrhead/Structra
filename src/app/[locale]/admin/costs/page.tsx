@@ -262,13 +262,18 @@ function CostsTable() {
                                             </TableCell>
                                             <TableCell>
                                                 {cost.receiptUrl ? (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
+                                                    <button
                                                         onClick={() => setSelectedReceipt(cost.receiptUrl!)}
+                                                        className="relative h-10 w-10 overflow-hidden rounded-md border border-slate-200 hover:border-emerald-500 transition-colors block"
                                                     >
-                                                        <ExternalLinkIcon className="h-4 w-4" />
-                                                    </Button>
+                                                        <Image 
+                                                            src={cost.receiptUrl} 
+                                                            alt="Receipt thumbnail" 
+                                                            fill 
+                                                            className="object-cover" 
+                                                            unoptimized 
+                                                        />
+                                                    </button>
                                                 ) : (
                                                     <span className="text-muted-foreground text-xs">-</span>
                                                 )}

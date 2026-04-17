@@ -11,9 +11,14 @@ const costService = {
         const config = {};
 
         if (isFormData) {
-            // Do NOT set Content-Type manually for FormData in React Native/Axios
-            // config.headers = { 'Content-Type': 'multipart/form-data' };
-            config.transformRequest = (data) => data; // Prevent Axios from stringifying FormData
+            config.headers = { 'Accept': 'application/json' };
+            config.transformRequest = (data, headers) => {
+                if (headers) {
+                    delete headers['Content-Type'];
+                    if (headers.post) delete headers.post['Content-Type'];
+                }
+                return data; 
+            };
         }
 
         const response = await api.post('/api/worker/costs', costData, config);
