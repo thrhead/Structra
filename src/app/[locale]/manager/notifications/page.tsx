@@ -20,7 +20,7 @@ interface Notification {
     createdAt: string
 }
 
-export default function AdminNotificationsPage() {
+export default function ManagerNotificationsPage() {
     const [notifications, setNotifications] = useState<Notification[]>([])
     const [loading, setLoading] = useState(true)
 

@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/popover'
 import { formatDistanceToNow } from 'date-fns'
 import { tr } from 'date-fns/locale'
+import { useSession } from 'next-auth/react'
 
 import { CustomSpinner } from '@/components/ui/custom-spinner';
 interface Notification {
@@ -25,6 +26,7 @@ interface Notification {
 
 export function NotificationDropdown() {
   const router = useRouter()
+  const { data: session } = useSession()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -245,7 +247,9 @@ export function NotificationDropdown() {
             
             <button
               onClick={() => {
-                router.push('/worker/notifications')
+                const role = session?.user?.role?.toLowerCase() || 'worker'
+                const basePath = role === 'admin' ? '/admin' : role === 'manager' ? '/manager' : '/worker'
+                router.push(`${basePath}/notifications`)
                 setOpen(false)
               }}
               className="w-full p-3 text-center text-sm text-indigo-600 dark:text-indigo-400 font-bold hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
