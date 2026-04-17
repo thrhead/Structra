@@ -60,9 +60,9 @@ const JobActionFooter = ({
                                 (job.status === 'PENDING_APPROVAL') ? { color: theme.colors.warning } :
                                     job.acceptanceStatus === 'REJECTED' ? { color: theme.colors.error } : { color: theme.colors.subText }
                         ]}>
-                            {job.acceptanceStatus === 'ACCEPTED' ? 'ONAYLANMIŞ' :
-                                job.acceptanceStatus === 'REJECTED' ? 'REDDEDİLMİŞ' :
-                                    job.status === 'PENDING_APPROVAL' ? 'ONAY BEKLİYOR' : 'MONTAJ DEVAM EDİYOR'}
+                            {job.acceptanceStatus === 'ACCEPTED' ? t('acceptance.ACCEPTED') :
+                                job.acceptanceStatus === 'REJECTED' ? t('acceptance.REJECTED') :
+                                    job.status === 'PENDING_APPROVAL' ? t('common.pendingApproval') : t('worker.assemblyInProgress')}
                         </Text>
                     </View>
                     {job.acceptanceStatus === 'PENDING' && (job.status === 'COMPLETED' || job.status === 'PENDING_APPROVAL') && (

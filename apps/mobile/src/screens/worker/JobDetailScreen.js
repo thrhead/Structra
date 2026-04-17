@@ -100,8 +100,8 @@ export default function JobDetailScreen({ route, navigation }) {
                 }
                 showAlert(
                     t('common.info'),
-                    "Bu iş başka bir kullanıcı tarafından güncellendi.",
-                    [{ text: "Yenile", onPress: () => loadJobDetails() }],
+                    t('alerts.jobUpdatedByOther'),
+                    [{ text: t('alerts.refresh'), onPress: () => loadJobDetails() }],
                     'info'
                 );
             };
@@ -165,7 +165,7 @@ export default function JobDetailScreen({ route, navigation }) {
         }
         
         const warningMsg = isApproved 
-            ? "Bu adım daha önce onaylanmış. Fotoğrafı silerseniz onay iptal edilecek. Yine de silmek istediğinize emin misiniz?"
+            ? t('alerts.approvedActionWarning')
             : t('alerts.deletePhotoConfirm');
 
         showAlert(
@@ -208,7 +208,7 @@ export default function JobDetailScreen({ route, navigation }) {
                     if (!hasPhotos) {
                         showAlert(
                             t('common.warning'),
-                            "Bu iş emrini kapatabilmeniz için öncelikle en az 1 adet fotoğraf yüklemeniz gerekmektedir",
+                            t('alerts.photoRequiredForToggle'),
                             [],
                             'warning'
                         );
@@ -230,7 +230,7 @@ export default function JobDetailScreen({ route, navigation }) {
         if (substep?.approvalStatus === 'APPROVED') {
             showAlert(
                 t('common.warning'),
-                "Bu adım daha önce onaylanmış. Değişiklik yaparsanız onay iptal edilecek. Devam etmek istiyor musunuz?",
+                t('alerts.approvedActionWarning'),
                 [
                     { text: t('common.cancel'), style: 'cancel' },
                     { text: t('common.continue'), style: 'destructive', onPress: performToggle }
@@ -260,7 +260,7 @@ export default function JobDetailScreen({ route, navigation }) {
         if (step?.approvalStatus === 'APPROVED') {
             showAlert(
                 t('common.warning'),
-                "Bu adım daha önce onaylanmış. Değişiklik yaparsanız onay iptal edilecek. Devam etmek istiyor musunuz?",
+                t('alerts.approvedActionWarning'),
                 [
                     { text: t('common.cancel'), style: 'cancel' },
                     { text: t('common.continue'), style: 'destructive', onPress: performToggle }
@@ -344,7 +344,7 @@ export default function JobDetailScreen({ route, navigation }) {
         if (isApproved) {
             showAlert(
                 t('common.warning'),
-                "Bu adım daha önce onaylanmış. Yeni fotoğraf eklerseniz onay iptal edilecek. Devam etmek istiyor musunuz?",
+                t('alerts.approvedActionWarning'),
                 [
                     { text: t('common.cancel'), style: 'cancel' },
                     { text: t('common.continue'), style: 'destructive', onPress: performPick }
@@ -488,7 +488,7 @@ export default function JobDetailScreen({ route, navigation }) {
                             navigation.goBack();
                         } catch (error) {
                             console.error('Error deleting job:', error);
-                            showAlert(t('common.error'), "İş silinemedi.", [], 'error');
+                            showAlert(t('common.error'), t('alerts.jobDeleteError'), [], 'error');
                         } finally {
                             setLoading(false);
                         }
@@ -531,7 +531,7 @@ export default function JobDetailScreen({ route, navigation }) {
             console.log('[MOBILE] allStepsCompleted status:', allStepsCompleted);
 
             if (!allStepsCompleted) {
-                showAlert(t('common.warning') || 'Uyarı', "Bu montajı tamamlayarak kapatmak için tüm alt iş emirlerini tamamlamanız gerekiyor", [], 'warning');
+                showAlert(t('common.warning'), t('alerts.photoRequiredForComplete'), [], 'warning');
                 return;
             }
             
@@ -539,7 +539,7 @@ export default function JobDetailScreen({ route, navigation }) {
             setChoiceModalVisible(true);
         } catch (error) {
             console.error('[MOBILE] handleCompleteJob error:', error);
-            showAlert('Hata', 'İşlem sırasında bir hata oluştu.', [], 'error');
+            showAlert(t('common.error'), t('alerts.processError'), [], 'error');
         }
     };
 
@@ -549,12 +549,12 @@ export default function JobDetailScreen({ route, navigation }) {
             setConfirmationModalVisible(false);
             await jobService.completeJob(jobId, job.signature || null, job.signatureCoords || null, job.updatedAt);
             LoggerService.audit('Job completed by worker', { jobId, jobTitle: job.title });
-            setSuccessMessage("İş başarıyla bitirildi ve admin onayına gönderildi.");
+            setSuccessMessage(t('alerts.jobCompleteSuccess'));
             setSuccessModalVisible(true);
             loadJobDetails();
         } catch (error) {
             console.error('Error completing job:', error);
-            showAlert(t('common.error'), "İş tamamlanırken bir hata oluştu.", [], 'error');
+            showAlert(t('common.error'), t('alerts.jobCompleteError'), [], 'error');
         } finally {
             setCompleting(false);
         }
@@ -662,7 +662,7 @@ export default function JobDetailScreen({ route, navigation }) {
             await Share.share({ message: shareMessage, title: 'Proforma Fatura' });
         } catch (error) {
             console.error('Proforma export error:', error);
-            showAlert(t('common.error'), 'Dosya paylaşılamadı.', [], 'error');
+            showAlert(t('common.error'), t('alerts.fileShareError'), [], 'error');
         } finally {
             setLoading(false);
         }
@@ -717,7 +717,7 @@ export default function JobDetailScreen({ route, navigation }) {
                                     <Text style={[styles.statusTitle, { color: theme.colors.text }]}>{t('common.pendingApproval')}</Text>
                                 </View>
                                 <Text style={[styles.statusText, { color: theme.colors.subText }]}>
-                                    Bu iş tamamlandı ve yönetici onayını bekliyor.
+                                    {t('alerts.pendingApprovalDesc')}
                                 </Text>
                             </GlassCard>
                         )}
@@ -731,7 +731,7 @@ export default function JobDetailScreen({ route, navigation }) {
                         />
 
                         {/* Job Responsible Section */}
-                        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>İş Sorumlusu</Text>
+                        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('common.responsible')}</Text>
                         <GlassCard style={styles.responsibleCard} theme={theme}>
                             <View style={styles.responsibleInfo}>
                                 <View style={[styles.avatarPlaceholder, { backgroundColor: theme.colors.primary + '20' }]}>
@@ -739,9 +739,9 @@ export default function JobDetailScreen({ route, navigation }) {
                                 </View>
                                 <View style={styles.responsibleTextContent}>
                                     <Text style={[styles.responsibleName, { color: theme.colors.text }]}>
-                                        {job.jobLead?.name || 'Atanmamış'}
+                                        {job.jobLead?.name || t('common.unassigned')}
                                     </Text>
-                                    <Text style={[styles.responsibleRole, { color: theme.colors.subText }]}>ANA SORUMLU</Text>
+                                    <Text style={[styles.responsibleRole, { color: theme.colors.subText }]}>{t('common.mainResponsible')}</Text>
                                 </View>
                             </View>
                         </GlassCard>
@@ -754,7 +754,7 @@ export default function JobDetailScreen({ route, navigation }) {
                                     <View style={styles.assignmentHeader}>
                                         <MaterialIcons name="groups" size={20} color={theme.colors.primary} />
                                         <Text style={[styles.teamName, { color: theme.colors.text }]}>
-                                            {assignment.team ? assignment.team.name : (assignment.worker?.name || 'Ekip')}
+                                            {assignment.team ? assignment.team.name : (assignment.worker?.name || t('common.team'))}
                                         </Text>
                                     </View>
                                     {assignment.team?.members && assignment.team.members.length > 0 && (

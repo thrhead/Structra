@@ -105,8 +105,8 @@ const JobDetailModals = ({
                     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                         <View style={[styles.modalCard, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
                             <Text style={[styles.modalTitle, { color: theme.colors.text }]}>
-                                {rejectionType === 'JOB' ? 'İşi Reddet' :
-                                    rejectionType === 'STEP' ? 'Adımı Reddet' : 'Alt Adımı Reddet'}
+                                {rejectionType === 'JOB' ? t('alerts.rejectJob') :
+                                    rejectionType === 'STEP' ? t('alerts.rejectStep') : t('alerts.rejectSubstep')}
                             </Text>
                             
                             <Text style={[styles.inputLabel, { color: theme.colors.subText }]}>{t('worker.rejectionReason')}</Text>
@@ -135,7 +135,7 @@ const JobDetailModals = ({
                                         else handleRejectJob();
                                     }}
                                 >
-                                    <Text style={styles.submitButtonText}>Reddet ve Geri Gönder</Text>
+                                    <Text style={styles.submitButtonText}>{t('alerts.rejectAndSendBack')}</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -154,9 +154,9 @@ const JobDetailModals = ({
             <AppModal visible={choiceModalVisible} animationType="slide" onRequestClose={() => setChoiceModalVisible(false)}>
                 <View style={styles.modalOverlay}>
                     <View style={[styles.modalCard, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
-                        <Text style={[styles.modalTitle, { color: theme.colors.text }]}>İşi Bitir</Text>
+                        <Text style={[styles.modalTitle, { color: theme.colors.text }]}>{t('alerts.finishJob')}</Text>
                         <Text style={[styles.modalSubtitle, { color: theme.colors.subText }]}>
-                            Müşteri imzası almak ister misiniz?
+                            {t('alerts.signaturePrompt')}
                         </Text>
                         
                         <View style={{ gap: 12 }}>
@@ -167,7 +167,7 @@ const JobDetailModals = ({
                                     setSignatureModalVisible(true);
                                 }}
                             >
-                                <Text style={styles.submitButtonText}>İmza Al</Text>
+                                <Text style={styles.submitButtonText}>{t('alerts.takeSignature')}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 style={[styles.modalButton, { backgroundColor: theme.colors.secondary, paddingVertical: 16 }]}
@@ -177,13 +177,13 @@ const JobDetailModals = ({
                                     setConfirmationModalVisible(true);
                                 }}
                             >
-                                <Text style={styles.submitButtonText}>İmzasız Bitir</Text>
+                                <Text style={styles.submitButtonText}>{t('alerts.finishWithoutSignature')}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 style={[styles.modalButton, styles.cancelButton, { paddingVertical: 16 }]}
                                 onPress={() => setChoiceModalVisible(false)}
                             >
-                                <Text style={styles.cancelButtonText}>Vazgeç</Text>
+                                <Text style={styles.cancelButtonText}>{t('alerts.cancelAction')}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -193,12 +193,12 @@ const JobDetailModals = ({
             {/* Confirmation Modal */}
             <ConfirmationModal
                 visible={confirmationModalVisible}
-                title="İşi Bitir"
-                message="Tüm adımların tamamlandığını ve işin bittiğini onaylıyor musunuz? Bu işlem geri alınamaz."
+                title={t('alerts.finishJob')}
+                message={t('alerts.completeJobMessage')}
                 onConfirm={handleConfirmComplete}
                 onCancel={() => setConfirmationModalVisible(false)}
-                confirmText="Evet, Bitir"
-                cancelText="Vazgeç"
+                confirmText={t('alerts.yesFinish')}
+                cancelText={t('alerts.cancelAction')}
                 theme={theme}
             />
 

@@ -2,24 +2,26 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
+import { useTranslation } from 'react-i18next';
 import GlassCard from '../ui/GlassCard';
 
 const CostSection = ({ job, canAdd, onAddPress }) => {
     const { theme } = useTheme();
+    const { t } = useTranslation();
 
     if (!job) return null;
 
     return (
         <View>
             <View style={styles.sectionHeaderRow}>
-                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Masraflar</Text>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('worker.expenses')}</Text>
                 {canAdd && (
                     <TouchableOpacity
                         style={[styles.addCostButton, { backgroundColor: theme.colors.primary }]}
                         onPress={onAddPress}
                     >
                         <MaterialIcons name="add" size={20} color="#fff" />
-                        <Text style={styles.addCostButtonText}>Ekle</Text>
+                        <Text style={styles.addCostButtonText}>{t('common.save')}</Text>
                     </TouchableOpacity>
                 )}
             </View>
@@ -36,8 +38,8 @@ const CostSection = ({ job, canAdd, onAddPress }) => {
                                         cost.status === 'REJECTED' ? theme.colors.error : theme.colors.warning
                                 }
                             ]}>
-                                {cost.status === 'APPROVED' ? 'Onaylandı' :
-                                    cost.status === 'REJECTED' ? 'Reddedildi' : 'Bekliyor'}
+                                {cost.status === 'APPROVED' ? t('common.approved') :
+                                    cost.status === 'REJECTED' ? t('common.rejected') : t('common.pendingApproval')}
                             </Text>
                         </View>
                         <View style={styles.costRow}>
@@ -46,12 +48,12 @@ const CostSection = ({ job, canAdd, onAddPress }) => {
                         </View>
                         <Text style={[styles.costDescription, { color: theme.colors.subText }]}>{cost.description}</Text>
                         {cost.rejectionReason && (
-                            <Text style={[styles.rejectionReason, { color: theme.colors.error }]}>Red Nedeni: {cost.rejectionReason}</Text>
+                            <Text style={[styles.rejectionReason, { color: theme.colors.error }]}>{t('worker.rejectionReason')}: {cost.rejectionReason}</Text>
                         )}
                     </GlassCard>
                 ))
             ) : (
-                <Text style={[styles.emptyText, { color: theme.colors.subText }]}>Henüz masraf eklenmemiş.</Text>
+                <Text style={[styles.emptyText, { color: theme.colors.subText }]}>{t('worker.noExpenses')}</Text>
             )}
         </View>
     );

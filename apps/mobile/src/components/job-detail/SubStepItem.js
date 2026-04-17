@@ -29,9 +29,9 @@ const SubStepItem = ({
     };
 
     const getStatusText = () => {
-        if (substep.approvalStatus === 'APPROVED') return 'ONAYLI';
-        if (substep.approvalStatus === 'REJECTED') return 'RED';
-        return 'BEKLİYOR';
+        if (substep.approvalStatus === 'APPROVED') return t('common.approved');
+        if (substep.approvalStatus === 'REJECTED') return t('common.rejected');
+        return t('common.pendingApproval');
     };
 
     return (
@@ -82,7 +82,7 @@ const SubStepItem = ({
                             style={[styles.addPhotoButton, { backgroundColor: theme.colors.primary + '10' }]}
                         >
                             <MaterialIcons name="add-a-photo" size={22} color={theme.colors.primary} />
-                            <Text style={[styles.addPhotoText, { color: theme.colors.primary }]}>Fotoğraf Ekle</Text>
+                            <Text style={[styles.addPhotoText, { color: theme.colors.primary }]}>{t('common.addPhoto')}</Text>
                         </TouchableOpacity>
                     )}
 
@@ -121,7 +121,7 @@ const SubStepItem = ({
                                 }}
                             >
                                 <MaterialIcons name="close" size={18} color={theme.colors.error} />
-                                <Text style={[styles.managerButtonText, { color: theme.colors.error }]}>Reddet</Text>
+                                <Text style={[styles.managerButtonText, { color: theme.colors.error }]}>{t('common.reject')}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 activeOpacity={0.8}
@@ -129,7 +129,7 @@ const SubStepItem = ({
                                 onPress={() => handleApproveSubstep(substep.id)}
                             >
                                 <MaterialIcons name="check" size={18} color="#fff" />
-                                <Text style={[styles.managerButtonText, { color: '#fff' }]}>Onayla</Text>
+                                <Text style={[styles.managerButtonText, { color: '#fff' }]}>{t('common.approve')}</Text>
                             </TouchableOpacity>
                         </View>
                     )}

@@ -19,7 +19,7 @@ const JobInfoCard = ({ job }) => {
   const handleNavigate = () => {
     if (!job.latitude || !job.longitude) return;
     
-    const label = job.title || 'İş Konumu';
+    const label = job.title || t('worker.jobLocation');
     const url = Platform.select({
       ios: `maps:0,0?q=${label}@${job.latitude},${job.longitude}`,
       android: `geo:0,0?q=${job.latitude},${job.longitude}(${label})`
@@ -115,7 +115,7 @@ const JobInfoCard = ({ job }) => {
               color={theme.colors.subText}
             />
             <Text style={[styles.infoText, { color: theme.colors.subText, fontWeight: 'bold' }]}>
-              {job.customer?.company || job.customer?.name || "Müşteri"}
+              {job.customer?.company || job.customer?.name || t('jobs.customer')}
             </Text>
           </View>
 
@@ -136,7 +136,7 @@ const JobInfoCard = ({ job }) => {
                   fontWeight: "bold",
                 }}
               >
-                PROJE NO
+                {t('editJob.projectNo')}
               </Text>
               <Text
                 style={{
@@ -145,7 +145,7 @@ const JobInfoCard = ({ job }) => {
                   color: theme.colors.primary,
                 }}
               >
-                {job.jobNo || job.projectNo || "OTOMATİK"}
+                {job.jobNo || job.projectNo || t('worker.automatic')}
               </Text>
             </View>
 
@@ -180,7 +180,7 @@ const JobInfoCard = ({ job }) => {
                   fontWeight: "bold",
                 }}
               >
-                KAYIT ID
+                {t('common.recordId')}
               </Text>
               <Text
                 style={{
@@ -204,18 +204,18 @@ const JobInfoCard = ({ job }) => {
               onPress={handleNavigate}
             >
               <MaterialIcons name="navigation" size={18} color={theme.colors.primary} />
-              <Text style={[styles.navigateButtonText, { color: theme.colors.primary }]}>Yol Tarifi Al</Text>
+              <Text style={[styles.navigateButtonText, { color: theme.colors.primary }]}>{t('common.getDirections')}</Text>
             </TouchableOpacity>
           )}
 
           <View style={{ marginTop: 8, padding: 8, backgroundColor: theme.dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', borderRadius: 8 }}>
             <Text style={{ fontSize: 10, color: theme.colors.subText, fontWeight: "bold", marginBottom: 4 }}>
-              KAYIT BİLGİSİ
+              {t('worker.recordInfo')}
             </Text>
             <View style={styles.infoRow}>
               <MaterialIcons name="person" size={14} color={theme.colors.subText} />
               <Text style={{ fontSize: 12, color: theme.colors.text, marginLeft: 4 }}>
-                {job.creator?.name || "Sistem"} tarafından oluşturuldu
+                {t('worker.createdBy', { name: job.creator?.name || t('worker.system') })}
               </Text>
             </View>
             <View style={[styles.infoRow, { marginBottom: 0 }]}>
@@ -280,7 +280,7 @@ const JobInfoCard = ({ job }) => {
           color={theme.colors.subText}
         />
         <Text style={[styles.description, { color: theme.colors.subText }]}>
-          {job.description || "Açıklama yok"}
+          {job.description || t('worker.noDescription')}
         </Text>
       </View>
 
@@ -298,9 +298,9 @@ const JobInfoCard = ({ job }) => {
                 { color: theme.colors.text, fontWeight: "600" },
               ]}
             >
-              Tahmini Bitiş:{" "}
+              {t('worker.estimatedFinish')}:{" "}
               {(() => {
-                if (completedSteps === 0) return "Hesaplanıyor...";
+                if (completedSteps === 0) return t('worker.estimating');
                 const start = new Date(job.startedAt).getTime();
                 const now = new Date().getTime();
                 const elapsed = now - start;
@@ -321,7 +321,7 @@ const JobInfoCard = ({ job }) => {
               marginLeft: 24,
             }}
           >
-            {completedSteps}/{totalSteps} Adım Tamamlandı
+            {t('worker.stepsCompletedCount', { completed: completedSteps, total: totalSteps })}
           </Text>
         </View>
       )}
