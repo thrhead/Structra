@@ -147,27 +147,20 @@ export async function POST(
                 subStepId: subStepId || null,
                 url: photoUrl,
                 uploadedById: session.user.id
-            },
-            include: {
-                uploadedBy: {
-                    select: { name: true }
-                }
             }
         })
 
-        // Notify team lead/manager/admin (Don't await non-critical tasks to speed up response)
-        (async () => {
+        // Fire-and-forget post-processing (Completely non-blocking)
+        // We use a safe wrapper to ensure no errors here affect the response
+        const runBackgroundTasks = async () => {
             try {
-                // Find relevant users (e.g. job creator, team lead)
+                // Find relevant job info
                 const job = await prisma.job.findUnique({
                     where: { id: params.id },
-                    include: {
-                        creator: true,
-                        assignments: { include: { team: true } }
-                    }
+                    include: { creator: true }
                 })
 
-                // Detailed Audit Logging
+                // 1. Audit Log
                 const deviceInfo = getDeviceInfo(req);
                 await logAudit(
                     session.user.id,
@@ -176,20 +169,15 @@ export async function POST(
                         jobId: params.id,
                         stepId: params.stepId,
                         subStepId: subStepId || null,
-                        title: job?.title || 'Unknown Job',
+                        title: job?.title || 'Bilinmeyen İş',
                         photoUrl: photoUrl,
                         userName: session.user.name || session.user.email,
-                        ...deviceInfo,
-                        snapshot: photo // The created photo record
+                        ...deviceInfo
                     },
                     deviceInfo.platform
-                );
+                ).catch(e => console.error('[Background] Audit failed:', e));
 
-                // Import ably/notification functions dynamically
-                const { publishToUser, broadcast } = await import('@/lib/ably')
-                const { sendAdminNotification } = await import('@/lib/notification-helper')
-
-                // Downgrade approval status if it was APPROVED
+                // 2. Status Downgrade (If Approved)
                 let wasDowngraded = false;
                 let downgradedTargetName = '';
 
@@ -215,6 +203,10 @@ export async function POST(
                     }
                 }
 
+                // 3. Notifications & Real-time
+                const { publishToUser, broadcast } = await import('@/lib/ably')
+                const { sendAdminNotification } = await import('@/lib/notification-helper')
+
                 if (wasDowngraded && job) {
                     await sendAdminNotification(
                         'Onay İptal Edildi',
@@ -222,7 +214,7 @@ export async function POST(
                         'WARNING',
                         `/admin/jobs/${params.id}`,
                         session.user.id
-                    );
+                    ).catch(e => console.error('[Background] Notification failed:', e));
                 }
 
                 if (job) {
@@ -231,26 +223,27 @@ export async function POST(
                         stepId: params.stepId,
                         subStepId: subStepId || null,
                         photoUrl: photoUrl,
-                        uploadedBy: session.user.name || session.user.email || 'Unknown',
+                        uploadedBy: session.user.name || session.user.email || 'Worker',
                         uploadedAt: new Date()
                     }
-                    if (job.creatorId) await publishToUser(job.creatorId, 'photo:uploaded', ablyPayload)
-                    await broadcast('photo:uploaded', ablyPayload)
+                    if (job.creatorId) await publishToUser(job.creatorId, 'photo:uploaded', ablyPayload).catch(() => {});
+                    await broadcast('photo:uploaded', ablyPayload).catch(() => {});
                 }
-            } catch (asyncErr) {
-                console.error('[Photo Upload] Async post-processing error (non-blocking):', asyncErr);
+            } catch (err) {
+                console.error('[Background Task Error]:', err);
             }
-        })();
+        };
 
-        // Return immediately after DB record is created to avoid client timeouts
+        // Execute background tasks without await
+        runBackgroundTasks();
+
+        // Return SUCCESS response immediately
         return NextResponse.json({
             id: photo.id,
             url: photo.url,
             uploadedAt: photo.uploadedAt,
             subStepId: photo.subStepId,
-            uploadedBy: {
-                name: session.user.name || session.user.email
-            }
+            success: true
         }, { status: 201 });
     } catch (error: any) {
         console.error('[Photo Upload CRITICAL ERROR]:', {
