@@ -154,9 +154,23 @@ export default function JobDetailScreen({ route, navigation }) {
     const handleDeletePhoto = (photo) => {
         if (!photo || !photo.id) return;
 
+        const step = job?.steps?.find(s => s.id === photo.stepId);
+        const substep = step?.subSteps?.find(ss => ss.id === photo.subStepId);
+        
+        let isApproved = false;
+        if (photo.subStepId) {
+            isApproved = substep?.approvalStatus === 'APPROVED';
+        } else {
+            isApproved = step?.approvalStatus === 'APPROVED';
+        }
+        
+        const warningMsg = isApproved 
+            ? "Bu adım daha önce onaylanmış. Fotoğrafı silerseniz onay iptal edilecek. Yine de silmek istediğinize emin misiniz?"
+            : t('alerts.deletePhotoConfirm');
+
         showAlert(
             t('common.warning'),
-            t('alerts.deletePhotoConfirm'),
+            warningMsg,
             [
                 { text: t('common.cancel'), style: 'cancel' },
                 {
@@ -183,44 +197,77 @@ export default function JobDetailScreen({ route, navigation }) {
     };
 
     const handleSubstepToggle = async (stepId, substepId, currentStatus) => {
-        try {
-            setLoading(true);
-            if (!currentStatus) {
-                const step = job.steps.find(s => s.id === stepId);
-                const substep = step?.subSteps.find(ss => ss.id === substepId);
-                const hasPhotos = substep?.photos && Array.isArray(substep.photos) && substep.photos.length > 0;
+        const performToggle = async () => {
+            try {
+                setLoading(true);
+                if (!currentStatus) {
+                    const step = job.steps.find(s => s.id === stepId);
+                    const substep = step?.subSteps.find(ss => ss.id === substepId);
+                    const hasPhotos = substep?.photos && Array.isArray(substep.photos) && substep.photos.length > 0;
 
-                if (!hasPhotos) {
-                    showAlert(
-                        t('common.warning'),
-                        "Bu iş emrini kapatabilmeniz için öncelikle en az 1 adet fotoğraf yüklemeniz gerekmektedir",
-                        [],
-                        'warning'
-                    );
-                    return;
+                    if (!hasPhotos) {
+                        showAlert(
+                            t('common.warning'),
+                            "Bu iş emrini kapatabilmeniz için öncelikle en az 1 adet fotoğraf yüklemeniz gerekmektedir",
+                            [],
+                            'warning'
+                        );
+                        return;
+                    }
                 }
-            }
-            await jobService.toggleSubstep(jobId, stepId, substepId, !currentStatus, job.updatedAt);
-            loadJobDetails();
+                await jobService.toggleSubstep(jobId, stepId, substepId, !currentStatus, job.updatedAt);
+                loadJobDetails();
             } catch (error) {
-            console.error('Substep toggle error:', error);
-            showAlert(t('common.error'), t('alerts.processError'), [], 'error');
+                console.error('Substep toggle error:', error);
+                showAlert(t('common.error'), t('alerts.processError'), [], 'error');
             } finally {
-            setLoading(false);
+                setLoading(false);
             }
-            };
+        };
+
+        const step = job?.steps?.find(s => s.id === stepId);
+        const substep = step?.subSteps?.find(ss => ss.id === substepId);
+        if (substep?.approvalStatus === 'APPROVED') {
+            showAlert(
+                t('common.warning'),
+                "Bu adım daha önce onaylanmış. Değişiklik yaparsanız onay iptal edilecek. Devam etmek istiyor musunuz?",
+                [
+                    { text: t('common.cancel'), style: 'cancel' },
+                    { text: t('common.continue'), style: 'destructive', onPress: performToggle }
+                ]
+            );
+        } else {
+            performToggle();
+        }
+    };
 
 
     const handleToggleStep = async (stepId, currentStatus) => {
-        try {
-            setLoading(true);
-            await jobService.toggleStep(jobId, stepId, !currentStatus, job.updatedAt);
-            loadJobDetails();
-        } catch (error) {
-            console.error('Step toggle error:', error);
-            showAlert(t('common.error'), t('alerts.processError'), [], 'error');
-        } finally {
-            setLoading(false);
+        const performToggle = async () => {
+            try {
+                setLoading(true);
+                await jobService.toggleStep(jobId, stepId, !currentStatus, job.updatedAt);
+                loadJobDetails();
+            } catch (error) {
+                console.error('Step toggle error:', error);
+                showAlert(t('common.error'), t('alerts.processError'), [], 'error');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        const step = job?.steps?.find(s => s.id === stepId);
+        if (step?.approvalStatus === 'APPROVED') {
+            showAlert(
+                t('common.warning'),
+                "Bu adım daha önce onaylanmış. Değişiklik yaparsanız onay iptal edilecek. Devam etmek istiyor musunuz?",
+                [
+                    { text: t('common.cancel'), style: 'cancel' },
+                    { text: t('common.continue'), style: 'destructive', onPress: performToggle }
+                ]
+            );
+        } else {
+            performToggle();
         }
     };
 
@@ -240,46 +287,71 @@ export default function JobDetailScreen({ route, navigation }) {
     };
 
     const pickImage = async (stepId, substepId, source) => {
-        try {
-            const mediaTypes = ImagePicker.MediaTypeOptions?.Images || 'Images';
-            let result;
-            if (source === 'camera') {
-                const { status } = await ImagePicker.requestCameraPermissionsAsync();
-                if (status !== 'granted') {
-                    showAlert(t('alerts.permissionRequired'), t('alerts.cameraPermissionDesc'), [], 'warning');
-                    return;
-                }
-                result = await ImagePicker.launchCameraAsync({
-                    mediaTypes,
-                    allowsEditing: true,
-                    aspect: [4, 3],
-                    quality: 0.3,
-                    base64: true,
-                });
-            } else {
-                const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-                if (status !== 'granted') {
-                    showAlert(t('alerts.permissionRequired'), t('alerts.galleryPermissionDesc'), [], 'warning');
-                    return;
-                }
-                result = await ImagePicker.launchImageLibraryAsync({
-                    mediaTypes,
-                    allowsEditing: true,
-                    aspect: [4, 3],
-                    quality: 0.3,
-                    base64: true,
-                });
-            }
+        const step = job?.steps?.find(s => s.id === stepId);
+        const substep = step?.subSteps?.find(ss => ss.id === substepId);
+        
+        let isApproved = false;
+        if (substepId) {
+            isApproved = substep?.approvalStatus === 'APPROVED';
+        } else {
+            isApproved = step?.approvalStatus === 'APPROVED';
+        }
 
-            if (!result.canceled) {
-                setUploading(true);
-                const optimized = await optimizeImage(result.assets[0].uri);
-                uploadPhoto(stepId, substepId, optimized ? optimized.uri : result.assets[0].uri, optimized ? optimized.base64 : result.assets[0].base64);
+        const performPick = async () => {
+            try {
+                const mediaTypes = ImagePicker.MediaTypeOptions?.Images || 'Images';
+                let result;
+                if (source === 'camera') {
+                    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+                    if (status !== 'granted') {
+                        showAlert(t('alerts.permissionRequired'), t('alerts.cameraPermissionDesc'), [], 'warning');
+                        return;
+                    }
+                    result = await ImagePicker.launchCameraAsync({
+                        mediaTypes,
+                        allowsEditing: true,
+                        aspect: [4, 3],
+                        quality: 0.3,
+                        base64: true,
+                    });
+                } else {
+                    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                    if (status !== 'granted') {
+                        showAlert(t('alerts.permissionRequired'), t('alerts.galleryPermissionDesc'), [], 'warning');
+                        return;
+                    }
+                    result = await ImagePicker.launchImageLibraryAsync({
+                        mediaTypes,
+                        allowsEditing: true,
+                        aspect: [4, 3],
+                        quality: 0.3,
+                        base64: true,
+                    });
+                }
+
+                if (!result.canceled) {
+                    setUploading(true);
+                    const optimized = await optimizeImage(result.assets[0].uri);
+                    uploadPhoto(stepId, substepId, optimized ? optimized.uri : result.assets[0].uri, optimized ? optimized.base64 : result.assets[0].base64);
+                }
+            } catch (error) {
+                console.error("ImagePicker error:", error);
+                showAlert(t('common.error'), t('alerts.photoSelectError'), [], 'error');
+                setUploading(false);
             }
-        } catch (error) {
-            console.error("ImagePicker error:", error);
-            showAlert(t('common.error'), t('alerts.photoSelectError'), [], 'error');
-            setUploading(false);
+        };
+
+        if (isApproved) {
+            showAlert(
+                t('common.warning'),
+                "Bu adım daha önce onaylanmış. Yeni fotoğraf eklerseniz onay iptal edilecek. Devam etmek istiyor musunuz?",
+                [
+                    { text: t('common.cancel'), style: 'cancel' },
+                    { text: t('common.continue'), style: 'destructive', onPress: performPick }
+                ]
+            );
+        } else {
+            performPick();
         }
     };
 

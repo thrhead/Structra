@@ -99,6 +99,8 @@ export async function POST(
       }
     }
 
+    const wasApproved = step.approvalStatus === 'APPROVED'
+
     const updatedStep = await prisma.jobStep.update({
       where: { id: params.stepId },
       data: {
@@ -106,12 +108,23 @@ export async function POST(
         completedAt: !step.isCompleted ? new Date() : null,
         completedById: !step.isCompleted ? session.user.id : null,
         startedAt: !step.isCompleted && !step.startedAt ? new Date() : step.startedAt,
-        approvalStatus: !step.isCompleted ? 'PENDING' : 'PENDING', // Reset to PENDING on change
+        approvalStatus: 'PENDING', // Reset to PENDING on change
         rejectionReason: !step.isCompleted ? null : step.rejectionReason, // Clear rejection reason if completing again
         approvedById: null,
         approvedAt: null
       }
     })
+
+    if (wasApproved) {
+        const { sendAdminNotification } = await import('@/lib/notification-helper')
+        await sendAdminNotification(
+            'Onay İptal Edildi',
+            `Bir iş adımının (Adım: ${step.title}) durumu değiştirildi. Yeniden onay gerekiyor.`,
+            'WARNING',
+            `/admin/jobs/${step.jobId}`,
+            session.user.id
+        );
+    }
 
     // Detailed Audit Logging
     const deviceInfo = getDeviceInfo(req);

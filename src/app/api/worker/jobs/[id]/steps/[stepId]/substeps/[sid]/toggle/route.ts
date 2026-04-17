@@ -44,17 +44,31 @@ export async function POST(
             }
         }
 
+        const wasApproved = subStep.approvalStatus === 'APPROVED';
+
         const updatedSubStep = await prisma.jobSubStep.update({
             where: { id: params.sid },
             data: {
                 isCompleted: !subStep.isCompleted,
                 completedAt: !subStep.isCompleted ? new Date() : null,
                 startedAt: !subStep.isCompleted && !subStep.startedAt ? new Date() : subStep.startedAt,
-                // If completing and was rejected, reset to pending for re-approval
-                approvalStatus: (!subStep.isCompleted && subStep.approvalStatus === 'REJECTED') ? 'PENDING' : subStep.approvalStatus,
-                rejectionReason: (!subStep.isCompleted && subStep.approvalStatus === 'REJECTED') ? null : subStep.rejectionReason
+                approvalStatus: (wasApproved || (!subStep.isCompleted && subStep.approvalStatus === 'REJECTED')) ? 'PENDING' : subStep.approvalStatus,
+                rejectionReason: (!subStep.isCompleted && subStep.approvalStatus === 'REJECTED') ? null : subStep.rejectionReason,
+                approvedById: wasApproved ? null : subStep.approvedById,
+                approvedAt: wasApproved ? null : subStep.approvedAt
             }
         })
+
+        // Notify admins if it was downgraded from APPROVED
+        if (wasApproved) {
+            await sendAdminNotification(
+                'Onay İptal Edildi',
+                `"${subStep.step.job.title}" işindeki onaylı "${subStep.title}" durumu değiştirildi. Yeniden onay gerekiyor.`,
+                'WARNING',
+                `/admin/jobs/${params.id}`,
+                session.user.id
+            );
+        }
 
         // Detailed Audit Logging
         const deviceInfo = getDeviceInfo(req);
