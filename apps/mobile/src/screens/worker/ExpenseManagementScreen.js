@@ -27,14 +27,18 @@ export default function ExpenseManagementScreen({ navigation, route }) {
         searchQuery,
         filteredExpenses,
         groupedExpenses,
+        loading,
         setSelectedProject,
         setSelectedCategory,
         setSearchQuery,
         loadData,
-        createExpense
+        createExpense,
+        updateExpense,
+        deleteExpense
     } = useWorkerExpenses();
 
     const [modalVisible, setModalVisible] = useState(false);
+    const [editingExpense, setEditingExpense] = useState(null);
 
     useEffect(() => {
         loadData();
@@ -43,6 +47,16 @@ export default function ExpenseManagementScreen({ navigation, route }) {
             navigation.setParams({ openCreate: undefined });
         }
     }, [route.params, loadData, navigation]);
+
+    const handleEdit = (expense) => {
+        setEditingExpense(expense);
+        setModalVisible(true);
+    };
+
+    const handleCloseModal = () => {
+        setModalVisible(false);
+        setEditingExpense(null);
+    };
 
     const totalAmount = filteredExpenses.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
 
@@ -101,6 +115,8 @@ export default function ExpenseManagementScreen({ navigation, route }) {
                     groupedExpenses={groupedExpenses}
                     filteredExpensesCount={filteredExpenses.length}
                     theme={theme}
+                    onEdit={handleEdit}
+                    onDelete={deleteExpense}
                 />
 
                 <View style={{ height: 100 }} />
@@ -117,10 +133,16 @@ export default function ExpenseManagementScreen({ navigation, route }) {
             {/* Create Expense Modal */}
             <CreateExpenseModal
                 visible={modalVisible}
-                onClose={() => setModalVisible(false)}
-                onSubmit={createExpense}
+                onClose={handleCloseModal}
+                onSubmit={(formData, receiptImage, audioUri, id) => {
+                    if (id) {
+                        return updateExpense(id, formData, receiptImage);
+                    }
+                    return createExpense(formData, receiptImage);
+                }}
                 projects={projects}
                 defaultJobId={selectedProject?.id}
+                initialData={editingExpense}
                 theme={theme}
             />
             <LoadingOverlay 

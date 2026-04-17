@@ -26,6 +26,41 @@ const costService = {
     },
 
     /**
+     * Update an existing cost entry
+     * @param {string} id
+     * @param {Object|FormData} costData
+     * @returns {Promise<Object>}
+     */
+    update: async (id, costData) => {
+        const isFormData = costData instanceof FormData;
+        const config = {};
+
+        if (isFormData) {
+            config.headers = { 'Accept': 'application/json' };
+            config.transformRequest = (data, headers) => {
+                if (headers) {
+                    delete headers['Content-Type'];
+                    if (headers.put) delete headers.put['Content-Type'];
+                }
+                return data; 
+            };
+        }
+
+        const response = await api.put(`/api/worker/costs/${id}`, costData, config);
+        return response.data;
+    },
+
+    /**
+     * Delete an existing cost entry
+     * @param {string} id
+     * @returns {Promise<Object>}
+     */
+    delete: async (id) => {
+        const response = await api.delete(`/api/worker/costs/${id}`);
+        return response.data;
+    },
+
+    /**
      * Get worker's costs
      * @returns {Promise<Array>}
      */

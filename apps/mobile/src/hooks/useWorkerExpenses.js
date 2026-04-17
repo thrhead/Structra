@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { Platform } from 'react-native';
+import { Platform, Alert } from 'react-native';
 import costService from '../services/cost.service';
 import jobService from '../services/job.service';
 import { useAlert } from '../context/AlertContext';
@@ -94,6 +94,69 @@ export const useWorkerExpenses = () => {
         }
     }, [loadData]);
 
+    const updateExpense = useCallback(async (id, formData, receiptImage) => {
+        if (!formData.title || !formData.amount) {
+            showAlert('Hata', 'Lütfen başlık ve tutar giriniz.', [], 'error');
+            return false;
+        }
+
+        try {
+            const finalDescription = formData.description
+                ? `${formData.title} - ${formData.description}`
+                : formData.title;
+
+            const data = new FormData();
+            if (formData.jobId) data.append('jobId', formData.jobId);
+            data.append('amount', parseFloat(formData.amount).toString());
+            data.append('currency', 'TRY');
+            data.append('category', formData.category);
+            data.append('description', finalDescription);
+            data.append('date', formData.date.toISOString());
+
+            if (receiptImage && !receiptImage.startsWith('http')) {
+                if (Platform.OS === 'web') {
+                    const response = await fetch(receiptImage);
+                    const blob = await response.blob();
+                    const filename = receiptImage.split('/').pop() || 'receipt.jpg';
+                    data.append('receipt', blob, filename);
+                } else {
+                    const uriParts = receiptImage.split('/');
+                    const filename = uriParts[uriParts.length - 1] || `receipt_${Date.now()}.jpg`;
+                    const fileType = filename.split('.').pop();
+                    const type = fileType ? `image/${fileType}` : 'image/jpeg';
+
+                    data.append('receipt', {
+                        uri: receiptImage,
+                        name: filename,
+                        type: type
+                    });
+                }
+            }
+
+            await costService.update(id, data);
+            showAlert('Başarılı', 'Masraf başarıyla güncellendi.', [], 'success');
+            loadData();
+            return true;
+        } catch (error) {
+            console.error('Update expense error:', error);
+            showAlert('Hata', 'Masraf güncellenirken bir hata oluştu.', [], 'error');
+            return false;
+        }
+    }, [loadData]);
+
+    const deleteExpense = useCallback(async (id) => {
+        try {
+            await costService.delete(id);
+            showAlert('Başarılı', 'Masraf başarıyla silindi.', [], 'success');
+            loadData();
+            return true;
+        } catch (error) {
+            console.error('Delete expense error:', error);
+            showAlert('Hata', 'Masraf silinirken bir hata oluştu.', [], 'error');
+            return false;
+        }
+    }, [loadData]);
+
     const filteredExpenses = useMemo(() => {
         return expenses.filter(expense => {
             const matchesProject = selectedProject ? expense.jobId === selectedProject.id : true;
@@ -152,6 +215,8 @@ export const useWorkerExpenses = () => {
         selectedProject,
         selectedCategory,
         searchQuery,
+
+        // Computed
         filteredExpenses,
         groupedExpenses,
 
@@ -160,6 +225,8 @@ export const useWorkerExpenses = () => {
         setSelectedCategory,
         setSearchQuery,
         loadData,
-        createExpense
+        createExpense,
+        updateExpense,
+        deleteExpense
     };
 };

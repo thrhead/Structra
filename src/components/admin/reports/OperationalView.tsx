@@ -170,7 +170,7 @@ export default function OperationalView({ data }: { data: any }) {
                                         <AlertTriangle className="w-5 h-5 text-rose-600 dark:text-rose-400 mt-0.5" />
                                         <div className="flex-1">
                                             <div className="font-bold text-rose-700 dark:text-rose-300 text-sm flex justify-between items-center">
-                                                Gecikmiş Onaylar (>48s)
+                                                Gecikmiş Onaylar (&gt;48s)
                                                 <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                                             </div>
                                             <p className="text-xs text-rose-600/80 dark:text-rose-400/70 mt-0.5">Sistemde 48 saati aşan {totalDelayed} adet bekleyen onay bulunuyor.</p>

@@ -206,7 +206,10 @@ const JobDetailModals = ({
             <CreateExpenseModal
                 visible={costModalVisible}
                 onClose={() => setCostModalVisible(false)}
-                onSubmit={createExpense}
+                onSubmit={(formData, receiptImage, audioUri, id) => {
+                    // Update expense is not fully supported in job detail context yet, fallback to create
+                    return createExpense(formData, receiptImage, audioUri);
+                }}
                 projects={null}
                 defaultJobId={jobId}
                 theme={theme}

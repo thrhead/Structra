@@ -241,7 +241,7 @@ export default function JobDetailScreen({ route, navigation }) {
 
     const pickImage = async (stepId, substepId, source) => {
         try {
-            const mediaTypes = ImagePicker.MediaTypeOptions?.Images || ImagePicker.MediaType?.Images || 'Images';
+            const mediaTypes = ImagePicker.MediaTypeOptions?.Images || 'Images';
             let result;
             if (source === 'camera') {
                 const { status } = await ImagePicker.requestCameraPermissionsAsync();

@@ -56,7 +56,7 @@ const WebInput = ({ style, value, onChangeText, placeholder, inputMode, theme, .
     );
 };
 
-export const CreateExpenseModal = ({ visible, onClose, onSubmit, projects, defaultJobId, theme }) => {
+export const CreateExpenseModal = ({ visible, onClose, onSubmit, projects, defaultJobId, initialData, theme }) => {
     const styles = getStyles(theme);
     const [formData, setFormData] = useState({
         title: '',
@@ -71,17 +71,46 @@ export const CreateExpenseModal = ({ visible, onClose, onSubmit, projects, defau
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
-    // Update jobId when default changes if not set
     React.useEffect(() => {
-        if (defaultJobId && !formData.jobId) {
-            setFormData(prev => ({ ...prev, jobId: defaultJobId }));
+        if (visible) {
+            if (initialData) {
+                // Parse description if it contains title
+                let title = initialData.description || '';
+                let description = '';
+                if (title.includes(' - ')) {
+                    const parts = title.split(' - ');
+                    title = parts[0];
+                    description = parts.slice(1).join(' - ');
+                }
+
+                setFormData({
+                    title,
+                    amount: initialData.amount?.toString() || '',
+                    category: initialData.category || 'Yemek',
+                    description,
+                    jobId: initialData.jobId || defaultJobId || '',
+                    date: initialData.date ? new Date(initialData.date) : new Date()
+                });
+                setReceiptImage(initialData.receiptUrl || null);
+            } else {
+                setFormData({
+                    title: '',
+                    amount: '',
+                    category: 'Yemek',
+                    description: '',
+                    jobId: defaultJobId || '',
+                    date: new Date()
+                });
+                setReceiptImage(null);
+            }
+            setAudioUri(null);
         }
-    }, [defaultJobId]);
+    }, [visible, initialData, defaultJobId]);
 
     const handleSubmit = async () => {
         setSubmitting(true);
         try {
-            const success = await onSubmit(formData, receiptImage, audioUri);
+            const success = await onSubmit(formData, receiptImage, audioUri, initialData?.id);
             if (success) {
                 handleClose();
             }
@@ -111,7 +140,7 @@ export const CreateExpenseModal = ({ visible, onClose, onSubmit, projects, defau
         <View style={styles.modalOverlay}>
             <View style={[styles.modalContent, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
                 <View style={styles.modalHeader}>
-                    <Text style={[styles.modalTitle, { color: theme.colors.text }]}>Yeni Masraf Ekle</Text>
+                    <Text style={[styles.modalTitle, { color: theme.colors.text }]}>{initialData ? 'Masrafı Düzenle' : 'Yeni Masraf Ekle'}</Text>
                     <TouchableOpacity onPress={handleClose}>
                         <MaterialIcons name="close" size={24} color={theme.colors.text} />
                     </TouchableOpacity>
@@ -229,7 +258,7 @@ export const CreateExpenseModal = ({ visible, onClose, onSubmit, projects, defau
                             style={[styles.imageUploadButton, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
                             onPress={async () => {
                                 const result = await ImagePicker.launchImageLibraryAsync({
-                                    mediaTypes: ImagePicker.MediaTypeOptions?.Images || ImagePicker.MediaType?.Images || 'Images',
+                                    mediaTypes: ImagePicker.MediaTypeOptions?.Images || 'Images',
                                     allowsEditing: true,
                                     aspect: [4, 3],
                                     quality: 0.5,

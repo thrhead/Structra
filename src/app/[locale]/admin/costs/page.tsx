@@ -264,7 +264,7 @@ function CostsTable() {
                                                 {cost.receiptUrl ? (
                                                     <button
                                                         onClick={() => setSelectedReceipt(cost.receiptUrl!)}
-                                                        className="relative h-10 w-10 overflow-hidden rounded-md border border-slate-200 hover:border-emerald-500 transition-colors block"
+                                                        className="relative h-10 w-10 overflow-hidden rounded-md border border-slate-200 hover:border-emerald-500 transition-colors block cursor-pointer"
                                                     >
                                                         <Image 
                                                             src={cost.receiptUrl} 

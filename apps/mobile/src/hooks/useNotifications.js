@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { Platform } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import * as Notifications from 'expo-notifications';
 import notificationService from '../services/notification.service';
