@@ -13,6 +13,9 @@ jobs:
         with:
           fetch-depth: 0 # EAS CLI needs full git history for versioning
 
+      - name: Fix Git Safe Directory
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
