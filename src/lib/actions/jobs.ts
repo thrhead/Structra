@@ -59,6 +59,7 @@ export async function createJobAction(data: any) {
 
   if (!validated.success) {
     return {
+      error: 'Geçersiz veri',
       errors: validated.error.flatten().fieldErrors as any
     }
   }
@@ -170,20 +171,23 @@ export async function createJobAction(data: any) {
 }
 
 
-export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
+export async function updateJobAction(data: any) {
   console.log('updateJobAction called with:', JSON.stringify(data, null, 2))
   const session = await auth()
 
   if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
     console.log('Unauthorized access attempt:', session?.user?.role)
-    throw new Error('Yetkisiz işlem')
+    return { error: 'Yetkisiz işlem' }
   }
 
   const validated = updateJobSchema.safeParse(data)
 
   if (!validated.success) {
     console.log('Validation failed:', JSON.stringify(validated.error.flatten(), null, 2))
-    throw new Error('Geçersiz veri: ' + JSON.stringify(validated.error.flatten()))
+    return {
+      error: 'Geçersiz veri',
+      errors: validated.error.flatten().fieldErrors as any
+    }
   }
 
   const {
@@ -193,7 +197,7 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
     customerId,
     teamId,
     workerId,
-    jobLeadId, // Yeni alan
+    jobLeadId,
     priority,
     projectNo,
     status,
@@ -209,6 +213,17 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
   } = validated.data
 
   try {
+    const existingJob = await prisma.job.findUnique({
+      where: { id },
+      select: { jobNo: true }
+    })
+
+    if (!existingJob) {
+      return { error: 'İş bulunamadı' }
+    }
+
+    const jobNo = existingJob.jobNo || 'NO-CODE';
+
     await prisma.$transaction(async (tx) => {
       // 1. Update Job Basic Info
       const parseDate = (d: string | undefined | null) => {
@@ -224,7 +239,7 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
           description: (description !== undefined) ? (description ? sanitizeHtml(description) : null) : undefined,
           customerId: customerId,
           projectNo: projectNo ? stripHtml(projectNo) : null,
-          jobLeadId: jobLeadId || null, // Atama
+          jobLeadId: jobLeadId || null,
           priority: priority,
           status: status || undefined,
           acceptanceStatus: acceptanceStatus || undefined,
@@ -234,7 +249,8 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
           startedAt: parseDate(startedAt),
           completedDate: parseDate(completedDate),
           budget: budget,
-          estimatedDuration: estimatedDuration }
+          estimatedDuration: estimatedDuration
+        }
       })
 
       // 2. Update Assignment
@@ -255,52 +271,85 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
 
       // 3. Update Steps
       if (steps !== undefined && steps !== null) {
-        const existingSteps = await tx.jobStep.findMany({
+        // Find existing steps to identify which ones to delete
+        const currentSteps = await tx.jobStep.findMany({
           where: { jobId: id },
-          select: { id: true }
+          include: { subSteps: { select: { id: true } } }
         })
-        const existingStepIds = existingSteps.map(s => s.id)
+
         const incomingStepIds = steps.filter(s => s.id).map(s => s.id!)
+        const stepsToDelete = currentSteps.filter(s => !incomingStepIds.includes(s.id))
+
+        // Delete removed steps (cascades to sub-steps)
+        if (stepsToDelete.length > 0) {
+          await tx.jobStep.deleteMany({
+            where: { id: { in: stepsToDelete.map(s => s.id) } }
+          })
+        }
 
         for (let i = 0; i < steps.length; i++) {
+          const stepOrder = i + 1;
           const stepData = steps[i]
           let stepId = stepData.id
+          let currentStepNo: string;
 
           if (stepId) {
+            currentStepNo = generateStepNumber(jobNo, stepOrder);
             await tx.jobStep.update({
               where: { id: stepId },
               data: {
                 title: stepData.title ? stripHtml(stepData.title) : undefined,
                 description: stepData.description ? sanitizeHtml(stepData.description) : (stepData.description === null ? null : undefined),
-                order: i + 1
+                order: stepOrder,
+                stepNo: currentStepNo
               }
             })
           } else {
+            currentStepNo = generateStepNumber(jobNo, stepOrder);
             const newStep = await tx.jobStep.create({
               data: {
                 jobId: id,
+                stepNo: currentStepNo,
                 title: stripHtml(stepData.title),
                 description: stepData.description ? sanitizeHtml(stepData.description) : null,
-                order: i + 1
+                order: stepOrder
               }
             })
             stepId = newStep.id
           }
 
           if (stepData.subSteps) {
+            const currentSubSteps = currentSteps.find(s => s.id === stepId)?.subSteps || []
+            const incomingSubStepIds = stepData.subSteps.filter(ss => ss.id).map(ss => ss.id!)
+            const subStepsToDelete = currentSubSteps.filter(ss => !incomingSubStepIds.includes(ss.id))
+
+            if (subStepsToDelete.length > 0) {
+              await tx.jobSubStep.deleteMany({
+                where: { id: { in: subStepsToDelete.map(ss => ss.id) } }
+              })
+            }
+
             for (let j = 0; j < stepData.subSteps.length; j++) {
+              const subStepOrder = j + 1;
               const subData = stepData.subSteps[j]
+              const currentSubStepNo = generateSubStepNumber(currentStepNo, subStepOrder);
+
               if (subData.id) {
                 await tx.jobSubStep.update({
                   where: { id: subData.id },
-                  data: { title: stripHtml(subData.title), order: j + 1 }
+                  data: {
+                    title: stripHtml(subData.title),
+                    order: subStepOrder,
+                    subStepNo: currentSubStepNo
+                  }
                 })
               } else {
                 await tx.jobSubStep.create({
                   data: {
                     stepId: stepId!,
+                    subStepNo: currentSubStepNo,
                     title: stripHtml(subData.title),
-                    order: j + 1
+                    order: subStepOrder
                   }
                 })
               }
@@ -315,25 +364,24 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
       await EventBus.emit('job.completed', { id });
     }
 
-    // Notify assigned team, worker or job lead
     const effectiveTeamId = (teamId && teamId !== 'none') ? teamId : null;
     const effectiveWorkerId = (workerId && workerId !== 'none') ? workerId : null;
     const effectiveJobLeadId = (jobLeadId && jobLeadId !== 'none') ? jobLeadId : null;
+
     if (effectiveTeamId || effectiveWorkerId || effectiveJobLeadId) {
-        await sendJobNotification(
-            id,
-            'İş Güncellendi / Atandı',
-            `"${title}" başlıklı iş güncellendi veya size atandı.`,
-            'INFO',
-            `/worker/jobs/${id}`
-        ).catch(err => console.error('Failed to send job update notification:', err));
+      await sendJobNotification(
+        id,
+        'İş Güncellendi / Atandı',
+        `"${title}" başlıklı iş güncellendi veya size atandı.`,
+        'INFO',
+        `/worker/jobs/${id}`
+      ).catch(err => console.error('Failed to send job update notification:', err));
     }
 
-    // LOGGING: Audit log for job update
     await logAudit(session.user.id, AuditAction.JOB_UPDATE, {
       jobId: id,
       title: title,
-      jobNo: projectNo, // using projectNo as identifier if available
+      jobNo: projectNo,
       platform: 'web'
     }, 'web');
 
@@ -342,7 +390,7 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
     return { success: true }
   } catch (error) {
     console.error('Job update error:', error)
-    throw error
+    return { error: 'İş güncellenirken bir hata oluştu' }
   }
 }
 

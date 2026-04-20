@@ -278,18 +278,38 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
         }))
 
       if (job) {
-        await updateJobAction({
+        const result = await updateJobAction({
           id: job.id,
           ...data,
           jobLeadId: data.jobLeadId === 'none' ? null : data.jobLeadId,
           steps: validSteps.length > 0 ? validSteps : []
         })
+        
+        if (result && 'error' in result && result.error) {
+          if ('errors' in result && result.errors) {
+            console.log('Validation errors:', result.errors)
+            toast.error(`Doğrulama hatası: ${Object.values(result.errors).flat().join(', ')}`)
+          } else {
+            toast.error(result.error)
+          }
+          return
+        }
         toast.success('İş başarıyla güncellendi')
       } else {
-        await createJobAction({
+        const result = await createJobAction({
           ...data,
           steps: validSteps
         })
+        
+        if (result && 'error' in result && result.error) {
+          if ('errors' in result && result.errors) {
+            console.log('Validation errors:', result.errors)
+            toast.error(`Doğrulama hatası: ${Object.values(result.errors).flat().join(', ')}`)
+          } else {
+            toast.error(result.error)
+          }
+          return
+        }
         toast.success('İş başarıyla oluşturuldu')
       }
 
