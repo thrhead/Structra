@@ -13,6 +13,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Wait for Vercel Deployment
+        run: sleep 120 # 2 dakika bekle
+
       - name: Audit Web App
         uses: treosh/lighthouse-ci-action@v12
         with:
