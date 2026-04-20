@@ -282,18 +282,20 @@ export async function getAdminDashboardData() {
         step.completedAt && step.completedAt.toISOString().split('T')[0] === dateStr
       )
 
-      // Unique jobs for this day
-      const jobMap = new Map<string, { jobId: string; jobTitle: string; jobNo: string; stepCount: number }>()
+      // Unique jobs for this day with step names
+      const jobMap = new Map<string, { jobId: string; jobTitle: string; jobNo: string; stepCount: number; stepNames: string[] }>()
       daySteps.forEach((step: any) => {
         const existing = jobMap.get(step.jobId)
         if (existing) {
           existing.stepCount++
+          existing.stepNames.push(step.title || 'Adım')
         } else {
           jobMap.set(step.jobId, {
             jobId: step.jobId,
             jobTitle: step.job?.title || 'Bilinmeyen İş',
             jobNo: step.job?.jobNo || '',
-            stepCount: 1
+            stepCount: 1,
+            stepNames: [step.title || 'Adım']
           })
         }
       })

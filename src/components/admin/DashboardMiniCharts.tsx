@@ -1,12 +1,12 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell
 } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { CheckCircle2, Clock, Zap, TrendingUp } from 'lucide-react'
+import { CheckCircle2, Clock, Zap, TrendingUp, X, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 
@@ -14,7 +14,7 @@ interface WeeklyStatEntry {
   name: string
   date: string
   count: number
-  jobs: { jobId: string; jobTitle: string; jobNo: string; stepCount: number }[]
+  jobs: { jobId: string; jobTitle: string; jobNo: string; stepCount: number; stepNames: string[] }[]
 }
 
 interface DashboardMiniChartsProps {
@@ -32,28 +32,22 @@ const DONUT_COLORS = ['#6366f1', '#f59e0b', '#10b981']
 function CustomBarTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null
   const entry: WeeklyStatEntry = payload[0]?.payload
+  const count = payload[0].value
+  if (count === 0) return null
   return (
     <div className="rounded-xl border border-slate-200/60 dark:border-slate-800/50 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl shadow-xl p-3 text-xs min-w-[180px]">
       <p className="font-semibold text-slate-700 dark:text-slate-200 mb-1.5">{label}</p>
-      <p className="text-indigo-600 dark:text-indigo-400 font-bold mb-2">{payload[0].value} adım tamamlandı</p>
+      <p className="text-indigo-600 dark:text-indigo-400 font-bold">{count} adım tamamlandı</p>
       {entry?.jobs?.length > 0 && (
-        <div className="border-t border-slate-100 dark:border-slate-800/50 pt-1.5 space-y-1">
-          {entry.jobs.slice(0, 4).map((job, i) => (
-            <div key={i} className="flex items-center justify-between gap-2">
-              <span className="text-slate-500 dark:text-slate-400 truncate max-w-[140px]">
-                {job.jobNo ? `${job.jobNo}` : job.jobTitle}
-              </span>
-              <span className="text-indigo-500 font-semibold tabular-nums flex-shrink-0">{job.stepCount} adım</span>
-            </div>
+        <div className="border-t border-slate-100 dark:border-slate-800/50 pt-1.5 mt-1.5 space-y-0.5">
+          {entry.jobs.slice(0, 3).map((job, i) => (
+            <p key={i} className="text-slate-500 dark:text-slate-400 truncate">
+              {job.jobNo || job.jobTitle} · {job.stepCount} adım
+            </p>
           ))}
-          {entry.jobs.length > 4 && (
-            <p className="text-slate-400 dark:text-slate-500 text-[10px] pt-0.5">+{entry.jobs.length - 4} iş daha...</p>
-          )}
         </div>
       )}
-      {entry?.jobs?.length > 0 && (
-        <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5 pt-1 border-t border-slate-100 dark:border-slate-800/50">Tıklayarak detaya gidin</p>
-      )}
+      <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5 pt-1 border-t border-slate-100 dark:border-slate-800/50">Tıklayarak detayları görün</p>
     </div>
   )
 }
@@ -81,6 +75,8 @@ export default function DashboardMiniCharts({
   const { locale } = useParams()
   const basePrefix = `/${locale}`
 
+  const [selectedDay, setSelectedDay] = useState<WeeklyStatEntry | null>(null)
+
   const donutData = [
     { name: 'Aktif (Devam)', value: activeJobs - pendingOnlyJobs },
     { name: 'Bekleyen', value: pendingOnlyJobs },
@@ -91,14 +87,8 @@ export default function DashboardMiniCharts({
   const hasJobData = totalJobs > 0
 
   const handleBarClick = (data: any) => {
-    if (!data?.jobs?.length) return
-    if (data.jobs.length === 1) {
-      // Single job — go directly to that job's detail page
-      router.push(`${basePrefix}/admin/jobs/${data.jobs[0].jobId}`)
-    } else {
-      // Multiple jobs — go to completed jobs list
-      router.push(`${basePrefix}/admin/jobs?status=COMPLETED`)
-    }
+    if (!data || data.count === 0) return
+    setSelectedDay(data)
   }
 
   const getStatusUrl = (name: string) => {
@@ -164,33 +154,83 @@ export default function DashboardMiniCharts({
         </CardHeader>
         <CardContent className="px-4 pb-4 pt-4">
           {hasWeeklyData ? (
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={weeklyStats} barSize={28}>
-                <XAxis
-                  dataKey="name"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 11, fontWeight: 700, fill: '#94a3b8' }}
-                />
-                <YAxis hide allowDecimals={false} />
-                <Tooltip content={<CustomBarTooltip />} cursor={{ fill: 'rgba(99,102,241,0.06)', radius: 8 } as any} />
-                <Bar 
-                  dataKey="count" 
-                  radius={[8, 8, 0, 0]} 
-                  name="Tamamlanan"
-                  onClick={handleBarClick}
-                  className="cursor-pointer"
-                >
-                  {weeklyStats.map((_, i) => (
-                    <Cell
-                      key={i}
-                      fill={`hsl(${240 + i * 8}, ${65 + i * 2}%, ${52 + i}%)`}
-                      className="hover:opacity-80 transition-opacity cursor-pointer"
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <>
+              <ResponsiveContainer width="100%" height={selectedDay ? 140 : 200}>
+                <BarChart data={weeklyStats} barSize={28}>
+                  <XAxis
+                    dataKey="name"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 11, fontWeight: 700, fill: '#94a3b8' }}
+                  />
+                  <YAxis hide allowDecimals={false} />
+                  <Tooltip content={<CustomBarTooltip />} cursor={{ fill: 'rgba(99,102,241,0.06)', radius: 8 } as any} />
+                  <Bar 
+                    dataKey="count" 
+                    radius={[8, 8, 0, 0]} 
+                    name="Tamamlanan"
+                    onClick={handleBarClick}
+                    className="cursor-pointer"
+                  >
+                    {weeklyStats.map((entry, i) => (
+                      <Cell
+                        key={i}
+                        fill={selectedDay?.date === entry.date 
+                          ? '#4f46e5' 
+                          : `hsl(${240 + i * 8}, ${65 + i * 2}%, ${52 + i}%)`
+                        }
+                        className="hover:opacity-80 transition-opacity cursor-pointer"
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+
+              {/* ── Selected Day Detail Panel ── */}
+              {selectedDay && selectedDay.jobs.length > 0 && (
+                <div className="mt-2 rounded-xl border border-indigo-200/60 dark:border-indigo-800/40 bg-indigo-50/50 dark:bg-indigo-950/20 p-3 animate-in slide-in-from-top-2 duration-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-bold text-indigo-700 dark:text-indigo-300">
+                      {selectedDay.name} — {selectedDay.count} adım
+                    </p>
+                    <button 
+                      onClick={() => setSelectedDay(null)}
+                      className="p-0.5 rounded-md hover:bg-indigo-200/50 dark:hover:bg-indigo-800/50 transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5 text-indigo-400" />
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {selectedDay.jobs.map((job, i) => (
+                      <Link 
+                        key={i} 
+                        href={`${basePrefix}/admin/jobs/${job.jobId}`}
+                        className="block rounded-lg border border-indigo-200/40 dark:border-indigo-800/30 bg-white/80 dark:bg-slate-900/80 p-2 hover:bg-indigo-100/50 dark:hover:bg-indigo-900/30 transition-colors group"
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400">
+                            {job.jobNo || 'İş'}
+                          </span>
+                          <ArrowRight className="w-3 h-3 text-indigo-300 group-hover:text-indigo-500 transition-colors" />
+                        </div>
+                        <p className="text-[11px] font-medium text-slate-600 dark:text-slate-300 truncate mb-1">{job.jobTitle}</p>
+                        <div className="flex flex-wrap gap-1">
+                          {job.stepNames.map((name, si) => (
+                            <span 
+                              key={si} 
+                              className="inline-flex items-center gap-1 text-[10px] font-medium bg-emerald-100/80 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-1.5 py-0.5 rounded-md"
+                            >
+                              <CheckCircle2 className="w-2.5 h-2.5" />
+                              {name}
+                            </span>
+                          ))}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
             <div className="h-[200px] flex flex-col items-center justify-center gap-2 text-slate-400 dark:text-slate-600">
               <CheckCircle2 className="w-10 h-10 opacity-30" />
