@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    name: EAS Build (Android & iOS)
+    name: EAS Build (Android APK)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -14,7 +14,9 @@ jobs:
           fetch-depth: 0 # EAS CLI needs full git history for versioning
 
       - name: Fix Git Safe Directory
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git config --global --add safe.directory /home/runner/work/Structra/Structra
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -37,4 +39,4 @@ jobs:
       - name: Build on EAS
         run: |
           cd apps/mobile
-          npx eas-cli build --platform all --profile preview --non-interactive
+          npx eas-cli build --platform android --profile preview --non-interactive

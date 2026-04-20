@@ -17,7 +17,9 @@ jobs:
           fetch-depth: 0
       
       - name: Fix Git Safe Directory
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git config --global --add safe.directory /home/runner/work/Structra/Structra
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
