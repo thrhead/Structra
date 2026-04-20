@@ -37,4 +37,4 @@ jobs:
       - name: Build on EAS
         run: |
           cd apps/mobile
-          npx eas-build --platform all --profile preview --non-interactive
+          npx eas-cli build --platform all --profile preview --non-interactive
