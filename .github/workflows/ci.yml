@@ -7,9 +7,41 @@ on:
     branches: [ "main" ]
 
 jobs:
-  web-ci:
-    name: Web App CI (Root)
+  security:
+    name: Security Scan (Trivy)
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          ignore-unfixed: true
+          format: 'table'
+          exit-code: '1' # Hata bulursa CI'ı durdurur
+          severity: 'CRITICAL,HIGH'
+
+  web-ci:
+    name: Web App CI
+    needs: security
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgrespassword
+          POSTGRES_DB: structra_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -17,24 +49,45 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: '22'
         cache: 'npm'
         
     - name: Install Web Dependencies
-      run: npm install
+      run: npm ci
 
-    - name: Run Web Tests
+    - name: Prisma Drift Check
+      run: npx prisma migrate dev --name drift_check
+      env:
+        DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/structra_test"
+
+    - name: Run Web Tests (Vitest)
       run: npm test
 
-    - name: Build Web App
-      # Prisma generate is needed for build
-      run: npx prisma generate && npm run build
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps
+
+    - name: Run E2E Tests (Playwright)
+      run: npx playwright test
       env:
-        DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/db"
+        DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/structra_test"
+        NEXTAUTH_SECRET: "test-secret"
+        NEXTAUTH_URL: "http://localhost:3000"
+
+    - name: Build Web App
+      run: npm run build
+      env:
+        DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/structra_test"
         NEXTAUTH_SECRET: "test-secret"
 
+    - name: Lighthouse CI
+      uses: treosh/lighthouse-ci-action@v12
+      with:
+        uploadArtifacts: true
+        temporaryPublicStorage: true
+
   mobile-ci:
-    name: Mobile App CI (apps/mobile)
+    name: Mobile App CI
+    needs: security
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
@@ -43,12 +96,12 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: '22'
         
     - name: Install Mobile Dependencies
       run: |
         cd apps/mobile
-        npm install
+        npm ci
 
     - name: Run Mobile Tests
       run: |
