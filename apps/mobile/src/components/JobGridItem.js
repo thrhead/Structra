@@ -3,17 +3,19 @@ import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-nati
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 
-const { width } = Dimensions.get('window');
-const COLUMN_WIDTH = (width - 48) / 2; // 16px padding on sides + 16px gap between columns
+const { width: windowWidth } = Dimensions.get('window');
 
 const JobGridItem = ({ job, onPress, style }) => {
     const { theme, isDark } = useTheme();
 
-    // Data mapping from the full job object
+    // Responsive sizing logic
+    const numColumns = windowWidth > 600 ? 3 : 2;
+    const spacing = 16;
+    const cardWidth = (windowWidth - (spacing * (numColumns + 1))) / numColumns;
+
+    // Data mapping
     const companyName = job.customer?.company || 'Firma Yok';
     const contactPerson = job.customer?.user?.name || 'Yetkili Yok';
-    
-    // Team lead or assigned worker
     const teamLead = job.assignments?.[0]?.team?.lead?.name || 
                      job.assignments?.[0]?.worker?.name || 
                      job.assignee?.name || 
@@ -48,18 +50,17 @@ const JobGridItem = ({ job, onPress, style }) => {
             style={[
                 styles.container,
                 {
+                    width: cardWidth,
                     backgroundColor: theme.colors.card,
                     borderColor: theme.colors.cardBorder,
                 },
-                job.status === 'IN_PROGRESS' && { borderColor: theme.colors.primary + '60' },
+                job.status === 'IN_PROGRESS' && { borderColor: theme.colors.primary + '60', borderWidth: 1.5 },
                 style
             ]}
         >
-            {/* Header: ID & Status */}
+            {/* Header */}
             <View style={styles.topRow}>
-                <Text style={[styles.jobId, { color: theme.colors.primary }]}>
-                    #{job.jobNo || (job.id ? job.id.toString().slice(-4).toUpperCase() : '---')}
-                </Text>
+                <Text style={[styles.jobId, { color: theme.colors.primary }]}>#{job.jobNo || '---'}</Text>
                 {renderStatusBadge()}
             </View>
 
@@ -93,12 +94,12 @@ const JobGridItem = ({ job, onPress, style }) => {
                 <View style={styles.infoIconRow}>
                     <MaterialIcons name="location-on" size={12} color={theme.colors.subText} />
                     <Text style={[styles.infoText, { color: theme.colors.subText }]} numberOfLines={1}>
-                        {job.location || 'Konum yok'}
+                        {job.location || 'Konum Yok'}
                     </Text>
                 </View>
             </View>
 
-            {/* Progress Footer */}
+            {/* Progress */}
             <View style={styles.footer}>
                 <View style={styles.progressHeader}>
                     <Text style={[styles.percentageText, { color: theme.colors.primary }]}>%{job.progress || 0}</Text>
@@ -121,13 +122,12 @@ const JobGridItem = ({ job, onPress, style }) => {
 
 const styles = StyleSheet.create({
     container: {
-        width: COLUMN_WIDTH,
-        borderRadius: 18,
+        borderRadius: 20,
         padding: 12,
-        marginBottom: 12,
+        marginBottom: 16,
         borderWidth: 1,
+        aspectRatio: 0.82, // Dikdörtgen form (Bilgilerin sığması için optimize edildi)
         justifyContent: 'space-between',
-        minHeight: 175, // Optimized to fit 2x2 grid on most screens
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
@@ -138,7 +138,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 6,
     },
     badge: {
         paddingHorizontal: 6,
@@ -147,13 +146,11 @@ const styles = StyleSheet.create({
     },
     badgeText: {
         fontSize: 9,
-        fontWeight: '800',
-        textTransform: 'uppercase',
+        fontWeight: '900',
     },
     jobId: {
         fontSize: 10,
         fontWeight: '900',
-        letterSpacing: 0.5,
     },
     content: {
         gap: 2,
@@ -161,7 +158,6 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 13,
         fontWeight: '800',
-        marginBottom: 2,
     },
     detailItem: {
         flexDirection: 'row',
@@ -171,15 +167,12 @@ const styles = StyleSheet.create({
     companyText: {
         fontSize: 11,
         fontWeight: '700',
-        flex: 1,
     },
     subDetailText: {
         fontSize: 10,
         fontWeight: '500',
-        flex: 1,
     },
     middleInfo: {
-        marginVertical: 4,
         gap: 3,
         paddingTop: 4,
         borderTopWidth: 0.5,
@@ -199,7 +192,7 @@ const styles = StyleSheet.create({
     },
     progressHeader: {
         alignItems: 'flex-end',
-        marginBottom: 3,
+        marginBottom: 2,
     },
     percentageText: {
         fontSize: 10,
@@ -209,7 +202,6 @@ const styles = StyleSheet.create({
         height: 4,
         borderRadius: 2,
         overflow: 'hidden',
-        width: '100%',
     },
     progressFill: {
         height: '100%',
