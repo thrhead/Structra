@@ -32,7 +32,6 @@ describe('Report Service', () => {
                         gte: startDate,
                         lte: endDate
                     },
-                    ,
                     status: 'APPROVED'
                 }
             })

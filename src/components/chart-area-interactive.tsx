@@ -54,19 +54,8 @@ export function ChartAreaInteractive({ data = [] }: ChartAreaInteractiveProps) {
   // Map the raw data to the format expected by the chart.
   // strategicTrend returns { name, intensity, cost } — we normalize 'name' → 'date'
   const formattedData = React.useMemo(() => {
-    const now = new Date()
-    const generateFallback = () =>
-      Array.from({ length: 90 }).map((_, i) => {
-        const d = new Date(now)
-        d.setDate(now.getDate() - (89 - i))
-        return {
-          date: d.toISOString().split('T')[0],
-          intensity: Math.floor(Math.random() * 8) + 2,
-          cost: Math.floor(Math.random() * 3000) + 500
-        }
-      })
-
-    const sourceData = data && data.length > 0 ? data : generateFallback()
+    // No fallback mock data — only show real backend data
+    const sourceData = data && data.length > 0 ? data : []
 
     return sourceData.map((item: any) => ({
       // 'name' comes from strategicTrend; 'date' from older formats
@@ -125,6 +114,15 @@ export function ChartAreaInteractive({ data = [] }: ChartAreaInteractiveProps) {
         </CardAction>
       </CardHeader>
       <CardContent className="p-6 relative z-10 flex-1">
+        {filteredData.length === 0 ? (
+          <div className="aspect-auto h-[350px] w-full flex flex-col items-center justify-center gap-3 text-slate-400 dark:text-slate-600">
+            <svg className="w-12 h-12 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <p className="text-sm font-medium">Bu dönem için henüz veri yok</p>
+            <p className="text-xs opacity-60">Seçili zaman aralığında iş veya maliyet kaydı bulunamadı</p>
+          </div>
+        ) : (
         <ChartContainer
           config={chartConfig}
           className="aspect-auto h-[350px] w-full"
@@ -198,6 +196,7 @@ export function ChartAreaInteractive({ data = [] }: ChartAreaInteractiveProps) {
             />
           </AreaChart>
         </ChartContainer>
+        )}
       </CardContent>
     </Card>
   )
