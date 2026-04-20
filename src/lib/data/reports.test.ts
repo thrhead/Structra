@@ -32,6 +32,7 @@ describe('Report Service', () => {
                         gte: startDate,
                         lte: endDate
                     },
+                    job: { isNot: null },
                     status: 'APPROVED'
                 }
             })

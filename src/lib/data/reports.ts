@@ -24,7 +24,7 @@ export async function getJobsForReport() {
     });
 }
 
-export const getReportStats = unstable_cache(
+const _getReportStats = unstable_cache(
     async (startDate: Date, endDate: Date, jobStatus?: string, jobId?: string, category?: string) => {
         const jobWhere: any = {
             createdAt: { gte: startDate, lte: endDate }
@@ -79,7 +79,7 @@ export const getReportStats = unstable_cache(
     { revalidate: 300, tags: ['reports', 'costs', 'jobs'] }
 );
 
-export const getCostBreakdown = unstable_cache(
+const _getCostBreakdown = unstable_cache(
     async (startDate: Date, endDate: Date, status?: string, jobStatus?: string, jobId?: string, category?: string) => {
         const where: any = {
             date: {
@@ -126,7 +126,7 @@ export const getCostBreakdown = unstable_cache(
     { revalidate: 300, tags: ['costs'] }
 );
 
-export const getCostTrend = unstable_cache(
+const _getCostTrend = unstable_cache(
     async (startDate: Date, endDate: Date, status?: string, jobStatus?: string, jobId?: string, category?: string) => {
         const where: any = {
             date: { gte: startDate, lte: endDate },
@@ -170,7 +170,7 @@ export const getCostTrend = unstable_cache(
     { revalidate: 300, tags: ['costs'] }
 );
 
-export const getTotalCostTrend = unstable_cache(
+const _getTotalCostTrend = unstable_cache(
     async (startDate: Date, endDate: Date, status?: string, jobStatus?: string, jobId?: string, category?: string) => {
         const where: any = {
             date: { gte: startDate, lte: endDate },
@@ -367,7 +367,7 @@ export async function getFinancialSummaryData(startDate: Date, endDate: Date) {
     };
 }
 
-export const getJobsListForFilter = unstable_cache(
+const _getJobsListForFilter = unstable_cache(
     async (jobStatus?: string) => {
         const where: any = {};
         if (jobStatus && jobStatus !== 'all') {
@@ -384,7 +384,7 @@ export const getJobsListForFilter = unstable_cache(
     { revalidate: 3600, tags: ['jobs'] }
 );
 
-export const getCategoriesForFilter = unstable_cache(
+const _getCategoriesForFilter = unstable_cache(
     async () => {
         const categories = await prisma.costTracking.groupBy({
             by: ['category'],
@@ -396,7 +396,7 @@ export const getCategoriesForFilter = unstable_cache(
     { revalidate: 3600, tags: ['costs'] }
 );
 
-export const getJobStatusDistribution = unstable_cache(
+const _getJobStatusDistribution = unstable_cache(
     async (startDate: Date, endDate: Date, jobStatus?: string, jobId?: string) => {
         const where: any = {
             createdAt: {
@@ -430,7 +430,7 @@ export const getJobStatusDistribution = unstable_cache(
     { revalidate: 300, tags: ['jobs'] }
 );
 
-export const getTeamPerformance = unstable_cache(
+const _getTeamPerformance = unstable_cache(
     async (startDate: Date, endDate: Date, jobStatus?: string, jobId?: string) => {
         const where: any = {
             status: 'COMPLETED',
@@ -499,7 +499,7 @@ export const getTeamPerformance = unstable_cache(
     { revalidate: 600, tags: ['teams', 'jobs'] }
 );
 
-export const getWeeklyCompletedSteps = unstable_cache(
+const _getWeeklyCompletedSteps = unstable_cache(
     async () => {
         const today = new Date();
         today.setHours(23, 59, 59, 999);
@@ -855,4 +855,41 @@ export async function getCostDetailsData(startDate: Date, endDate: Date) {
         amount: c.amount,
         createdBy: c.user?.name || 'Sistem'
     }));
+}
+
+
+export async function getReportStats(startDate: Date, endDate: Date, jobStatus?: string, jobId?: string, category?: string) {
+  return _getReportStats(startDate, endDate, jobStatus, jobId, category);
+}
+
+export async function getCostBreakdown(startDate: Date, endDate: Date, status?: string, jobStatus?: string, jobId?: string, category?: string) {
+  return _getCostBreakdown(startDate, endDate, status, jobStatus, jobId, category);
+}
+
+export async function getCostTrend(startDate: Date, endDate: Date, status?: string, jobStatus?: string, jobId?: string, category?: string) {
+  return _getCostTrend(startDate, endDate, status, jobStatus, jobId, category);
+}
+
+export async function getTotalCostTrend(startDate: Date, endDate: Date, status?: string, jobStatus?: string, jobId?: string, category?: string) {
+  return _getTotalCostTrend(startDate, endDate, status, jobStatus, jobId, category);
+}
+
+export async function getJobsListForFilter(jobStatus?: string) {
+  return _getJobsListForFilter(jobStatus);
+}
+
+export async function getCategoriesForFilter() {
+  return _getCategoriesForFilter();
+}
+
+export async function getJobStatusDistribution(startDate: Date, endDate: Date, jobStatus?: string, jobId?: string) {
+  return _getJobStatusDistribution(startDate, endDate, jobStatus, jobId);
+}
+
+export async function getTeamPerformance(startDate: Date, endDate: Date, jobStatus?: string, jobId?: string) {
+  return _getTeamPerformance(startDate, endDate, jobStatus, jobId);
+}
+
+export async function getWeeklyCompletedSteps() {
+  return _getWeeklyCompletedSteps();
 }
