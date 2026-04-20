@@ -41,19 +41,21 @@ const JobGridItem = ({ job, onPress, style }) => {
                     backgroundColor: theme.colors.card,
                     borderColor: theme.colors.cardBorder,
                 },
-                job.status === 'IN_PROGRESS' && { borderColor: theme.colors.primary + '40' },
+                job.status === 'IN_PROGRESS' && { borderColor: theme.colors.primary + '60', borderWidth: 1.5 },
                 style
             ]}
         >
-            {/* Status & Priority Row */}
+            {/* Top Row: Badge & Priority */}
             <View style={styles.topRow}>
                 {renderStatusBadge()}
                 {job.priority === 'HIGH' && (
-                    <MaterialIcons name="priority-high" size={14} color="#ef4444" />
+                    <View style={styles.priorityContainer}>
+                        <MaterialIcons name="priority-high" size={12} color="#fff" />
+                    </View>
                 )}
             </View>
 
-            {/* Job ID & Title */}
+            {/* Content: ID, Title, Customer */}
             <View style={styles.content}>
                 <Text style={[styles.jobId, { color: theme.colors.primary }]}>
                     #{job.jobNo || (job.id ? job.id.toString().slice(-4).toUpperCase() : '---')}
@@ -61,19 +63,31 @@ const JobGridItem = ({ job, onPress, style }) => {
                 <Text style={[styles.title, { color: theme.colors.text }]} numberOfLines={2}>
                     {job.title}
                 </Text>
+                
+                {/* New: Customer Info */}
+                <View style={styles.customerRow}>
+                    <MaterialIcons name="business" size={14} color={theme.colors.secondary} />
+                    <Text style={[styles.customerText, { color: theme.colors.text }]} numberOfLines={1}>
+                        {job.customerName || job.customer?.company || 'Müşteri Belirtilmemiş'}
+                    </Text>
+                </View>
             </View>
 
-            {/* Info Footer */}
+            {/* Footer: Location & Progress Percentage */}
             <View style={styles.footer}>
-                <View style={styles.infoRow}>
+                <View style={styles.locationRow}>
                     <MaterialIcons name="location-on" size={14} color={theme.colors.subText} />
                     <Text style={[styles.infoText, { color: theme.colors.subText }]} numberOfLines={1}>
                         {job.location || 'Konum yok'}
                     </Text>
                 </View>
                 
-                {/* Progress Bar (Minimalist) */}
-                <View style={styles.progressContainer}>
+                {/* Enhanced Progress with Percentage */}
+                <View style={styles.progressSection}>
+                    <View style={styles.progressHeader}>
+                        <Text style={[styles.progressLabel, { color: theme.colors.subText }]}>Tamamlanma</Text>
+                        <Text style={[styles.percentageText, { color: theme.colors.primary }]}>%{job.progress || 0}</Text>
+                    </View>
                     <View style={[styles.progressBg, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
                         <View 
                             style={[
@@ -94,75 +108,110 @@ const JobGridItem = ({ job, onPress, style }) => {
 const styles = StyleSheet.create({
     container: {
         width: COLUMN_WIDTH,
-        borderRadius: 20,
-        padding: 14,
+        borderRadius: 24,
+        padding: 16,
         marginBottom: 16,
         borderWidth: 1,
         justifyContent: 'space-between',
-        minHeight: 155,
-        // Shadow for light mode
+        minHeight: 200, // Büyütüldü (Eskisi 155)
+        // Shadow
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-        elevation: 2,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 3,
     },
     topRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 8,
+        marginBottom: 10,
     },
     badge: {
-        paddingHorizontal: 8,
-        paddingVertical: 3,
-        borderRadius: 8,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 10,
         maxWidth: '85%',
     },
     badgeText: {
         fontSize: 10,
-        fontWeight: 'bold',
+        fontWeight: '800',
+        textTransform: 'uppercase',
+    },
+    priorityContainer: {
+        backgroundColor: '#ef4444',
+        width: 18,
+        height: 18,
+        borderRadius: 9,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     content: {
         flex: 1,
-        marginBottom: 8,
+        marginBottom: 12,
     },
     jobId: {
-        fontSize: 11,
-        fontWeight: '800',
-        marginBottom: 2,
+        fontSize: 12,
+        fontWeight: '900',
+        marginBottom: 4,
         letterSpacing: 0.5,
     },
     title: {
-        fontSize: 14,
+        fontSize: 15,
         fontWeight: '700',
-        lineHeight: 18,
+        lineHeight: 20,
+        marginBottom: 6,
+    },
+    customerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        marginTop: 4,
+    },
+    customerText: {
+        fontSize: 12,
+        fontWeight: '600',
+        flex: 1,
     },
     footer: {
         marginTop: 'auto',
+        gap: 12,
     },
-    infoRow: {
+    locationRow: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 4,
-        marginBottom: 8,
     },
     infoText: {
         fontSize: 11,
         flex: 1,
+        fontWeight: '500',
     },
-    progressContainer: {
-        height: 4,
-        width: '100%',
+    progressSection: {
+        gap: 6,
+    },
+    progressHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    progressLabel: {
+        fontSize: 10,
+        fontWeight: '600',
+    },
+    percentageText: {
+        fontSize: 11,
+        fontWeight: '800',
     },
     progressBg: {
-        height: '100%',
-        borderRadius: 2,
+        height: 6,
+        borderRadius: 3,
         overflow: 'hidden',
+        width: '100%',
     },
     progressFill: {
         height: '100%',
-        borderRadius: 2,
+        borderRadius: 3,
     },
 });
 
