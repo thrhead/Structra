@@ -85,13 +85,19 @@ export async function getAdminDashboardData() {
         _sum: { amount: true }
       }).catch(e => { console.error("approvedCostsAgg fetch failed", e); return { _sum: { amount: 0 } }; }),
 
-      // 5: weeklyCompletedSteps
+      // 5: weeklyCompletedSteps (enriched with job context for tooltips & navigation)
       prisma.jobStep.findMany({
         where: {
           isCompleted: true,
-          completedAt: { gte: sevenDaysAgo } // Sadece var olan işlerin adımlarını getir
+          completedAt: { gte: sevenDaysAgo }
         },
-        select: { completedAt: true }
+        select: {
+          completedAt: true,
+          title: true,
+          jobId: true,
+          job: { select: { title: true, jobNo: true } }
+        },
+        orderBy: { completedAt: 'desc' }
       }).catch(e => { console.error("weeklyCompletedSteps fetch failed", e); return []; }),
 
       // 6: activeJobsBudgetAgg
@@ -263,7 +269,7 @@ export async function getAdminDashboardData() {
     const dailyBudget = activeJobsBudgetAgg._sum?.budget || 2000
     const budgetPercentage = Math.min(Math.round((totalCostToday / dailyBudget) * 100), 100)
 
-    // Weekly performance mapping
+    // Weekly performance mapping — enriched with step details per day
     const weeklyStats = new Array(7).fill(0).map((_, i) => {
       const d = new Date(today)
       d.setDate(today.getDate() - (6 - i))
@@ -272,13 +278,31 @@ export async function getAdminDashboardData() {
       const dayMonth = d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })
       const displayLabel = `${dayName} ${dayMonth}`
 
-      const count = weeklyCompletedSteps.filter(step =>
+      const daySteps = weeklyCompletedSteps.filter((step: any) =>
         step.completedAt && step.completedAt.toISOString().split('T')[0] === dateStr
-      ).length
+      )
+
+      // Unique jobs for this day
+      const jobMap = new Map<string, { jobId: string; jobTitle: string; jobNo: string; stepCount: number }>()
+      daySteps.forEach((step: any) => {
+        const existing = jobMap.get(step.jobId)
+        if (existing) {
+          existing.stepCount++
+        } else {
+          jobMap.set(step.jobId, {
+            jobId: step.jobId,
+            jobTitle: step.job?.title || 'Bilinmeyen İş',
+            jobNo: step.job?.jobNo || '',
+            stepCount: 1
+          })
+        }
+      })
 
       return {
         name: displayLabel,
-        count
+        date: dateStr,
+        count: daySteps.length,
+        jobs: Array.from(jobMap.values())
       }
     })
 

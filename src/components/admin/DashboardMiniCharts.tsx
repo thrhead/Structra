@@ -10,8 +10,15 @@ import { CheckCircle2, Clock, Zap, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 
+interface WeeklyStatEntry {
+  name: string
+  date: string
+  count: number
+  jobs: { jobId: string; jobTitle: string; jobNo: string; stepCount: number }[]
+}
+
 interface DashboardMiniChartsProps {
-  weeklyStats: { name: string; count: number }[]
+  weeklyStats: WeeklyStatEntry[]
   totalJobs: number
   activeJobs: number
   pendingOnlyJobs: number
@@ -24,10 +31,29 @@ const DONUT_COLORS = ['#6366f1', '#f59e0b', '#10b981']
 
 function CustomBarTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null
+  const entry: WeeklyStatEntry = payload[0]?.payload
   return (
-    <div className="rounded-xl border border-slate-200/60 dark:border-slate-800/50 bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl shadow-xl p-2.5 text-xs">
-      <p className="font-semibold text-slate-700 dark:text-slate-200 mb-1">{label}</p>
-      <p className="text-indigo-600 dark:text-indigo-400 font-bold">{payload[0].value} adım</p>
+    <div className="rounded-xl border border-slate-200/60 dark:border-slate-800/50 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl shadow-xl p-3 text-xs min-w-[180px]">
+      <p className="font-semibold text-slate-700 dark:text-slate-200 mb-1.5">{label}</p>
+      <p className="text-indigo-600 dark:text-indigo-400 font-bold mb-2">{payload[0].value} adım tamamlandı</p>
+      {entry?.jobs?.length > 0 && (
+        <div className="border-t border-slate-100 dark:border-slate-800/50 pt-1.5 space-y-1">
+          {entry.jobs.slice(0, 4).map((job, i) => (
+            <div key={i} className="flex items-center justify-between gap-2">
+              <span className="text-slate-500 dark:text-slate-400 truncate max-w-[140px]">
+                {job.jobNo ? `${job.jobNo}` : job.jobTitle}
+              </span>
+              <span className="text-indigo-500 font-semibold tabular-nums flex-shrink-0">{job.stepCount} adım</span>
+            </div>
+          ))}
+          {entry.jobs.length > 4 && (
+            <p className="text-slate-400 dark:text-slate-500 text-[10px] pt-0.5">+{entry.jobs.length - 4} iş daha...</p>
+          )}
+        </div>
+      )}
+      {entry?.jobs?.length > 0 && (
+        <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5 pt-1 border-t border-slate-100 dark:border-slate-800/50">Tıklayarak detaya gidin</p>
+      )}
     </div>
   )
 }
@@ -64,8 +90,15 @@ export default function DashboardMiniCharts({
   const hasWeeklyData = weeklyStats.some(d => d.count > 0)
   const hasJobData = totalJobs > 0
 
-  const handleBarClick = () => {
-    router.push(`${basePrefix}/admin/jobs?status=COMPLETED`)
+  const handleBarClick = (data: any) => {
+    if (!data?.jobs?.length) return
+    if (data.jobs.length === 1) {
+      // Single job — go directly to that job's detail page
+      router.push(`${basePrefix}/admin/jobs/${data.jobs[0].jobId}`)
+    } else {
+      // Multiple jobs — go to completed jobs list
+      router.push(`${basePrefix}/admin/jobs?status=COMPLETED`)
+    }
   }
 
   const getStatusUrl = (name: string) => {
