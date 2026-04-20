@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Wait for Vercel Deployment
         run: sleep 120 # 2 dakika bekle
@@ -23,6 +25,7 @@ jobs:
             https://field-service-management-lovat.vercel.app
           uploadArtifacts: true
           temporaryPublicStorage: true
+          artifactName: lighthouse-results-web
 
       - name: Audit Mobile Web Preview
         uses: treosh/lighthouse-ci-action@v12
@@ -31,3 +34,4 @@ jobs:
             https://field-service-management-mobile.vercel.app
           uploadArtifacts: true
           temporaryPublicStorage: true
+          artifactName: lighthouse-results-mobile
