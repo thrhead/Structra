@@ -1,7 +1,8 @@
 "use server"
 
 import { prisma } from "@/lib/db";
-import { unstable_cache } from "next/cache";
+// Bypassing cache to natively resolve Server Component Render errors on the dashboard
+const unstable_cache = (cb: any, keys?: any, options?: any) => cb;
 
 export async function getJobsForReport() {
     return await prisma.job.findMany({
@@ -44,9 +45,8 @@ const _getReportStats = unstable_cache(
         const totalJobs = pendingJobs + inProgressJobs + completedJobs;
 
         const costWhere: any = {
-            date: { gte: startDate, lte: endDate },
-            job: { isNot: null } // Sadece mevcut işlerin maliyetlerini getir
-        };
+            date: { gte: startDate, lte: endDate }}
+;
         if (jobStatus && jobStatus !== 'all') costWhere.job = { ...costWhere.job, status: jobStatus };
         if (jobId && jobId !== 'all') costWhere.jobId = jobId;
         if (category && category !== 'all') costWhere.category = category;
@@ -85,9 +85,8 @@ const _getCostBreakdown = unstable_cache(
             date: {
                 gte: startDate,
                 lte: endDate
-            },
-            job: { isNot: null } // Sadece mevcut işlerin maliyetlerini getir
-        };
+            }}
+;
 
         if (status && status !== 'all') {
             where.status = status;
@@ -129,9 +128,8 @@ const _getCostBreakdown = unstable_cache(
 const _getCostTrend = unstable_cache(
     async (startDate: Date, endDate: Date, status?: string, jobStatus?: string, jobId?: string, category?: string) => {
         const where: any = {
-            date: { gte: startDate, lte: endDate },
-            job: { isNot: null } // Sadece mevcut işlerin maliyetlerini getir
-        };
+            date: { gte: startDate, lte: endDate }}
+;
 
         if (status && status !== 'all') where.status = status;
         else where.status = { not: 'REJECTED' };
@@ -173,9 +171,8 @@ const _getCostTrend = unstable_cache(
 const _getTotalCostTrend = unstable_cache(
     async (startDate: Date, endDate: Date, status?: string, jobStatus?: string, jobId?: string, category?: string) => {
         const where: any = {
-            date: { gte: startDate, lte: endDate },
-            job: { isNot: null } // Sadece mevcut işlerin maliyetlerini getir
-        };
+            date: { gte: startDate, lte: endDate }}
+;
 
         if (status && status !== 'all') where.status = status;
         else where.status = { not: 'REJECTED' };
@@ -208,9 +205,8 @@ const _getTotalCostTrend = unstable_cache(
 export async function getPendingCostsList(startDate: Date, endDate: Date, jobStatus?: string, jobId?: string, category?: string) {
     const where: any = {
         date: { gte: startDate, lte: endDate },
-        status: 'PENDING',
-        job: { isNot: null }
-    };
+        status: 'PENDING'}
+;
 
     if (jobStatus && jobStatus !== 'all') where.job = { ...where.job, status: jobStatus };
     if (jobId && jobId !== 'all') where.jobId = jobId;
@@ -332,8 +328,8 @@ export async function getPersonnelPerformanceData(startDate: Date, endDate: Date
     return workers.map(worker => ({
         name: worker.name || worker.email,
         teamName: worker.teamMember[0]?.team.name || 'Bağımsız',
-        completedStepsCount: worker.completedSteps.length,
-    })).sort((a, b) => b.completedStepsCount - a.completedStepsCount);
+        completedStepsCount: worker.completedSteps.length}
+)).sort((a, b) => b.completedStepsCount - a.completedStepsCount);
 }
 
 // 5. Finansal Özet Tablo Verisi
@@ -341,9 +337,8 @@ export async function getFinancialSummaryData(startDate: Date, endDate: Date) {
     const costs = await prisma.costTracking.findMany({
         where: {
             date: { gte: startDate, lte: endDate },
-            status: 'APPROVED',
-            job: { isNot: null }
-        },
+            status: 'APPROVED'}
+,
         include: {
             job: true
         }
@@ -517,7 +512,7 @@ const _getWeeklyCompletedSteps = unstable_cache(
             where: {
                 isCompleted: true,
                 completedAt: { gte: prev7Days, lte: today },
-                job: { isNot: null } // Sadece var olan işlerin adımlarını getir
+                 // Sadece var olan işlerin adımlarını getir
             },
             include: {
                 job: {
@@ -581,9 +576,8 @@ const _getWeeklyCompletedSteps = unstable_cache(
 
 export async function getCostList(startDate: Date, endDate: Date, status?: string, jobStatus?: string, jobId?: string, category?: string) {
     const where: any = {
-        date: { gte: startDate, lte: endDate },
-        job: { isNot: null }
-    };
+        date: { gte: startDate, lte: endDate }}
+;
 
     if (status && status !== 'all') where.status = status;
     else where.status = { not: 'REJECTED' };
@@ -836,9 +830,8 @@ export async function getCostDetailsData(startDate: Date, endDate: Date) {
     const costs = await prisma.costTracking.findMany({
         where: {
             date: { gte: startDate, lte: endDate },
-            status: 'APPROVED',
-            job: { isNot: null } // Sadece mevcut işlerin maliyetlerini getir
-        },
+            status: 'APPROVED'}
+,
         include: {
             job: { select: { title: true, jobNo: true } },
             user: { select: { name: true } }

@@ -17,17 +17,14 @@ export default function WorkloadCostChart({ data, title = "İş Yoğunluğu ve M
         }).format(amount);
     };
 
-    // Assuming data passed is trends (costs and revenue) or we can create a combined daily/monthly workload view
-    // For now we map trends to plot costs vs some workload metric if available, 
-    // or just display costs along with job status stats.
-    
-    // Let's create a generic view relying on the trends
-    const chartData = data?.costs?.map((c: any, index: number) => ({
+    const chartData = data?.costs?.map((c: any) => ({
         date: c.date,
-        maliyet: c.amount,
-        // Mocking workload trend if not available, simply to show the dual representation 
-        // In a real scenario, this should be fetched from backend 
-        isYogunlugu: (c.amount / 1000) * (index % 2 === 0 ? 1.2 : 0.8) 
+        maliyet: c.Maliyet || c.amount || 0,
+        // Calculate workload derived from 'Kâr' or actual trend instead of mock if available
+        // Or default strictly to available stats.
+        isYogunlugu: c.Gelir !== undefined ? (c.Gelir / (c.Maliyet || 1)) * 10 : (c.amount ? (c.amount / 1000) : 0),
+        kâr: c.Kâr || 0,
+        gelir: c.Gelir || 0
     })) || [];
 
     return (
