@@ -23,6 +23,8 @@ export const useApprovals = () => {
             ]);
 
             const pApprovals = approvalData?.approvals || [];
+            const pSteps = approvalData?.pendingSteps || [];
+            const pSubSteps = approvalData?.pendingSubSteps || [];
 
             const formattedCosts = (pendingCosts || []).map(c => ({
                 id: c.id,
@@ -31,22 +33,48 @@ export const useApprovals = () => {
                 requester: c.createdBy?.name || c.createdBy?.email || 'Bilinmiyor',
                 date: new Date(c.date).toLocaleDateString(),
                 status: c.status,
+                jobId: c.jobId,
                 raw: c
             }));
 
-            // Formatting proper approval records from the Approval table
             const formattedJobs = pApprovals.map(a => ({
                 id: a.id,
-                type: 'JOB', // Can use a.type like JOB_COMPLETION also, but UI uses JOB
+                type: 'JOB',
                 title: a.job?.title || 'Bilinmeyen İş',
                 requester: a.requester?.name || a.requester?.email || 'Bilinmiyor',
                 date: a.createdAt ? new Date(a.createdAt).toLocaleDateString() : 'Tarih Yok',
                 status: a.status,
-                jobId: a.job?.id, // Useful to link to job details
+                jobId: a.job?.id,
                 raw: a
             }));
 
-            setApprovals([...formattedJobs, ...formattedCosts]);
+            const formattedSteps = pSteps.map(s => ({
+                id: s.id,
+                type: 'STEP',
+                title: s.title,
+                jobTitle: s.job?.title,
+                requester: s.completedBy?.name || 'Bilinmiyor',
+                date: s.completedAt ? new Date(s.completedAt).toLocaleDateString() : 'Tarih Yok',
+                status: s.approvalStatus,
+                jobId: s.jobId,
+                photos: s.photos || [],
+                raw: s
+            }));
+
+            const formattedSubSteps = pSubSteps.map(ss => ({
+                id: ss.id,
+                type: 'SUB_STEP',
+                title: ss.title,
+                jobTitle: ss.step?.job?.title,
+                requester: 'Saha Personeli',
+                date: ss.completedAt ? new Date(ss.completedAt).toLocaleDateString() : 'Tarih Yok',
+                status: ss.approvalStatus,
+                jobId: ss.step?.jobId,
+                photos: ss.photos || [],
+                raw: ss
+            }));
+
+            setApprovals([...formattedJobs, ...formattedCosts, ...formattedSteps, ...formattedSubSteps]);
         } catch (error) {
             console.error('Error loading approvals:', error);
             showAlert('Hata', 'Onay listesi yüklenemedi.', [], 'error');

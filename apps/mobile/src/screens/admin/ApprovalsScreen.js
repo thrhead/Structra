@@ -1,11 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useApprovals } from '../../hooks/useApprovals';
-import ApprovalCard from '../../components/admin/ApprovalCard';
+import EnhancedApprovalCard from '../../components/admin/EnhancedApprovalCard';
 import { useTheme } from '../../context/ThemeContext';
-
 import CustomSpinner from '../../components/CustomSpinner';
+
 export default function ApprovalsScreen({ navigation }) {
     const { theme } = useTheme();
     const {
@@ -20,7 +20,7 @@ export default function ApprovalsScreen({ navigation }) {
     } = useApprovals();
 
     const renderItem = React.useCallback(({ item }) => (
-        <ApprovalCard
+        <EnhancedApprovalCard
             item={item}
             onApprove={handleApprove}
             onReject={handleReject}
@@ -28,7 +28,7 @@ export default function ApprovalsScreen({ navigation }) {
         />
     ), [handleApprove, handleReject, theme]);
 
-    if (loading) {
+    if (loading && !refreshing) {
         return (
             <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
                 <CustomSpinner size="large" color={theme.colors.primary} />
@@ -39,26 +39,31 @@ export default function ApprovalsScreen({ navigation }) {
     return (
         <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
             <View style={styles.filterContainer}>
-                {['ALL', 'JOB', 'COST'].map(f => (
+                {[
+                    { id: 'ALL', label: 'Tümü' },
+                    { id: 'JOB', label: 'İşler' },
+                    { id: 'STEP', label: 'Adımlar' },
+                    { id: 'COST', label: 'Masraflar' }
+                ].map(f => (
                     <TouchableOpacity
-                        key={f}
+                        key={f.id}
                         style={[
                             styles.filterButton,
                             {
-                                backgroundColor: filter === f ? theme.colors.primary : theme.colors.card,
-                                borderColor: filter === f ? theme.colors.primary : theme.colors.border
+                                backgroundColor: filter === f.id ? theme.colors.primary : theme.colors.card,
+                                borderColor: filter === f.id ? theme.colors.primary : theme.colors.cardBorder
                             }
                         ]}
-                        onPress={() => setFilter(f)}
+                        onPress={() => setFilter(f.id)}
                     >
                         <Text style={[
                             styles.filterText,
                             {
-                                color: filter === f ? theme.colors.textInverse : theme.colors.subText,
-                                fontWeight: filter === f ? 'bold' : '500'
+                                color: filter === f.id ? '#fff' : theme.colors.subText,
+                                fontWeight: filter === f.id ? 'bold' : '500'
                             }
                         ]}>
-                            {f === 'ALL' ? 'Tümü' : f === 'JOB' ? 'İşler' : 'Masraflar'}
+                            {f.label}
                         </Text>
                     </TouchableOpacity>
                 ))}
@@ -68,7 +73,7 @@ export default function ApprovalsScreen({ navigation }) {
                 style={{ flex: 1 }}
                 data={filteredApprovals}
                 renderItem={renderItem}
-                keyExtractor={item => `${item.type} -${item.id} `}
+                keyExtractor={item => `${item.type}-${item.id}`}
                 contentContainerStyle={[styles.listContent, { flexGrow: 1 }]}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />
@@ -100,16 +105,17 @@ const styles = StyleSheet.create({
     filterContainer: {
         flexDirection: 'row',
         padding: 16,
-        gap: 12,
+        gap: 8,
+        flexWrap: 'wrap'
     },
     filterButton: {
         paddingVertical: 8,
-        paddingHorizontal: 16,
+        paddingHorizontal: 12,
         borderRadius: 20,
         borderWidth: 1,
     },
     filterText: {
-        fontSize: 14,
+        fontSize: 12,
     },
     listContent: {
         padding: 16,

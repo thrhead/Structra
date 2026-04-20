@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
 import { z } from 'zod'
 import { notifyJobCompletion } from '@/lib/notifications'
+import { getPendingJobSteps } from '@/lib/data/approvals'
 
 const createApprovalSchema = z.object({
   jobId: z.string(),
@@ -33,6 +34,7 @@ export async function GET(req: Request) {
       where.requesterId = session.user.id
     }
 
+    // 1. Fetch main job approvals
     const approvals = await prisma.approval.findMany({
       where,
       include: {
@@ -47,13 +49,6 @@ export async function GET(req: Request) {
             name: true,
             email: true
           }
-        },
-        approver: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
         }
       },
       orderBy: {
@@ -61,7 +56,14 @@ export async function GET(req: Request) {
       }
     })
 
-    return NextResponse.json({ approvals })
+    // 2. Fetch pending steps and sub-steps (New Feature)
+    const { steps, subSteps } = await getPendingJobSteps();
+
+    return NextResponse.json({ 
+      approvals,
+      pendingSteps: steps,
+      pendingSubSteps: subSteps
+    })
   } catch (error) {
     console.error('Get approvals error:', error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
