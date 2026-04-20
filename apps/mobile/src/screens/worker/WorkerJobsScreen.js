@@ -18,7 +18,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import jobService from '../../services/job.service';
-import JobListItem from '../../components/JobListItem';
+import JobGridItem from '../../components/JobGridItem';
 import CreateJobModal from '../../components/modals/CreateJobModal';
 import UploadJobModal from '../../components/modals/UploadJobModal';
 import { useJobFiltering } from '../../hooks/useJobFiltering';
@@ -89,8 +89,8 @@ export default function WorkerJobsScreen() {
     };
 
     const renderItem = useCallback(({ item }) => (
-        <JobListItem
-            item={item}
+        <JobGridItem
+            job={item}
             onPress={(job) => navigation.navigate('JobDetail', { jobId: job.id })}
         />
     ), [navigation]);
@@ -130,6 +130,8 @@ export default function WorkerJobsScreen() {
 
             <FlatList
                 style={{ flex: 1 }}
+                numColumns={2}
+                columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 16 }}
                 data={filteredJobs}
                 renderItem={renderItem}
                 keyExtractor={item => item.id?.toString()}
@@ -167,7 +169,7 @@ export default function WorkerJobsScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1 },
-    listContent: { padding: 16, paddingTop: 0, paddingBottom: 100, flexGrow: 1 },
+    listContent: { paddingVertical: 16, paddingBottom: 100, flexGrow: 1 },
     emptyContainer: { padding: 20, alignItems: 'center' },
     emptyText: { fontWeight: '600' },
 });

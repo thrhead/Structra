@@ -25,7 +25,7 @@ import jobService from '../../services/job.service';
 import costService from '../../services/cost.service';
 import { LinearGradient } from 'expo-linear-gradient';
 import StatCard from '../../components/StatCard';
-import JobCard from '../../components/JobCard';
+import JobGridItem from '../../components/JobGridItem';
 import { useAlert } from '../../context/AlertContext';
 import LoadingOverlay from '../../components/common/LoadingOverlay';
 
@@ -247,21 +247,21 @@ export default function WorkerDashboardScreen({ navigation }) {
             </View>
 
             <FlatList
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.tasksScroll}
-                contentContainerStyle={{ paddingHorizontal: 16 }}
+                numColumns={2}
+                showsVerticalScrollIndicator={false}
+                scrollEnabled={false} // Parent ScrollView handles scrolling
+                columnWrapperStyle={{ justifyContent: 'space-between', gap: 16 }}
+                contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
                 data={getFilteredJobs()}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => (
-                    <JobCard
+                    <JobGridItem
                         job={item}
                         onPress={() => navigation.navigate('JobDetail', { jobId: item.id })}
-                        style={{ width: width * 0.75, marginRight: 16 }}
                     />
                 )}
                 ListEmptyComponent={
-                    <View style={[styles.emptyStateContainer, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder }]}>
+                    <View style={[styles.emptyStateContainer, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder, width: '100%' }]}>
                         <View style={[styles.emptyStateIconContainer, { backgroundColor: theme.colors.card }]}>
                             <MaterialIcons
                                 name={activeFilter === 'ALL' ? 'assignment' : activeFilter === 'PENDING' ? 'pending-actions' : 'hourglass-empty'}
