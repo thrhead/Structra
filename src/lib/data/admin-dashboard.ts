@@ -62,26 +62,27 @@ export async function getAdminDashboardData() {
       // 1: todaysCosts
       prisma.costTracking.findMany({
         where: {
-          date: { gte: today }
+          date: { gte: today },
+          job: { isNot: null }
         },
         select: { amount: true }
       }).catch(e => { console.error("todaysCosts fetch failed", e); return []; }),
 
       // 2: pendingApprovalsCount (Total pending actions: Approvals + Pending Costs)
       Promise.all([
-        prisma.approval.count({ where: { status: 'PENDING' } }),
-        prisma.costTracking.count({ where: { status: 'PENDING' } })
+        prisma.approval.count({ where: { status: 'PENDING', job: { isNot: null } } }),
+        prisma.costTracking.count({ where: { status: 'PENDING', job: { isNot: null } } })
       ]).then(([appr, costs]) => appr + costs).catch(e => { console.error("pendingApprovalsCount fetch failed", e); return 0; }),
 
       // 3: pendingCostsAgg
       prisma.costTracking.aggregate({
-        where: { status: 'PENDING' },
+        where: { status: 'PENDING', job: { isNot: null } },
         _sum: { amount: true }
       }).catch(e => { console.error("pendingCostsAgg fetch failed", e); return { _sum: { amount: 0 } }; }),
 
       // 4: approvedCostsAgg
       prisma.costTracking.aggregate({
-        where: { status: 'APPROVED' },
+        where: { status: 'APPROVED', job: { isNot: null } },
         _sum: { amount: true }
       }).catch(e => { console.error("approvedCostsAgg fetch failed", e); return { _sum: { amount: 0 } }; }),
 
@@ -89,7 +90,8 @@ export async function getAdminDashboardData() {
       prisma.jobStep.findMany({
         where: {
           isCompleted: true,
-          completedAt: { gte: sevenDaysAgo }
+          completedAt: { gte: sevenDaysAgo },
+          job: { isNot: null } // Sadece var olan işlerin adımlarını getir
         },
         select: { completedAt: true }
       }).catch(e => { console.error("weeklyCompletedSteps fetch failed", e); return []; }),
@@ -211,7 +213,11 @@ export async function getAdminDashboardData() {
               where: { createdAt: { gte: d, lte: dEnd } }
             }),
             prisma.costTracking.aggregate({
-              where: { date: { gte: d, lte: dEnd }, status: 'APPROVED' },
+              where: { 
+                date: { gte: d, lte: dEnd }, 
+                status: 'APPROVED',
+                job: { isNot: null } // Sadece var olan işlerin maliyetlerini getir
+              },
               _sum: { amount: true }
             })
           ])
@@ -265,14 +271,16 @@ export async function getAdminDashboardData() {
       const d = new Date(today)
       d.setDate(today.getDate() - (6 - i))
       const dateStr = d.toISOString().split('T')[0]
-      const displayDate = d.toLocaleDateString('tr-TR', { weekday: 'short' })
+      const dayName = d.toLocaleDateString('tr-TR', { weekday: 'short' })
+      const dayMonth = d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })
+      const displayLabel = `${dayName} ${dayMonth}`
 
       const count = weeklyCompletedSteps.filter(step =>
         step.completedAt && step.completedAt.toISOString().split('T')[0] === dateStr
       ).length
 
       return {
-        name: displayDate,
+        name: displayLabel,
         count
       }
     })

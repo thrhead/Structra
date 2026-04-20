@@ -510,7 +510,8 @@ export const getWeeklyCompletedSteps = unstable_cache(
         const steps = await prisma.jobStep.findMany({
             where: {
                 isCompleted: true,
-                completedAt: { gte: prev7Days, lte: today }
+                completedAt: { gte: prev7Days, lte: today },
+                job: { isNot: null } // Sadece var olan işlerin adımlarını getir
             },
             include: {
                 job: {
