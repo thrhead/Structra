@@ -12,7 +12,8 @@ import {
     MessageSquare,
     ArrowRight,
     AlertTriangle,
-    CheckCircle2
+    CheckCircle2,
+    Shield
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import dynamic from 'next/dynamic'
@@ -36,13 +37,34 @@ export default function ModernDashboardView({ data }: ModernDashboardViewProps) 
     }
 
     const totalPending = generalStats.pendingApprovals || 0;
+    const completionRate = Math.round(((generalStats.completedJobs || 0) / (generalStats.totalJobs || 1)) * 100);
 
     return (
         <div className="bg-[#f8fafc] dark:bg-slate-950 -m-6 p-8 min-h-screen space-y-8 animate-in fade-in duration-700">
-            <style jsx global>{`
-                .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-                .chart-grid { background-image: radial-gradient(#e2e8f0 1px, transparent 1px); background-size: 20px 20px; }
-            `}</style>
+
+            {/* SLA Alert Banner — placed at top for visibility, NOT overlapping charts */}
+            {totalPending > 0 && (
+                <Link href="/admin/approvals" className="block">
+                    <div className="p-4 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/20 flex items-center justify-between group hover:border-rose-400 hover:shadow-lg transition-all duration-300 shadow-sm">
+                        <div className="flex items-center gap-4">
+                            <div className="p-2.5 bg-rose-500 text-white rounded-xl shadow-sm">
+                                <AlertTriangle className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <div className="text-sm font-black text-rose-700 dark:text-rose-400 uppercase tracking-tight">
+                                    Kritik SLA Uyarısı: Bekleyen Onaylar
+                                </div>
+                                <p className="text-xs text-rose-600/70 dark:text-rose-400/60 font-medium mt-0.5">
+                                    Sistemde {totalPending} adet onay bekleyen kayıt operasyonel hızı etkiliyor
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400 font-black text-xs uppercase tracking-wider flex-shrink-0">
+                            Hemen Çöz <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        </div>
+                    </div>
+                </Link>
+            )}
 
             {/* 4 KPI Cards */}
             <section className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -82,7 +104,7 @@ export default function ModernDashboardView({ data }: ModernDashboardViewProps) 
                 {/* Pending Approvals */}
                 <Link href="/admin/approvals" className="block">
                     <div className={cn(
-                        "p-5 rounded-xl border flex items-center gap-4 shadow-sm transition-all",
+                        "p-5 rounded-xl border flex items-center gap-4 shadow-sm transition-all h-full",
                         totalPending > 0 ? "bg-purple-50 dark:bg-purple-900/10 border-purple-200 dark:border-purple-800" : "bg-white dark:bg-slate-900 border-[#e2e8f0] dark:border-slate-800"
                     )}>
                         <div className={cn("p-3 rounded-lg", totalPending > 0 ? "bg-purple-100 text-purple-600" : "bg-slate-100 text-slate-400")}>
@@ -99,7 +121,7 @@ export default function ModernDashboardView({ data }: ModernDashboardViewProps) 
             {/* Main Charts & Content */}
             <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* System Pulse */}
-                <div className="lg:col-span-1 bg-white dark:bg-slate-900 rounded-xl p-6 border border-[#e2e8f0] dark:border-slate-800 shadow-sm flex flex-col h-full">
+                <div className="lg:col-span-1 bg-white dark:bg-slate-900 rounded-xl p-6 border border-[#e2e8f0] dark:border-slate-800 shadow-sm flex flex-col">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-sm font-bold flex items-center gap-2 text-[#0f172a] dark:text-white uppercase tracking-tighter">
                             <BarChart3 className="w-5 h-5 text-[#6366f1]" /> SİSTEM NABZI
@@ -111,12 +133,12 @@ export default function ModernDashboardView({ data }: ModernDashboardViewProps) 
                             {generalStats.completedJobs || 0} <span className="text-xs font-medium text-[#64748b] tracking-normal">İş Bitti</span>
                         </h3>
                     </div>
-                    <div className="space-y-3 mb-8">
+                    <div className="space-y-3 mb-6">
                         <div className="flex justify-between items-center text-xs">
                             <span className="flex items-center gap-2 text-[#64748b] font-medium">
                                 <span className="w-2 h-2 rounded-full bg-blue-500"></span> Mevcut Performans
                             </span>
-                            <span className="font-black">%{Math.round(((generalStats.completedJobs || 0) / (generalStats.totalJobs || 1)) * 100)}</span>
+                            <span className="font-black">%{completionRate}</span>
                         </div>
                         <div className="flex justify-between items-center text-xs">
                             <span className="flex items-center gap-2 text-[#64748b] font-medium">
@@ -125,14 +147,18 @@ export default function ModernDashboardView({ data }: ModernDashboardViewProps) 
                             <span className="font-black text-emerald-500">85%</span>
                         </div>
                     </div>
-                    <div className="h-48 w-full mt-auto">
+                    {/* Chart with proper overflow containment */}
+                    <div className="flex-1 min-h-[200px] w-full relative overflow-hidden">
                         <WeeklyStepsChart data={weeklySteps} categories={weeklySteps.categories} />
                     </div>
+                    <p className="text-[10px] text-center text-slate-400 dark:text-slate-500 mt-3 font-medium">
+                        Grafikteki sütunlara tıklayarak günlük detayları inceleyebilirsiniz
+                    </p>
                 </div>
 
                 {/* Team Performance List */}
-                <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-[#e2e8f0] dark:border-slate-800 shadow-sm overflow-hidden flex flex-col h-full">
-                    <div className="p-6 border-b dark:border-slate-800 border-[#e2e8f0] dark:border-slate-800 flex justify-between items-center">
+                <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-[#e2e8f0] dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+                    <div className="p-6 border-b border-[#e2e8f0] dark:border-slate-800 flex justify-between items-center">
                         <div>
                             <h3 className="text-lg font-black text-[#0f172a] dark:text-white tracking-tighter uppercase">Ekip Performans Matrisi</h3>
                             <p className="text-[10px] font-bold text-[#64748b] uppercase tracking-widest mt-1">Gerçek zamanlı verimlilik sıralaması</p>
@@ -191,31 +217,19 @@ export default function ModernDashboardView({ data }: ModernDashboardViewProps) 
                                         </td>
                                     </tr>
                                 ))}
+                                {teamPerformance.length === 0 && (
+                                    <tr>
+                                        <td colSpan={4} className="text-center py-12 text-slate-400 dark:text-slate-500">
+                                            <Users className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                                            <p className="text-xs font-medium">Henüz ekip performans verisi yok</p>
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>
                 </div>
             </section>
-
-            {/* SLA Alert Bar */}
-            {totalPending > 0 && (
-                <Link href="/admin/approvals" className="block animate-pulse">
-                    <div className="p-4 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/20 flex items-center justify-between group hover:border-rose-400 transition-all shadow-sm">
-                        <div className="flex items-center gap-4">
-                            <div className="p-2 bg-rose-500 text-white rounded-full">
-                                <AlertTriangle className="w-5 h-5" />
-                            </div>
-                            <div>
-                                <div className="text-sm font-black text-rose-700 dark:text-rose-400 uppercase tracking-tighter">KRİTİK SLA UYARISI: GECİKMİŞ ONAYLAR</div>
-                                <p className="text-xs text-rose-600/80 font-medium">Bekleyen {totalPending} adet kayıt operasyonel hızı yavaşlatıyor.</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2 text-rose-600 font-black text-xs uppercase tracking-widest">
-                            Hemen Çöz <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                        </div>
-                    </div>
-                </Link>
-            )}
         </div>
     )
 }
