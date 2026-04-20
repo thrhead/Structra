@@ -1,25 +1,31 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 
-const { width: windowWidth } = Dimensions.get('window');
-
 const JobGridItem = ({ job, onPress, style }) => {
     const { theme, isDark } = useTheme();
+    const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
-    // Responsive sizing logic
+    // Akıllı Boyutlandırma: 
+    // Genişlik: Ekranın yarısından boşlukları çıkarıyoruz.
+    // Yükseklik: Ekran yüksekliğinin yaklaşık %22-25'i (Böylece header ile birlikte 2 satır tam sığar).
     const numColumns = windowWidth > 600 ? 3 : 2;
-    const spacing = 16;
+    const spacing = 12;
     const cardWidth = (windowWidth - (spacing * (numColumns + 1))) / numColumns;
+    const cardHeight = windowHeight * 0.23; // Dinamik yükseklik hesaplama
 
-    // Data mapping
-    const companyName = job.customer?.company || 'Firma Yok';
-    const contactPerson = job.customer?.user?.name || 'Yetkili Yok';
-    const teamLead = job.assignments?.[0]?.team?.lead?.name || 
-                     job.assignments?.[0]?.worker?.name || 
-                     job.assignee?.name || 
-                     'Sorumlu Yok';
+    // Veri Eşleştirme (Data Mapping) - Çok Katmanlı Kontrol
+    const companyName = job.customer?.company || job.customerName || 'Firma Yok';
+    const contactPerson = job.customer?.user?.name || job.contactPerson || 'Yetkili Yok';
+    
+    // Sorumlu Kişi / Ekip Lideri Bulma Mantığı
+    const teamLead = 
+        job.assignments?.[0]?.team?.lead?.name || // Team -> Lead -> Name
+        job.assignments?.[0]?.worker?.name ||      // Doğrudan atanan işçi
+        job.teamLeadName ||                        // Düzleştirilmiş veri
+        job.assignee?.name ||                      // Alternatif atama
+        'Sorumlu Atanmamış';
 
     const renderStatusBadge = () => {
         let bgColor = isDark ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.1)';
@@ -51,20 +57,21 @@ const JobGridItem = ({ job, onPress, style }) => {
                 styles.container,
                 {
                     width: cardWidth,
+                    height: cardHeight,
                     backgroundColor: theme.colors.card,
                     borderColor: theme.colors.cardBorder,
                 },
-                job.status === 'IN_PROGRESS' && { borderColor: theme.colors.primary + '60', borderWidth: 1.5 },
+                job.status === 'IN_PROGRESS' && { borderColor: theme.colors.primary + '80', borderWidth: 1.5 },
                 style
             ]}
         >
-            {/* Header */}
+            {/* Üst Kısım: ID ve Durum */}
             <View style={styles.topRow}>
                 <Text style={[styles.jobId, { color: theme.colors.primary }]}>#{job.jobNo || '---'}</Text>
                 {renderStatusBadge()}
             </View>
 
-            {/* Title & Company */}
+            {/* Orta Kısım: Başlık ve Müşteri Bilgileri */}
             <View style={styles.content}>
                 <Text style={[styles.title, { color: theme.colors.text }]} numberOfLines={1}>
                     {job.title}
@@ -83,11 +90,11 @@ const JobGridItem = ({ job, onPress, style }) => {
                 </View>
             </View>
 
-            {/* Responsible & Location */}
+            {/* Sorumlu ve Konum */}
             <View style={styles.middleInfo}>
                 <View style={styles.infoIconRow}>
-                    <MaterialIcons name="groups" size={12} color={theme.colors.primary} />
-                    <Text style={[styles.infoText, { color: theme.colors.text }]} numberOfLines={1}>
+                    <MaterialIcons name="groups" size={13} color={theme.colors.primary} />
+                    <Text style={[styles.infoText, { color: theme.colors.text, fontWeight: '700' }]} numberOfLines={1}>
                         {teamLead}
                     </Text>
                 </View>
@@ -99,7 +106,7 @@ const JobGridItem = ({ job, onPress, style }) => {
                 </View>
             </View>
 
-            {/* Progress */}
+            {/* İlerleme Çubuğu */}
             <View style={styles.footer}>
                 <View style={styles.progressHeader}>
                     <Text style={[styles.percentageText, { color: theme.colors.primary }]}>%{job.progress || 0}</Text>
@@ -122,11 +129,10 @@ const JobGridItem = ({ job, onPress, style }) => {
 
 const styles = StyleSheet.create({
     container: {
-        borderRadius: 20,
+        borderRadius: 18,
         padding: 12,
-        marginBottom: 16,
+        marginBottom: 12,
         borderWidth: 1,
-        aspectRatio: 0.82, // Dikdörtgen form (Bilgilerin sığması için optimize edildi)
         justifyContent: 'space-between',
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
@@ -138,6 +144,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+        marginBottom: 4,
     },
     badge: {
         paddingHorizontal: 6,
@@ -147,17 +154,19 @@ const styles = StyleSheet.create({
     badgeText: {
         fontSize: 9,
         fontWeight: '900',
+        textTransform: 'uppercase',
     },
     jobId: {
         fontSize: 10,
         fontWeight: '900',
     },
     content: {
-        gap: 2,
+        gap: 1,
     },
     title: {
         fontSize: 13,
         fontWeight: '800',
+        marginBottom: 2,
     },
     detailItem: {
         flexDirection: 'row',
@@ -173,7 +182,8 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     },
     middleInfo: {
-        gap: 3,
+        marginVertical: 4,
+        gap: 2,
         paddingTop: 4,
         borderTopWidth: 0.5,
         borderTopColor: 'rgba(156, 163, 175, 0.1)',
@@ -202,6 +212,7 @@ const styles = StyleSheet.create({
         height: 4,
         borderRadius: 2,
         overflow: 'hidden',
+        width: '100%',
     },
     progressFill: {
         height: '100%',
