@@ -1,5 +1,6 @@
 import { prisma } from './db'
 import { sendNotificationToUsers, NotificationType } from './notification-helper'
+import { sendPushNotification } from './push-notification'
 
 export interface NotificationInput {
   userId: string
@@ -274,4 +275,45 @@ export async function notifyAdminsOfJobCompletion(jobId: string) {
     `/admin/jobs/${jobId}`,
     { jobId }
   )
+}
+
+/**
+ * Send push notification to a specific user using their registered tokens
+ */
+export async function sendPushNotificationToUser(userId: string, title: string, body: string, data?: any) {
+  const tokens = await prisma.pushToken.findMany({
+    where: { userId }
+  })
+
+  const results = []
+  for (const tokenRecord of tokens) {
+    try {
+      const result = await sendPushNotification({
+        to: tokenRecord.token,
+        title,
+        body,
+        data
+      })
+      results.push(result)
+
+      // Handle DeviceNotRegistered in the returned result (array of tickets)
+      if (Array.isArray(result)) {
+        for (const ticket of result) {
+          if (ticket.status === 'error' && (ticket.message === 'DeviceNotRegistered' || ticket.details?.error === 'DeviceNotRegistered')) {
+            await prisma.pushToken.delete({
+              where: { id: tokenRecord.id }
+            })
+          }
+        }
+      }
+    } catch (error: any) {
+      if (error.message === 'DeviceNotRegistered' || (error.details && error.details.error === 'DeviceNotRegistered')) {
+        await prisma.pushToken.delete({
+          where: { id: tokenRecord.id }
+        })
+      }
+      results.push({ status: 'error', message: error.message })
+    }
+  }
+  return results
 }

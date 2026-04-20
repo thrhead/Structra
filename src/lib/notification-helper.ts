@@ -48,7 +48,7 @@ export async function sendNotificationToUsers(
                 const users = await prisma.user.findMany({
                     where: { id: { in: userIds } },
                     include: { pushTokens: true }
-                });
+                }) || [];
 
                 const messages: ExpoPushMessage[] = [];
                 let totalTokens = 0;

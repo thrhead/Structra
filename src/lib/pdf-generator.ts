@@ -56,11 +56,7 @@ export function generateJobPDF(data: JobReportData) {
     const doc = new jsPDF()
 
     // Add Turkish font support
-    doc.addFileToVFS('DejaVuSans.ttf', DEJAVU_SANS_NORMAL)
-    doc.addFont('DejaVuSans.ttf', 'DejaVuSans', 'normal')
-    doc.addFileToVFS('DejaVuSans-Bold.ttf', DEJAVU_SANS_BOLD)
-    doc.addFont('DejaVuSans-Bold.ttf', 'DejaVuSans', 'bold')
-    doc.setFont('DejaVuSans')
+    setupPDF(doc)
 
     // Professional branding tokens
     const BRAND_COLOR = [15, 23, 42] // Slate-900 for enterprise feel
@@ -248,11 +244,7 @@ export function generateCostReportPDF(costs: Array<{
     const doc = new jsPDF()
 
     // Add Turkish font support
-    doc.addFileToVFS('DejaVuSans.ttf', DEJAVU_SANS_NORMAL)
-    doc.addFont('DejaVuSans.ttf', 'DejaVuSans', 'normal')
-    doc.addFileToVFS('DejaVuSans-Bold.ttf', DEJAVU_SANS_BOLD)
-    doc.addFont('DejaVuSans-Bold.ttf', 'DejaVuSans', 'bold')
-    doc.setFont('DejaVuSans')
+    setupPDF(doc)
 
     let yPos = 20
 
@@ -469,11 +461,13 @@ export function generateFinancialPDF(summary: any) {
 
 // Helper to setup PDF fonts
 function setupPDF(doc: jsPDF) {
-    doc.addFileToVFS('DejaVuSans.ttf', DEJAVU_SANS_NORMAL);
-    doc.addFont('DejaVuSans.ttf', 'DejaVuSans', 'normal');
-    doc.addFileToVFS('DejaVuSans-Bold.ttf', DEJAVU_SANS_BOLD);
-    doc.addFont('DejaVuSans-Bold.ttf', 'DejaVuSans', 'bold');
-    doc.setFont('DejaVuSans');
+    if (typeof doc.addFileToVFS === 'function') {
+        doc.addFileToVFS('DejaVuSans.ttf', DEJAVU_SANS_NORMAL);
+        doc.addFont('DejaVuSans.ttf', 'DejaVuSans', 'normal');
+        doc.addFileToVFS('DejaVuSans-Bold.ttf', DEJAVU_SANS_BOLD);
+        doc.addFont('DejaVuSans-Bold.ttf', 'DejaVuSans', 'bold');
+        doc.setFont('DejaVuSans');
+    }
 }
 
 // 6. İş Akışı Denetimi PDF

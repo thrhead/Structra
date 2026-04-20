@@ -277,7 +277,12 @@ export async function getAllTeamsSummary() {
             id: true,
             name: true,
             lead: { select: { name: true } },
-            members: { select: { userId: true } },
+            _count: {
+                select: {
+                    members: true,
+                    assignments: true
+                }
+            },
             assignments: {
                 select: {
                     job: {
@@ -295,7 +300,7 @@ export async function getAllTeamsSummary() {
     });
 
     const reports = teams.map(team => {
-        const jobs = team.assignments.map(a => a.job);
+        const jobs = team.assignments?.map(a => a.job) || [];
         const totalJobs = jobs.length;
         const completedJobs = jobs.filter(j => j.status === 'COMPLETED').length;
         const successRate = totalJobs > 0 ? Math.round((completedJobs / totalJobs) * 100) : 0;
@@ -308,7 +313,7 @@ export async function getAllTeamsSummary() {
             id: team.id,
             name: team.name,
             leadName: team.lead?.name || 'Atanmamış',
-            memberCount: team.members.length,
+            memberCount: team._count.members,
             stats: {
                 completedJobs,
                 totalJobs,
@@ -329,3 +334,8 @@ export async function getAllTeamsSummary() {
 
     return { reports, globalStats };
 }
+
+/**
+ * Alias for getAllTeamsSummary to satisfy tests
+ */
+export const getAllTeamsReports = getAllTeamsSummary;

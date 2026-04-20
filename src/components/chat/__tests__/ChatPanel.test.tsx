@@ -1,14 +1,14 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ChatPanel } from '../ChatPanel'
-import { useSocket } from '@/components/providers/socket-provider'
+import { useAbly } from '@/components/providers/ably-provider'
 import { useSession } from 'next-auth/react'
 import { CryptoService } from '@/lib/crypto-service'
 import { offlineDB } from '@/lib/offline-db'
 
 // Mocks
-vi.mock('@/components/providers/socket-provider', () => ({
-    useSocket: vi.fn(),
+vi.mock('@/components/providers/ably-provider', () => ({
+    useAbly: vi.fn(),
 }))
 
 vi.mock('next-auth/react', () => ({
@@ -41,16 +41,22 @@ describe('ChatPanel Component', () => {
         user: { id: 'user-1', name: 'Test User' },
     }
 
-    const mockSocket = {
-        emit: vi.fn(),
-        on: vi.fn(),
-        off: vi.fn(),
+    const mockChannel = {
+        subscribe: vi.fn(),
+        unsubscribe: vi.fn(),
+        publish: vi.fn(),
+    }
+
+    const mockAbly = {
+        channels: {
+            get: vi.fn().mockReturnValue(mockChannel)
+        }
     }
 
     beforeEach(() => {
         vi.clearAllMocks()
         ;(useSession as any).mockReturnValue({ data: mockSession })
-        ;(useSocket as any).mockReturnValue({ socket: mockSocket, isConnected: true })
+        ;(useAbly as any).mockReturnValue({ client: mockAbly, isConnected: true })
         ;(global.fetch as any).mockResolvedValue({
             ok: true,
             json: () => Promise.resolve([]),
@@ -125,7 +131,7 @@ describe('ChatPanel Component', () => {
 
     it('should handle real-time message reception', async () => {
         let receiveCallback: any
-        mockSocket.on.mockImplementation((event, cb) => {
+        mockChannel.subscribe.mockImplementation((event, cb) => {
             if (event === 'receive:message') receiveCallback = cb
         })
 
@@ -136,15 +142,17 @@ describe('ChatPanel Component', () => {
         })
 
         const newMessage = {
-            id: 'msg-2',
-            content: 'Real-time message',
-            senderId: 'user-2',
-            sentAt: new Date().toISOString(),
-            isEncrypted: false,
-            sender: { id: 'user-2', name: 'Other User', avatarUrl: null },
+            data: {
+                id: 'msg-2',
+                content: 'Real-time message',
+                senderId: 'user-2',
+                sentAt: new Date().toISOString(),
+                isEncrypted: false,
+                sender: { id: 'user-2', name: 'Other User', avatarUrl: null },
+            }
         }
 
-        // Trigger socket event
+        // Trigger socket event (Ably style: message.data)
         receiveCallback(newMessage)
 
         await waitFor(() => {

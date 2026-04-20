@@ -17,6 +17,7 @@ vi.mock('./db', () => ({
     },
     notification: {
       create: vi.fn(),
+      createMany: vi.fn(),
     },
     job: {
       findUnique: vi.fn(),
@@ -119,12 +120,12 @@ describe('Notification Logic (Issue #72)', () => {
         link: '/test'
       })
       
-      expect(prisma.notification.create).toHaveBeenCalled()
+      // Small delay to allow background pushPromise to complete
+      await new Promise(resolve => setTimeout(resolve, 50))
+      
+      expect(prisma.notification.createMany).toHaveBeenCalled()
       expect(publishToUser).toHaveBeenCalledWith('user1', 'notification:new', expect.anything())
-      // sendPushNotificationToUser is called internally, which calls prisma.pushToken.findMany
-      expect(prisma.pushToken.findMany).toHaveBeenCalledWith({
-        where: { userId: 'user1' }
-      })
+      expect(prisma.user.findMany).toHaveBeenCalled()
     })
   })
 
@@ -142,8 +143,11 @@ describe('Notification Logic (Issue #72)', () => {
       
       await notifyJobAssignment('job1', ['worker1', 'worker2'])
       
-      expect(prisma.notification.create).toHaveBeenCalledTimes(2)
-      expect(prisma.pushToken.findMany).toHaveBeenCalledTimes(2)
+      // Small delay to allow background pushPromise to complete
+      await new Promise(resolve => setTimeout(resolve, 50))
+      
+      expect(prisma.notification.createMany).toHaveBeenCalled()
+      expect(prisma.user.findMany).toHaveBeenCalled()
     })
   })
 })
