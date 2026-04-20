@@ -69,8 +69,8 @@ export async function createJobAction(data: any) {
     const jobNo = await generateJobNumber();
 
     const job = await prisma.$transaction(async (tx) => {
-      // 1. Create Job
-      const newJob = await tx.job.create({
+      // Create Job with nested Assignments, Steps, and Substeps
+      return await tx.job.create({
         data: {
           jobNo: jobNo,
           projectNo: (validated.data.projectNo && validated.data.projectNo.trim() !== '') 
@@ -86,58 +86,49 @@ export async function createJobAction(data: any) {
           scheduledEndDate: validated.data.scheduledEndDate ? new Date(validated.data.scheduledEndDate) : null,
           budget: validated.data.budget,
           estimatedDuration: validated.data.estimatedDuration,
-          creatorId: session.user.id }
-      })
-
-      // 2. Create Assignment
-      if ((validated.data.teamId && validated.data.teamId !== 'none') || (validated.data.workerId && validated.data.workerId !== 'none')) {
-        await tx.jobAssignment.create({
-          data: {
-            jobId: newJob.id,
-            teamId: (validated.data.teamId === 'none' || !validated.data.teamId) ? undefined : validated.data.teamId,
-            workerId: (validated.data.workerId === 'none' || !validated.data.workerId) ? undefined : validated.data.workerId
-          }
-        })
-      }
-
-      // 3. Create Steps & Substeps
-      if (validated.data.steps && validated.data.steps.length > 0) {
-        for (let i = 0; i < validated.data.steps.length; i++) {
-          const stepOrder = i + 1;
-          const stepData = validated.data.steps[i]
-          const stepNo = generateStepNumber(jobNo, stepOrder);
-
-          const newStep = await tx.jobStep.create({
-            data: {
-              jobId: newJob.id,
-              stepNo: stepNo,
-              title: stripHtml(stepData.title),
-              description: stepData.description ? sanitizeHtml(stepData.description) : null,
-              order: stepOrder
-            }
-          })
-
-          if (stepData.subSteps && stepData.subSteps.length > 0) {
-            for (let j = 0; j < stepData.subSteps.length; j++) {
-              const subStepOrder = j + 1;
-              const subStepData = stepData.subSteps[j];
-              const subStepNo = generateSubStepNumber(stepNo, subStepOrder);
-
-              await tx.jobSubStep.create({
-                data: {
-                  stepId: newStep.id,
-                  subStepNo: subStepNo,
-                  title: stripHtml(subStepData.title),
-                  order: subStepOrder
+          creatorId: session.user.id,
+          // Nested Assignments
+          assignments: (validated.data.teamId && validated.data.teamId !== 'none') || (validated.data.workerId && validated.data.workerId !== 'none') 
+            ? {
+                create: {
+                  teamId: (validated.data.teamId === 'none' || !validated.data.teamId) ? undefined : validated.data.teamId,
+                  workerId: (validated.data.workerId === 'none' || !validated.data.workerId) ? undefined : validated.data.workerId
                 }
-              })
-            }
-          }
+              }
+            : undefined,
+          // Nested Steps & Substeps
+          steps: (validated.data.steps && validated.data.steps.length > 0)
+            ? {
+                create: validated.data.steps.map((stepData: any, i: number) => {
+                  const stepOrder = i + 1;
+                  const stepNo = generateStepNumber(jobNo, stepOrder);
+                  return {
+                    stepNo,
+                    title: stripHtml(stepData.title),
+                    description: stepData.description ? sanitizeHtml(stepData.description) : null,
+                    order: stepOrder,
+                    subSteps: (stepData.subSteps && stepData.subSteps.length > 0)
+                      ? {
+                          create: stepData.subSteps.map((subStepData: any, j: number) => {
+                            const subStepOrder = j + 1;
+                            return {
+                              subStepNo: generateSubStepNumber(stepNo, subStepOrder),
+                              title: stripHtml(subStepData.title),
+                              order: subStepOrder
+                            };
+                          })
+                        }
+                      : undefined
+                  };
+                })
+              }
+            : undefined
         }
-      }
-
-      return newJob
-    })
+      });
+    }, {
+      maxWait: 10000,
+      timeout: 30000
+    });
 
     await EventBus.emit('job.created', job);
 
@@ -287,6 +278,7 @@ export async function updateJobAction(data: any) {
           })
         }
 
+        // Handle steps sequentially but optimize sub-step deletions
         for (let i = 0; i < steps.length; i++) {
           const stepOrder = i + 1;
           const stepData = steps[i]
@@ -357,6 +349,9 @@ export async function updateJobAction(data: any) {
           }
         }
       }
+    }, {
+      maxWait: 10000,
+      timeout: 30000
     })
 
     await EventBus.emit('job.updated', { id, status, acceptanceStatus });
