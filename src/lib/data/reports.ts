@@ -44,9 +44,10 @@ export const getReportStats = unstable_cache(
         const totalJobs = pendingJobs + inProgressJobs + completedJobs;
 
         const costWhere: any = {
-            date: { gte: startDate, lte: endDate }
+            date: { gte: startDate, lte: endDate },
+            job: { isNot: null } // Sadece mevcut işlerin maliyetlerini getir
         };
-        if (jobStatus && jobStatus !== 'all') costWhere.job = { status: jobStatus };
+        if (jobStatus && jobStatus !== 'all') costWhere.job = { ...costWhere.job, status: jobStatus };
         if (jobId && jobId !== 'all') costWhere.jobId = jobId;
         if (category && category !== 'all') costWhere.category = category;
 
@@ -84,7 +85,8 @@ export const getCostBreakdown = unstable_cache(
             date: {
                 gte: startDate,
                 lte: endDate
-            }
+            },
+            job: { isNot: null } // Sadece mevcut işlerin maliyetlerini getir
         };
 
         if (status && status !== 'all') {
@@ -127,7 +129,8 @@ export const getCostBreakdown = unstable_cache(
 export const getCostTrend = unstable_cache(
     async (startDate: Date, endDate: Date, status?: string, jobStatus?: string, jobId?: string, category?: string) => {
         const where: any = {
-            date: { gte: startDate, lte: endDate }
+            date: { gte: startDate, lte: endDate },
+            job: { isNot: null } // Sadece mevcut işlerin maliyetlerini getir
         };
 
         if (status && status !== 'all') where.status = status;
@@ -170,7 +173,8 @@ export const getCostTrend = unstable_cache(
 export const getTotalCostTrend = unstable_cache(
     async (startDate: Date, endDate: Date, status?: string, jobStatus?: string, jobId?: string, category?: string) => {
         const where: any = {
-            date: { gte: startDate, lte: endDate }
+            date: { gte: startDate, lte: endDate },
+            job: { isNot: null } // Sadece mevcut işlerin maliyetlerini getir
         };
 
         if (status && status !== 'all') where.status = status;
@@ -204,10 +208,11 @@ export const getTotalCostTrend = unstable_cache(
 export async function getPendingCostsList(startDate: Date, endDate: Date, jobStatus?: string, jobId?: string, category?: string) {
     const where: any = {
         date: { gte: startDate, lte: endDate },
-        status: 'PENDING'
+        status: 'PENDING',
+        job: { isNot: null }
     };
 
-    if (jobStatus && jobStatus !== 'all') where.job = { status: jobStatus };
+    if (jobStatus && jobStatus !== 'all') where.job = { ...where.job, status: jobStatus };
     if (jobId && jobId !== 'all') where.jobId = jobId;
     if (category && category !== 'all') where.category = category;
 
@@ -336,7 +341,8 @@ export async function getFinancialSummaryData(startDate: Date, endDate: Date) {
     const costs = await prisma.costTracking.findMany({
         where: {
             date: { gte: startDate, lte: endDate },
-            status: 'APPROVED'
+            status: 'APPROVED',
+            job: { isNot: null }
         },
         include: {
             job: true
@@ -356,7 +362,7 @@ export async function getFinancialSummaryData(startDate: Date, endDate: Date) {
             date: c.date,
             description: c.description,
             amount: c.amount,
-            jobTitle: c.job.title
+            jobTitle: c.job?.title || 'Bilinmeyen İş'
         }))
     };
 }
@@ -534,7 +540,11 @@ export const getWeeklyCompletedSteps = unstable_cache(
                 const d = new Date(startDate);
                 d.setDate(startDate.getDate() + i + 1);
                 const dateStr = d.toISOString().split('T')[0];
-                days[dateStr] = { date: dateStr, total: 0 };
+                const dayName = d.toLocaleDateString('tr-TR', { weekday: 'short' });
+                const dayMonth = d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' });
+                const displayLabel = `${dayName} ${dayMonth}`;
+
+                days[dateStr] = { name: displayLabel, date: dateStr, total: 0 };
                 categories.forEach(cat => days[dateStr][cat] = 0);
                 days[dateStr].jobs = [];
             }
@@ -548,7 +558,7 @@ export const getWeeklyCompletedSteps = unstable_cache(
                     }
                     days[dateStr].total++;
                     if (!days[dateStr].jobs.find((j: any) => j.id === step.jobId)) {
-                        days[dateStr].jobs.push({ id: step.jobId, title: step.job.title });
+                        days[dateStr].jobs.push({ id: step.jobId, title: step.job?.title || 'Bilinmeyen İş' });
                     }
                 }
             });
@@ -571,7 +581,8 @@ export const getWeeklyCompletedSteps = unstable_cache(
 
 export async function getCostList(startDate: Date, endDate: Date, status?: string, jobStatus?: string, jobId?: string, category?: string) {
     const where: any = {
-        date: { gte: startDate, lte: endDate }
+        date: { gte: startDate, lte: endDate },
+        job: { isNot: null }
     };
 
     if (status && status !== 'all') where.status = status;
@@ -825,7 +836,8 @@ export async function getCostDetailsData(startDate: Date, endDate: Date) {
     const costs = await prisma.costTracking.findMany({
         where: {
             date: { gte: startDate, lte: endDate },
-            status: 'APPROVED'
+            status: 'APPROVED',
+            job: { isNot: null } // Sadece mevcut işlerin maliyetlerini getir
         },
         include: {
             job: { select: { title: true, jobNo: true } },
@@ -836,8 +848,8 @@ export async function getCostDetailsData(startDate: Date, endDate: Date) {
 
     return costs.map(c => ({
         date: c.date,
-        jobNo: c.job.jobNo,
-        jobTitle: c.job.title,
+        jobNo: c.job?.jobNo || 'N/A',
+        jobTitle: c.job?.title || 'Bilinmeyen İş',
         category: c.category,
         description: c.description,
         amount: c.amount,

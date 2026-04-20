@@ -10,12 +10,11 @@ import {
     ResponsiveContainer,
     Line,
     ComposedChart,
-    Cell
 } from 'recharts';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Calendar } from 'lucide-react';
+import { Link } from '@/lib/navigation';
 
 interface WeeklyStepsChartProps {
     data?: {
@@ -74,7 +73,8 @@ const WeeklyStepsChart = memo(({ data, categories = [] }: WeeklyStepsChartProps)
         return currentWeek.map((day: any, index: number) => ({
             ...day,
             prevTotal: previousWeek[index]?.total || 0,
-            displayDate: new Date(day.date).toLocaleDateString('tr-TR', { weekday: 'short' }).toUpperCase()
+            // Use backend provided name (e.g. "Sal 20.05") or fallback to date weekday
+            displayLabel: day.name || new Date(day.date).toLocaleDateString('tr-TR', { weekday: 'short' }).toUpperCase()
         }));
     }, [currentWeek, previousWeek, isMounted]);
 
@@ -103,7 +103,7 @@ const WeeklyStepsChart = memo(({ data, categories = [] }: WeeklyStepsChartProps)
                     >
                         <CartesianGrid strokeDasharray="6 6" vertical={false} stroke="#e2e8f0" strokeOpacity={0.5} />
                         <XAxis
-                            dataKey="displayDate"
+                            dataKey="displayLabel"
                             axisLine={false}
                             tickLine={false}
                             tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: '700', letterSpacing: '0.05em' }}
@@ -156,7 +156,7 @@ const WeeklyStepsChart = memo(({ data, categories = [] }: WeeklyStepsChartProps)
                     >
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-white dark:bg-slate-900 dark:border-slate-800 dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+                                <div className="p-2 bg-white dark:bg-slate-900 dark:border-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
                                     <Calendar className="w-5 h-5 text-indigo-500" />
                                 </div>
                                 <div>
@@ -174,13 +174,17 @@ const WeeklyStepsChart = memo(({ data, categories = [] }: WeeklyStepsChartProps)
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             {selectedDay.jobs && selectedDay.jobs.length > 0 ? (
                                 selectedDay.jobs.map((job: any) => (
-                                    <div key={job.id} className="p-4 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 flex items-center justify-between group cursor-pointer hover:border-indigo-200 dark:hover:border-indigo-900 transition-all shadow-sm hover:shadow-md">
+                                    <Link 
+                                        key={job.id} 
+                                        href={`/admin/jobs/${job.id}`}
+                                        className="p-4 rounded-xl bg-white dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 flex items-center justify-between group cursor-pointer hover:border-indigo-200 dark:hover:border-indigo-900 transition-all shadow-sm hover:shadow-md"
+                                    >
                                         <div className="flex flex-col gap-0.5">
-                                            <span className="font-bold text-xs text-slate-700 dark:text-slate-200">{job.title}</span>
+                                            <span className="font-bold text-xs text-slate-700 dark:text-slate-200">{job.title || 'Bilinmeyen İş'}</span>
                                             <span className="text-[9px] text-slate-400 font-black uppercase tracking-tight">GÖREV DETAYI</span>
                                         </div>
                                         <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all" />
-                                    </div>
+                                    </Link>
                                 ))
                             ) : (
                                 <div className="col-span-full py-8 text-center bg-white dark:bg-slate-900 dark:border-slate-800/50 dark:bg-slate-900/20 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
