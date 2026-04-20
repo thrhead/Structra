@@ -259,34 +259,43 @@ export async function getProfitabilityData(startDate: Date, endDate: Date, custo
 
 // 2. Gecikme ve Darboğaz Analizi Verisi
 export async function getDelayAnalysisData(startDate: Date, endDate: Date) {
+    const now = new Date();
+
     const jobs = await prisma.job.findMany({
         where: {
-            status: 'COMPLETED',
-            completedDate: { gte: startDate, lte: endDate },
-            startedAt: { not: null }
+            OR: [
+                { status: 'COMPLETED', completedDate: { gte: startDate, lte: endDate }, startedAt: { not: null } },
+                { status: 'IN_PROGRESS', startedAt: { not: null, gte: startDate } }
+            ]
         },
         include: {
-            steps: {
-                where: { blockedAt: { not: null } }
-            }
+            steps: { select: { id: true, isCompleted: true, blockedAt: true, title: true } },
+            customer: { select: { company: true } }
         }
     });
 
     return jobs.map(job => {
-        const actualDuration = job.startedAt && job.completedDate
-            ? (job.completedDate.getTime() - job.startedAt.getTime()) / (1000 * 60)
-            : 0;
+        const endTime = job.status === 'COMPLETED' ? job.completedDate! : now;
+        const actualDuration = job.startedAt ? (endTime.getTime() - job.startedAt!.getTime()) / (1000 * 60) : 0;
         const estimatedDuration = job.estimatedDuration || 0;
-        const delay = actualDuration - estimatedDuration;
+        const delay = estimatedDuration > 0 ? actualDuration - estimatedDuration : 0;
+        const completedSteps = job.steps.filter(s => s.isCompleted).length;
+        const totalSteps = job.steps.length;
 
         return {
+            id: job.id,
             jobNo: job.jobNo || job.id.substring(0, 8),
             title: job.title,
+            status: job.status,
+            customer: job.customer?.company || '',
             estimatedDuration,
-            actualDuration,
-            delay: delay > 0 ? delay : 0,
-            blockedStepsCount: job.steps.length,
-            bottleneckCount: job.steps.length
+            actualDuration: Math.round(actualDuration),
+            delay: delay > 0 ? Math.round(delay) : 0,
+            progress: totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0,
+            completedSteps,
+            totalSteps,
+            blockedStepsCount: job.steps.filter(s => s.blockedAt !== null).length,
+            bottleneckCount: job.steps.filter(s => s.blockedAt !== null).length
         };
     });
 }
@@ -765,7 +774,7 @@ export async function getOperationalDashboard(startDate: Date, endDate: Date) {
         where: { status: 'PENDING', createdAt: { lt: fortyEightHoursAgo } } 
     });
     const delayedSteps = await prisma.jobStep.count({ 
-        where: { approvalStatus: 'PENDING', startedAt: { lt: fortyEightHoursAgo } } 
+        where: { approvalStatus: 'PENDING', completedAt: { not: null, lt: fortyEightHoursAgo } } 
     });
 
     // Active Jobs Distribution
