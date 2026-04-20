@@ -108,6 +108,7 @@ export default function WorkerDashboardScreen({ navigation }) {
                 const progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
 
                 return {
+                    ...job,
                     id: job.id,
                     title: job.title,
                     location: job.location || job.customer?.company || 'Konum belirtilmemiş',
