@@ -251,8 +251,7 @@ export default function WorkerDashboardScreen({ navigation }) {
                 numColumns={2}
                 showsVerticalScrollIndicator={false}
                 scrollEnabled={false} // Parent ScrollView handles scrolling
-                columnWrapperStyle={{ justifyContent: 'space-between', gap: 16 }}
-                contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
+                columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 16, marginBottom: 16 }}
                 data={getFilteredJobs()}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => (

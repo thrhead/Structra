@@ -131,11 +131,11 @@ export default function WorkerJobsScreen() {
             <FlatList
                 style={{ flex: 1 }}
                 numColumns={2}
-                columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 16 }}
+                columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 16, marginBottom: 16 }}
                 data={filteredJobs}
                 renderItem={renderItem}
                 keyExtractor={item => item.id?.toString()}
-                contentContainerStyle={styles.listContent}
+                contentContainerStyle={[styles.listContent, { paddingHorizontal: 0 }]}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />}
                 initialNumToRender={10}
                 windowSize={5}

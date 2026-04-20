@@ -7,24 +7,24 @@ const JobGridItem = ({ job, onPress, style }) => {
     const { theme, isDark } = useTheme();
     const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
-    // Akıllı Boyutlandırma: 
-    // Genişlik: Ekranın yarısından boşlukları çıkarıyoruz.
-    // Yükseklik: Ekran yüksekliğinin yaklaşık %22-25'i (Böylece header ile birlikte 2 satır tam sığar).
+    // KESİN ÖLÇÜLER:
+    // 16px sol padding + 16px sağ padding + 16px orta boşluk = 48px toplam boşluk
     const numColumns = windowWidth > 600 ? 3 : 2;
-    const spacing = 12;
-    const cardWidth = (windowWidth - (spacing * (numColumns + 1))) / numColumns;
-    const cardHeight = windowHeight * 0.23; // Dinamik yükseklik hesaplama
+    const totalPadding = 48; // (numColumns + 1) * 16
+    const cardWidth = (windowWidth - totalPadding) / numColumns;
+    
+    // Yükseklik: 4 kartın ekrana sığması için ekran boyunun %22'si idealdir
+    const cardHeight = windowHeight * 0.22; 
 
-    // Veri Eşleştirme (Data Mapping) - Çok Katmanlı Kontrol
+    // Veri Eşleştirme
     const companyName = job.customer?.company || job.customerName || 'Firma Yok';
     const contactPerson = job.customer?.user?.name || job.contactPerson || 'Yetkili Yok';
     
-    // Sorumlu Kişi / Ekip Lideri Bulma Mantığı
     const teamLead = 
-        job.assignments?.[0]?.team?.lead?.name || // Team -> Lead -> Name
-        job.assignments?.[0]?.worker?.name ||      // Doğrudan atanan işçi
-        job.teamLeadName ||                        // Düzleştirilmiş veri
-        job.assignee?.name ||                      // Alternatif atama
+        job.assignments?.[0]?.team?.lead?.name || 
+        job.assignments?.[0]?.worker?.name ||      
+        job.teamLeadName ||                        
+        job.assignee?.name ||                      
         'Sorumlu Atanmamış';
 
     const renderStatusBadge = () => {
@@ -65,13 +65,11 @@ const JobGridItem = ({ job, onPress, style }) => {
                 style
             ]}
         >
-            {/* Üst Kısım: ID ve Durum */}
             <View style={styles.topRow}>
                 <Text style={[styles.jobId, { color: theme.colors.primary }]}>#{job.jobNo || '---'}</Text>
                 {renderStatusBadge()}
             </View>
 
-            {/* Orta Kısım: Başlık ve Müşteri Bilgileri */}
             <View style={styles.content}>
                 <Text style={[styles.title, { color: theme.colors.text }]} numberOfLines={1}>
                     {job.title}
@@ -90,7 +88,6 @@ const JobGridItem = ({ job, onPress, style }) => {
                 </View>
             </View>
 
-            {/* Sorumlu ve Konum */}
             <View style={styles.middleInfo}>
                 <View style={styles.infoIconRow}>
                     <MaterialIcons name="groups" size={13} color={theme.colors.primary} />
@@ -106,7 +103,6 @@ const JobGridItem = ({ job, onPress, style }) => {
                 </View>
             </View>
 
-            {/* İlerleme Çubuğu */}
             <View style={styles.footer}>
                 <View style={styles.progressHeader}>
                     <Text style={[styles.percentageText, { color: theme.colors.primary }]}>%{job.progress || 0}</Text>
@@ -131,7 +127,6 @@ const styles = StyleSheet.create({
     container: {
         borderRadius: 18,
         padding: 12,
-        marginBottom: 12,
         borderWidth: 1,
         justifyContent: 'space-between',
         shadowColor: "#000",
