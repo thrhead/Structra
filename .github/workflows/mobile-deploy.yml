@@ -10,12 +10,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # EAS CLI needs full git history for versioning
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
+          cache-dependency-path: apps/mobile/package-lock.json
 
       - name: Setup Expo
         uses: expo/expo-github-action@v8

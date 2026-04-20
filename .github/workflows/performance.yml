@@ -1,0 +1,30 @@
+name: Performance Audit (Lighthouse)
+
+on:
+  workflow_dispatch: # Manuel tetikleme
+  push:
+    branches: [ "main" ] # Sadece ana dal güncellendiğinde
+
+jobs:
+  lighthouse:
+    name: Lighthouse Performance Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Audit Web App
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          urls: |
+            https://field-service-management-lovat.vercel.app
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+
+      - name: Audit Mobile Web Preview
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          urls: |
+            https://field-service-management-mobile.vercel.app
+          uploadArtifacts: true
+          temporaryPublicStorage: true

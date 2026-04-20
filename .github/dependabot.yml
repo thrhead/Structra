@@ -4,13 +4,21 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 10
+    groups:
+      dependencies:
+        patterns:
+          - "*" # Tüm bağımlılıkları tek bir PR'da toplar
+    open-pull-requests-limit: 1
 
   - package-ecosystem: "npm"
     directory: "/apps/mobile"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 5
+    groups:
+      dependencies:
+        patterns:
+          - "*"
+    open-pull-requests-limit: 1
 
   - package-ecosystem: "github-actions"
     directory: "/"

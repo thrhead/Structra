@@ -79,12 +79,6 @@ jobs:
         DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/structra_test"
         NEXTAUTH_SECRET: "test-secret"
 
-    - name: Lighthouse CI
-      uses: treosh/lighthouse-ci-action@v12
-      with:
-        uploadArtifacts: true
-        temporaryPublicStorage: true
-
   mobile-ci:
     name: Mobile App CI
     needs: security
