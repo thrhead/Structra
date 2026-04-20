@@ -45,7 +45,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@react-leaflet/core": "^2.1.0",
     "@react-three/drei": "^10.7.7",
-    "@react-three/fiber": "^9.5.0",
+    "@react-three/fiber": "^9.6.0",
     "@tabler/icons-react": "^3.41.1",
     "@tanstack/react-table": "^8.21.3",
     "@tremor/react": "^3.18.7",
