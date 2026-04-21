@@ -1,162 +1,165 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ChatPanel } from '../ChatPanel'
-import { useAbly } from '@/components/providers/ably-provider'
-import { useSession } from 'next-auth/react'
-import { CryptoService } from '@/lib/crypto-service'
-import { offlineDB } from '@/lib/offline-db'
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { useSession } from "next-auth/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { useAbly } from "@/components/providers/ably-provider";
+import { CryptoService } from "@/lib/crypto-service";
+import { ChatPanel } from "../ChatPanel";
 
 // Mocks
-vi.mock('@/components/providers/ably-provider', () => ({
-    useAbly: vi.fn(),
-}))
+vi.mock("@/components/providers/ably-provider", () => ({
+	useAbly: vi.fn(),
+}));
 
-vi.mock('next-auth/react', () => ({
-    useSession: vi.fn(),
-}))
+vi.mock("next-auth/react", () => ({
+	useSession: vi.fn(),
+}));
 
-vi.mock('@/lib/crypto-service', () => ({
-    CryptoService: {
-        encrypt: vi.fn((text) => Promise.resolve(`encrypted-${text}`)),
-        decrypt: vi.fn((text) => Promise.resolve(text.replace('encrypted-', ''))),
-    },
-}))
+vi.mock("@/lib/crypto-service", () => ({
+	CryptoService: {
+		encrypt: vi.fn((text) => Promise.resolve(`encrypted-${text}`)),
+		decrypt: vi.fn((text) => Promise.resolve(text.replace("encrypted-", ""))),
+	},
+}));
 
-vi.mock('@/lib/offline-db', () => ({
-    offlineDB: {
-        messages: {
-            where: vi.fn().mockReturnThis(),
-            equals: vi.fn().mockReturnThis(),
-            sortBy: vi.fn().mockResolvedValue([]),
-            bulkPut: vi.fn().mockResolvedValue([]),
-        },
-    },
-}))
+vi.mock("@/lib/offline-db", () => ({
+	offlineDB: {
+		messages: {
+			where: vi.fn().mockReturnThis(),
+			equals: vi.fn().mockReturnThis(),
+			sortBy: vi.fn().mockResolvedValue([]),
+			bulkPut: vi.fn().mockResolvedValue([]),
+		},
+	},
+}));
 
 // Mock Global Fetch
-global.fetch = vi.fn()
+global.fetch = vi.fn();
 
-describe('ChatPanel Component', () => {
-    const mockSession = {
-        user: { id: 'user-1', name: 'Test User' },
-    }
+describe("ChatPanel Component", () => {
+	const mockSession = {
+		user: { id: "user-1", name: "Test User" },
+	};
 
-    const mockChannel = {
-        subscribe: vi.fn(),
-        unsubscribe: vi.fn(),
-        publish: vi.fn(),
-    }
+	const mockChannel = {
+		subscribe: vi.fn(),
+		unsubscribe: vi.fn(),
+		publish: vi.fn(),
+	};
 
-    const mockAbly = {
-        channels: {
-            get: vi.fn().mockReturnValue(mockChannel)
-        }
-    }
+	const mockAbly = {
+		channels: {
+			get: vi.fn().mockReturnValue(mockChannel),
+		},
+	};
 
-    beforeEach(() => {
-        vi.clearAllMocks()
-        ;(useSession as any).mockReturnValue({ data: mockSession })
-        ;(useAbly as any).mockReturnValue({ client: mockAbly, isConnected: true })
-        ;(global.fetch as any).mockResolvedValue({
-            ok: true,
-            json: () => Promise.resolve([]),
-        })
-    })
+	beforeEach(() => {
+		vi.clearAllMocks();
+		(useSession as any).mockReturnValue({ data: mockSession });
+		(useAbly as any).mockReturnValue({ client: mockAbly, isConnected: true });
+		(global.fetch as any).mockResolvedValue({
+			ok: true,
+			json: () => Promise.resolve([]),
+		});
+	});
 
-    it('should render loading state initially', async () => {
-        render(<ChatPanel jobId="job-1" />)
-        expect(screen.getByRole('status')).toBeDefined() // Loader
-    })
+	it("should render loading state initially", async () => {
+		render(<ChatPanel jobId="job-1" />);
+		expect(screen.getByRole("status")).toBeDefined(); // Loader
+	});
 
-    it('should load and display messages', async () => {
-        const mockMessages = [
-            {
-                id: 'msg-1',
-                content: 'Hello World',
-                senderId: 'user-2',
-                sentAt: new Date().toISOString(),
-                isEncrypted: false,
-                sender: { id: 'user-2', name: 'Other User', avatarUrl: null },
-            },
-        ]
+	it("should load and display messages", async () => {
+		const mockMessages = [
+			{
+				id: "msg-1",
+				content: "Hello World",
+				senderId: "user-2",
+				sentAt: new Date().toISOString(),
+				isEncrypted: false,
+				sender: { id: "user-2", name: "Other User", avatarUrl: null },
+			},
+		];
 
-        ;(global.fetch as any).mockResolvedValue({
-            ok: true,
-            json: () => Promise.resolve(mockMessages),
-        })
+		(global.fetch as any).mockResolvedValue({
+			ok: true,
+			json: () => Promise.resolve(mockMessages),
+		});
 
-        render(<ChatPanel jobId="job-1" />)
+		render(<ChatPanel jobId="job-1" />);
 
-        await waitFor(() => {
-            expect(screen.getByText('Hello World')).toBeDefined()
-            expect(screen.getByText('Other User')).toBeDefined()
-        })
-    })
+		await waitFor(() => {
+			expect(screen.getByText("Hello World")).toBeDefined();
+			expect(screen.getByText("Other User")).toBeDefined();
+		});
+	});
 
-    it('should send a message successfully', async () => {
-        render(<ChatPanel jobId="job-1" />)
+	it("should send a message successfully", async () => {
+		render(<ChatPanel jobId="job-1" />);
 
-        // Wait for loading to finish
-        await waitFor(() => {
-            expect(screen.queryByRole('status')).toBeNull()
-        })
+		// Wait for loading to finish
+		await waitFor(() => {
+			expect(screen.queryByRole("status")).toBeNull();
+		});
 
-        const input = screen.getByPlaceholderText('Mesajınızı yazın...')
-        const sendButton = screen.getByRole('button')
+		const input = screen.getByPlaceholderText("Mesajınızı yazın...");
+		const sendButton = screen.getByRole("button");
 
-        fireEvent.change(input, { target: { value: 'New Message' } })
-        
-        ;(global.fetch as any).mockResolvedValue({
-            ok: true,
-            json: () => Promise.resolve({
-                id: 'msg-new',
-                content: 'encrypted-New Message',
-                senderId: 'user-1',
-                sentAt: new Date().toISOString(),
-                isEncrypted: true,
-                sender: mockSession.user,
-            }),
-        })
+		fireEvent.change(input, { target: { value: "New Message" } });
 
-        fireEvent.click(sendButton)
+		(global.fetch as any).mockResolvedValue({
+			ok: true,
+			json: () =>
+				Promise.resolve({
+					id: "msg-new",
+					content: "encrypted-New Message",
+					senderId: "user-1",
+					sentAt: new Date().toISOString(),
+					isEncrypted: true,
+					sender: mockSession.user,
+				}),
+		});
 
-        await waitFor(() => {
-            expect(CryptoService.encrypt).toHaveBeenCalledWith('New Message')
-            expect(global.fetch).toHaveBeenCalledWith('/api/messages', expect.objectContaining({
-                method: 'POST',
-            }))
-            expect(screen.getByText('New Message')).toBeDefined()
-        })
-    })
+		fireEvent.click(sendButton);
 
-    it('should handle real-time message reception', async () => {
-        let receiveCallback: any
-        mockChannel.subscribe.mockImplementation((event, cb) => {
-            if (event === 'receive:message') receiveCallback = cb
-        })
+		await waitFor(() => {
+			expect(CryptoService.encrypt).toHaveBeenCalledWith("New Message");
+			expect(global.fetch).toHaveBeenCalledWith(
+				"/api/messages",
+				expect.objectContaining({
+					method: "POST",
+				}),
+			);
+			expect(screen.getByText("New Message")).toBeDefined();
+		});
+	});
 
-        render(<ChatPanel jobId="job-1" />)
+	it("should handle real-time message reception", async () => {
+		let receiveCallback: any;
+		mockChannel.subscribe.mockImplementation((event, cb) => {
+			if (event === "receive:message") receiveCallback = cb;
+		});
 
-        await waitFor(() => {
-            expect(receiveCallback).toBeDefined()
-        })
+		render(<ChatPanel jobId="job-1" />);
 
-        const newMessage = {
-            data: {
-                id: 'msg-2',
-                content: 'Real-time message',
-                senderId: 'user-2',
-                sentAt: new Date().toISOString(),
-                isEncrypted: false,
-                sender: { id: 'user-2', name: 'Other User', avatarUrl: null },
-            }
-        }
+		await waitFor(() => {
+			expect(receiveCallback).toBeDefined();
+		});
 
-        // Trigger socket event (Ably style: message.data)
-        receiveCallback(newMessage)
+		const newMessage = {
+			data: {
+				id: "msg-2",
+				content: "Real-time message",
+				senderId: "user-2",
+				sentAt: new Date().toISOString(),
+				isEncrypted: false,
+				sender: { id: "user-2", name: "Other User", avatarUrl: null },
+			},
+		};
 
-        await waitFor(() => {
-            expect(screen.getByText('Real-time message')).toBeDefined()
-        })
-    })
-})
+		// Trigger socket event (Ably style: message.data)
+		receiveCallback(newMessage);
+
+		await waitFor(() => {
+			expect(screen.getByText("Real-time message")).toBeDefined();
+		});
+	});
+});

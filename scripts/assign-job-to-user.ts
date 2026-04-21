@@ -1,44 +1,43 @@
-
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 async function main() {
-    const email = 'ahah@montaj.com';
-    console.log(`🔍 Finding user ${email}...`);
+	const email = "ahah@montaj.com";
+	console.log(`🔍 Finding user ${email}...`);
 
-    const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) {
-        console.error('❌ User not found!');
-        return;
-    }
+	const user = await prisma.user.findUnique({ where: { email } });
+	if (!user) {
+		console.error("❌ User not found!");
+		return;
+	}
 
-    console.log('🔍 Finding a job to assign...');
-    const job = await prisma.job.findFirst({
-        where: { status: { not: 'COMPLETED' } }
-    });
+	console.log("🔍 Finding a job to assign...");
+	const job = await prisma.job.findFirst({
+		where: { status: { not: "COMPLETED" } },
+	});
 
-    if (!job) {
-        console.error('❌ No active jobs found to assign!');
-        // Create a job if none exists
-        // ... (omitted for brevity, assuming jobs exist)
-        return;
-    }
+	if (!job) {
+		console.error("❌ No active jobs found to assign!");
+		// Create a job if none exists
+		// ... (omitted for brevity, assuming jobs exist)
+		return;
+	}
 
-    console.log(`📌 Assigning job "${job.title}" (${job.id}) to user...`);
+	console.log(`📌 Assigning job "${job.title}" (${job.id}) to user...`);
 
-    await prisma.jobAssignment.create({
-        data: {
-            jobId: job.id,
-            workerId: user.id
-        }
-    });
+	await prisma.jobAssignment.create({
+		data: {
+			jobId: job.id,
+			workerId: user.id,
+		},
+	});
 
-    console.log('✅ Assignment created successfully!');
+	console.log("✅ Assignment created successfully!");
 }
 
 main()
-    .catch(e => console.error(e))
-    .finally(async () => {
-        await prisma.$disconnect();
-    });
+	.catch((e) => console.error(e))
+	.finally(async () => {
+		await prisma.$disconnect();
+	});

@@ -1,106 +1,122 @@
-import { syncManager } from './sync-manager'
-import { toast } from 'sonner'
+import { toast } from "sonner";
+import { syncManager } from "./sync-manager";
 
-type ApiMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+type ApiMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 interface ApiOptions extends RequestInit {
-    params?: Record<string, string>
+	params?: Record<string, string>;
 }
 
 /**
  * Global API Client with Offline Support
  */
 export const apiClient = {
-    async request(url: string, options: ApiOptions = {}) {
-        const method = (options.method || 'GET').toUpperCase() as ApiMethod
-        const isWriteOperation = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)
-        
-        // 1. Check Network Status
-        const isOffline = typeof navigator !== 'undefined' && !navigator.onLine
+	async request(url: string, options: ApiOptions = {}) {
+		const method = (options.method || "GET").toUpperCase() as ApiMethod;
+		const isWriteOperation = ["POST", "PUT", "PATCH", "DELETE"].includes(
+			method,
+		);
 
-        if (isOffline && isWriteOperation) {
-            console.log(`[API] Offline - Queueing ${method} request to ${url}`)
-            
-            await syncManager.addToQueue({
-                type: method as 'POST' | 'PUT' | 'PATCH' | 'DELETE',
-                url,
-                payload: options.body ? JSON.parse(options.body as string) : undefined
-            })
+		// 1. Check Network Status
+		const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
 
-            toast.warning('Çevrimdışı: İşlem kuyruğa alındı. İnternet gelince gönderilecek.', {
-                description: url
-            })
+		if (isOffline && isWriteOperation) {
+			await syncManager.addToQueue({
+				type: method as "POST" | "PUT" | "PATCH" | "DELETE",
+				url,
+				payload: options.body ? JSON.parse(options.body as string) : undefined,
+			});
 
-            // Return a mock success response so UI doesn't break
-            return {
-                ok: true,
-                status: 202,
-                statusText: 'Accepted (Queued)',
-                json: async () => ({ message: 'Queued', offline: true }),
-            }
-        }
+			toast.warning(
+				"Çevrimdışı: İşlem kuyruğa alındı. İnternet gelince gönderilecek.",
+				{
+					description: url,
+				},
+			);
 
-        // 2. Online Request
-        try {
-            const response = await fetch(url, options)
+			// Return a mock success response so UI doesn't break
+			return {
+				ok: true,
+				status: 202,
+				statusText: "Accepted (Queued)",
+				json: async () => ({ message: "Queued", offline: true }),
+			};
+		}
 
-            // If it's a server error or unauthorized, we don't auto-queue 
-            // but we could handle specific cases here
-            return response
-        } catch (error) {
-            // 3. Handle Fetch Failures (Network issues while thinking we are online)
-            if (isWriteOperation) {
-                console.log(`[API] Request failed - Queueing ${method} request to ${url}`)
-                await syncManager.addToQueue({
-                    type: method as 'POST' | 'PUT' | 'PATCH' | 'DELETE',
-                    url,
-                    payload: options.body ? JSON.parse(options.body as string) : undefined
-                })
-                
-                toast.warning('Bağlantı Sorunu: İşlem kuyruğa alındı.', {
-                    description: 'İnternet bağlantınız kararsız görünüyor.'
-                })
+		// 2. Online Request
+		try {
+			const response = await fetch(url, options);
 
-                return {
-                    ok: true,
-                    status: 202,
-                    json: async () => ({ message: 'Queued', offline: true }),
-                }
-            }
-            
-            throw error
-        }
-    },
+			// If it's a server error or unauthorized, we don't auto-queue
+			// but we could handle specific cases here
+			return response;
+		} catch (error) {
+			// 3. Handle Fetch Failures (Network issues while thinking we are online)
+			if (isWriteOperation) {
+				await syncManager.addToQueue({
+					type: method as "POST" | "PUT" | "PATCH" | "DELETE",
+					url,
+					payload: options.body
+						? JSON.parse(options.body as string)
+						: undefined,
+				});
 
-    async get(url: string, options?: Omit<ApiOptions, 'method'>) {
-        return this.request(url, { ...options, method: 'GET' })
-    },
+				toast.warning("Bağlantı Sorunu: İşlem kuyruğa alındı.", {
+					description: "İnternet bağlantınız kararsız görünüyor.",
+				});
 
-    async post(url: string, body: any, options?: Omit<ApiOptions, 'method' | 'body'>) {
-        return this.request(url, { 
-            ...options, 
-            method: 'POST', 
-            body: JSON.stringify(body) 
-        })
-    },
+				return {
+					ok: true,
+					status: 202,
+					json: async () => ({ message: "Queued", offline: true }),
+				};
+			}
 
-    async put(url: string, body: any, options?: Omit<ApiOptions, 'method' | 'body'>) {
-        return this.request(url, { 
-            ...options, 
-            method: 'PUT', 
-            body: JSON.stringify(body) 
-        })
-    },
+			throw error;
+		}
+	},
 
-    async patch(url: string, body: any, options?: Omit<ApiOptions, 'method' | 'body'>) {
-        return this.request(url, { 
-            ...options, 
-            method: 'PATCH', 
-            body: JSON.stringify(body) 
-        })
-    },
+	async get(url: string, options?: Omit<ApiOptions, "method">) {
+		return this.request(url, { ...options, method: "GET" });
+	},
 
-    async delete(url: string, options?: Omit<ApiOptions, 'method'>) {
-        return this.request(url, { ...options, method: 'DELETE' })
-    }
-}
+	async post(
+		url: string,
+		body: any,
+		options?: Omit<ApiOptions, "method" | "body">,
+	) {
+		return this.request(url, {
+			...options,
+			method: "POST",
+			body: JSON.stringify(body),
+		});
+	},
+
+	async put(
+		url: string,
+		body: any,
+		options?: Omit<ApiOptions, "method" | "body">,
+	) {
+		return this.request(url, {
+			...options,
+			method: "PUT",
+			body: JSON.stringify(body),
+		});
+	},
+
+	async patch(
+		url: string,
+		body: any,
+		options?: Omit<ApiOptions, "method" | "body">,
+	) {
+		return this.request(url, {
+			...options,
+			method: "PATCH",
+			body: JSON.stringify(body),
+		});
+	},
+
+	async delete(url: string, options?: Omit<ApiOptions, "method">) {
+		return this.request(url, { ...options, method: "DELETE" });
+	},
+};

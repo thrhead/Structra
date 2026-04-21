@@ -1,7 +1,6 @@
-
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
-import { getApiKeyFromRequest } from '@/lib/api-key-helper'
+import { NextResponse } from "next/server";
+import { getApiKeyFromRequest } from "@/lib/api-key-helper";
+import { prisma } from "@/lib/db";
 
 /**
  * @openapi
@@ -25,20 +24,23 @@ import { getApiKeyFromRequest } from '@/lib/api-key-helper'
  *                   date: { type: 'string', format: 'date-time' }
  */
 export async function GET(req: Request) {
-    try {
-        const apiKeyData = await getApiKeyFromRequest(req)
-        if (!apiKeyData) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        }
+	try {
+		const apiKeyData = await getApiKeyFromRequest(req);
+		if (!apiKeyData) {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
 
-        const costs = await prisma.costTracking.findMany({
-            orderBy: { date: 'desc' },
-            include: { job: { select: { title: true } } }
-        })
+		const costs = await prisma.costTracking.findMany({
+			orderBy: { date: "desc" },
+			include: { job: { select: { title: true } } },
+		});
 
-        return NextResponse.json(costs)
-    } catch (error) {
-        console.error('Public API Costs fetch error:', error)
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
-    }
+		return NextResponse.json(costs);
+	} catch (error) {
+		console.error("Public API Costs fetch error:", error);
+		return NextResponse.json(
+			{ error: "Internal Server Error" },
+			{ status: 500 },
+		);
+	}
 }

@@ -1,67 +1,71 @@
-'use client'
+"use client";
 
-import * as Ably from 'ably'
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
-import { useSession } from 'next-auth/react'
+import * as Ably from "ably";
+import { useSession } from "next-auth/react";
+import {
+	createContext,
+	type ReactNode,
+	useContext,
+	useEffect,
+	useState,
+} from "react";
 
 interface AblyContextType {
-    client: Ably.Realtime | null
-    isConnected: boolean
+	client: Ably.Realtime | null;
+	isConnected: boolean;
 }
 
 const AblyContext = createContext<AblyContextType>({
-    client: null,
-    isConnected: false,
-})
+	client: null,
+	isConnected: false,
+});
 
-export const useAbly = () => useContext(AblyContext)
+export const useAbly = () => useContext(AblyContext);
 
 export function AblyProvider({ children }: { children: ReactNode }) {
-    const { data: session, status } = useSession()
-    const [client, setClient] = useState<Ably.Realtime | null>(null)
-    const [isConnected, setIsConnected] = useState(false)
+	const { data: session, status } = useSession();
+	const [client, setClient] = useState<Ably.Realtime | null>(null);
+	const [isConnected, setIsConnected] = useState(false);
 
-    useEffect(() => {
-        if (status !== 'authenticated' || !session?.user?.id) {
-            if (client) {
-                client.close()
-                setClient(null)
-                setIsConnected(false)
-            }
-            return
-        }
+	useEffect(() => {
+		if (status !== "authenticated" || !session?.user?.id) {
+			if (client) {
+				client.close();
+				setClient(null);
+				setIsConnected(false);
+			}
+			return;
+		}
 
-        // Initialize Ably client
-        const realtime = new Ably.Realtime({
-            authUrl: '/api/ably/auth',
-            clientId: session.user.id,
-        })
+		// Initialize Ably client
+		const realtime = new Ably.Realtime({
+			authUrl: "/api/ably/auth",
+			clientId: session.user.id,
+		});
 
-        realtime.connection.on('connected', () => {
-            console.log('✅ Ably connected')
-            setIsConnected(true)
-        })
+		realtime.connection.on("connected", () => {
+			setIsConnected(true);
+		});
 
-        realtime.connection.on('disconnected', () => {
-            console.log('⚠️ Ably disconnected')
-            setIsConnected(false)
-        })
+		realtime.connection.on("disconnected", () => {
+			setIsConnected(false);
+		});
 
-        realtime.connection.on('failed', (err) => {
-            console.error('❌ Ably connection failed:', err)
-            setIsConnected(false)
-        })
+		realtime.connection.on("failed", (err) => {
+			console.error("❌ Ably connection failed:", err);
+			setIsConnected(false);
+		});
 
-        setClient(realtime)
+		setClient(realtime);
 
-        return () => {
-            realtime.close()
-        }
-    }, [status, session?.user?.id])
+		return () => {
+			realtime.close();
+		};
+	}, [status, session?.user?.id, client.close, client]);
 
-    return (
-        <AblyContext.Provider value={{ client, isConnected }}>
-            {children}
-        </AblyContext.Provider>
-    )
+	return (
+		<AblyContext.Provider value={{ client, isConnected }}>
+			{children}
+		</AblyContext.Provider>
+	);
 }

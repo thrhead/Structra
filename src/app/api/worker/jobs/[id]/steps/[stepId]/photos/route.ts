@@ -1,22 +1,22 @@
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
-import { verifyAuth } from '@/lib/auth-helper'
-import cloudinary from '@/lib/cloudinary'
-import { logAudit, AuditAction, getDeviceInfo } from '@/lib/audit'
+import { NextResponse } from "next/server";
+import { AuditAction, getDeviceInfo, logAudit } from "@/lib/audit";
+import { verifyAuth } from "@/lib/auth-helper";
+import cloudinary from "@/lib/cloudinary";
+import { prisma } from "@/lib/db";
 
 export async function POST(
-    req: Request,
-    props: { params: Promise<{ id: string; stepId: string }> }
+	_req: Request,
+	props: { params: Promise<{ id: string; stepId: string }> },
 ) {
-    const params = await props.params
+	const _params = await props.params;
 
-    // Debug Cloudinary Config
-    console.log('[Photo Upload Debug] Env Check:', {
-        cloudNameExists: !!process.env.CLOUDINARY_CLOUD_NAME,
-        apiKeyExists: !!process.env.CLOUDINARY_API_KEY,
+	// Debug Cloudinary Config
+	cloudNameExists: !!process.env.CLOUDINARY_CLOUD_NAME, apiKeyExists;
+	: !!process.env.CLOUDINARY_API_KEY,
         apiSecretExists: !!process.env.CLOUDINARY_API_SECRET
-    });
-    try {
+}
+)
+try {
         const session = await verifyAuth(req)
         if (!session || (session.user.role !== 'WORKER' && session.user.role !== 'TEAM_LEAD')) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -25,13 +25,12 @@ export async function POST(
         const contentType = req.headers.get('content-type') || '';
 
         let file: File | null = null;
-        let subStepId: string | null = null;
+        let _subStepId: string | null = null;
         let buffer: Buffer = Buffer.alloc(0);
 
         if (contentType.includes('application/json')) {
-            console.log('[Photo Upload] Processing JSON/Base64 request');
             const body = await req.json();
-            subStepId = body.subStepId || null;
+            _subStepId = body.subStepId || null;
             const photoBase64 = body.photo;
 
             if (!photoBase64) {
@@ -39,13 +38,11 @@ export async function POST(
             }
 
             buffer = Buffer.from(photoBase64, 'base64');
-            console.log('[Photo Upload] JSON Body parsed, buffer length:', buffer.length);
         } else {
             // Fallback to FormData (Legacy/Web)
-            console.log('[Photo Upload] Processing Multipart/FormData request');
             const formData = await req.formData();
             file = formData.get('photo') as File;
-            subStepId = formData.get('subStepId') as string | null;
+            _subStepId = formData.get('subStepId') as string | null;
 
             if (!file) {
                 return NextResponse.json({ error: 'No file provided' }, { status: 400 })
@@ -61,7 +58,6 @@ export async function POST(
         }
 
         /* 
-        console.log('[Photo Upload] Received request:', {
             stepId: params.stepId,
             subStepId,
             fileName: file?.name,
@@ -80,7 +76,6 @@ export async function POST(
                 const bytes = await file.arrayBuffer()
                 buffer = Buffer.from(bytes)
             } else {
-                console.log('[Photo Upload] arrayBuffer missing, trying Response workaround')
                 const bytes = await new Response(file).arrayBuffer()
                 buffer = Buffer.from(bytes)
             }
@@ -91,170 +86,186 @@ export async function POST(
         */
 
         // Hex Dump Debug
-        const headerHex = buffer.subarray(0, 20).toString('hex');
-        console.log('[Photo Upload Debug] File Integrity Check:', {
+        const _headerHex = buffer.subarray(0, 20).toString('hex');
             size: buffer.length,
-            headerHex,
+            _headerHex,
             isJpeg: headerHex.startsWith('ffd8ff'),
             isPng: headerHex.startsWith('89504e47')
-        });
-
-        if (buffer.length === 0) {
-            return NextResponse.json({ error: 'Empty file received' }, { status: 400 })
         }
+)
 
-        // Create Data URI for upload
-        const base64Data = buffer.toString('base64');
+if (buffer.length === 0) {
+	return NextResponse.json({ error: 'Empty file received' }, { status: 400 })
+}
 
-        // Sanitize MIME type
-        let fileType = file?.type || 'image/jpeg';
-        if (fileType === 'image' || !fileType.includes('/')) {
-            fileType = 'image/jpeg';
-            console.warn('[Photo Upload] Invalid MIME type detected, defaulting to image/jpeg');
-        }
+// Create Data URI for upload
+const base64Data = buffer.toString("base64");
 
-        const dataURI = `data:${fileType};base64,${base64Data}`;
+// Sanitize MIME type
+let fileType = file?.type || "image/jpeg";
+if (fileType === "image" || !fileType.includes("/")) {
+	fileType = "image/jpeg";
+	console.warn(
+		"[Photo Upload] Invalid MIME type detected, defaulting to image/jpeg",
+	);
+}
 
-        // Hex Dump Debug
-        // const headerHex = buffer.subarray(0, 20).toString('hex'); // This was moved up
-        console.log('[Photo Upload Debug] File Integrity Check:', {
-            size: buffer.length,
-            headerHex,
-            isJpeg: headerHex.startsWith('ffd8ff'),
+const dataURI = `data:${fileType};base64,${base64Data}`;
+
+// Hex Dump Debug
+// const headerHex = buffer.subarray(0, 20).toString('hex'); // This was moved up
+size: buffer.length, headerHex, isJpeg;
+: headerHex.startsWith('ffd8ff'),
             isPng: headerHex.startsWith('89504e47'),
             resolvedMimeType: fileType,
             base64Start: base64Data.substring(0, 50)
-        });
-
-        // Upload to Cloudinary using standard upload (Base64 Data URI)
-        // This ensures Cloudinary treats it as an image and fails if it's not valid image data.
-        const uploadResult: any = await cloudinary.uploader.upload(dataURI, {
-            folder: `jobs/${params.id}`,
-            resource_type: 'image', // FORCE image type
-            public_id: `${params.stepId}_${Date.now()}`
-        });
-
-        if (!uploadResult || !uploadResult.secure_url) {
-            throw new Error('Cloudinary upload failed')
-        }
-
-        const photoUrl = uploadResult.secure_url
-
-        // Create database record
-        const photo = await prisma.stepPhoto.create({
-            data: {
-                stepId: params.stepId,
-                subStepId: subStepId || null,
-                url: photoUrl,
-                uploadedById: session.user.id
-            }
         })
 
-        // Fire-and-forget post-processing (Completely non-blocking)
-        // We use a safe wrapper to ensure no errors here affect the response
-        const runBackgroundTasks = async () => {
-            try {
-                // Find relevant job info
-                const job = await prisma.job.findUnique({
-                    where: { id: params.id },
-                    include: { creator: true }
-                })
+// Upload to Cloudinary using standard upload (Base64 Data URI)
+// This ensures Cloudinary treats it as an image and fails if it's not valid image data.
+const uploadResult: any = await cloudinary.uploader.upload(dataURI, {
+	folder: `jobs/${params.id}`,
+	resource_type: "image", // FORCE image type
+	public_id: `${params.stepId}_${Date.now()}`,
+});
 
-                // 1. Audit Log
-                const deviceInfo = getDeviceInfo(req);
-                await logAudit(
-                    session.user.id,
-                    AuditAction.JOB_PHOTO_UPLOAD,
-                    {
-                        jobId: params.id,
-                        stepId: params.stepId,
-                        subStepId: subStepId || null,
-                        title: job?.title || 'Bilinmeyen İş',
-                        photoUrl: photoUrl,
-                        userName: session.user.name || session.user.email,
-                        ...deviceInfo
-                    },
-                    deviceInfo.platform
-                ).catch(e => console.error('[Background] Audit failed:', e));
+if (!uploadResult?.secure_url) {
+	throw new Error("Cloudinary upload failed");
+}
 
-                // 2. Status Downgrade (If Approved)
-                let wasDowngraded = false;
-                let downgradedTargetName = '';
+const photoUrl = uploadResult.secure_url;
 
-                if (subStepId) {
-                    const ss = await prisma.jobSubStep.findUnique({ where: { id: subStepId } });
-                    if (ss && ss.approvalStatus === 'APPROVED') {
-                        await prisma.jobSubStep.update({
-                            where: { id: subStepId },
-                            data: { approvalStatus: 'PENDING', approvedById: null, approvedAt: null }
-                        });
-                        wasDowngraded = true;
-                        downgradedTargetName = `Alt Adım: ${ss.title}`;
-                    }
-                } else {
-                    const st = await prisma.jobStep.findUnique({ where: { id: params.stepId } });
-                    if (st && st.approvalStatus === 'APPROVED') {
-                        await prisma.jobStep.update({
-                            where: { id: params.stepId },
-                            data: { approvalStatus: 'PENDING', approvedById: null, approvedAt: null }
-                        });
-                        wasDowngraded = true;
-                        downgradedTargetName = `Adım: ${st.title}`;
-                    }
-                }
+// Create database record
+const photo = await prisma.stepPhoto.create({
+	data: {
+		stepId: params.stepId,
+		subStepId: subStepId || null,
+		url: photoUrl,
+		uploadedById: session.user.id,
+	},
+});
 
-                // 3. Notifications & Real-time
-                const { publishToUser, broadcast } = await import('@/lib/ably')
-                const { sendAdminNotification } = await import('@/lib/notification-helper')
+// Fire-and-forget post-processing (Completely non-blocking)
+// We use a safe wrapper to ensure no errors here affect the response
+const runBackgroundTasks = async () => {
+	try {
+		// Find relevant job info
+		const job = await prisma.job.findUnique({
+			where: { id: params.id },
+			include: { creator: true },
+		});
 
-                if (wasDowngraded && job) {
-                    await sendAdminNotification(
-                        'Onay İptal Edildi',
-                        `"${job.title}" işindeki onaylı "${downgradedTargetName}" için yeni fotoğraf yüklendi. Yeniden onay gerekiyor.`,
-                        'WARNING',
-                        `/admin/jobs/${params.id}`,
-                        session.user.id
-                    ).catch(e => console.error('[Background] Notification failed:', e));
-                }
+		// 1. Audit Log
+		const deviceInfo = getDeviceInfo(req);
+		await logAudit(
+			session.user.id,
+			AuditAction.JOB_PHOTO_UPLOAD,
+			{
+				jobId: params.id,
+				stepId: params.stepId,
+				subStepId: subStepId || null,
+				title: job?.title || "Bilinmeyen İş",
+				photoUrl: photoUrl,
+				userName: session.user.name || session.user.email,
+				...deviceInfo,
+			},
+			deviceInfo.platform,
+		).catch((e) => console.error("[Background] Audit failed:", e));
 
-                if (job) {
-                    const ablyPayload = {
-                        jobId: params.id,
-                        stepId: params.stepId,
-                        subStepId: subStepId || null,
-                        photoUrl: photoUrl,
-                        uploadedBy: session.user.name || session.user.email || 'Worker',
-                        uploadedAt: new Date()
-                    }
-                    if (job.creatorId) await publishToUser(job.creatorId, 'photo:uploaded', ablyPayload).catch(() => {});
-                    await broadcast('photo:uploaded', ablyPayload).catch(() => {});
-                }
-            } catch (err) {
-                console.error('[Background Task Error]:', err);
-            }
-        };
+		// 2. Status Downgrade (If Approved)
+		let wasDowngraded = false;
+		let downgradedTargetName = "";
 
-        // Execute background tasks without await
-        runBackgroundTasks();
+		if (subStepId) {
+			const ss = await prisma.jobSubStep.findUnique({
+				where: { id: subStepId },
+			});
+			if (ss && ss.approvalStatus === "APPROVED") {
+				await prisma.jobSubStep.update({
+					where: { id: subStepId },
+					data: {
+						approvalStatus: "PENDING",
+						approvedById: null,
+						approvedAt: null,
+					},
+				});
+				wasDowngraded = true;
+				downgradedTargetName = `Alt Adım: ${ss.title}`;
+			}
+		} else {
+			const st = await prisma.jobStep.findUnique({
+				where: { id: params.stepId },
+			});
+			if (st && st.approvalStatus === "APPROVED") {
+				await prisma.jobStep.update({
+					where: { id: params.stepId },
+					data: {
+						approvalStatus: "PENDING",
+						approvedById: null,
+						approvedAt: null,
+					},
+				});
+				wasDowngraded = true;
+				downgradedTargetName = `Adım: ${st.title}`;
+			}
+		}
 
-        // Return SUCCESS response immediately
-        return NextResponse.json({
+		// 3. Notifications & Real-time
+		const { publishToUser, broadcast } = await import("@/lib/ably");
+		const { sendAdminNotification } = await import("@/lib/notification-helper");
+
+		if (wasDowngraded && job) {
+			await sendAdminNotification(
+				"Onay İptal Edildi",
+				`"${job.title}" işindeki onaylı "${downgradedTargetName}" için yeni fotoğraf yüklendi. Yeniden onay gerekiyor.`,
+				"WARNING",
+				`/admin/jobs/${params.id}`,
+				session.user.id,
+			).catch((e) => console.error("[Background] Notification failed:", e));
+		}
+
+		if (job) {
+			const ablyPayload = {
+				jobId: params.id,
+				stepId: params.stepId,
+				subStepId: subStepId || null,
+				photoUrl: photoUrl,
+				uploadedBy: session.user.name || session.user.email || "Worker",
+				uploadedAt: new Date(),
+			};
+			if (job.creatorId)
+				await publishToUser(job.creatorId, "photo:uploaded", ablyPayload).catch(
+					() => {},
+				);
+			await broadcast("photo:uploaded", ablyPayload).catch(() => {});
+		}
+	} catch (err) {
+		console.error("[Background Task Error]:", err);
+	}
+};
+
+// Execute background tasks without await
+runBackgroundTasks();
+
+// Return SUCCESS response immediately
+return NextResponse.json({
             id: photo.id,
             url: photo.url,
             uploadedAt: photo.uploadedAt,
             subStepId: photo.subStepId,
             success: true
         }, { status: 201 });
-    } catch (error: any) {
-        console.error('[Photo Upload CRITICAL ERROR]:', {
-            message: error.message,
-            stack: error.stack,
-            name: error.name,
-            params: await props.params
-        })
-        return NextResponse.json({
+} catch (error: any)
+{
+	console.error("[Photo Upload CRITICAL ERROR]:", {
+		message: error.message,
+		stack: error.stack,
+		name: error.name,
+		params: await props.params,
+	});
+	return NextResponse.json({
             error: 'Internal Server Error',
             details: error.message
         }, { status: 500 })
-    }
+}
 }

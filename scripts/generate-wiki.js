@@ -1,20 +1,24 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-const wikiData = JSON.parse(fs.readFileSync('wiki.json', 'utf-8'));
-const docsPath = 'wiki/docs';
+const wikiData = JSON.parse(fs.readFileSync("wiki.json", "utf-8"));
+const docsPath = "wiki/docs";
 
 // Helper to generate a slug from a title
-const slugify = (str) => str.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+const slugify = (str) =>
+	str
+		.toLowerCase()
+		.replace(/\s+/g, "-")
+		.replace(/[^a-z0-9-]/g, "");
 
 // Recursively generate docs
-function generateDocs(items, parentPath = '') {
-    items.forEach((item, index) => {
-        const slug = slugify(item.name);
-        const docPath = path.join(docsPath, parentPath, `${slug}.md`);
-        const relativePath = path.join(parentPath, slug);
+function generateDocs(items, parentPath = "") {
+	items.forEach((item, index) => {
+		const slug = slugify(item.name);
+		const docPath = path.join(docsPath, parentPath, `${slug}.md`);
+		const relativePath = path.join(parentPath, slug);
 
-        let content = `---
+		let content = `---
 title: "${item.title}"
 sidebar_label: "${item.title}"
 sidebar_position: ${index + 1}
@@ -24,31 +28,37 @@ ${item.prompt}
 
 `;
 
-        if (item.children) {
-            content += '## Alt Başlıklar\\n\\n';
-            item.children.forEach(child => {
-                const childSlug = slugify(child.name);
-                content += `- [${child.title}](${path.join(relativePath, childSlug)})
+		if (item.children) {
+			content += "## Alt Başlıklar\\n\\n";
+			item.children.forEach((child) => {
+				const childSlug = slugify(child.name);
+				content += `- [${child.title}](${path.join(relativePath, childSlug)})
 `;
-            });
-            fs.mkdirSync(path.join(docsPath, relativePath), { recursive: true });
-            generateDocs(item.children, relativePath);
-        }
-        
-        fs.writeFileSync(docPath, content);
-    });
+			});
+			fs.mkdirSync(path.join(docsPath, relativePath), { recursive: true });
+			generateDocs(item.children, relativePath);
+		}
+
+		fs.writeFileSync(docPath, content);
+	});
 }
 
 // Clear existing docs
-fs.rmSync(path.join(docsPath, 'intro.md'), { force: true });
-fs.rmSync(path.join(docsPath, 'tutorial-basics'), { recursive: true, force: true });
-fs.rmSync(path.join(docsPath, 'tutorial-extras'), { recursive: true, force: true });
+fs.rmSync(path.join(docsPath, "intro.md"), { force: true });
+fs.rmSync(path.join(docsPath, "tutorial-basics"), {
+	recursive: true,
+	force: true,
+});
+fs.rmSync(path.join(docsPath, "tutorial-extras"), {
+	recursive: true,
+	force: true,
+});
 
 // Start generation
 generateDocs(wikiData.catalogue);
 
 // Create an index page
-const indexPath = path.join(docsPath, 'index.md');
+const indexPath = path.join(docsPath, "index.md");
 const indexContent = `---
 title: Proje Wiki
 sidebar_label: Başlangıç
@@ -62,4 +72,4 @@ Bu wiki, proje mimarisini, kod yapısını ve geliştirme süreçlerini anlaman�
 `;
 fs.writeFileSync(indexPath, indexContent);
 
-console.log('Wiki dosyaları başarıyla oluşturuldu.');
+console.log("Wiki dosyaları başarıyla oluşturuldu.");

@@ -1,165 +1,188 @@
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
-import { verifyAuth } from '@/lib/auth-helper'
-import { z } from 'zod'
-import { uploadToCloudinary } from '@/lib/cloudinary'
-import { sendNotificationToUsers } from '@/lib/notification-helper'
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { verifyAuth } from "@/lib/auth-helper";
+import { uploadToCloudinary } from "@/lib/cloudinary";
+import { prisma } from "@/lib/db";
+import { sendNotificationToUsers } from "@/lib/notification-helper";
 
 const createCostSchema = z.object({
-    jobId: z.string().min(1),
-    amount: z.number().min(0),
-    currency: z.string().default('TRY'),
-    category: z.string().min(1),
-    description: z.string().optional().default(''),
-    receiptUrl: z.string().optional(),
-    date: z.string().optional().transform(val => (val ? new Date(val) : new Date()))
-})
+	jobId: z.string().min(1),
+	amount: z.number().min(0),
+	currency: z.string().default("TRY"),
+	category: z.string().min(1),
+	description: z.string().optional().default(""),
+	receiptUrl: z.string().optional(),
+	date: z
+		.string()
+		.optional()
+		.transform((val) => (val ? new Date(val) : new Date())),
+});
 
 export async function POST(req: Request) {
-    try {
-        const session = await verifyAuth(req)
-        if (!session) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        }
+	try {
+		const session = await verifyAuth(req);
+		if (!session) {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
 
-        let data: any = {}
-        let file: File | null = null
+		let data: any = {};
+		let file: File | null = null;
 
-        const contentType = req.headers.get('content-type') || ''
+		const contentType = req.headers.get("content-type") || "";
 
-        if (contentType.includes('multipart/form-data')) {
-            const formData = await req.formData()
-            file = formData.get('receipt') as File
+		if (contentType.includes("multipart/form-data")) {
+			const formData = await req.formData();
+			file = formData.get("receipt") as File;
 
-            data = {
-                jobId: formData.get('jobId'),
-                amount: parseFloat(formData.get('amount') as string),
-                currency: formData.get('currency') || 'TRY',
-                category: formData.get('category'),
-                description: formData.get('description') || '',
-                date: formData.get('date') ? new Date(formData.get('date') as string) : new Date()
-            }
-        } else {
-            const body = await req.json()
-            data = createCostSchema.parse(body)
-        }
+			data = {
+				jobId: formData.get("jobId"),
+				amount: parseFloat(formData.get("amount") as string),
+				currency: formData.get("currency") || "TRY",
+				category: formData.get("category"),
+				description: formData.get("description") || "",
+				date: formData.get("date")
+					? new Date(formData.get("date") as string)
+					: new Date(),
+			};
+		} else {
+			const body = await req.json();
+			data = createCostSchema.parse(body);
+		}
 
-        // Verify job exists
-        const job = await prisma.job.findUnique({
-            where: { id: data.jobId },
-            include: {
-                creator: true
-            }
-        })
+		// Verify job exists
+		const job = await prisma.job.findUnique({
+			where: { id: data.jobId },
+			include: {
+				creator: true,
+			},
+		});
 
-        if (!job) {
-            return NextResponse.json({ error: 'Job not found' }, { status: 404 })
-        }
+		if (!job) {
+			return NextResponse.json({ error: "Job not found" }, { status: 404 });
+		}
 
-        let receiptUrl = data.receiptUrl
+		let receiptUrl = data.receiptUrl;
 
-        // Handle file upload if present
-        if (file && file.size > 0) {
-            try {
-                const uploadResult: any = await uploadToCloudinary(file, `costs/${data.jobId}`)
-                receiptUrl = uploadResult.secure_url
-            } catch (err) {
-                console.error('Cloudinary upload error:', err)
-                return NextResponse.json({ error: 'Failed to upload receipt image' }, { status: 500 })
-            }
-        }
+		// Handle file upload if present
+		if (file && file.size > 0) {
+			try {
+				const uploadResult: any = await uploadToCloudinary(
+					file,
+					`costs/${data.jobId}`,
+				);
+				receiptUrl = uploadResult.secure_url;
+			} catch (err) {
+				console.error("Cloudinary upload error:", err);
+				return NextResponse.json(
+					{ error: "Failed to upload receipt image" },
+					{ status: 500 },
+				);
+			}
+		}
 
-        // Create cost record
-        const cost = await prisma.costTracking.create({
-            data: {
-                jobId: data.jobId,
-                amount: data.amount,
-                currency: data.currency,
-                category: data.category,
-                description: data.description,
-                receiptUrl: receiptUrl,
-                date: data.date,
-                createdById: session.user.id,
-                status: 'PENDING'
-            },
-            include: {
-                createdBy: true
-            }
-        });
+		// Create cost record
+		const cost = await prisma.costTracking.create({
+			data: {
+				jobId: data.jobId,
+				amount: data.amount,
+				currency: data.currency,
+				category: data.category,
+				description: data.description,
+				receiptUrl: receiptUrl,
+				date: data.date,
+				createdById: session.user.id,
+				status: "PENDING",
+			},
+			include: {
+				createdBy: true,
+			},
+		});
 
-        // Run post-processing asynchronously
-        (async () => {
-            try {
-                const notificationMessage = `${session.user.name || session.user.email} - ${data.amount} ${data.currency} (${data.category})`
+		// Run post-processing asynchronously
+		(async () => {
+			try {
+				const notificationMessage = `${session.user.name || session.user.email} - ${data.amount} ${data.currency} (${data.category})`;
 
-                // Collect all unique recipient IDs
-                const admins = await prisma.user.findMany({
-                    where: {
-                        role: { in: ['ADMIN', 'MANAGER', 'TEAM_LEAD'] },
-                        isActive: true,
-                        id: { not: session.user.id }
-                    },
-                    select: { id: true }
-                })
+				// Collect all unique recipient IDs
+				const admins = await prisma.user.findMany({
+					where: {
+						role: { in: ["ADMIN", "MANAGER", "TEAM_LEAD"] },
+						isActive: true,
+						id: { not: session.user.id },
+					},
+					select: { id: true },
+				});
 
-                const recipientIds = new Set(admins.map(a => a.id))
-                
-                // Add job creator if they are not the submitter
-                if (job.creator?.id && job.creator.id !== session.user.id) {
-                    recipientIds.add(job.creator.id)
-                }
+				const recipientIds = new Set(admins.map((a) => a.id));
 
-                // Send notifications in one go
-                if (recipientIds.size > 0) {
-                    await sendNotificationToUsers(
-                        Array.from(recipientIds),
-                        'Yeni Masraf Eklendi',
-                        notificationMessage,
-                        'INFO',
-                        `/admin/costs`
-                    )
-                }
-            } catch (asyncErr) {
-                console.error('[Cost Creation] Async post-processing error (non-blocking):', asyncErr);
-            }
-        })();
+				// Add job creator if they are not the submitter
+				if (job.creator?.id && job.creator.id !== session.user.id) {
+					recipientIds.add(job.creator.id);
+				}
 
-        return NextResponse.json(cost, { status: 201 })
-    } catch (error) {
-        console.error('Create cost error:', error)
-        if (error instanceof z.ZodError) {
-            return NextResponse.json({ error: 'Invalid data', details: error.issues }, { status: 400 })
-        }
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
-    }
+				// Send notifications in one go
+				if (recipientIds.size > 0) {
+					await sendNotificationToUsers(
+						Array.from(recipientIds),
+						"Yeni Masraf Eklendi",
+						notificationMessage,
+						"INFO",
+						`/admin/costs`,
+					);
+				}
+			} catch (asyncErr) {
+				console.error(
+					"[Cost Creation] Async post-processing error (non-blocking):",
+					asyncErr,
+				);
+			}
+		})();
+
+		return NextResponse.json(cost, { status: 201 });
+	} catch (error) {
+		console.error("Create cost error:", error);
+		if (error instanceof z.ZodError) {
+			return NextResponse.json(
+				{ error: "Invalid data", details: error.issues },
+				{ status: 400 },
+			);
+		}
+		return NextResponse.json(
+			{ error: "Internal Server Error" },
+			{ status: 500 },
+		);
+	}
 }
 
 export async function GET(req: Request) {
-    try {
-        const session = await verifyAuth(req)
-        if (!session) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        }
+	try {
+		const session = await verifyAuth(req);
+		if (!session) {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
 
-        const costs = await prisma.costTracking.findMany({
-            where: {
-                createdById: session.user.id
-            },
-            include: {
-                job: {
-                    select: {
-                        title: true
-                    }
-                }
-            },
-            orderBy: {
-                date: 'desc'
-            }
-        })
+		const costs = await prisma.costTracking.findMany({
+			where: {
+				createdById: session.user.id,
+			},
+			include: {
+				job: {
+					select: {
+						title: true,
+					},
+				},
+			},
+			orderBy: {
+				date: "desc",
+			},
+		});
 
-        return NextResponse.json(costs)
-    } catch (error) {
-        console.error('Fetch costs error:', error)
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
-    }
+		return NextResponse.json(costs);
+	} catch (error) {
+		console.error("Fetch costs error:", error);
+		return NextResponse.json(
+			{ error: "Internal Server Error" },
+			{ status: 500 },
+		);
+	}
 }

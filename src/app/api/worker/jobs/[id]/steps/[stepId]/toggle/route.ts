@@ -1,69 +1,72 @@
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
-import { verifyAuth } from '@/lib/auth-helper'
-import { checkConflict } from '@/lib/conflict-check'
-import { publishToJob } from '@/lib/ably'
-import { logAudit, AuditAction, getDeviceInfo } from '@/lib/audit'
+import { NextResponse } from "next/server";
+import { publishToJob } from "@/lib/ably";
+import { AuditAction, getDeviceInfo, logAudit } from "@/lib/audit";
+import { verifyAuth } from "@/lib/auth-helper";
+import { checkConflict } from "@/lib/conflict-check";
+import { prisma } from "@/lib/db";
 
 export async function POST(
-  req: Request,
-  props: { params: Promise<{ id: string; stepId: string }> }
+	req: Request,
+	props: { params: Promise<{ id: string; stepId: string }> },
 ) {
-  const params = await props.params
-  try {
-    const session = await verifyAuth(req)
-    if (!session || !['WORKER', 'TEAM_LEAD', 'ADMIN', 'MANAGER'].includes(session.user.role)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+	const params = await props.params;
+	try {
+		const session = await verifyAuth(req);
+		if (
+			!session ||
+			!["WORKER", "TEAM_LEAD", "ADMIN", "MANAGER"].includes(session.user.role)
+		) {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
 
-    const step = await prisma.jobStep.findUnique({
-      where: { id: params.stepId },
-      include: { job: { select: { updatedAt: true } } }
-    })
+		const step = await prisma.jobStep.findUnique({
+			where: { id: params.stepId },
+			include: { job: { select: { updatedAt: true } } },
+		});
 
-    if (!step) {
-      return NextResponse.json({ error: 'Step not found' }, { status: 404 })
-    }
+		if (!step) {
+			return NextResponse.json({ error: "Step not found" }, { status: 404 });
+		}
 
-    // Check Access
-    if (!['ADMIN', 'MANAGER'].includes(session.user.role)) {
-      const hasAccess = await prisma.jobAssignment.findFirst({
-        where: {
-          jobId: step.jobId,
-          OR: [
-            { workerId: session.user.id },
-            { team: { members: { some: { userId: session.user.id } } } }
-          ]
-        }
-      })
+		// Check Access
+		if (!["ADMIN", "MANAGER"].includes(session.user.role)) {
+			const hasAccess = await prisma.jobAssignment.findFirst({
+				where: {
+					jobId: step.jobId,
+					OR: [
+						{ workerId: session.user.id },
+						{ team: { members: { some: { userId: session.user.id } } } },
+					],
+				},
+			});
 
-      if (!hasAccess) {
-        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-      }
-    }
+			if (!hasAccess) {
+				return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+			}
+		}
 
-    // Seviye 3: Ebeveyn iş üzerinden çakışma kontrolü
-    const conflict = await checkConflict(req, step.job.updatedAt)
-    if (conflict) return conflict
+		// Seviye 3: Ebeveyn iş üzerinden çakışma kontrolü
+		const conflict = await checkConflict(req, step.job.updatedAt);
+		if (conflict) return conflict;
 
-    // 1. Check if previous steps are completed
-    if (!step.isCompleted && step.order > 1) {
-      const previousStep = await prisma.jobStep.findFirst({
-        where: {
-          jobId: step.jobId,
-          order: step.order - 1
-        }
-      })
+		// 1. Check if previous steps are completed
+		if (!step.isCompleted && step.order > 1) {
+			const previousStep = await prisma.jobStep.findFirst({
+				where: {
+					jobId: step.jobId,
+					order: step.order - 1,
+				},
+			});
 
-      if (previousStep && !previousStep.isCompleted) {
-        return NextResponse.json(
-          { error: 'Önceki adımı tamamlamadan bu adıma geçemezsiniz.' },
-          { status: 400 }
-        )
-      }
-    }
+			if (previousStep && !previousStep.isCompleted) {
+				return NextResponse.json(
+					{ error: "Önceki adımı tamamlamadan bu adıma geçemezsiniz." },
+					{ status: 400 },
+				);
+			}
+		}
 
-    /*
+		/*
     // MANDATORY PHOTO CHECK REMOVED FOR MAIN STEP
     // User requested photo uploads only on sub-steps.
     // Main step completion logic now relies on sub-steps being completed (which enforce photos).
@@ -84,70 +87,83 @@ export async function POST(
     }
     */
 
-    // 2. Check if all substeps are completed
-    const subSteps = await prisma.jobSubStep.findMany({
-      where: { stepId: params.stepId }
-    })
+		// 2. Check if all substeps are completed
+		const subSteps = await prisma.jobSubStep.findMany({
+			where: { stepId: params.stepId },
+		});
 
-    if (!step.isCompleted && subSteps.length > 0) {
-      const incompleteSubSteps = subSteps.filter(s => !s.isCompleted)
-      if (incompleteSubSteps.length > 0) {
-        return NextResponse.json(
-          { error: 'Tüm alt görevleri tamamlamadan bu adımı tamamlayamazsınız.' },
-          { status: 400 }
-        )
-      }
-    }
+		if (!step.isCompleted && subSteps.length > 0) {
+			const incompleteSubSteps = subSteps.filter((s) => !s.isCompleted);
+			if (incompleteSubSteps.length > 0) {
+				return NextResponse.json(
+					{
+						error: "Tüm alt görevleri tamamlamadan bu adımı tamamlayamazsınız.",
+					},
+					{ status: 400 },
+				);
+			}
+		}
 
-    const wasApproved = step.approvalStatus === 'APPROVED'
+		const wasApproved = step.approvalStatus === "APPROVED";
 
-    const updatedStep = await prisma.jobStep.update({
-      where: { id: params.stepId },
-      data: {
-        isCompleted: !step.isCompleted,
-        completedAt: !step.isCompleted ? new Date() : null,
-        completedById: !step.isCompleted ? session.user.id : null,
-        startedAt: !step.isCompleted && !step.startedAt ? new Date() : step.startedAt,
-        approvalStatus: 'PENDING', // Reset to PENDING on change
-        rejectionReason: !step.isCompleted ? null : step.rejectionReason, // Clear rejection reason if completing again
-        approvedById: null,
-        approvedAt: null
-      }
-    })
+		const updatedStep = await prisma.jobStep.update({
+			where: { id: params.stepId },
+			data: {
+				isCompleted: !step.isCompleted,
+				completedAt: !step.isCompleted ? new Date() : null,
+				completedById: !step.isCompleted ? session.user.id : null,
+				startedAt:
+					!step.isCompleted && !step.startedAt ? new Date() : step.startedAt,
+				approvalStatus: "PENDING", // Reset to PENDING on change
+				rejectionReason: !step.isCompleted ? null : step.rejectionReason, // Clear rejection reason if completing again
+				approvedById: null,
+				approvedAt: null,
+			},
+		});
 
-    if (wasApproved) {
-        const { sendAdminNotification } = await import('@/lib/notification-helper')
-        await sendAdminNotification(
-            'Onay İptal Edildi',
-            `Bir iş adımının (Adım: ${step.title}) durumu değiştirildi. Yeniden onay gerekiyor.`,
-            'WARNING',
-            `/admin/jobs/${step.jobId}`,
-            session.user.id
-        );
-    }
+		if (wasApproved) {
+			const { sendAdminNotification } = await import(
+				"@/lib/notification-helper"
+			);
+			await sendAdminNotification(
+				"Onay İptal Edildi",
+				`Bir iş adımının (Adım: ${step.title}) durumu değiştirildi. Yeniden onay gerekiyor.`,
+				"WARNING",
+				`/admin/jobs/${step.jobId}`,
+				session.user.id,
+			);
+		}
 
-    // Detailed Audit Logging
-    const deviceInfo = getDeviceInfo(req);
-    await logAudit(
-        session.user.id,
-        updatedStep.isCompleted ? AuditAction.JOB_STEP_COMPLETE : AuditAction.JOB_UPDATE,
-        {
-            jobId: step.jobId,
-            stepId: params.stepId,
-            title: step.title,
-            userName: session.user.name || session.user.email,
-            ...deviceInfo,
-            snapshot: step // Original state
-        },
-        deviceInfo.platform
-    );
+		// Detailed Audit Logging
+		const deviceInfo = getDeviceInfo(req);
+		await logAudit(
+			session.user.id,
+			updatedStep.isCompleted
+				? AuditAction.JOB_STEP_COMPLETE
+				: AuditAction.JOB_UPDATE,
+			{
+				jobId: step.jobId,
+				stepId: params.stepId,
+				title: step.title,
+				userName: session.user.name || session.user.email,
+				...deviceInfo,
+				snapshot: step, // Original state
+			},
+			deviceInfo.platform,
+		);
 
-    // Real-time update
-    await publishToJob(step.jobId, 'job:updated', { id: step.jobId, updatedAt: new Date() });
+		// Real-time update
+		await publishToJob(step.jobId, "job:updated", {
+			id: step.jobId,
+			updatedAt: new Date(),
+		});
 
-    return NextResponse.json(updatedStep)
-  } catch (error) {
-    console.error('Step toggle error:', error)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
-  }
+		return NextResponse.json(updatedStep);
+	} catch (error) {
+		console.error("Step toggle error:", error);
+		return NextResponse.json(
+			{ error: "Internal Server Error" },
+			{ status: 500 },
+		);
+	}
 }

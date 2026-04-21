@@ -1,96 +1,105 @@
-import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
-import LoginForm from '../../components/LoginForm';
-import { AuthProvider } from '../../context/AuthContext';
-import { ThemeProvider } from '../../context/ThemeContext';
-import { AlertProvider } from '../../context/AlertContext';
-import authService from '../../services/auth.service';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import LoginForm from "../../components/LoginForm";
+import { AlertProvider } from "../../context/AlertContext";
+import { AuthProvider } from "../../context/AuthContext";
+import { ThemeProvider } from "../../context/ThemeContext";
+import authService from "../../services/auth.service";
 
 // Mock Dependencies
-vi.mock('../../services/auth.service');
-vi.mock('@react-native-async-storage/async-storage', () => ({
-    default: {
-        getItem: vi.fn(),
-        setItem: vi.fn(),
-        removeItem: vi.fn(),
-    },
+vi.mock("../../services/auth.service");
+vi.mock("@react-native-async-storage/async-storage", () => ({
+	default: {
+		getItem: vi.fn(),
+		setItem: vi.fn(),
+		removeItem: vi.fn(),
+	},
 }));
 
-vi.mock('@expo/vector-icons', () => ({
-    MaterialIcons: 'MaterialIcons',
+vi.mock("@expo/vector-icons", () => ({
+	MaterialIcons: "MaterialIcons",
 }));
 
-vi.mock('react-i18next', () => ({
-    useTranslation: () => ({
-        t: (key) => key,
-    }),
+vi.mock("react-i18next", () => ({
+	useTranslation: () => ({
+		t: (key) => key,
+	}),
 }));
 
 const Wrapper = ({ children }) => (
-    <AlertProvider>
-        <ThemeProvider>
-            <AuthProvider>
-                {children}
-            </AuthProvider>
-        </ThemeProvider>
-    </AlertProvider>
+	<AlertProvider>
+		<ThemeProvider>
+			<AuthProvider>{children}</AuthProvider>
+		</ThemeProvider>
+	</AlertProvider>
 );
 
-describe('AuthFlow Integration', () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
-        AsyncStorage.getItem.mockResolvedValue(null);
-    });
+describe("AuthFlow Integration", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		AsyncStorage.getItem.mockResolvedValue(null);
+	});
 
-    it('should login successfully and update state', async () => {
-        const mockUser = { id: '1', email: 'test@example.com', role: 'WORKER' };
-        const mockToken = 'fake-token';
-        
-        authService.login.mockResolvedValue({
-            user: mockUser,
-            token: mockToken
-        });
+	it("should login successfully and update state", async () => {
+		const mockUser = { id: "1", email: "test@example.com", role: "WORKER" };
+		const mockToken = "fake-token";
 
-        const onLoginSuccess = vi.fn();
-        const { getByPlaceholderText, getByText } = render(
-            <Wrapper>
-                <LoginForm onLoginSuccess={onLoginSuccess} />
-            </Wrapper>
-        );
+		authService.login.mockResolvedValue({
+			user: mockUser,
+			token: mockToken,
+		});
 
-        // Fill form
-        fireEvent.changeText(getByPlaceholderText('auth.email'), 'test@example.com');
-        fireEvent.changeText(getByPlaceholderText('auth.password'), 'password123');
+		const onLoginSuccess = vi.fn();
+		const { getByPlaceholderText, getByText } = render(
+			<Wrapper>
+				<LoginForm onLoginSuccess={onLoginSuccess} />
+			</Wrapper>,
+		);
 
-        // Submit
-        fireEvent.press(getByText('auth.login'));
+		// Fill form
+		fireEvent.changeText(
+			getByPlaceholderText("auth.email"),
+			"test@example.com",
+		);
+		fireEvent.changeText(getByPlaceholderText("auth.password"), "password123");
 
-        await waitFor(() => {
-            expect(authService.login).toHaveBeenCalledWith('test@example.com', 'password123');
-            expect(AsyncStorage.setItem).toHaveBeenCalledWith('user', JSON.stringify(mockUser));
-            expect(onLoginSuccess).toHaveBeenCalled();
-        });
-    });
+		// Submit
+		fireEvent.press(getByText("auth.login"));
 
-    it('should show error on login failure', async () => {
-        authService.login.mockRejectedValue(new Error('Invalid credentials'));
+		await waitFor(() => {
+			expect(authService.login).toHaveBeenCalledWith(
+				"test@example.com",
+				"password123",
+			);
+			expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+				"user",
+				JSON.stringify(mockUser),
+			);
+			expect(onLoginSuccess).toHaveBeenCalled();
+		});
+	});
 
-        const { getByPlaceholderText, getByText } = render(
-            <Wrapper>
-                <LoginForm />
-            </Wrapper>
-        );
+	it("should show error on login failure", async () => {
+		authService.login.mockRejectedValue(new Error("Invalid credentials"));
 
-        fireEvent.changeText(getByPlaceholderText('auth.email'), 'wrong@example.com');
-        fireEvent.changeText(getByPlaceholderText('auth.password'), 'wrongpass');
-        fireEvent.press(getByText('auth.login'));
+		const { getByPlaceholderText, getByText } = render(
+			<Wrapper>
+				<LoginForm />
+			</Wrapper>,
+		);
 
-        await waitFor(() => {
-            expect(authService.login).toHaveBeenCalled();
-        });
-        
-        // Error handling check (Alert is usually mocked in RN tests)
-    });
+		fireEvent.changeText(
+			getByPlaceholderText("auth.email"),
+			"wrong@example.com",
+		);
+		fireEvent.changeText(getByPlaceholderText("auth.password"), "wrongpass");
+		fireEvent.press(getByText("auth.login"));
+
+		await waitFor(() => {
+			expect(authService.login).toHaveBeenCalled();
+		});
+
+		// Error handling check (Alert is usually mocked in RN tests)
+	});
 });

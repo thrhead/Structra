@@ -1,64 +1,64 @@
 {
-  "expo": {
-    "name": "Assembly Tracker",
-    "slug": "mobile",
-    "version": "2.0.0",
-    "newArchEnabled": false,
-    "scheme": "assemblytracker",
-    "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.assemblytracker.mobile"
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "package": "com.assemblytracker.mobile",
-      "googleServicesFile": "./google-services.json"
-    },
-    "web": {
-      "favicon": "./assets/favicon.png",
-      "bundler": "metro",
-      "output": "single",
-      "name": "Assembly Tracker",
-      "shortName": "Assembly",
-      "description": "İş takip ve yönetim uygulaması",
-      "themeColor": "#1a365d",
-      "backgroundColor": "#ffffff",
-      "display": "standalone",
-      "orientation": "portrait",
-      "scope": "/"
-    },
-    "extra": {
-      "eas": {
-        "projectId": "7494834e-65b0-43bf-b568-1f47f73ada6a"
-      }
-    },
-    "owner": "thead",
-    "plugins": [
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "newArchEnabled": false,
-            "compileSdkVersion": 36,
-            "targetSdkVersion": 35,
-            "buildToolsVersion": "36.0.0"
-          }
-        }
-      ],
-      "@react-native-community/datetimepicker",
-      "expo-localization",
-      "expo-sharing"
-    ]
-  }
+	"expo": {
+		"name": "Assembly Tracker",
+		"slug": "mobile",
+		"version": "2.0.0",
+		"newArchEnabled": false,
+		"scheme": "assemblytracker",
+		"orientation": "portrait",
+		"icon": "./assets/icon.png",
+		"userInterfaceStyle": "light",
+		"splash": {
+			"image": "./assets/splash-icon.png",
+			"resizeMode": "contain",
+			"backgroundColor": "#ffffff"
+		},
+		"ios": {
+			"supportsTablet": true,
+			"bundleIdentifier": "com.assemblytracker.mobile"
+		},
+		"android": {
+			"adaptiveIcon": {
+				"foregroundImage": "./assets/adaptive-icon.png",
+				"backgroundColor": "#ffffff"
+			},
+			"package": "com.assemblytracker.mobile",
+			"googleServicesFile": "./google-services.json"
+		},
+		"web": {
+			"favicon": "./assets/favicon.png",
+			"bundler": "metro",
+			"output": "single",
+			"name": "Assembly Tracker",
+			"shortName": "Assembly",
+			"description": "İş takip ve yönetim uygulaması",
+			"themeColor": "#1a365d",
+			"backgroundColor": "#ffffff",
+			"display": "standalone",
+			"orientation": "portrait",
+			"scope": "/"
+		},
+		"extra": {
+			"eas": {
+				"projectId": "7494834e-65b0-43bf-b568-1f47f73ada6a"
+			}
+		},
+		"owner": "thead",
+		"plugins": [
+			[
+				"expo-build-properties",
+				{
+					"android": {
+						"newArchEnabled": false,
+						"compileSdkVersion": 36,
+						"targetSdkVersion": 35,
+						"buildToolsVersion": "36.0.0"
+					}
+				}
+			],
+			"@react-native-community/datetimepicker",
+			"expo-localization",
+			"expo-sharing"
+		]
+	}
 }
