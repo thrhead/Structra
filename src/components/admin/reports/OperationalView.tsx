@@ -24,6 +24,7 @@ import {
 import { Link, useRouter } from "@/lib/navigation";
 
 const STATUS_LABELS: Record<string, string> = {
+	PENDING_APPROVAL: "Onay Bekliyor",
 	PENDING: "Bekleyen",
 	IN_PROGRESS: "Devam Eden",
 	COMPLETED: "Tamamlanan",
@@ -31,6 +32,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
+	PENDING_APPROVAL: "bg-amber-500",
 	PENDING: "bg-amber-500",
 	IN_PROGRESS: "bg-blue-500",
 	COMPLETED: "bg-emerald-500",

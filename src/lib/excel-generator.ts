@@ -72,6 +72,7 @@ const formatDate = (date: Date | null): string => {
 };
 
 const statusLabels: Record<string, string> = {
+	PENDING_APPROVAL: "Onay Bekliyor",
 	PENDING: "Beklemede",
 	IN_PROGRESS: "Devam Ediyor",
 	COMPLETED: "Tamamlandı",

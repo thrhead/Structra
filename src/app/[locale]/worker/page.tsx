@@ -48,6 +48,7 @@ const priorityLabels: Record<string, string> = {
 };
 
 const statusLabels: Record<string, string> = {
+	PENDING_APPROVAL: "Onay Bekliyor",
 	PENDING: "Bekliyor",
 	IN_PROGRESS: "Devam Ediyor",
 	COMPLETED: "Tamamlandı",

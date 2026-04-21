@@ -60,6 +60,7 @@ const statusColors: Record<
 	string,
 	"default" | "secondary" | "destructive" | "outline"
 > = {
+	PENDING_APPROVAL: "warning",
 	PENDING: "secondary",
 	IN_PROGRESS: "default",
 	COMPLETED: "outline",
@@ -67,6 +68,7 @@ const statusColors: Record<
 };
 
 const statusLabels: Record<string, string> = {
+	PENDING_APPROVAL: "Onay Bekliyor",
 	PENDING: "Bekliyor",
 	IN_PROGRESS: "Devam Ediyor",
 	COMPLETED: "Tamamlandı",

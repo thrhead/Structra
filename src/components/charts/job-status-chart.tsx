@@ -17,6 +17,7 @@ interface JobStatusChartProps {
 }
 
 const COLORS: Record<string, string> = {
+	PENDING_APPROVAL: "#f59e0b",
 	PENDING: "#9CA3AF",
 	IN_PROGRESS: "#F59E0B",
 	COMPLETED: "#10B981",
@@ -25,6 +26,7 @@ const COLORS: Record<string, string> = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
+	PENDING_APPROVAL: "Onay Bekliyor",
 	PENDING: "Bekliyor",
 	IN_PROGRESS: "Devam Ediyor",
 	COMPLETED: "Tamamlandı",

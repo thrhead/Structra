@@ -87,6 +87,7 @@ interface JobDetail {
 }
 
 const STATUS_LABELS: Record<string, string> = {
+	PENDING_APPROVAL: "Onay Bekliyor",
 	PENDING: "Bekliyor",
 	IN_PROGRESS: "Devam Ediyor",
 	COMPLETED: "Tamamlandı",
@@ -97,6 +98,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
+	PENDING_APPROVAL: "bg-amber-500",
 	PENDING: "bg-gray-100 text-gray-800",
 	IN_PROGRESS: "bg-yellow-100 text-yellow-800",
 	COMPLETED: "bg-blue-100 text-blue-800",

@@ -15,6 +15,7 @@ interface ProjectStatusChartProps {
 }
 
 const COLORS: Record<string, string> = {
+	PENDING_APPROVAL: "#f59e0b",
 	COMPLETED: "#10b981", // Emerald
 	IN_PROGRESS: "#3b82f6", // Blue
 	PENDING: "#f59e0b", // Amber
@@ -23,6 +24,7 @@ const COLORS: Record<string, string> = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
+	PENDING_APPROVAL: "Onay Bekliyor",
 	COMPLETED: "Tamamlandı",
 	IN_PROGRESS: "Devam Ediyor",
 	PENDING: "Beklemede",
