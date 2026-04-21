@@ -1,13 +1,13 @@
-import { Link } from "@/lib/navigation"
-import { auth } from "@/lib/auth"
 import { getTranslations } from 'next-intl/server'
+import { Link } from '@/lib/navigation'
 import dynamic from 'next/dynamic'
 import { 
-  ArrowRight, Box, Layers, ShieldCheck, Activity, 
+  Box, Layers, ShieldCheck, Activity, 
   Smartphone, Globe, CloudOff, CheckCircle2, 
   MapPin, Camera, Zap, Shield, Eye, BarChart3
 } from 'lucide-react'
 import * as motion from 'framer-motion/client'
+import { UserNav } from '@/components/landing/UserNav'
 
 export const runtime = 'nodejs'
 
@@ -26,15 +26,7 @@ export async function generateMetadata({ params: { locale } }: { params: { local
 }
 
 export default async function HomePage() {
-  let session = null;
-  try {
-    session = await auth();
-  } catch (error) {
-    console.error("Auth failed:", error);
-  }
-
   const t = await getTranslations('Home');
-  const t_nav = await getTranslations('Navigation');
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-50 selection:bg-amber-500/30 font-sans tracking-tight overflow-x-hidden">
@@ -54,26 +46,7 @@ export default async function HomePage() {
             <span className="font-bold text-xl tracking-tighter text-white uppercase">Structra</span>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
-            {session ? (
-              <Link
-                href={`/${session.user.role.toLowerCase()}`}
-                className="text-xs font-mono uppercase tracking-widest text-slate-400 hover:text-amber-500 transition-colors border border-slate-800 px-6 py-3 rounded-full bg-slate-900/50 backdrop-blur-sm"
-              >
-                [ {t_nav('dashboard')} ]
-              </Link>
-            ) : (
-              <Link
-                href="/login"
-                className="text-xs font-mono uppercase tracking-widest text-slate-400 hover:text-amber-400 transition-colors border border-slate-800 px-6 py-3 rounded-full bg-slate-900/50 backdrop-blur-sm"
-              >
-                [ {t('loginButton')} ]
-              </Link>
-            )}
-          </motion.div>
+          <UserNav />
         </header>
 
         <div className="mt-24 md:mt-0 w-full md:w-[90%]">
