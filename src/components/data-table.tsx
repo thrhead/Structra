@@ -1,6 +1,7 @@
 "use client";
 
 import { IconDotsVertical } from "@tabler/icons-react";
+import { Link } from "@/lib/navigation";
 import {
 	type ColumnDef,
 	flexRender,
@@ -30,6 +31,7 @@ import {
 } from "@/components/ui/table";
 
 interface CustomerData {
+	id?: string;
 	name: string;
 	email: string;
 	totalSpent: number;
@@ -87,7 +89,7 @@ const columns: ColumnDef<CustomerData>[] = [
 	},
 	{
 		id: "actions",
-		cell: () => (
+		cell: ({ row }) => (
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
 					<Button
@@ -99,8 +101,10 @@ const columns: ColumnDef<CustomerData>[] = [
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end" className="w-40 rounded-xl">
-					<DropdownMenuItem className="text-xs font-bold">
-						Detayları Gör
+					<DropdownMenuItem className="text-xs font-bold" asChild>
+						<Link href={`/admin/customers/${row.original.id || ''}`}>
+							Detayları Gör
+						</Link>
 					</DropdownMenuItem>
 					<DropdownMenuItem className="text-xs font-bold">
 						Düzenle
