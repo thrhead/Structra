@@ -16,7 +16,7 @@ import {
 	Wallet,
 } from "lucide-react";
 import Image from "next/image";
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
 import { ChatPanel } from "@/components/chat/ChatPanel";
 import { Badge } from "@/components/ui/badge";
@@ -94,13 +94,7 @@ export default function JobDetailPage(props: { params: any }) {
 	const [isCompleting, setIsCompleting] = useState(false);
 	const router = useRouter();
 
-	useEffect(() => {
-		if (id) {
-			fetchJob();
-		}
-	}, [id, fetchJob]);
-
-	const fetchJob = async () => {
+	const fetchJob = useCallback(async () => {
 		if (!id) return;
 		try {
 			const res = await fetch(`/api/worker/jobs/${id}`);
@@ -112,7 +106,13 @@ export default function JobDetailPage(props: { params: any }) {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, [id]);
+
+	useEffect(() => {
+		if (id) {
+			fetchJob();
+		}
+	}, [id, fetchJob]);
 
 	const toggleStep = async (stepId: string, currentStatus: boolean) => {
 		if (!id) return;

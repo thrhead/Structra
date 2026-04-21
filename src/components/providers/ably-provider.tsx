@@ -29,11 +29,6 @@ export function AblyProvider({ children }: { children: ReactNode }) {
 
 	useEffect(() => {
 		if (status !== "authenticated" || !session?.user?.id) {
-			if (client) {
-				client.close();
-				setClient(null);
-				setIsConnected(false);
-			}
 			return;
 		}
 
@@ -60,8 +55,10 @@ export function AblyProvider({ children }: { children: ReactNode }) {
 
 		return () => {
 			realtime.close();
+			setClient(null);
+			setIsConnected(false);
 		};
-	}, [status, session?.user?.id, client.close, client]);
+	}, [status, session?.user?.id]);
 
 	return (
 		<AblyContext.Provider value={{ client, isConnected }}>
