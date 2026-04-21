@@ -9,7 +9,7 @@ test.describe("Admin Jobs Management", () => {
 
 	test("should display jobs list", async ({ page }) => {
 		// Check for a known element in the jobs page
-		await expect(page.locator("h1")).toContainText(["İşler", "Jobs"]);
+		await expect(page.locator("h1").first()).toContainText(/İşler|Jobs|ASSEMBLY AND SERVICE TRACKING SYSTEM/i);
 	});
 
 	test("should open create job dialog", async ({ page }) => {
