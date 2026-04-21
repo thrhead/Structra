@@ -11,11 +11,11 @@ export async function POST(
 	const _params = await props.params;
 
 	// Debug Cloudinary Config
-	cloudNameExists: !!process.env.CLOUDINARY_CLOUD_NAME, apiKeyExists;
-	: !!process.env.CLOUDINARY_API_KEY,
+	console.log({
+		cloudNameExists: !!process.env.CLOUDINARY_CLOUD_NAME,
+		apiKeyExists: !!process.env.CLOUDINARY_API_KEY,
         apiSecretExists: !!process.env.CLOUDINARY_API_SECRET
-}
-)
+	});
 try {
         const session = await verifyAuth(req)
         if (!session || (session.user.role !== 'WORKER' && session.user.role !== 'TEAM_LEAD')) {
@@ -87,12 +87,6 @@ try {
 
         // Hex Dump Debug
         const _headerHex = buffer.subarray(0, 20).toString('hex');
-            size: buffer.length,
-            _headerHex,
-            isJpeg: headerHex.startsWith('ffd8ff'),
-            isPng: headerHex.startsWith('89504e47')
-        }
-)
 
 if (buffer.length === 0) {
 	return NextResponse.json({ error: 'Empty file received' }, { status: 400 })
@@ -113,13 +107,6 @@ if (fileType === "image" || !fileType.includes("/")) {
 const dataURI = `data:${fileType};base64,${base64Data}`;
 
 // Hex Dump Debug
-// const headerHex = buffer.subarray(0, 20).toString('hex'); // This was moved up
-size: buffer.length, headerHex, isJpeg;
-: headerHex.startsWith('ffd8ff'),
-            isPng: headerHex.startsWith('89504e47'),
-            resolvedMimeType: fileType,
-            base64Start: base64Data.substring(0, 50)
-        })
 
 // Upload to Cloudinary using standard upload (Base64 Data URI)
 // This ensures Cloudinary treats it as an image and fails if it's not valid image data.

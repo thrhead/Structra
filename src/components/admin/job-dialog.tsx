@@ -301,8 +301,8 @@ export function JobDialog({
 		value: string,
 	) => {
 		const newSteps = [...steps];
-		if (newSteps[stepIndex].subSteps) {
-			newSteps[stepIndex].subSteps?.[subStepIndex].title = value;
+		if (newSteps[stepIndex].subSteps && newSteps[stepIndex].subSteps[subStepIndex]) {
+			newSteps[stepIndex].subSteps[subStepIndex].title = value;
 			setSteps(newSteps);
 		}
 	};

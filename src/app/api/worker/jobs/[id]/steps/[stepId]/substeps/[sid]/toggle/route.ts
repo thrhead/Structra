@@ -87,13 +87,7 @@ export async function POST(
             deviceInfo.platform
         );
 
-            id: params.sid,
-            oldStatus: subStep.approvalStatus,
-            oldCompleted: subStep.isCompleted,
-            newStatus: updatedSubStep.approvalStatus,
-            newCompleted: updatedSubStep.isCompleted
-        }
-	)
+
 
 	// Notify admins when substep is completed (toggled ON)
 	if (updatedSubStep.isCompleted && !subStep.isCompleted) {

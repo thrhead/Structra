@@ -317,7 +317,7 @@ export async function getAdminDashboardData() {
       ? Math.round((totalCompletedJobs / totalJobs) * 100)
       : 0
 
-    const _result = {
+    const result = {
       activeWorkersCount,
       totalCostToday,
       budgetPercentage,
@@ -349,16 +349,7 @@ export async function getAdminDashboardData() {
       allUsers
     }
 
-      jobs: totalJobs,
-      active: activeJobs,
-      pending: pendingOnlyJobs,
-      completed: totalCompletedJobs,
-      completionRate,
-      workers: totalWorkers,
-      customers: totalCustomers,
-      trendPoints: strategicTrendResult.length
-    }
-	)
+
 
 	return result;
 }
