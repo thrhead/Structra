@@ -201,6 +201,7 @@ export default function JobDetailScreen({ route, navigation }) {
 
     const handleSubstepToggle = async (stepId, substepId, currentStatus) => {
         const performToggle = async () => {
+            let showSuccess = false;
             try {
                 setLoading(true);
                 if (!currentStatus) {
@@ -215,16 +216,25 @@ export default function JobDetailScreen({ route, navigation }) {
                             [],
                             'warning'
                         );
+                        setLoading(false);
                         return;
                     }
+                    showSuccess = true;
                 }
                 await jobService.toggleSubstep(jobId, stepId, substepId, !currentStatus, job.updatedAt);
-                loadJobDetails();
+                await loadJobDetails();
             } catch (error) {
                 console.error('Substep toggle error:', error);
                 showAlert(t('common.error'), t('alerts.processError'), [], 'error');
+                showSuccess = false;
             } finally {
                 setLoading(false);
+                if (showSuccess) {
+                    setTimeout(() => {
+                        setSuccessMessage(t('alerts.jobCompleteSuccess'));
+                        setSuccessModalVisible(true);
+                    }, 600);
+                }
             }
         };
 
@@ -247,15 +257,26 @@ export default function JobDetailScreen({ route, navigation }) {
 
     const handleToggleStep = async (stepId, currentStatus) => {
         const performToggle = async () => {
+            let showSuccess = false;
             try {
                 setLoading(true);
+                if (!currentStatus) {
+                    showSuccess = true;
+                }
                 await jobService.toggleStep(jobId, stepId, !currentStatus, job.updatedAt);
-                loadJobDetails();
+                await loadJobDetails();
             } catch (error) {
                 console.error('Step toggle error:', error);
                 showAlert(t('common.error'), t('alerts.processError'), [], 'error');
+                showSuccess = false;
             } finally {
                 setLoading(false);
+                if (showSuccess) {
+                    setTimeout(() => {
+                        setSuccessMessage(t('alerts.jobCompleteSuccess'));
+                        setSuccessModalVisible(true);
+                    }, 600);
+                }
             }
         };
 
