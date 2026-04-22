@@ -68,7 +68,7 @@
     "photoRequiredForToggle": "Bu iş emrini kapatabilmeniz için öncelikle en az 1 adet fotoğraf yüklemeniz gerekmektedir",
     "photoRequiredForComplete": "Bu montajı tamamlayarak kapatmak için tüm alt iş emirlerini tamamlamanız gerekiyor",
     "jobDeleteError": "İş silinemedi.",
-    "jobCompleteSuccess": "İş başarıyla bitirildi ve admin onayına gönderildi.",
+    "jobCompleteSuccess": "İş başarıyla tamamlanmış ve onaya gönderilmiştir.",
     "jobCompleteError": "İş tamamlanırken bir hata oluştu.",
     "fileShareError": "Dosya paylaşılamadı.",
     "pendingApprovalDesc": "Bu iş tamamlandı ve yönetici onayını bekliyor.",

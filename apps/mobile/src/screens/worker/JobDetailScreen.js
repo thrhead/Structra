@@ -94,7 +94,7 @@ export default function JobDetailScreen({ route, navigation }) {
             joinJobRoom(jobId);
 
             const handleJobUpdate = (data) => {
-                if (data && data.updatedBy === user?.id) {
+                if (data && String(data.updatedBy) === String(user?.id)) {
                     return;
                 }
                 if (modalVisible || costModalVisible || rejectionModalVisible) {
@@ -804,6 +804,7 @@ export default function JobDetailScreen({ route, navigation }) {
                                         theme={theme}
                                         user={user}
                                         t={t}
+                                        formatDate={formatDate}
                                         handleSubstepToggle={handleSubstepToggle}
                                         pickImage={pickImage}
                                         renderPhotoItem={renderPhotoItem}

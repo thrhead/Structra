@@ -9,6 +9,7 @@ const SubStepItem = ({
     theme, 
     user, 
     t, 
+    formatDate,
     handleSubstepToggle, 
     pickImage, 
     renderPhotoItem,
@@ -64,7 +65,7 @@ const SubStepItem = ({
                         ]}>
                             {substep.title || substep.name}
                         </Text>
-                        
+
                         <View style={styles.actionRow}>
                             {isCompleted && (
                                 <View style={[styles.badge, { backgroundColor: getStatusColor() + '15' }]}>
@@ -72,6 +73,19 @@ const SubStepItem = ({
                                 </View>
                             )}
                         </View>
+                    </View>
+
+                    <View style={styles.datesContainer}>
+                        {substep.startedAt && (
+                            <Text style={[styles.dateText, { color: theme.colors.subText }]}>
+                                <MaterialIcons name="play-circle-outline" size={14} /> {t('worker.started')}: {formatDate(substep.startedAt)}
+                            </Text>
+                        )}
+                        {substep.completedAt && (
+                            <Text style={[styles.dateText, { color: theme.colors.subText, marginTop: 4 }]}>
+                                <MaterialIcons name="check-circle-outline" size={14} /> {t('worker.finished')}: {formatDate(substep.completedAt)}
+                            </Text>
+                        )}
                     </View>
 
                     {/* Camera Action Row - More user friendly */}
@@ -186,6 +200,15 @@ const styles = StyleSheet.create({
     completedText: {
         opacity: 0.5,
         textDecorationLine: 'line-through',
+    },
+    datesContainer: {
+        marginTop: 4,
+        marginBottom: 8,
+    },
+    dateText: {
+        fontSize: 13,
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     actionRow: {
         flexDirection: 'row',

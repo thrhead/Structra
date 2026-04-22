@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
-import { publishToUser, broadcast } from '@/lib/ably'
+import { publishToUser, broadcast, publishToJob } from '@/lib/ably'
 import { JobCompletedPayload } from '@/lib/socket-events'
 import { sendJobCompletedEmail } from '@/lib/email'
-import { notifyAdminsOfJobCompletion } from '@/lib/notifications'
+import { notifyAdminsOfJobCompletion } from '@/lib/notification-helper'
 import cloudinary from '@/lib/cloudinary'
 import { EventBus } from '@/lib/event-bus'
 import { checkConflict } from '@/lib/conflict-check'
@@ -16,7 +16,7 @@ export async function POST(
 ) {
   try {
     const session = await verifyAuth(req)
-    if (!session || !['WORKER', 'TEAM_LEAD'].includes(session.user.role)) {
+    if (!session || !['WORKER', 'TEAM_LEAD', 'ADMIN', 'MANAGER'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -26,15 +26,7 @@ export async function POST(
 
     const job = await prisma.job.findFirst({
       where: {
-        id: jobId,
-        assignments: {
-          some: {
-            OR: [
-              { workerId: session.user.id },
-              { team: { members: { some: { userId: session.user.id } } } }
-            ]
-          }
-        }
+        id: jobId
       },
       include: {
         steps: {
@@ -54,7 +46,21 @@ export async function POST(
     })
 
     if (!job) {
-      return NextResponse.json({ error: 'Job not found or access denied' }, { status: 404 })
+      return NextResponse.json({ error: 'Job not found' }, { status: 404 })
+    }
+
+    // Check Access
+    if (!['ADMIN', 'MANAGER'].includes(session.user.role)) {
+      const hasAccess = await prisma.jobAssignment.findFirst({
+        where: {
+          jobId,
+          OR: [
+            { workerId: session.user.id },
+            { team: { members: { some: { userId: session.user.id } } } }
+          ]
+        }
+      })
+      if (!hasAccess) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const conflict = await checkConflict(req, job.updatedAt)
@@ -90,6 +96,7 @@ export async function POST(
       data: {
         status: 'PENDING_APPROVAL',
         completedDate: new Date(),
+        updatedAt: new Date(),
         signatureUrl,
         signatureLatitude: signatureLatitude ? parseFloat(signatureLatitude) : null,
         signatureLongitude: signatureLongitude ? parseFloat(signatureLongitude) : null
@@ -153,6 +160,15 @@ export async function POST(
       }
       await notifyAdminsOfJobCompletion(jobId)
       await broadcast('job:status_changed', { ...ablyPayload, status: 'PENDING_APPROVAL' })
+
+      // Emit job:updated to sync client states and avoid "updated by other" warning
+      await publishToJob(jobId, 'job:updated', { 
+        id: jobId, 
+        updatedAt: updatedJob.updatedAt, 
+        updatedBy: session.user.id,
+        status: updatedJob.status
+      });
+
     } catch (ablyError) {
       console.error('Ably error (non-fatal):', ablyError);
     }
