@@ -1,12 +1,8 @@
-import { prisma } from "@/lib/db";
-import {
-	getOperationalDashboard,
-	getStrategicDashboard,
-	getTacticalDashboard,
-} from "./reports";
+import { prisma } from "@/lib/db"
+import { getStrategicDashboard, getTacticalDashboard, getOperationalDashboard } from "./reports"
 
 export async function getAdminDashboardData() {
-	try {
+  try {
     const now = new Date()
     const today = new Date(now)
     today.setHours(0, 0, 0, 0)
@@ -317,7 +313,7 @@ export async function getAdminDashboardData() {
       ? Math.round((totalCompletedJobs / totalJobs) * 100)
       : 0
 
-    const _result = {
+    const result = {
       activeWorkersCount,
       totalCostToday,
       budgetPercentage,
@@ -349,6 +345,7 @@ export async function getAdminDashboardData() {
       allUsers
     }
 
+    console.log("DASHBOARD DEBUG: Fetch successful", {
       jobs: totalJobs,
       active: activeJobs,
       pending: pendingOnlyJobs,
@@ -357,18 +354,12 @@ export async function getAdminDashboardData() {
       workers: totalWorkers,
       customers: totalCustomers,
       trendPoints: strategicTrendResult.length
-    }
-	)
+    });
 
-	return result;
-}
-catch (error: any)
-{
-	console.error(
-		"CRITICAL: getAdminDashboardData overall failure",
-		error.message,
-	);
-	return {
+    return result
+  } catch (error: any) {
+    console.error("CRITICAL: getAdminDashboardData overall failure", error.message);
+    return {
       activeWorkersCount: 0,
       totalCostToday: 0,
       budgetPercentage: 0,
@@ -393,5 +384,5 @@ catch (error: any)
       operational: {},
       strategicTrend: []
     }
-}
+  }
 }

@@ -1,239 +1,230 @@
 {
-	"Common": {
-		"save": "Kaydet",
-		"cancel": "İptal",
-		"delete": "Sil",
-		"edit": "Düzenle",
-		"loading": "Yükleniyor...",
-		"search": "Ara...",
-		"error": "Bir hata oluştu",
-		"success": "İşlem başarılı",
-		"status": "Durum",
-		"priority": "Öncelik",
-		"date": "Tarih",
-		"actions": "İşlemler"
-	},
-	"Navigation": {
-		"dashboard": "Dashboard",
-		"jobs": "İşler",
-		"teams": "Ekipler",
-		"customers": "Müşteriler",
-		"costs": "Maliyetler",
-		"logout": "Çıkış Yap",
-		"reports": "Raporlar"
-	},
-	"Dashboard": {
-		"welcome": "Tekrar Hoşgeldiniz",
-		"activeWorkers": "Aktif Çalışanlar",
-		"todaysCost": "Bugün Harcanan",
-		"pendingApprovals": "Onay Bekleyenler",
-		"quickActions": "Hızlı İşlemler"
-	},
-	"Home": {
-		"title": "Montaj ve Servis",
-		"subtitle": "Takip Sistemi",
-		"description": "Fabrika dışında çalışan montaj ve servis ekiplerinin işlerini kolayca takip edin. Maliyet kontrolü, ekip yönetimi ve müşteri bildirimleri tek platformda.",
-		"loginButton": "Giriş Yap",
-		"features": {
-			"tracking": {
-				"title": "İş Takibi",
-				"desc": "Montaj süreçlerini adım adım takip edin ve kontrol edin"
-			},
-			"teams": {
-				"title": "Ekip Yönetimi",
-				"desc": "Ekiplerinizi yönetin, görevleri atayın ve ilerlemeyi izleyin"
-			},
-			"reporting": {
-				"title": "Raporlama",
-				"desc": "Detaylı raporlar ve grafiklerle maliyet kontrolü yapın"
-			},
-			"web": {
-				"title": "Yönetici & Müşteri Paneli",
-				"description": "Tüm operasyonu saniyeler içinde kuş bakışı izleyin. Maliyetleri yönetin, ekipleri yönlendirin.",
-				"items": [
-					{
-						"title": "Gerçek Zamanlı Harita",
-						"desc": "Ekiplerinizin anlık konumlarını ve iş durumlarını harita üzerinden canlı takip edin."
-					},
-					{
-						"title": "Finansal Analiz",
-						"desc": "İş bazlı maliyet hesaplamaları ve karlılık raporlarını tek tuşla alın."
-					},
-					{
-						"title": "Müşteri Arayüzü",
-						"desc": "Müşterilerinize işlerinin hangi aşamada olduğunu şeffaf bir şekilde sunun."
-					}
-				]
-			},
-			"mobile": {
-				"title": "Saha Ekipleri İçin Tasarlandı",
-				"description": "Sıfır internet bağlantısında bile kesintisiz montaj rehberi ve görev takibi.",
-				"items": [
-					{
-						"title": "3D Montaj Kılavuzu",
-						"desc": "Karmaşık ürünleri cep telefonundan 3 boyutlu ve adım adım patlatılmış görünümlerle kurun."
-					},
-					{
-						"title": "Hata Bildirimi",
-						"desc": "Sahada karşılaşılan sorunları anında fotoğraflayıp merkeze iletin."
-					},
-					{
-						"title": "Çevrimdışı Çalışma",
-						"desc": "Bağlantı kopsa bile veriler cihazda tutulur, internet gelince otomatik senkronize olur."
-					}
-				]
-			}
-		},
-		"trust": {
-			"title": "Görünmezlik Problemini Çözün",
-			"description": "Saha operasyonlarının en büyük sorunu iletişim kopukluğu ve veri eksikliğidir. Structra ile her adım dijital kanıtlarla doğrulanır.",
-			"cards": [
-				{
-					"title": "Dijital Kanıt",
-					"desc": "\"Yapıldı\" demek yetmez. Her adım için fotoğraf ve GPS konumu zorunludur."
-				},
-				{
-					"title": "Kesintisiz Veri",
-					"desc": "Yer altında veya şantiyede internet mi yok? Sorun değil. Verileriniz güvende ve senkronize."
-				}
-			]
-		},
-		"workflow": {
-			"title": "Kusursuz İş Akışı",
-			"step1": {
-				"title": "İş Atama",
-				"desc": "Merkezden ekibe iş emri saniyeler içinde iletilir."
-			},
-			"step2": {
-				"title": "Saha Montajı",
-				"desc": "3D rehberler ve checklistler ile hata payı sıfıra iner."
-			},
-			"step3": {
-				"title": "Doğrulama",
-				"desc": "Yönetici onayı ile kalite standartları korunur."
-			}
-		}
-	},
-	"CustomerDashboard": {
-		"title": "Dashboard",
-		"subtitle": "İşlerinizin özeti ve durumu",
-		"stats": {
-			"totalJobs": "Toplam İş",
-			"pending": "Bekleyen",
-			"inProgress": "Devam Eden",
-			"completed": "Tamamlanan"
-		},
-		"charts": {
-			"distribution": "İş Durumu Dağılımı"
-		},
-		"recentJobs": {
-			"title": "Son İşler",
-			"viewAll": "Tümünü Gör",
-			"noJobs": "Henüz iş bulunmuyor",
-			"progress": "İlerleme"
-		}
-	},
-	"Manager": {
-		"dashboard": {
-			"title": "Yönetici Paneli",
-			"subtitle": "Operasyonel durumu buradan takip edebilirsiniz.",
-			"stats": {
-				"totalJobs": "Toplam İş",
-				"activeTeams": "Aktif Ekipler",
-				"completed": "Tamamlandı",
-				"pendingApproval": "Bekleyen Onay",
-				"allTime": "Tüm zamanlar",
-				"onField": "Sahada",
-				"thisMonth": "Bu ay",
-				"needsReview": "İncelenmeli",
-				"activeJobs": "Devam Eden İşler",
-				"completedToday": "Bugün Tamamlanan",
-				"overdueJobs": "Geciken İşler",
-				"monthlyCosts": "Aylık Maliyet",
-				"efficiency": "Verimlilik Skoru",
-				"systemLogs": "Sistem Logları",
-				"inProgress": "Devam Ediyor",
-				"overdue": "Gecikmiş",
-				"approved": "Onaylandı"
-			},
-			"recentJobs": {
-				"title": "Son İşler",
-				"noJobs": "Henüz kayıtlı iş bulunmuyor.",
-				"createdNew": "yeni bir iş oluşturdu"
-			},
-			"quickActions": {
-				"title": "Hızlı İşlemler",
-				"newJob": {
-					"title": "Yeni İş Oluştur",
-					"desc": "Müşteri için yeni bir servis kaydı aç"
-				},
-				"reports": {
-					"title": "Raporlar",
-					"desc": "Detaylı iş ve maliyet raporlarını incele"
-				}
-			}
-		},
-		"jobs": {
-			"title": "İşler",
-			"subtitle": "Montaj ve servis işlerini yönetin.",
-			"searchPlaceholder": "İş, müşteri veya firma ara...",
-			"table": {
-				"title": "İş Başlığı",
-				"customer": "Müşteri",
-				"team": "Atanan Ekip",
-				"unassigned": "Atanmamış",
-				"noRecords": "Kayıtlı iş bulunamadı."
-			}
-		},
-		"reports": {
-			"title": "Raporlar",
-			"subtitle": "İş ve performans analizleri.",
-			"charts": {
-				"statusDistribution": "İş Durumu Dağılımı",
-				"recentCompletion": "Son 7 Gün Tamamlanan İşler",
-				"topTeams": "En İyi Ekipler (Tamamlanan İş)"
-			}
-		},
-		"status": {
-			"PENDING": "Bekliyor",
-			"IN_PROGRESS": "Devam Ediyor",
-			"COMPLETED": "Tamamlandı",
-			"CANCELLED": "İptal",
-			"ON_HOLD": "Beklemede"
-		}
-	},
-	"Admin": {
-		"forecastingTitle": "Zeka & Tahminleme",
-		"forecastingSubtitle": "Tamamlanan iş verilerine dayalı akıllı süre tahminleri.",
-		"intelligenceDesc": "Bu bölüm, geçmişte tamamlanan benzer başlıklı işlerin sürelerini analiz ederek gelecekteki planlamalarınız için öngörü sağlar. Sistem ne kadar çok veri toplarsa, tahminler o kadar kesinleşir.",
-		"avgDuration": "Ortalama Süre",
-		"samples": "örnek veri",
-		"noData": "Tahminleme için henüz yeterli veri toplanmadı.",
-		"logs": {
-			"title": "Sistem Logları",
-			"subtitle": "Hata ve sistem hareketlerini izleyin.",
-			"level": "Seviye",
-			"platform": "Platform",
-			"message": "Mesaj",
-			"user": "Kullanıcı",
-			"time": "Zaman",
-			"prune": "Eski Logları Temizle",
-			"pruneConfirm": "90 günden eski teknik loglar silinecek. Onaylıyor musunuz?",
-			"noLogs": "Log kaydı bulunamadı."
-		},
-		"assembly3d": {
-			"title": "3D Montaj Kılavuzu",
-			"explodedView": "Patlama Görünümü",
-			"normalView": "Normal Görünüm",
-			"selectPart": "Detay görmek için bir parçaya tıklayın",
-			"nextStep": "Sonraki",
-			"prevStep": "Önceki",
-			"completed": "Tamamlandı",
-			"pending": "Bekliyor",
-			"selected": "Seçili",
-			"instructions": "Talimatlar",
-			"resetView": "Görünümü Sıfırla",
-			"loading": "3D Model yükleniyor..."
-		}
-	}
+  "Common": {
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "loading": "Yükleniyor...",
+    "search": "Ara...",
+    "error": "Bir hata oluştu",
+    "success": "İşlem başarılı",
+    "status": "Durum",
+    "priority": "Öncelik",
+    "date": "Tarih",
+    "actions": "İşlemler"
+  },
+  "Navigation": {
+    "dashboard": "Dashboard",
+    "jobs": "İşler",
+    "teams": "Ekipler",
+    "customers": "Müşteriler",
+    "costs": "Maliyetler",
+    "logout": "Çıkış Yap",
+    "reports": "Raporlar"
+  },
+  "Dashboard": {
+    "welcome": "Tekrar Hoşgeldiniz",
+    "activeWorkers": "Aktif Çalışanlar",
+    "todaysCost": "Bugün Harcanan",
+    "pendingApprovals": "Onay Bekleyenler",
+    "quickActions": "Hızlı İşlemler"
+  },
+  "Home": {
+    "title": "Montaj ve Servis",
+    "subtitle": "Takip Sistemi",
+    "description": "Fabrika dışında çalışan montaj ve servis ekiplerinin işlerini kolayca takip edin. Maliyet kontrolü, ekip yönetimi ve müşteri bildirimleri tek platformda.",
+    "loginButton": "Giriş Yap",
+    "features": {
+      "tracking": {
+        "title": "İş Takibi",
+        "desc": "Montaj süreçlerini adım adım takip edin ve kontrol edin"
+      },
+      "teams": {
+        "title": "Ekip Yönetimi",
+        "desc": "Ekiplerinizi yönetin, görevleri atayın ve ilerlemeyi izleyin"
+      },
+      "reporting": {
+        "title": "Raporlama",
+        "desc": "Detaylı raporlar ve grafiklerle maliyet kontrolü yapın"
+      },
+      "web": {
+        "title": "Yönetici & Müşteri Paneli",
+        "description": "Tüm operasyonu saniyeler içinde kuş bakışı izleyin. Maliyetleri yönetin, ekipleri yönlendirin.",
+        "items": [
+          {
+            "title": "Gerçek Zamanlı Harita",
+            "desc": "Ekiplerinizin anlık konumlarını ve iş durumlarını harita üzerinden canlı takip edin."
+          },
+          {
+            "title": "Finansal Analiz",
+            "desc": "İş bazlı maliyet hesaplamaları ve karlılık raporlarını tek tuşla alın."
+          },
+          {
+            "title": "Müşteri Arayüzü",
+            "desc": "Müşterilerinize işlerinin hangi aşamada olduğunu şeffaf bir şekilde sunun."
+          }
+        ]
+      },
+      "mobile": {
+        "title": "Saha Ekipleri İçin Tasarlandı",
+        "description": "Sıfır internet bağlantısında bile kesintisiz montaj rehberi ve görev takibi.",
+        "items": [
+          {
+            "title": "3D Montaj Kılavuzu",
+            "desc": "Karmaşık ürünleri cep telefonundan 3 boyutlu ve adım adım patlatılmış görünümlerle kurun."
+          },
+          {
+            "title": "Hata Bildirimi",
+            "desc": "Sahada karşılaşılan sorunları anında fotoğraflayıp merkeze iletin."
+          },
+          {
+            "title": "Çevrimdışı Çalışma",
+            "desc": "Bağlantı kopsa bile veriler cihazda tutulur, internet gelince otomatik senkronize olur."
+          }
+        ]
+      }
+    },
+    "trust": {
+      "title": "Görünmezlik Problemini Çözün",
+      "description": "Saha operasyonlarının en büyük sorunu iletişim kopukluğu ve veri eksikliğidir. Structra ile her adım dijital kanıtlarla doğrulanır.",
+      "cards": [
+        {
+          "title": "Dijital Kanıt",
+          "desc": "\"Yapıldı\" demek yetmez. Her adım için fotoğraf ve GPS konumu zorunludur."
+        },
+        {
+          "title": "Kesintisiz Veri",
+          "desc": "Yer altında veya şantiyede internet mi yok? Sorun değil. Verileriniz güvende ve senkronize."
+        }
+      ]
+    },
+    "workflow": {
+      "title": "Kusursuz İş Akışı",
+      "step1": { "title": "İş Atama", "desc": "Merkezden ekibe iş emri saniyeler içinde iletilir." },
+      "step2": { "title": "Saha Montajı", "desc": "3D rehberler ve checklistler ile hata payı sıfıra iner." },
+      "step3": { "title": "Doğrulama", "desc": "Yönetici onayı ile kalite standartları korunur." }
+    }
+  },
+  "CustomerDashboard": {
+    "title": "Dashboard",
+    "subtitle": "İşlerinizin özeti ve durumu",
+    "stats": {
+      "totalJobs": "Toplam İş",
+      "pending": "Bekleyen",
+      "inProgress": "Devam Eden",
+      "completed": "Tamamlanan"
+    },
+    "charts": {
+      "distribution": "İş Durumu Dağılımı"
+    },
+    "recentJobs": {
+      "title": "Son İşler",
+      "viewAll": "Tümünü Gör",
+      "noJobs": "Henüz iş bulunmuyor",
+      "progress": "İlerleme"
+    }
+  },
+  "Manager": {
+    "dashboard": {
+      "title": "Yönetici Paneli",
+      "subtitle": "Operasyonel durumu buradan takip edebilirsiniz.",
+      "stats": {
+        "totalJobs": "Toplam İş",
+        "activeTeams": "Aktif Ekipler",
+        "completed": "Tamamlandı",
+        "pendingApproval": "Bekleyen Onay",
+        "allTime": "Tüm zamanlar",
+        "onField": "Sahada",
+        "thisMonth": "Bu ay",
+        "needsReview": "İncelenmeli",
+        "activeJobs": "Devam Eden İşler",
+        "completedToday": "Bugün Tamamlanan",
+        "overdueJobs": "Geciken İşler",
+        "monthlyCosts": "Aylık Maliyet",
+        "efficiency": "Verimlilik Skoru",
+        "systemLogs": "Sistem Logları",
+        "inProgress": "Devam Ediyor",
+        "overdue": "Gecikmiş",
+        "approved": "Onaylandı"
+      },
+      "recentJobs": {
+        "title": "Son İşler",
+        "noJobs": "Henüz kayıtlı iş bulunmuyor.",
+        "createdNew": "yeni bir iş oluşturdu"
+      },
+      "quickActions": {
+        "title": "Hızlı İşlemler",
+        "newJob": {
+          "title": "Yeni İş Oluştur",
+          "desc": "Müşteri için yeni bir servis kaydı aç"
+        },
+        "reports": {
+          "title": "Raporlar",
+          "desc": "Detaylı iş ve maliyet raporlarını incele"
+        }
+      }
+    },
+    "jobs": {
+      "title": "İşler",
+      "subtitle": "Montaj ve servis işlerini yönetin.",
+      "searchPlaceholder": "İş, müşteri veya firma ara...",
+      "table": {
+        "title": "İş Başlığı",
+        "customer": "Müşteri",
+        "team": "Atanan Ekip",
+        "unassigned": "Atanmamış",
+        "noRecords": "Kayıtlı iş bulunamadı."
+      }
+    },
+    "reports": {
+      "title": "Raporlar",
+      "subtitle": "İş ve performans analizleri.",
+      "charts": {
+        "statusDistribution": "İş Durumu Dağılımı",
+        "recentCompletion": "Son 7 Gün Tamamlanan İşler",
+        "topTeams": "En İyi Ekipler (Tamamlanan İş)"
+      }
+    },
+    "status": {
+      "PENDING": "Bekliyor",
+      "IN_PROGRESS": "Devam Ediyor",
+      "COMPLETED": "Tamamlandı",
+      "CANCELLED": "İptal",
+      "ON_HOLD": "Beklemede"
+    }
+  },
+  "Admin": {
+    "forecastingTitle": "Zeka & Tahminleme",
+    "forecastingSubtitle": "Tamamlanan iş verilerine dayalı akıllı süre tahminleri.",
+    "intelligenceDesc": "Bu bölüm, geçmişte tamamlanan benzer başlıklı işlerin sürelerini analiz ederek gelecekteki planlamalarınız için öngörü sağlar. Sistem ne kadar çok veri toplarsa, tahminler o kadar kesinleşir.",
+    "avgDuration": "Ortalama Süre",
+    "samples": "örnek veri",
+    "noData": "Tahminleme için henüz yeterli veri toplanmadı.",
+    "logs": {
+      "title": "Sistem Logları",
+      "subtitle": "Hata ve sistem hareketlerini izleyin.",
+      "level": "Seviye",
+      "platform": "Platform",
+      "message": "Mesaj",
+      "user": "Kullanıcı",
+      "time": "Zaman",
+      "prune": "Eski Logları Temizle",
+      "pruneConfirm": "90 günden eski teknik loglar silinecek. Onaylıyor musunuz?",
+      "noLogs": "Log kaydı bulunamadı."
+    },
+    "assembly3d": {
+      "title": "3D Montaj Kılavuzu",
+      "explodedView": "Patlama Görünümü",
+      "normalView": "Normal Görünüm",
+      "selectPart": "Detay görmek için bir parçaya tıklayın",
+      "nextStep": "Sonraki",
+      "prevStep": "Önceki",
+      "completed": "Tamamlandı",
+      "pending": "Bekliyor",
+      "selected": "Seçili",
+      "instructions": "Talimatlar",
+      "resetView": "Görünümü Sıfırla",
+      "loading": "3D Model yükleniyor..."
+    }
+  }
 }

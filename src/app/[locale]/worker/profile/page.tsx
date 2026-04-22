@@ -1,5 +1,5 @@
-import { ProfileView } from "@/components/profile/profile-view";
+import { ProfileView } from '@/components/profile/profile-view'
 
 export default function WorkerProfilePage() {
-	return <ProfileView />;
+    return <ProfileView role="WORKER" />
 }

@@ -1,29 +1,23 @@
-import dynamic from "next/dynamic";
-import { Skeleton } from "@/components/ui/skeleton";
+import dynamic from 'next/dynamic'
+import { Skeleton } from '@/components/ui/skeleton'
 
-const Calendar = dynamic(() => import("@/components/admin/Calendar"), {
-	ssr: false,
-	loading: () => (
-		<Skeleton className="w-full h-full min-h-[600px] rounded-xl" />
-	),
-});
-
-import { auth } from "@/lib/auth";
-import { redirect } from "@/lib/navigation";
+const Calendar = dynamic(() => import('@/components/admin/Calendar'), {
+    ssr: false,
+    loading: () => <Skeleton className="w-full h-full min-h-[600px] rounded-xl" />
+})
+import { auth } from '@/lib/auth'
+import { redirect } from '@/lib/navigation'
 
 export default async function CalendarPage() {
-	const session = await auth();
+    const session = await auth()
 
-	if (
-		!session ||
-		!["ADMIN", "MANAGER", "TEAM_LEAD"].includes(session.user.role)
-	) {
-		redirect("/login");
-	}
+    if (!session || !['ADMIN', 'MANAGER', 'TEAM_LEAD'].includes(session.user.role)) {
+        redirect('/login')
+    }
 
-	return (
-		<div className="h-[calc(100vh-4rem)] p-4">
-			<Calendar />
-		</div>
-	);
+    return (
+        <div className="h-[calc(100vh-4rem)] p-4">
+            <Calendar />
+        </div>
+    )
 }

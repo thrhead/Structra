@@ -1,19 +1,19 @@
-"use server";
+'use server'
 
-import { auth } from "@/lib/auth";
-import { getCalendarEvents } from "@/lib/data/calendar";
+import { getCalendarEvents } from '@/lib/data/calendar'
+import { auth } from '@/lib/auth'
 
 export async function getCalendarEventsAction(start: Date, end: Date) {
-	const session = await auth();
+    const session = await auth()
 
-	if (!session) {
-		throw new Error("Yetkisiz işlem");
-	}
+    if (!session) {
+        throw new Error('Yetkisiz işlem')
+    }
 
-	return await getCalendarEvents({
-		start,
-		end,
-		userId: session.user.id,
-		role: session.user.role,
-	});
+    return await getCalendarEvents({ 
+        start, 
+        end, 
+        userId: session.user.id, 
+        role: session.user.role 
+    })
 }

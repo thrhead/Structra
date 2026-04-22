@@ -1,5 +1,5 @@
-import { redirect } from "@/lib/navigation";
+import { redirect } from "@/lib/navigation"
 
 export default function RedirectToReports() {
-	redirect("/admin/reports?tab=teams");
+    redirect("/admin/reports?tab=teams")
 }

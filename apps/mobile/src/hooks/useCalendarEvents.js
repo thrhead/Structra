@@ -1,110 +1,109 @@
-import { useFocusEffect } from "@react-navigation/native";
-import { useCallback, useMemo, useState } from "react";
-import { InteractionManager } from "react-native";
-import api from "../services/api";
+import { useState, useCallback, useMemo } from 'react';
+import { InteractionManager } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import api from '../services/api';
 
 const formatDateISO = (date) => {
-	try {
-		return date.toISOString().split("T")[0];
-	} catch (_e) {
-		return new Date().toISOString().split("T")[0];
-	}
+    try {
+        return date.toISOString().split('T')[0];
+    } catch (e) {
+        return new Date().toISOString().split('T')[0];
+    }
 };
 
 export const useCalendarEvents = () => {
-	const [rawEvents, setRawEvents] = useState([]);
-	const [loading, setLoading] = useState(false);
+    const [rawEvents, setRawEvents] = useState([]);
+    const [loading, setLoading] = useState(false);
 
-	const fetchCalendarData = useCallback(async () => {
-		try {
-			setLoading(true);
-			const now = new Date();
-			const start = new Date(now.getFullYear(), now.getMonth() - 3, 1);
-			const end = new Date(now.getFullYear(), now.getMonth() + 4, 0);
+    const fetchCalendarData = useCallback(async () => {
+        try {
+            setLoading(true);
+            const now = new Date();
+            const start = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+            const end = new Date(now.getFullYear(), now.getMonth() + 4, 0);
 
-			const startStr = formatDateISO(start);
-			const endStr = formatDateISO(end);
+            const startStr = formatDateISO(start);
+            const endStr = formatDateISO(end);
 
-			const response = await api.get(
-				`/api/calendar/events?start=${encodeURIComponent(startStr)}&end=${encodeURIComponent(endStr)}`,
-			);
+            console.log('[Calendar] Fetching:', startStr, 'to', endStr);
+            const response = await api.get(`/api/calendar/events?start=${encodeURIComponent(startStr)}&end=${encodeURIComponent(endStr)}`);
 
-			if (response.data) {
-				setRawEvents(response.data);
-			}
-		} catch (error) {
-			console.error("[Calendar] Error:", error);
-		} finally {
-			setLoading(false);
-		}
-	}, []);
+            if (response.data) {
+                setRawEvents(response.data);
+            }
+        } catch (error) {
+            console.error('[Calendar] Error:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
-	useFocusEffect(
-		useCallback(() => {
-			const task = InteractionManager.runAfterInteractions(() => {
-				fetchCalendarData();
-			});
-			return () => task.cancel();
-		}, [fetchCalendarData]),
-	);
+    useFocusEffect(
+        useCallback(() => {
+            const task = InteractionManager.runAfterInteractions(() => {
+                fetchCalendarData();
+            });
+            return () => task.cancel();
+        }, [fetchCalendarData])
+    );
 
-	const { markedDates, eventsByDate } = useMemo(() => {
-		const marked = {};
-		const byDate = {};
+    const { markedDates, eventsByDate } = useMemo(() => {
+        const marked = {};
+        const byDate = {};
 
-		if (!rawEvents || rawEvents.length === 0) {
-			return { markedDates: marked, eventsByDate: byDate };
-		}
+        if (!rawEvents || rawEvents.length === 0) {
+            return { markedDates: marked, eventsByDate: byDate };
+        }
 
-		rawEvents.forEach((event) => {
-			const startDate = new Date(event.start);
-			let endDate = event.end ? new Date(event.end) : new Date(startDate);
-			if (endDate < startDate) endDate = new Date(startDate);
+        rawEvents.forEach(event => {
+            const startDate = new Date(event.start);
+            let endDate = event.end ? new Date(event.end) : new Date(startDate);
+            if (endDate < startDate) endDate = new Date(startDate);
 
-			const currentDate = new Date(startDate);
-			let daysProcessed = 0;
+            let currentDate = new Date(startDate);
+            let daysProcessed = 0;
 
-			while (currentDate <= endDate && daysProcessed < 60) {
-				const dateKey = formatDateISO(currentDate);
+            while (currentDate <= endDate && daysProcessed < 60) {
+                const dateKey = formatDateISO(currentDate);
 
-				if (!marked[dateKey]) {
-					marked[dateKey] = { dots: [] };
-				}
+                if (!marked[dateKey]) {
+                    marked[dateKey] = { dots: [] };
+                }
 
-				if (marked[dateKey].dots.length < 3) {
-					marked[dateKey].dots.push({
-						key: event.id,
-						color: event.color || "#39FF14",
-					});
-				}
+                if (marked[dateKey].dots.length < 3) {
+                    marked[dateKey].dots.push({
+                        key: event.id,
+                        color: event.color || '#39FF14'
+                    });
+                }
 
-				if (!byDate[dateKey]) {
-					byDate[dateKey] = [];
-				}
+                if (!byDate[dateKey]) {
+                    byDate[dateKey] = [];
+                }
 
-				byDate[dateKey].push({
-					id: event.id,
-					title: event.title,
-					start: event.start,
-					end: event.end,
-					color: event.color,
-					status: event.extendedProps?.status,
-					location: event.extendedProps?.location,
-					assignments: event.extendedProps?.assignments,
-				});
+                byDate[dateKey].push({
+                    id: event.id,
+                    title: event.title,
+                    start: event.start,
+                    end: event.end,
+                    color: event.color,
+                    status: event.extendedProps?.status,
+                    location: event.extendedProps?.location,
+                    assignments: event.extendedProps?.assignments
+                });
 
-				currentDate.setDate(currentDate.getDate() + 1);
-				daysProcessed++;
-			}
-		});
+                currentDate.setDate(currentDate.getDate() + 1);
+                daysProcessed++;
+            }
+        });
 
-		return { markedDates: marked, eventsByDate: byDate };
-	}, [rawEvents]);
+        return { markedDates: marked, eventsByDate: byDate };
+    }, [rawEvents]);
 
-	return {
-		markedDates,
-		eventsByDate,
-		loading,
-		fetchCalendarData,
-	};
+    return {
+        markedDates,
+        eventsByDate,
+        loading,
+        fetchCalendarData
+    };
 };

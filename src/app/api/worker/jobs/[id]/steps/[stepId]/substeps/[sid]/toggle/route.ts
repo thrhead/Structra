@@ -1,16 +1,16 @@
-import { NextResponse } from "next/server";
-import { broadcast } from "@/lib/ably";
-import { AuditAction, getDeviceInfo, logAudit } from "@/lib/audit";
-import { verifyAuth } from "@/lib/auth-helper";
-import { prisma } from "@/lib/db";
-import { sendAdminNotification } from "@/lib/notification-helper";
+import { NextResponse } from 'next/server'
+import { prisma } from '@/lib/db'
+import { verifyAuth } from '@/lib/auth-helper'
+import { sendAdminNotification } from '@/lib/notification-helper'
+import { broadcast } from '@/lib/ably'
+import { logAudit, AuditAction, getDeviceInfo } from '@/lib/audit'
 
 export async function POST(
-	req: Request,
-	props: { params: Promise<{ id: string; stepId: string; sid: string }> },
+    req: Request,
+    props: { params: Promise<{ id: string; stepId: string; sid: string }> }
 ) {
-	const params = await props.params;
-	try {
+    const params = await props.params
+    try {
         const session = await verifyAuth(req)
         if (!session || !['WORKER', 'TEAM_LEAD', 'ADMIN', 'MANAGER'].includes(session.user.role)) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -87,56 +87,54 @@ export async function POST(
             deviceInfo.platform
         );
 
+        console.log('Toggle Substep:', {
             id: params.sid,
             oldStatus: subStep.approvalStatus,
             oldCompleted: subStep.isCompleted,
             newStatus: updatedSubStep.approvalStatus,
             newCompleted: updatedSubStep.isCompleted
+        })
+
+        // Notify admins when substep is completed (toggled ON)
+        if (updatedSubStep.isCompleted && !subStep.isCompleted) {
+            // Ably broadcast for real-time web notifications
+            await broadcast('substep:completed', {
+                substepId: params.sid,
+                jobId: params.id,
+                jobTitle: subStep.step.job.title,
+                substepTitle: subStep.title,
+                completedBy: session.user.name || session.user.email
+            })
+
+            // Send push notification to admins (DB + Push)
+            await sendAdminNotification(
+                'Alt Adım Tamamlandı',
+                `"${subStep.step.job.title}" - "${subStep.title}" tamamlandı (${session.user.name || session.user.email})`,
+                'SUCCESS',
+                `/admin/jobs/${params.id}`,
+                session.user.id
+            )
         }
-	)
 
-	// Notify admins when substep is completed (toggled ON)
-	if (updatedSubStep.isCompleted && !subStep.isCompleted) {
-		// Ably broadcast for real-time web notifications
-		await broadcast("substep:completed", {
-			substepId: params.sid,
-			jobId: params.id,
-			jobTitle: subStep.step.job.title,
-			substepTitle: subStep.title,
-			completedBy: session.user.name || session.user.email,
-		});
+        // Check if all substeps are completed
+        const allSubSteps = await prisma.jobSubStep.findMany({
+            where: { stepId: params.stepId }
+        })
 
-		// Send push notification to admins (DB + Push)
-		await sendAdminNotification(
-			"Alt Adım Tamamlandı",
-			`"${subStep.step.job.title}" - "${subStep.title}" tamamlandı (${session.user.name || session.user.email})`,
-			"SUCCESS",
-			`/admin/jobs/${params.id}`,
-			session.user.id,
-		);
-	}
+        const allCompleted = allSubSteps.every(s => s.isCompleted)
 
-	// Check if all substeps are completed
-	const allSubSteps = await prisma.jobSubStep.findMany({
-		where: { stepId: params.stepId },
-	});
+        // Update parent step status
+        await prisma.jobStep.update({
+            where: { id: params.stepId },
+            data: {
+                isCompleted: allCompleted,
+                completedAt: allCompleted ? new Date() : null
+            }
+        })
 
-	const allCompleted = allSubSteps.every((s) => s.isCompleted);
-
-	// Update parent step status
-	await prisma.jobStep.update({
-		where: { id: params.stepId },
-		data: {
-			isCompleted: allCompleted,
-			completedAt: allCompleted ? new Date() : null,
-		},
-	});
-
-	return NextResponse.json(updatedSubStep);
-}
-catch (error)
-{
-	console.error("Substep toggle error:", error);
-	return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
-}
+        return NextResponse.json(updatedSubStep)
+    } catch (error) {
+        console.error('Substep toggle error:', error)
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    }
 }

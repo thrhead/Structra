@@ -1,239 +1,230 @@
 {
-	"Common": {
-		"save": "Save",
-		"cancel": "Cancel",
-		"delete": "Delete",
-		"edit": "Edit",
-		"loading": "Loading...",
-		"search": "Search...",
-		"error": "An error occurred",
-		"success": "Operation successful",
-		"status": "Status",
-		"priority": "Priority",
-		"date": "Date",
-		"actions": "Actions"
-	},
-	"Navigation": {
-		"dashboard": "Dashboard",
-		"jobs": "Jobs",
-		"teams": "Teams",
-		"customers": "Customers",
-		"costs": "Costs",
-		"logout": "Logout",
-		"reports": "Reports"
-	},
-	"Dashboard": {
-		"welcome": "Welcome Back",
-		"activeWorkers": "Active Workers",
-		"todaysCost": "Today's Cost",
-		"pendingApprovals": "Pending Approvals",
-		"quickActions": "Quick Actions"
-	},
-	"Home": {
-		"title": "Assembly and Service",
-		"subtitle": "Tracking System",
-		"description": "Easily track the work of assembly and service teams working outside the factory. Cost control, team management, and customer notifications on a single platform.",
-		"loginButton": "Login",
-		"features": {
-			"tracking": {
-				"title": "Job Tracking",
-				"desc": "Track and control assembly processes step by step"
-			},
-			"teams": {
-				"title": "Team Management",
-				"desc": "Manage your teams, assign tasks, and monitor progress"
-			},
-			"reporting": {
-				"title": "Reporting",
-				"desc": "Perform cost control with detailed reports and charts"
-			},
-			"web": {
-				"title": "Admin & Customer Portal",
-				"description": "Monitor the entire operation from a bird's-eye view in seconds. Manage costs and direct teams.",
-				"items": [
-					{
-						"title": "Real-time Map",
-						"desc": "Track your teams' live locations and job statuses on a live map."
-					},
-					{
-						"title": "Financial Analysis",
-						"desc": "Get job-based cost calculations and profitability reports with one click."
-					},
-					{
-						"title": "Customer Interface",
-						"desc": "Transparently present to your customers the exact stage of their jobs."
-					}
-				]
-			},
-			"mobile": {
-				"title": "Built for Field Workers",
-				"description": "Uninterrupted assembly guide and task tracking even with zero internet connectivity.",
-				"items": [
-					{
-						"title": "3D Assembly Guide",
-						"desc": "Assemble complex products right from your phone with step-by-step 3D exploded views."
-					},
-					{
-						"title": "Issue Reporting",
-						"desc": "Instantly photograph and report encountered issues in the field to the headquarters."
-					},
-					{
-						"title": "Offline Mode",
-						"desc": "Data is kept on the device if the connection drops, automatically syncing when internet is restored."
-					}
-				]
-			}
-		},
-		"trust": {
-			"title": "Solve the Invisibility Problem",
-			"description": "The biggest problem in field operations is communication breakdown and lack of data. With Structra, every step is verified with digital evidence.",
-			"cards": [
-				{
-					"title": "Digital Evidence",
-					"desc": "Saying 'Done' is not enough. Photo and GPS location are mandatory for every step."
-				},
-				{
-					"title": "Uninterrupted Data",
-					"desc": "No internet in the basement or on the construction site? No problem. Your data is safe and synchronized."
-				}
-			]
-		},
-		"workflow": {
-			"title": "Seamless Workflow",
-			"step1": {
-				"title": "Job Assignment",
-				"desc": "Work orders are sent from the center to the team in seconds."
-			},
-			"step2": {
-				"title": "Field Assembly",
-				"desc": "Error margins drop to zero with 3D guides and checklists."
-			},
-			"step3": {
-				"title": "Verification",
-				"desc": "Quality standards are protected with manager approval."
-			}
-		}
-	},
-	"CustomerDashboard": {
-		"title": "Dashboard",
-		"subtitle": "Summary and status of your jobs",
-		"stats": {
-			"totalJobs": "Total Jobs",
-			"pending": "Pending",
-			"inProgress": "In Progress",
-			"completed": "Completed"
-		},
-		"charts": {
-			"distribution": "Job Status Distribution"
-		},
-		"recentJobs": {
-			"title": "Recent Jobs",
-			"viewAll": "View All",
-			"noJobs": "No jobs found yet",
-			"progress": "Progress"
-		}
-	},
-	"Manager": {
-		"dashboard": {
-			"title": "Manager Dashboard",
-			"subtitle": "You can monitor the operational status here.",
-			"stats": {
-				"totalJobs": "Total Jobs",
-				"activeTeams": "Active Teams",
-				"completed": "Completed",
-				"pendingApproval": "Pending Approval",
-				"allTime": "All time",
-				"onField": "On field",
-				"thisMonth": "This month",
-				"needsReview": "Needs review",
-				"activeJobs": "Active Jobs",
-				"completedToday": "Completed Today",
-				"overdueJobs": "Overdue Jobs",
-				"monthlyCosts": "Monthly Cost",
-				"efficiency": "Efficiency Score",
-				"systemLogs": "System Logs",
-				"inProgress": "In Progress",
-				"overdue": "Overdue",
-				"approved": "Approved"
-			},
-			"recentJobs": {
-				"title": "Recent Jobs",
-				"noJobs": "No jobs found yet.",
-				"createdNew": "created a new job"
-			},
-			"quickActions": {
-				"title": "Quick Actions",
-				"newJob": {
-					"title": "Create New Job",
-					"desc": "Open a new service record for a customer"
-				},
-				"reports": {
-					"title": "Reports",
-					"desc": "Review detailed job and cost reports"
-				}
-			}
-		},
-		"jobs": {
-			"title": "Jobs",
-			"subtitle": "Manage assembly and service jobs.",
-			"searchPlaceholder": "Search job, customer or company...",
-			"table": {
-				"title": "Job Title",
-				"customer": "Customer",
-				"team": "Assigned Team",
-				"unassigned": "Unassigned",
-				"noRecords": "No jobs found."
-			}
-		},
-		"reports": {
-			"title": "Reports",
-			"subtitle": "Job and performance analysis.",
-			"charts": {
-				"statusDistribution": "Job Status Distribution",
-				"recentCompletion": "Jobs Completed Last 7 Days",
-				"topTeams": "Top Teams (Completed Jobs)"
-			}
-		},
-		"status": {
-			"PENDING": "Pending",
-			"IN_PROGRESS": "In Progress",
-			"COMPLETED": "Completed",
-			"CANCELLED": "Cancelled",
-			"ON_HOLD": "On Hold"
-		}
-	},
-	"Admin": {
-		"forecastingTitle": "Intelligence & Forecasting",
-		"forecastingSubtitle": "Smart duration estimates based on completed job data.",
-		"intelligenceDesc": "This section provides insights for your future planning by analyzing the durations of similar jobs completed in the past. The more data the system collects, the more accurate the estimates become.",
-		"avgDuration": "Average Duration",
-		"samples": "samples",
-		"noData": "Not enough data collected for forecasting yet.",
-		"logs": {
-			"title": "System Logs",
-			"subtitle": "Monitor errors and system activities.",
-			"level": "Level",
-			"platform": "Platform",
-			"message": "Message",
-			"user": "User",
-			"time": "Time",
-			"prune": "Prune Old Logs",
-			"pruneConfirm": "Technical logs older than 90 days will be deleted. Do you confirm?",
-			"noLogs": "No log records found."
-		},
-		"assembly3d": {
-			"title": "3D Assembly Guide",
-			"explodedView": "Exploded View",
-			"normalView": "Normal View",
-			"selectPart": "Click a part for details",
-			"nextStep": "Next",
-			"prevStep": "Previous",
-			"completed": "Completed",
-			"pending": "Pending",
-			"selected": "Selected",
-			"instructions": "Instructions",
-			"resetView": "Reset View",
-			"loading": "Loading 3D Model..."
-		}
-	}
+  "Common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "loading": "Loading...",
+    "search": "Search...",
+    "error": "An error occurred",
+    "success": "Operation successful",
+    "status": "Status",
+    "priority": "Priority",
+    "date": "Date",
+    "actions": "Actions"
+  },
+  "Navigation": {
+    "dashboard": "Dashboard",
+    "jobs": "Jobs",
+    "teams": "Teams",
+    "customers": "Customers",
+    "costs": "Costs",
+    "logout": "Logout",
+    "reports": "Reports"
+  },
+  "Dashboard": {
+    "welcome": "Welcome Back",
+    "activeWorkers": "Active Workers",
+    "todaysCost": "Today's Cost",
+    "pendingApprovals": "Pending Approvals",
+    "quickActions": "Quick Actions"
+  },
+  "Home": {
+    "title": "Assembly and Service",
+    "subtitle": "Tracking System",
+    "description": "Easily track the work of assembly and service teams working outside the factory. Cost control, team management, and customer notifications on a single platform.",
+    "loginButton": "Login",
+    "features": {
+      "tracking": {
+        "title": "Job Tracking",
+        "desc": "Track and control assembly processes step by step"
+      },
+      "teams": {
+        "title": "Team Management",
+        "desc": "Manage your teams, assign tasks, and monitor progress"
+      },
+      "reporting": {
+        "title": "Reporting",
+        "desc": "Perform cost control with detailed reports and charts"
+      },
+      "web": {
+        "title": "Admin & Customer Portal",
+        "description": "Monitor the entire operation from a bird's-eye view in seconds. Manage costs and direct teams.",
+        "items": [
+          {
+            "title": "Real-time Map",
+            "desc": "Track your teams' live locations and job statuses on a live map."
+          },
+          {
+            "title": "Financial Analysis",
+            "desc": "Get job-based cost calculations and profitability reports with one click."
+          },
+          {
+            "title": "Customer Interface",
+            "desc": "Transparently present to your customers the exact stage of their jobs."
+          }
+        ]
+      },
+      "mobile": {
+        "title": "Built for Field Workers",
+        "description": "Uninterrupted assembly guide and task tracking even with zero internet connectivity.",
+        "items": [
+          {
+            "title": "3D Assembly Guide",
+            "desc": "Assemble complex products right from your phone with step-by-step 3D exploded views."
+          },
+          {
+            "title": "Issue Reporting",
+            "desc": "Instantly photograph and report encountered issues in the field to the headquarters."
+          },
+          {
+            "title": "Offline Mode",
+            "desc": "Data is kept on the device if the connection drops, automatically syncing when internet is restored."
+          }
+        ]
+      }
+    },
+    "trust": {
+      "title": "Solve the Invisibility Problem",
+      "description": "The biggest problem in field operations is communication breakdown and lack of data. With Structra, every step is verified with digital evidence.",
+      "cards": [
+        {
+          "title": "Digital Evidence",
+          "desc": "Saying 'Done' is not enough. Photo and GPS location are mandatory for every step."
+        },
+        {
+          "title": "Uninterrupted Data",
+          "desc": "No internet in the basement or on the construction site? No problem. Your data is safe and synchronized."
+        }
+      ]
+    },
+    "workflow": {
+      "title": "Seamless Workflow",
+      "step1": { "title": "Job Assignment", "desc": "Work orders are sent from the center to the team in seconds." },
+      "step2": { "title": "Field Assembly", "desc": "Error margins drop to zero with 3D guides and checklists." },
+      "step3": { "title": "Verification", "desc": "Quality standards are protected with manager approval." }
+    }
+  },
+  "CustomerDashboard": {
+    "title": "Dashboard",
+    "subtitle": "Summary and status of your jobs",
+    "stats": {
+      "totalJobs": "Total Jobs",
+      "pending": "Pending",
+      "inProgress": "In Progress",
+      "completed": "Completed"
+    },
+    "charts": {
+      "distribution": "Job Status Distribution"
+    },
+    "recentJobs": {
+      "title": "Recent Jobs",
+      "viewAll": "View All",
+      "noJobs": "No jobs found yet",
+      "progress": "Progress"
+    }
+  },
+  "Manager": {
+    "dashboard": {
+      "title": "Manager Dashboard",
+      "subtitle": "You can monitor the operational status here.",
+      "stats": {
+        "totalJobs": "Total Jobs",
+        "activeTeams": "Active Teams",
+        "completed": "Completed",
+        "pendingApproval": "Pending Approval",
+        "allTime": "All time",
+        "onField": "On field",
+        "thisMonth": "This month",
+        "needsReview": "Needs review",
+        "activeJobs": "Active Jobs",
+        "completedToday": "Completed Today",
+        "overdueJobs": "Overdue Jobs",
+        "monthlyCosts": "Monthly Cost",
+        "efficiency": "Efficiency Score",
+        "systemLogs": "System Logs",
+        "inProgress": "In Progress",
+        "overdue": "Overdue",
+        "approved": "Approved"
+      },
+      "recentJobs": {
+        "title": "Recent Jobs",
+        "noJobs": "No jobs found yet.",
+        "createdNew": "created a new job"
+      },
+      "quickActions": {
+        "title": "Quick Actions",
+        "newJob": {
+          "title": "Create New Job",
+          "desc": "Open a new service record for a customer"
+        },
+        "reports": {
+          "title": "Reports",
+          "desc": "Review detailed job and cost reports"
+        }
+      }
+    },
+    "jobs": {
+      "title": "Jobs",
+      "subtitle": "Manage assembly and service jobs.",
+      "searchPlaceholder": "Search job, customer or company...",
+      "table": {
+        "title": "Job Title",
+        "customer": "Customer",
+        "team": "Assigned Team",
+        "unassigned": "Unassigned",
+        "noRecords": "No jobs found."
+      }
+    },
+    "reports": {
+      "title": "Reports",
+      "subtitle": "Job and performance analysis.",
+      "charts": {
+        "statusDistribution": "Job Status Distribution",
+        "recentCompletion": "Jobs Completed Last 7 Days",
+        "topTeams": "Top Teams (Completed Jobs)"
+      }
+    },
+    "status": {
+      "PENDING": "Pending",
+      "IN_PROGRESS": "In Progress",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled",
+      "ON_HOLD": "On Hold"
+    }
+  },
+  "Admin": {
+    "forecastingTitle": "Intelligence & Forecasting",
+    "forecastingSubtitle": "Smart duration estimates based on completed job data.",
+    "intelligenceDesc": "This section provides insights for your future planning by analyzing the durations of similar jobs completed in the past. The more data the system collects, the more accurate the estimates become.",
+    "avgDuration": "Average Duration",
+    "samples": "samples",
+    "noData": "Not enough data collected for forecasting yet.",
+    "logs": {
+      "title": "System Logs",
+      "subtitle": "Monitor errors and system activities.",
+      "level": "Level",
+      "platform": "Platform",
+      "message": "Message",
+      "user": "User",
+      "time": "Time",
+      "prune": "Prune Old Logs",
+      "pruneConfirm": "Technical logs older than 90 days will be deleted. Do you confirm?",
+      "noLogs": "No log records found."
+    },
+    "assembly3d": {
+      "title": "3D Assembly Guide",
+      "explodedView": "Exploded View",
+      "normalView": "Normal View",
+      "selectPart": "Click a part for details",
+      "nextStep": "Next",
+      "prevStep": "Previous",
+      "completed": "Completed",
+      "pending": "Pending",
+      "selected": "Selected",
+      "instructions": "Instructions",
+      "resetView": "Reset View",
+      "loading": "Loading 3D Model..."
+    }
+  }
 }
