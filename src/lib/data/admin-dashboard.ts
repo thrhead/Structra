@@ -179,6 +179,7 @@ export async function getAdminDashboardData() {
         take: 5,
         orderBy: { createdAt: 'desc' },
         include: {
+          user: true,
           _count: {
             select: { jobs: true }
           },
