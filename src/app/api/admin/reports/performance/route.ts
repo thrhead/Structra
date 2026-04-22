@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth-helper';
 import { getJobStatusDistribution, getTeamPerformance, getReportStats, getWeeklyCompletedSteps } from '@/lib/data/reports';

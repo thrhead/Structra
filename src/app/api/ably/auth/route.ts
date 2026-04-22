@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server'
+export const dynamic = 'force-dynamic'
+
 import { verifyAuth } from '@/lib/auth-helper'
 import crypto from 'crypto'
 
