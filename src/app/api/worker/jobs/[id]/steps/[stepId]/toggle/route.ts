@@ -163,7 +163,7 @@ export async function POST(
     );
 
     // Real-time update
-    await publishToJob(step.jobId, 'job:updated', { id: step.jobId, updatedAt: new Date() });
+    await publishToJob(step.jobId, 'job:updated', { id: step.jobId, updatedAt: new Date(), updatedBy: session.user.id });
 
     return NextResponse.json(updatedStep)
   } catch (error) {

@@ -94,6 +94,9 @@ export default function JobDetailScreen({ route, navigation }) {
             joinJobRoom(jobId);
 
             const handleJobUpdate = (data) => {
+                if (data && data.updatedBy === user?.id) {
+                    return;
+                }
                 if (modalVisible || costModalVisible || rejectionModalVisible) {
                     loadJobDetails();
                     return;
@@ -112,7 +115,7 @@ export default function JobDetailScreen({ route, navigation }) {
                 socket.off('job:updated', handleJobUpdate);
                 leaveJobRoom(jobId);
             };
-        }, [jobId, socket, modalVisible, costModalVisible, rejectionModalVisible])
+        }, [jobId, socket, modalVisible, costModalVisible, rejectionModalVisible, user?.id])
     );
 
     const loadJobDetails = async () => {

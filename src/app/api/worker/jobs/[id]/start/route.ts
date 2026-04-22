@@ -93,7 +93,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         console.log('[JOB START] Admin notification sent successfully');
 
         // Real-time update for concurrent users
-        await publishToJob(id, 'job:updated', updatedJob);
+        await publishToJob(id, 'job:updated', { ...updatedJob, updatedBy: session.user.id });
 
         // Trigger webhook
         await triggerWebhook('job.started', {
