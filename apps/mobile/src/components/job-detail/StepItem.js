@@ -18,6 +18,7 @@ const StepItem = ({
     setRejectionType,
     setSelectedStepId,
     setRejectionModalVisible,
+    pickImage,
     children 
 }) => {
     const isLocked = index > 0 && !job.steps[index - 1].isCompleted;
@@ -111,8 +112,19 @@ const StepItem = ({
             </View>
 
             {/* Photos */}
-            {step.photos && step.photos.length > 0 && (
-                <View style={styles.photoContainer}>
+            <View style={styles.photoContainer}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: theme.colors.text }}>Genel Fotoğraflar</Text>
+                    {!isAdmin && (
+                        <TouchableOpacity
+                            style={{ padding: 4 }}
+                            onPress={() => pickImage(step.id, null)}
+                        >
+                            <MaterialIcons name="add-a-photo" size={20} color={theme.colors.primary} />
+                        </TouchableOpacity>
+                    )}
+                </View>
+                {step.photos && step.photos.length > 0 ? (
                     <FlatList
                         data={step.photos}
                         renderItem={renderPhotoItem}
@@ -121,8 +133,10 @@ const StepItem = ({
                         showsHorizontalScrollIndicator={false}
                         contentContainerStyle={{ paddingVertical: 4 }}
                     />
-                </View>
-            )}
+                ) : (
+                    <Text style={{ fontSize: 13, color: theme.colors.subText, fontStyle: 'italic' }}>Henüz fotoğraf yüklenmemiş.</Text>
+                )}
+            </View>
 
             {/* Rejection */}
             {step.approvalStatus === 'REJECTED' && step.rejectionReason && (

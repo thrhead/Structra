@@ -63,26 +63,24 @@ export async function POST(
       }
     }
 
-    /*
-    // MANDATORY PHOTO CHECK REMOVED FOR MAIN STEP
-    // User requested photo uploads only on sub-steps.
-    // Main step completion logic now relies on sub-steps being completed (which enforce photos).
-    // If a step has NO sub-steps, it currently has no photo requirement.
-    
+    // MANDATORY PHOTO CHECK FOR MAIN STEP
+    // User requested that the main step requires its own photo to be completed.
     // If we are marking as completed (!step.isCompleted means we are setting it to true)
     if (!step.isCompleted) {
         const photoCount = await prisma.stepPhoto.count({
-            where: { stepId: params.stepId }
+            where: {
+                stepId: params.stepId,
+                subStepId: null // explicitly checking for photos on the parent step, not substeps
+            }
         });
 
         if (photoCount === 0) {
             return NextResponse.json(
-                { error: 'Bu adımı tamamlamak için en az bir fotoğraf yüklemelisiniz.' },
+                { error: 'bu iş emrini kapatabilmeniz için öncelikle en az 1 adet genel fotoğraf yüklemeniz gerekmektedir' },
                 { status: 400 }
             )
         }
     }
-    */
 
     // 2. Check if all substeps are completed
     const subSteps = await prisma.jobSubStep.findMany({

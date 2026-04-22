@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth-helper';
 import { getCostBreakdown, getCostTrend, getReportStats } from '@/lib/data/reports';

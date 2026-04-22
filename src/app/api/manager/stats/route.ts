@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { verifyAdminOrManager } from "@/lib/auth-helper";
 import { NextResponse } from "next/server";
 import { getManagerDashboardData } from "@/lib/data/manager-dashboard";

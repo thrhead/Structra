@@ -100,7 +100,9 @@ const withPWA = require("@ducanh2912/next-pwa").default({
 
 const nextConfig = {
     output: 'standalone',
-    serverExternalPackages: ['ably'],
+    experimental: {
+        serverComponentsExternalPackages: ['ably'],
+    },
     typescript: {
         ignoreBuildErrors: true,
     },

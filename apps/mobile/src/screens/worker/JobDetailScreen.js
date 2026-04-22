@@ -94,7 +94,7 @@ export default function JobDetailScreen({ route, navigation }) {
             joinJobRoom(jobId);
 
             const handleJobUpdate = (data) => {
-                if (data && String(data.updatedBy) === String(user?.id)) {
+                if (data && data.updatedBy === user?.id) {
                     return;
                 }
                 if (modalVisible || costModalVisible || rejectionModalVisible) {
@@ -201,7 +201,6 @@ export default function JobDetailScreen({ route, navigation }) {
 
     const handleSubstepToggle = async (stepId, substepId, currentStatus) => {
         const performToggle = async () => {
-            let showSuccess = false;
             try {
                 setLoading(true);
                 if (!currentStatus) {
@@ -216,25 +215,16 @@ export default function JobDetailScreen({ route, navigation }) {
                             [],
                             'warning'
                         );
-                        setLoading(false);
                         return;
                     }
-                    showSuccess = true;
                 }
                 await jobService.toggleSubstep(jobId, stepId, substepId, !currentStatus, job.updatedAt);
-                await loadJobDetails();
+                loadJobDetails();
             } catch (error) {
                 console.error('Substep toggle error:', error);
                 showAlert(t('common.error'), t('alerts.processError'), [], 'error');
-                showSuccess = false;
             } finally {
                 setLoading(false);
-                if (showSuccess) {
-                    setTimeout(() => {
-                        setSuccessMessage(t('alerts.jobCompleteSuccess'));
-                        setSuccessModalVisible(true);
-                    }, 600);
-                }
             }
         };
 
@@ -257,26 +247,46 @@ export default function JobDetailScreen({ route, navigation }) {
 
     const handleToggleStep = async (stepId, currentStatus) => {
         const performToggle = async () => {
-            let showSuccess = false;
             try {
                 setLoading(true);
+
                 if (!currentStatus) {
-                    showSuccess = true;
+                    const step = job.steps.find(s => s.id === stepId);
+
+                    // Check if all substeps are completed
+                    const hasIncompleteSubsteps = step?.subSteps && step.subSteps.some(ss => !ss.isCompleted);
+                    if (hasIncompleteSubsteps) {
+                        showAlert(
+                            t('common.warning'),
+                            t('alerts.substepsRequiredForComplete', 'Tüm alt görevleri tamamlamadan bu adımı tamamlayamazsınız.'),
+                            [],
+                            'warning'
+                        );
+                        setLoading(false);
+                        return;
+                    }
+
+                    // Check for main step photo
+                    const hasPhotos = step?.photos && Array.isArray(step.photos) && step.photos.length > 0;
+                    if (!hasPhotos) {
+                        showAlert(
+                            t('common.warning'),
+                            t('alerts.photoRequiredForToggle', 'Bu adımı tamamlamak için en az bir genel fotoğraf yüklemelisiniz.'),
+                            [],
+                            'warning'
+                        );
+                        setLoading(false);
+                        return;
+                    }
                 }
+
                 await jobService.toggleStep(jobId, stepId, !currentStatus, job.updatedAt);
-                await loadJobDetails();
+                loadJobDetails();
             } catch (error) {
                 console.error('Step toggle error:', error);
                 showAlert(t('common.error'), t('alerts.processError'), [], 'error');
-                showSuccess = false;
             } finally {
                 setLoading(false);
-                if (showSuccess) {
-                    setTimeout(() => {
-                        setSuccessMessage(t('alerts.jobCompleteSuccess'));
-                        setSuccessModalVisible(true);
-                    }, 600);
-                }
             }
         };
 
@@ -571,22 +581,11 @@ export default function JobDetailScreen({ route, navigation }) {
         try {
             setCompleting(true);
             setConfirmationModalVisible(false);
-            
-            // 1. Send completion request to server
             await jobService.completeJob(jobId, job.signature || null, job.signatureCoords || null, job.updatedAt);
-            
-            // 2. Log audit
             LoggerService.audit('Job completed by worker', { jobId, jobTitle: job.title });
-            
-            // 3. Refresh job data to show updated status (PENDING_APPROVAL)
-            await loadJobDetails();
-            
-            // 4. Delay success modal to ensure all other overlays are dismissed
-            setTimeout(() => {
-                setSuccessMessage(t('alerts.jobCompleteSuccess'));
-                setSuccessModalVisible(true);
-            }, 600);
-            
+            setSuccessMessage(t('alerts.jobCompleteSuccess'));
+            setSuccessModalVisible(true);
+            loadJobDetails();
         } catch (error) {
             console.error('Error completing job:', error);
             showAlert(t('common.error'), t('alerts.jobCompleteError'), [], 'error');
@@ -826,6 +825,7 @@ export default function JobDetailScreen({ route, navigation }) {
                                 setRejectionType={setRejectionType}
                                 setSelectedStepId={setSelectedStepId}
                                 setRejectionModalVisible={setRejectionModalVisible}
+                                pickImage={pickImage}
                             >
                                 {step.subSteps && step.subSteps.map((substep, subIndex) => (
                                     <SubStepItem
@@ -836,7 +836,6 @@ export default function JobDetailScreen({ route, navigation }) {
                                         theme={theme}
                                         user={user}
                                         t={t}
-                                        formatDate={formatDate}
                                         handleSubstepToggle={handleSubstepToggle}
                                         pickImage={pickImage}
                                         renderPhotoItem={renderPhotoItem}

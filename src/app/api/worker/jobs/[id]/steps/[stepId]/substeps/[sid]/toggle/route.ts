@@ -115,22 +115,6 @@ export async function POST(
             )
         }
 
-        // Check if all substeps are completed
-        const allSubSteps = await prisma.jobSubStep.findMany({
-            where: { stepId: params.stepId }
-        })
-
-        const allCompleted = allSubSteps.every(s => s.isCompleted)
-
-        // Update parent step status
-        await prisma.jobStep.update({
-            where: { id: params.stepId },
-            data: {
-                isCompleted: allCompleted,
-                completedAt: allCompleted ? new Date() : null
-            }
-        })
-
         return NextResponse.json(updatedSubStep)
     } catch (error) {
         console.error('Substep toggle error:', error)
