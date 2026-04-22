@@ -126,6 +126,26 @@ export async function POST(
         );
     }
 
+    if (updatedStep.isCompleted && !step.isCompleted && subSteps.length === 0) {
+        const { sendAdminNotification } = await import('@/lib/notification-helper')
+        const { broadcast } = await import('@/lib/ably')
+
+        await broadcast('step:completed', {
+            stepId: params.stepId,
+            jobId: step.jobId,
+            jobTitle: step.job.title,
+            stepTitle: step.title,
+            completedBy: session.user.name || session.user.email
+        });
+
+        await sendAdminNotification(
+            'Adım Tamamlandı',
+            `"${step.job.title}" - "${step.title}" tamamlandı (${session.user.name || session.user.email})`,
+            'SUCCESS',
+            `/admin/jobs/${step.jobId}`
+        );
+    }
+
     // Detailed Audit Logging
     const deviceInfo = getDeviceInfo(req);
     await logAudit(

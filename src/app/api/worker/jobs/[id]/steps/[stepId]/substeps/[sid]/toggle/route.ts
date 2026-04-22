@@ -111,8 +111,7 @@ export async function POST(
                 'Alt Adım Tamamlandı',
                 `"${subStep.step.job.title}" - "${subStep.title}" tamamlandı (${session.user.name || session.user.email})`,
                 'SUCCESS',
-                `/admin/jobs/${params.id}`,
-                session.user.id
+                `/admin/jobs/${params.id}`
             )
         }
 

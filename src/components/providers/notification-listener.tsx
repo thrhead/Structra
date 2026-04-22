@@ -42,6 +42,14 @@ export function NotificationListener() {
             toast.success('Adım Tamamlandı', {
                 description: `${data.stepTitle} adımı tamamlandı.`,
             })
+            window.dispatchEvent(new CustomEvent('notification:refresh'))
+        }
+
+        const handleSubstepCompleted = (data: any) => {
+            toast.success('Alt Adım Tamamlandı', {
+                description: `${data.substepTitle} alt adımı tamamlandı.`,
+            })
+            window.dispatchEvent(new CustomEvent('notification:refresh'))
         }
 
         const handleGenericNotification = (data: NotificationPayload) => {
