@@ -62,15 +62,14 @@ export async function POST(
         const workerId = step.completedById // || step.job.assignments[0]?.workerId (would need to fetch assignments)
 
         if (workerId) {
-            await prisma.notification.create({
-                data: {
-                    userId: workerId,
-                    title: 'İş Adımı Reddedildi ❌',
-                    message: `"${step.job.title}" işindeki "${step.title}" adımı reddedildi. Sebep: ${reason}`,
-                    type: 'ERROR',
-                    link: `/worker/jobs/${step.jobId}`
-                }
-            })
+            const { sendJobNotification } = await import('@/lib/notification-helper');
+            await sendJobNotification(
+                step.jobId,
+                'İş Adımı Reddedildi ❌',
+                `"${step.job.title}" işindeki "${step.title}" adımı reddedildi. Sebep: ${reason}`,
+                'ERROR',
+                `/worker/jobs/${step.jobId}`
+            );
         }
 
         return NextResponse.json(updatedStep)

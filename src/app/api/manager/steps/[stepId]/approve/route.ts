@@ -34,15 +34,14 @@ export async function POST(
 
         // Notify the worker who completed the step
         if (step.completedById) {
-            await prisma.notification.create({
-                data: {
-                    userId: step.completedById,
-                    title: 'İş Adımı Onaylandı ✅',
-                    message: `"${step.job.title}" işindeki "${step.title}" adımı onaylandı.`,
-                    type: 'SUCCESS',
-                    link: `/worker/jobs/${step.jobId}`
-                }
-            })
+            const { sendJobNotification } = await import('@/lib/notification-helper');
+            await sendJobNotification(
+                step.jobId,
+                'İş Adımı Onaylandı ✅',
+                `"${step.job.title}" işindeki "${step.title}" adımı onaylandı.`,
+                'SUCCESS',
+                `/worker/jobs/${step.jobId}`
+            );
         }
 
         return NextResponse.json(updatedStep)
