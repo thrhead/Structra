@@ -550,11 +550,22 @@ export default function JobDetailScreen({ route, navigation }) {
         try {
             setCompleting(true);
             setConfirmationModalVisible(false);
+            
+            // 1. Send completion request to server
             await jobService.completeJob(jobId, job.signature || null, job.signatureCoords || null, job.updatedAt);
+            
+            // 2. Log audit
             LoggerService.audit('Job completed by worker', { jobId, jobTitle: job.title });
-            setSuccessMessage(t('alerts.jobCompleteSuccess'));
-            setSuccessModalVisible(true);
-            loadJobDetails();
+            
+            // 3. Refresh job data to show updated status (PENDING_APPROVAL)
+            await loadJobDetails();
+            
+            // 4. Delay success modal to ensure all other overlays are dismissed
+            setTimeout(() => {
+                setSuccessMessage(t('alerts.jobCompleteSuccess'));
+                setSuccessModalVisible(true);
+            }, 600);
+            
         } catch (error) {
             console.error('Error completing job:', error);
             showAlert(t('common.error'), t('alerts.jobCompleteError'), [], 'error');
