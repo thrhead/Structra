@@ -222,11 +222,12 @@ export async function notifyAdminsOfApprovalResult(
     where: { id: approverId }
   })
 
-  // Get all admins, managers and team leads
+  // Get all admins, managers and team leads, excluding the approver
   const admins = await prisma.user.findMany({
     where: {
       role: { in: ['ADMIN', 'MANAGER', 'TEAM_LEAD'] },
-      isActive: true
+      isActive: true,
+      id: { not: approverId }
     }
   })
 
@@ -236,14 +237,16 @@ export async function notifyAdminsOfApprovalResult(
 
   const adminIds = admins.map(a => a.id)
 
-  await sendNotificationToUsers(
-    adminIds,
-    `İş ${status === 'APPROVED' ? 'Onaylandı' : 'Reddedildi'}`,
-    `${job.title} işi ${approverName} tarafından ${actionText}.${notes ? ` Not: ${notes}` : ''}`,
-    type,
-    `/admin/jobs/${jobId}`,
-    { jobId, status }
-  )
+  if (adminIds.length > 0) {
+    await sendNotificationToUsers(
+      adminIds,
+      `İş ${status === 'APPROVED' ? 'Onaylandı' : 'Reddedildi'}`,
+      `${job.title} işi ${approverName} tarafından ${actionText}.${notes ? ` Not: ${notes}` : ''}`,
+      type,
+      `/admin/jobs/${jobId}`,
+      { jobId, status }
+    )
+  }
 }
 
 /**

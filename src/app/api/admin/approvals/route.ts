@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { verifyAuth } from '@/lib/auth-helper';
-import { sendUserNotification } from '@/lib/notification-helper';
+import { sendUserNotification, sendJobNotification } from '@/lib/notification-helper';
 
 export async function POST(req: Request) {
   try {
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
         });
 
         // Notify the creator of the cost
-        if (cost.createdById) {
+        if (cost.createdById && cost.createdById !== userId) {
           await sendUserNotification(
             cost.createdById,
             isApprove ? 'Masraf Onaylandı ✅' : 'Masraf Reddedildi ❌',
@@ -63,28 +63,19 @@ export async function POST(req: Request) {
           include: {
             job: {
               select: { 
-                title: true, 
-                creatorId: true,
-                assignments: { select: { workerId: true } }
+                title: true
               }
             }
           }
         });
 
-        // Notify worker and creator
-        const recipients = new Set<string>();
-        if (step.job.creatorId) recipients.add(step.job.creatorId);
-        step.job.assignments.forEach(a => { if (a.workerId) recipients.add(a.workerId); });
-
-        for (const recipientId of recipients) {
-          await sendUserNotification(
-            recipientId,
-            isApprove ? 'Adım Onaylandı ✅' : 'Adım Reddedildi ❌',
-            `"${step.job.title}" işindeki "${step.title}" adımı ${isApprove ? 'onaylandı' : 'reddedildi'}.`,
-            isApprove ? 'SUCCESS' : 'INFO',
+        await sendJobNotification(
+            step.jobId,
+            isApprove ? 'İş Adımı Onaylandı ✅' : 'İş Adımı Reddedildi ❌',
+            `"${step.job.title}" işindeki "${step.title}" adımı ${isApprove ? 'onaylandı' : `reddedildi. Sebep: ${reason}`}`,
+            isApprove ? 'SUCCESS' : 'ERROR',
             `/worker/jobs/${step.jobId}`
-          );
-        }
+        );
         break;
       }
 
@@ -102,9 +93,7 @@ export async function POST(req: Request) {
               include: {
                 job: {
                   select: { 
-                    title: true, 
-                    creatorId: true,
-                    assignments: { select: { workerId: true } }
+                    title: true
                   }
                 }
               }
@@ -112,19 +101,13 @@ export async function POST(req: Request) {
           }
         });
 
-        const recipients = new Set<string>();
-        if (subStep.step.job.creatorId) recipients.add(subStep.step.job.creatorId);
-        subStep.step.job.assignments.forEach(a => { if (a.workerId) recipients.add(a.workerId); });
-
-        for (const recipientId of recipients) {
-          await sendUserNotification(
-            recipientId,
-            isApprove ? 'Alt Adım Onaylandı ✅' : 'Alt Adım Reddedildi ❌',
-            `"${subStep.step.job.title}" işindeki "${subStep.title}" alt adımı ${isApprove ? 'onaylandı' : 'reddedildi'}.`,
-            isApprove ? 'SUCCESS' : 'INFO',
+        await sendJobNotification(
+            subStep.step.jobId,
+            isApprove ? 'Alt Görev Onaylandı ✅' : 'Alt Görev Reddedildi ❌',
+            `"${subStep.step.job.title}" işindeki "${subStep.title}" alt görevi ${isApprove ? 'onaylandı' : `reddedildi. Sebep: ${reason}`}`,
+            isApprove ? 'SUCCESS' : 'ERROR',
             `/worker/jobs/${subStep.step.jobId}`
-          );
-        }
+        );
         break;
       }
 
