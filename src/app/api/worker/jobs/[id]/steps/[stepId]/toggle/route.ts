@@ -18,7 +18,7 @@ export async function POST(
 
     const step = await prisma.jobStep.findUnique({
       where: { id: params.stepId },
-      include: { job: { select: { updatedAt: true } } }
+      include: { job: { select: { updatedAt: true, title: true } } }
     })
 
     if (!step) {

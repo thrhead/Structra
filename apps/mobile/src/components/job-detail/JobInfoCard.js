@@ -325,6 +325,27 @@ const JobInfoCard = ({ job }) => {
           </Text>
         </View>
       )}
+
+      {(job.status === 'COMPLETED' || job.status === 'PENDING_APPROVAL') && (
+        <View style={{ marginTop: 12, padding: 10, backgroundColor: theme.dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)', borderRadius: 8 }}>
+            {job.startedAt && (
+                <View style={[styles.infoRow, { marginBottom: 6 }]}>
+                    <MaterialIcons name="play-circle-outline" size={16} color={theme.colors.subText} />
+                    <Text style={{ fontSize: 13, color: theme.colors.text, marginLeft: 8, fontWeight: '500' }}>
+                        {t('worker.started')}: <Text style={{ fontWeight: 'normal', color: theme.colors.subText }}>{new Date(job.startedAt).toLocaleString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</Text>
+                    </Text>
+                </View>
+            )}
+            {job.completedDate && (
+                <View style={[styles.infoRow, { marginBottom: 0 }]}>
+                    <MaterialIcons name="check-circle" size={16} color={theme.colors.success || '#10b981'} />
+                    <Text style={{ fontSize: 13, color: theme.colors.text, marginLeft: 8, fontWeight: '500' }}>
+                        {t('worker.finished')}: <Text style={{ fontWeight: 'normal', color: theme.colors.subText }}>{new Date(job.completedDate).toLocaleString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</Text>
+                    </Text>
+                </View>
+            )}
+        </View>
+      )}
     </GlassCard>
   );
 };

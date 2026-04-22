@@ -79,16 +79,15 @@ export function NotificationListener() {
                 case 'cost:approved':
                     handleCostApproved(data as CostApprovedPayload);
                     break;
-                case 'step:completed':
-                    handleStepCompleted(data as StepCompletedPayload);
-                    break;
                 case 'notification:new':
                 case 'notification:refresh':
                     handleGenericNotification(data as NotificationPayload);
                     break;
                 case 'cost:submitted':
-                    // Silent ignore to prevent double/triple notifications
-                    console.log('[Ably] 🔇 Silently ignoring cost:submitted');
+                case 'step:completed':
+                case 'substep:completed':
+                    // Silent ignore to prevent double/triple notifications (already handled by notification:new via sendAdminNotification)
+                    console.log('[Ably] 🔇 Silently ignoring cost:submitted/step:completed');
                     break;
                 default:
                     console.log('[Ably] ℹ️ Event ignored or handled elsewhere:', message.name);
