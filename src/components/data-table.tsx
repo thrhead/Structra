@@ -34,13 +34,80 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Link } from "@/lib/navigation"
+import { CustomerDialog } from "@/components/admin/customer-dialog"
+import { DeleteCustomerButton } from "@/components/admin/delete-customer-button"
 
 interface CustomerData {
+  id?: string
   name: string
   email: string
   totalSpent: number
   jobCount: number
+  customer?: any
 }
+
+const ActionCell = ({ row }: { row: any }) => {
+  const customerId = row.original.id;
+  const customer = row.original.customer;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          className="flex size-8 text-muted-foreground data-[state=open]:bg-muted ml-auto"
+          size="icon"
+        >
+          <IconDotsVertical size={16} />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-40 rounded-xl">
+        <DropdownMenuItem className="text-xs font-bold" asChild>
+          <Link href={customerId ? `/admin/customers/${customerId}` : "#"}>
+            Detayları Gör
+          </Link>
+        </DropdownMenuItem>
+        
+        {customer && (
+          <CustomerDialog
+            customer={customer}
+            trigger={
+              <DropdownMenuItem
+                className="text-xs font-bold"
+                onSelect={(e) => {
+                  e.preventDefault();
+                }}
+              >
+                Düzenle
+              </DropdownMenuItem>
+            }
+          />
+        )}
+        
+        {customer && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              className="p-0"
+              onSelect={(e) => e.preventDefault()}
+            >
+              <div className="w-full" onClick={(e) => e.stopPropagation()}>
+                <DeleteCustomerButton
+                  customerId={customer.id}
+                  companyName={customer.company || customer.name}
+                  hasActiveJobs={customer._count?.jobs > 0}
+                  variant="ghost"
+                  showText={true}
+                />
+              </div>
+            </DropdownMenuItem>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
 
 const columns: ColumnDef<CustomerData>[] = [
   {
@@ -86,25 +153,7 @@ const columns: ColumnDef<CustomerData>[] = [
   },
   {
     id: "actions",
-    cell: () => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            className="flex size-8 text-muted-foreground data-[state=open]:bg-muted ml-auto"
-            size="icon"
-          >
-            <IconDotsVertical size={16} />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-40 rounded-xl">
-          <DropdownMenuItem className="text-xs font-bold">Detayları Gör</DropdownMenuItem>
-          <DropdownMenuItem className="text-xs font-bold">Düzenle</DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem className="text-xs font-bold text-red-600">Sil</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
+    cell: ActionCell,
   },
 ]
 
