@@ -249,6 +249,37 @@ export default function JobDetailScreen({ route, navigation }) {
         const performToggle = async () => {
             try {
                 setLoading(true);
+
+                if (!currentStatus) {
+                    const step = job.steps.find(s => s.id === stepId);
+
+                    // Check if all substeps are completed
+                    const hasIncompleteSubsteps = step?.subSteps && step.subSteps.some(ss => !ss.isCompleted);
+                    if (hasIncompleteSubsteps) {
+                        showAlert(
+                            t('common.warning'),
+                            t('alerts.substepsRequiredForComplete', 'Tüm alt görevleri tamamlamadan bu adımı tamamlayamazsınız.'),
+                            [],
+                            'warning'
+                        );
+                        setLoading(false);
+                        return;
+                    }
+
+                    // Check for main step photo
+                    const hasPhotos = step?.photos && Array.isArray(step.photos) && step.photos.length > 0;
+                    if (!hasPhotos) {
+                        showAlert(
+                            t('common.warning'),
+                            t('alerts.photoRequiredForToggle', 'Bu adımı tamamlamak için en az bir genel fotoğraf yüklemelisiniz.'),
+                            [],
+                            'warning'
+                        );
+                        setLoading(false);
+                        return;
+                    }
+                }
+
                 await jobService.toggleStep(jobId, stepId, !currentStatus, job.updatedAt);
                 loadJobDetails();
             } catch (error) {
@@ -794,6 +825,7 @@ export default function JobDetailScreen({ route, navigation }) {
                                 setRejectionType={setRejectionType}
                                 setSelectedStepId={setSelectedStepId}
                                 setRejectionModalVisible={setRejectionModalVisible}
+                                pickImage={pickImage}
                             >
                                 {step.subSteps && step.subSteps.map((substep, subIndex) => (
                                     <SubStepItem
