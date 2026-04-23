@@ -86,6 +86,7 @@ export const useCalendarEvents = () => {
                     title: event.title,
                     start: event.start,
                     end: event.end,
+                    allDay: event.allDay,
                     color: event.color,
                     status: event.extendedProps?.status,
                     location: event.extendedProps?.location,

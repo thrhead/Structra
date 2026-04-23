@@ -83,16 +83,21 @@ export async function getCalendarEvents({ start, end, userId, role }: GetCalenda
             }
         }
 
+        const isAllDay = !job.scheduledEndDate;
+
         return {
             id: job.id,
             title,
             start: job.scheduledDate,
             end: job.scheduledEndDate || job.scheduledDate, // Use start if no end date
+            allDay: isAllDay,
             backgroundColor: statusColors[job.status] || '#94a3b8',
             borderColor: statusColors[job.status] || '#94a3b8',
             extendedProps: {
                 customer: job.customer.company,
-                status: job.status
+                status: job.status,
+                location: job.location,
+                description: job.description
             }
         };
     });
