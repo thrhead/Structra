@@ -1,45 +1,75 @@
 {
-  "version": 1,
-  "skills": {
-    "dashboard-builder": {
-      "source": "affaan-m/everything-claude-code",
-      "sourceType": "github",
-      "computedHash": "107759b601b7abfa420bcb05c5763bfb16699e4685c86e0c022c504ae4d8e102"
-    },
-    "debugger": {
-      "source": "Shubhamsaboo/awesome-llm-apps",
-      "sourceType": "github",
-      "computedHash": "609b0b6d79fe21bcb5eb8a01b38f5571b8ae05be826936a312bc04d9c5400193"
-    },
-    "github-actions-templates": {
-      "source": "wshobson/agents",
-      "sourceType": "github",
-      "computedHash": "8604814828637308a8cdc45c53e647f0029395328184937312330e4b8e8c587f"
-    },
-    "grafana-dashboards": {
-      "source": "wshobson/agents",
-      "sourceType": "github",
-      "computedHash": "e9b692daf06faf96fa28b2b98f50b362e68b974db5ab503963a610c719cda79b"
-    },
-    "knip": {
-      "source": "brianlovin/agent-config",
-      "sourceType": "github",
-      "computedHash": "89f3a78088109045afc77e09c93a28b6cc4cb51ae00e789091e9991a180e39db"
-    },
-    "sparc-methodology": {
-      "source": "ruvnet/ruflo",
-      "sourceType": "github",
-      "computedHash": "7f22d3bebf2e2f2a21f9423cbcee83ac73698d32b78aea323c2a95eba092d7d5"
-    },
-    "ui-ux-pro-max": {
-      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
-      "sourceType": "github",
-      "computedHash": "0a413bf988d06481f69bb81df2070741c3ba12dd9f1be2706d57f259c905992d"
-    },
-    "visualization-expert": {
-      "source": "Shubhamsaboo/awesome-llm-apps",
-      "sourceType": "github",
-      "computedHash": "cd8f8bc48c6790cb3b25a13e7a7b05dccd6fd5213577ca59d3c232282d1e151a"
-    }
-  }
+	"version": 1,
+	"skills": {
+		"accessibility": {
+			"source": "addyosmani/web-quality-skills",
+			"sourceType": "github",
+			"computedHash": "6462f04969f59f771150e6410e6a11fa397f2934be0b51e8650f495feed1e28d"
+		},
+		"best-practices": {
+			"source": "addyosmani/web-quality-skills",
+			"sourceType": "github",
+			"computedHash": "98dafea60ec1a7f5f70f6febcdd4b4fa3fe15723ad9c0b991c0818615bff7ba6"
+		},
+		"core-web-vitals": {
+			"source": "addyosmani/web-quality-skills",
+			"sourceType": "github",
+			"computedHash": "fa437acc2249cea2cb28f190ba7faf8fdfac829d1c1aafa9ce938c6dd9338721"
+		},
+		"dashboard-builder": {
+			"source": "affaan-m/everything-claude-code",
+			"sourceType": "github",
+			"computedHash": "107759b601b7abfa420bcb05c5763bfb16699e4685c86e0c022c504ae4d8e102"
+		},
+		"debugger": {
+			"source": "Shubhamsaboo/awesome-llm-apps",
+			"sourceType": "github",
+			"computedHash": "609b0b6d79fe21bcb5eb8a01b38f5571b8ae05be826936a312bc04d9c5400193"
+		},
+		"github-actions-templates": {
+			"source": "wshobson/agents",
+			"sourceType": "github",
+			"computedHash": "8604814828637308a8cdc45c53e647f0029395328184937312330e4b8e8c587f"
+		},
+		"grafana-dashboards": {
+			"source": "wshobson/agents",
+			"sourceType": "github",
+			"computedHash": "e9b692daf06faf96fa28b2b98f50b362e68b974db5ab503963a610c719cda79b"
+		},
+		"knip": {
+			"source": "brianlovin/agent-config",
+			"sourceType": "github",
+			"computedHash": "89f3a78088109045afc77e09c93a28b6cc4cb51ae00e789091e9991a180e39db"
+		},
+		"performance": {
+			"source": "addyosmani/web-quality-skills",
+			"sourceType": "github",
+			"computedHash": "acbafe2fcbfc3a1a67db47c2f6299d5c0e16f543c4e683e38e74a8ccb54888fb"
+		},
+		"seo": {
+			"source": "addyosmani/web-quality-skills",
+			"sourceType": "github",
+			"computedHash": "f1fed683b76913d26fbf1aa1e008e6932f7771701fc3a79925b042236aa4681a"
+		},
+		"sparc-methodology": {
+			"source": "ruvnet/ruflo",
+			"sourceType": "github",
+			"computedHash": "7f22d3bebf2e2f2a21f9423cbcee83ac73698d32b78aea323c2a95eba092d7d5"
+		},
+		"ui-ux-pro-max": {
+			"source": "nextlevelbuilder/ui-ux-pro-max-skill",
+			"sourceType": "github",
+			"computedHash": "0a413bf988d06481f69bb81df2070741c3ba12dd9f1be2706d57f259c905992d"
+		},
+		"visualization-expert": {
+			"source": "Shubhamsaboo/awesome-llm-apps",
+			"sourceType": "github",
+			"computedHash": "cd8f8bc48c6790cb3b25a13e7a7b05dccd6fd5213577ca59d3c232282d1e151a"
+		},
+		"web-quality-audit": {
+			"source": "addyosmani/web-quality-skills",
+			"sourceType": "github",
+			"computedHash": "1168be21aa9fe7bdc6e6e053ca05b6ca5a45675a527c103cdf77bc56ce8159af"
+		}
+	}
 }

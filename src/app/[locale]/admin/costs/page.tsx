@@ -1,425 +1,499 @@
-'use client'
+"use client";
 
-import { useEffect, useState, Suspense } from 'react'
-import Image from 'next/image'
+import { format } from "date-fns";
+import { tr } from "date-fns/locale";
+import { CheckCircle2Icon, Trash2, XCircleIcon } from "lucide-react";
+import Image from "next/image";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { toast } from "sonner";
+import ReportFilters from "@/components/admin/reports/ReportFilters";
+import { CostListSkeleton } from "@/components/skeletons/cost-list-skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { CustomSpinner } from "@/components/ui/custom-spinner";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { format } from 'date-fns'
-import { tr } from 'date-fns/locale'
-import { toast } from 'sonner'
-import { CheckCircle2Icon, XCircleIcon, ExternalLinkIcon, Loader2, Trash2, AlertTriangle } from 'lucide-react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { CostListSkeleton } from '@/components/skeletons/cost-list-skeleton'
-import ReportFilters from '@/components/admin/reports/ReportFilters'
-import { useRouter } from '@/lib/navigation'
-import { useSearchParams } from 'next/navigation'
-import { getJobsListForFilter, getCategoriesForFilter } from '@/lib/data/reports'
-
-import { CustomSpinner } from '@/components/ui/custom-spinner';
-import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
 
 interface Cost {
-    id: string
-    amount: number
-    currency: string
-    category: string
-    description: string
-    date: string
-    status: string
-    receiptUrl?: string
-    rejectionReason?: string
-    job: {
-        title: string
-        customer: {
-            company: string
-        }
-    }
-    createdBy: {
-        name: string
-        email: string
-    }
-    approvedBy?: {
-        name: string
-    }
+	id: string;
+	amount: number;
+	currency: string;
+	category: string;
+	description: string;
+	date: string;
+	status: string;
+	receiptUrl?: string;
+	rejectionReason?: string;
+	job: {
+		title: string;
+		customer: {
+			company: string;
+		};
+	};
+	createdBy: {
+		name: string;
+		email: string;
+	};
+	approvedBy?: {
+		name: string;
+	};
 }
 
 function CostsTable() {
-    const searchParams = useSearchParams()
-    const [costs, setCosts] = useState<Cost[]>([])
-    const [loading, setLoading] = useState(true)
-    const [selectedReceipt, setSelectedReceipt] = useState<string | null>(null)
-    const [rejectDialog, setRejectDialog] = useState<{ id: string, open: boolean }>({ id: '', open: false })
-    const [rejectionReason, setRejectionReason] = useState('')
-    const [processing, setProcessing] = useState<string | null>(null)
+	const searchParams = useSearchParams();
+	const [costs, setCosts] = useState<Cost[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [selectedReceipt, setSelectedReceipt] = useState<string | null>(null);
+	const [rejectDialog, setRejectDialog] = useState<{
+		id: string;
+		open: boolean;
+	}>({ id: "", open: false });
+	const [rejectionReason, setRejectionReason] = useState("");
+	const [processing, setProcessing] = useState<string | null>(null);
 
-    // Delete states
-    const [deleteDialog, setDeleteDialog] = useState<{ id: string, open: boolean }>({ id: '', open: false })
-    const [deleting, setDeleting] = useState(false)
+	// Delete states
+	const [deleteDialog, setDeleteDialog] = useState<{
+		id: string;
+		open: boolean;
+	}>({ id: "", open: false });
+	const [deleting, setDeleting] = useState(false);
 
-    // Data for filters
-    const [filterJobs, setFilterJobs] = useState<any[]>([])
-    const [filterCategories, setFilterCategories] = useState<string[]>([])
+	// Data for filters
+	const [filterJobs, setFilterJobs] = useState<any[]>([]);
+	const [filterCategories, setFilterCategories] = useState<string[]>([]);
 
-    useEffect(() => {
-        // Fetch filter options
-        const loadFilters = async () => {
-            // Hardcoded categories as requested
-            setFilterCategories(['Yemek', 'Yol', 'Yakıt', 'Konaklama', 'Malzeme', 'Diğer', 'OTHER']);
+	useEffect(() => {
+		// Fetch filter options
+		const loadFilters = async () => {
+			// Hardcoded categories as requested
+			setFilterCategories([
+				"Yemek",
+				"Yol",
+				"Yakıt",
+				"Konaklama",
+				"Malzeme",
+				"Diğer",
+				"OTHER",
+			]);
 
-            try {
-                // Fetch basic jobs list for filter
-                const res = await fetch('/api/admin/jobs?limit=100');
-                if (res.ok) {
-                    const data = await res.json();
-                    // API returns array of jobs, not { jobs: [...] }
-                    if (Array.isArray(data)) {
-                        setFilterJobs(data.map((j: any) => ({
-                            id: j.id,
-                            title: j.customer?.company ? `${j.title} - ${j.customer.company}` : j.title
-                        })));
-                    } else if (data.jobs && Array.isArray(data.jobs)) {
-                        // Fallback in case API changes
-                        setFilterJobs(data.jobs.map((j: any) => ({
-                            id: j.id,
-                            title: j.customer?.company ? `${j.title} - ${j.customer.company}` : j.title
-                        })));
-                    }
-                }
-            } catch (e) {
-                console.error(e)
-            }
-        }
-        loadFilters()
-    }, [])
+			try {
+				// Fetch basic jobs list for filter
+				const res = await fetch("/api/admin/jobs?limit=100");
+				if (res.ok) {
+					const data = await res.json();
+					// API returns array of jobs, not { jobs: [...] }
+					if (Array.isArray(data)) {
+						setFilterJobs(
+							data.map((j: any) => ({
+								id: j.id,
+								title: j.customer?.company
+									? `${j.title} - ${j.customer.company}`
+									: j.title,
+							})),
+						);
+					} else if (data.jobs && Array.isArray(data.jobs)) {
+						// Fallback in case API changes
+						setFilterJobs(
+							data.jobs.map((j: any) => ({
+								id: j.id,
+								title: j.customer?.company
+									? `${j.title} - ${j.customer.company}`
+									: j.title,
+							})),
+						);
+					}
+				}
+			} catch (e) {
+				console.error(e);
+			}
+		};
+		loadFilters();
+	}, []);
 
-    useEffect(() => {
-        fetchCosts()
-    }, [searchParams])
+	useEffect(() => {
+		fetchCosts();
+	}, [fetchCosts]);
 
-    const fetchCosts = async () => {
-        setLoading(true)
-        try {
-            const params = new URLSearchParams(searchParams.toString())
-            // Fix: ReportFilters uses 'jobStatus' but our API expects 'status' for Cost Status if we wanted that. 
-            // But ReportFilters 'jobStatus' is strictly for Job Status (Active/Completed). 
-            // If we want to filter by Cost Status (Pending vs Approved), we need a separate filter or map it.
-            // For now, just pass all params. API needs to handle 'jobStatus' if we want that filter to work.
-            const res = await fetch(`/api/admin/costs?${params.toString()}`)
-            if (res.ok) {
-                const data = await res.json()
-                setCosts(data)
-            }
-        } catch (error) {
-            console.error('Failed to fetch costs:', error)
-        } finally {
-            setLoading(false)
-        }
-    }
+	const fetchCosts = async () => {
+		setLoading(true);
+		try {
+			const params = new URLSearchParams(searchParams.toString());
+			// Fix: ReportFilters uses 'jobStatus' but our API expects 'status' for Cost Status if we wanted that.
+			// But ReportFilters 'jobStatus' is strictly for Job Status (Active/Completed).
+			// If we want to filter by Cost Status (Pending vs Approved), we need a separate filter or map it.
+			// For now, just pass all params. API needs to handle 'jobStatus' if we want that filter to work.
+			const res = await fetch(`/api/admin/costs?${params.toString()}`);
+			if (res.ok) {
+				const data = await res.json();
+				setCosts(data);
+			}
+		} catch (error) {
+			console.error("Failed to fetch costs:", error);
+		} finally {
+			setLoading(false);
+		}
+	};
 
-    const handleUpdateStatus = async (id: string, status: 'APPROVED' | 'REJECTED', reason?: string) => {
-        setProcessing(id)
-        try {
-            const res = await fetch(`/api/admin/costs/${id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status, rejectionReason: reason })
-            })
+	const handleUpdateStatus = async (
+		id: string,
+		status: "APPROVED" | "REJECTED",
+		reason?: string,
+	) => {
+		setProcessing(id);
+		try {
+			const res = await fetch(`/api/admin/costs/${id}`, {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ status, rejectionReason: reason }),
+			});
 
-            if (res.ok) {
-                fetchCosts()
-                setRejectDialog({ id: '', open: false })
-                setRejectionReason('')
-                toast.success('Durum güncellendi')
-            } else {
-                toast.error('İşlem başarısız')
-            }
-        } catch (error) {
-            console.error(error)
-            toast.error('Bir hata oluştu')
-        } finally {
-            setProcessing(null)
-        }
-    }
+			if (res.ok) {
+				fetchCosts();
+				setRejectDialog({ id: "", open: false });
+				setRejectionReason("");
+				toast.success("Durum güncellendi");
+			} else {
+				toast.error("İşlem başarısız");
+			}
+		} catch (error) {
+			console.error(error);
+			toast.error("Bir hata oluştu");
+		} finally {
+			setProcessing(null);
+		}
+	};
 
-    const handleDelete = async () => {
-        if (!deleteDialog.id) return
-        setDeleting(true)
-        try {
-            const res = await fetch(`/api/admin/costs/${deleteDialog.id}`, {
-                method: 'DELETE'
-            })
-            if (res.ok) {
-                toast.success('Masraf kaydı başarıyla silindi')
-                fetchCosts()
-                setDeleteDialog({ id: '', open: false })
-            } else {
+	const handleDelete = async () => {
+		if (!deleteDialog.id) return;
+		setDeleting(true);
+		try {
+			const res = await fetch(`/api/admin/costs/${deleteDialog.id}`, {
+				method: "DELETE",
+			});
+			if (res.ok) {
+				toast.success("Masraf kaydı başarıyla silindi");
+				fetchCosts();
+				setDeleteDialog({ id: "", open: false });
+			} else {
+				toast.error("Silme işlemi başarısız");
+			}
+		} catch (error) {
+			console.error(error);
+			toast.error("Bir hata oluştu");
+		} finally {
+			setDeleting(false);
+		}
+	};
 
-                toast.error('Silme işlemi başarısız')
-            }
-        } catch (error) {
-            console.error(error)
-            toast.error('Bir hata oluştu')
-        } finally {
-            setDeleting(false)
-        }
-    }
+	const formatCurrency = (amount: number, currency: string) => {
+		return new Intl.NumberFormat("tr-TR", {
+			style: "currency",
+			currency,
+		}).format(amount);
+	};
 
-    const formatCurrency = (amount: number, currency: string) => {
-        return new Intl.NumberFormat('tr-TR', { style: 'currency', currency }).format(amount)
-    }
+	const getStatusBadge = (status: string) => {
+		switch (status) {
+			case "APPROVED":
+				return <Badge className="bg-green-600">Onaylandı</Badge>;
+			case "REJECTED":
+				return <Badge variant="destructive">Reddedildi</Badge>;
+			default:
+				return <Badge variant="secondary">Bekliyor</Badge>;
+		}
+	};
 
-    const getStatusBadge = (status: string) => {
-        switch (status) {
-            case 'APPROVED':
-                return <Badge className="bg-green-600">Onaylandı</Badge>
-            case 'REJECTED':
-                return <Badge variant="destructive">Reddedildi</Badge>
-            default:
-                return <Badge variant="secondary">Bekliyor</Badge>
-        }
-    }
+	return (
+		<div className="space-y-6">
+			<div className="flex flex-col gap-4">
+				{/* Filters - Passing empty arrays for now as fetching them in client component requires API endpoints or server wrapper */}
+				{/* To make it work properly, one should refactor this page to Server Component, but that's a larger task. */}
+				{/* We will rely on the Filter component's internal state for dates/status, but Dropdowns for Jobs/Categories might be empty without data. */}
+				{/* Let's try to pass simple static options or skip job/category filter for now? User asked for filters. */}
+				{/* WORKAROUND: We will assume ReportFilters handles URL state correctly, we just need to render it. */}
+				{/* For Job/Category data, we really need a server wrapper. Let's create a server wrapper in the same file if possible? No, 'use client' is at top. */}
+				{/* I will add a fetch for filter data in the useEffect. */}
 
-    return (
-        <div className="space-y-6">
-            <div className="flex flex-col gap-4">
-                {/* Filters - Passing empty arrays for now as fetching them in client component requires API endpoints or server wrapper */}
-                {/* To make it work properly, one should refactor this page to Server Component, but that's a larger task. */}
-                {/* We will rely on the Filter component's internal state for dates/status, but Dropdowns for Jobs/Categories might be empty without data. */}
-                {/* Let's try to pass simple static options or skip job/category filter for now? User asked for filters. */}
-                {/* WORKAROUND: We will assume ReportFilters handles URL state correctly, we just need to render it. */}
-                {/* For Job/Category data, we really need a server wrapper. Let's create a server wrapper in the same file if possible? No, 'use client' is at top. */}
-                {/* I will add a fetch for filter data in the useEffect. */}
+				<Suspense fallback={<div>Filtreler yükleniyor...</div>}>
+					<ReportFilters
+						jobs={filterJobs} // Needs data
+						categories={filterCategories} // Needs data
+					/>
+				</Suspense>
+			</div>
 
-                <Suspense fallback={<div>Filtreler yükleniyor...</div>}>
-                    <ReportFilters
-                        jobs={filterJobs} // Needs data
-                        categories={filterCategories} // Needs data
-                    />
-                </Suspense>
-            </div>
+			<Card>
+				<CardHeader>
+					<CardTitle>Tüm Masraflar</CardTitle>
+				</CardHeader>
+				<CardContent>
+					{loading ? (
+						<CostListSkeleton />
+					) : (
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead>Tarih</TableHead>
+									<TableHead>İş / Müşteri</TableHead>
+									<TableHead>Ekleyen</TableHead>
+									<TableHead>Kategori</TableHead>
+									<TableHead>Açıklama</TableHead>
+									<TableHead>Tutar</TableHead>
+									<TableHead>Fiş</TableHead>
+									<TableHead>Durum</TableHead>
+									<TableHead className="text-right">İşlemler</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{costs.length === 0 ? (
+									<TableRow>
+										<TableCell
+											colSpan={9}
+											className="text-center text-muted-foreground py-8"
+										>
+											Kayıt bulunamadı
+										</TableCell>
+									</TableRow>
+								) : (
+									costs.map((cost) => (
+										<TableRow key={cost.id}>
+											<TableCell>
+												{format(new Date(cost.date), "d MMM yyyy", {
+													locale: tr,
+												})}
+											</TableCell>
+											<TableCell>
+												<div className="font-medium">{cost.job.title}</div>
+												<div className="text-xs text-muted-foreground">
+													{cost.job.customer.company}
+												</div>
+											</TableCell>
+											<TableCell>
+												<div className="text-sm">{cost.createdBy.name}</div>
+											</TableCell>
+											<TableCell>
+												<Badge variant="outline">{cost.category}</Badge>
+											</TableCell>
+											<TableCell
+												className="max-w-[200px] truncate"
+												title={cost.description}
+											>
+												{cost.description}
+											</TableCell>
+											<TableCell className="font-bold">
+												{formatCurrency(cost.amount, cost.currency)}
+											</TableCell>
+											<TableCell>
+												{cost.receiptUrl ? (
+													<button
+														onClick={() => setSelectedReceipt(cost.receiptUrl!)}
+														className="relative h-10 w-10 overflow-hidden rounded-md border border-slate-200 hover:border-emerald-500 transition-colors block cursor-pointer"
+													>
+														<Image
+															src={cost.receiptUrl}
+															alt="Receipt thumbnail"
+															fill
+															className="object-cover"
+															unoptimized
+														/>
+													</button>
+												) : (
+													<span className="text-muted-foreground text-xs">
+														-
+													</span>
+												)}
+											</TableCell>
+											<TableCell>
+												{getStatusBadge(cost.status)}
+												{cost.status === "REJECTED" && cost.rejectionReason && (
+													<div className="text-xs text-red-500 mt-1">
+														{cost.rejectionReason}
+													</div>
+												)}
+											</TableCell>
+											<TableCell className="text-right">
+												<div className="flex justify-end gap-2">
+													{cost.status === "PENDING" && (
+														<>
+															<Button
+																size="sm"
+																variant="outline"
+																className="text-green-600 hover:text-green-700 hover:bg-green-50"
+																onClick={() =>
+																	handleUpdateStatus(cost.id, "APPROVED")
+																}
+																disabled={processing === cost.id}
+															>
+																{processing === cost.id ? (
+																	<CustomSpinner className="h-4 w-4 animate-spin" />
+																) : (
+																	<CheckCircle2Icon className="h-4 w-4" />
+																)}
+															</Button>
+															<Button
+																size="sm"
+																variant="outline"
+																className="text-red-600 hover:text-red-700 hover:bg-red-50"
+																onClick={() =>
+																	setRejectDialog({ id: cost.id, open: true })
+																}
+																disabled={processing === cost.id}
+															>
+																<XCircleIcon className="h-4 w-4" />
+															</Button>
+														</>
+													)}
+													<Button
+														size="sm"
+														variant="ghost"
+														className="text-gray-400 hover:text-red-600 hover:bg-red-50"
+														onClick={() =>
+															setDeleteDialog({ id: cost.id, open: true })
+														}
+														title="Sil"
+													>
+														<Trash2 className="h-4 w-4" />
+													</Button>
+												</div>
+											</TableCell>
+										</TableRow>
+									))
+								)}
+							</TableBody>
+						</Table>
+					)}
+				</CardContent>
+			</Card>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Tüm Masraflar</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {loading ? (
-                        <CostListSkeleton />
-                    ) : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Tarih</TableHead>
-                                    <TableHead>İş / Müşteri</TableHead>
-                                    <TableHead>Ekleyen</TableHead>
-                                    <TableHead>Kategori</TableHead>
-                                    <TableHead>Açıklama</TableHead>
-                                    <TableHead>Tutar</TableHead>
-                                    <TableHead>Fiş</TableHead>
-                                    <TableHead>Durum</TableHead>
-                                    <TableHead className="text-right">İşlemler</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {costs.length === 0 ? (
-                                    <TableRow>
-                                        <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
-                                            Kayıt bulunamadı
-                                        </TableCell>
-                                    </TableRow>
-                                ) : (
-                                    costs.map((cost) => (
-                                        <TableRow key={cost.id}>
-                                            <TableCell>
-                                                {format(new Date(cost.date), 'd MMM yyyy', { locale: tr })}
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="font-medium">{cost.job.title}</div>
-                                                <div className="text-xs text-muted-foreground">{cost.job.customer.company}</div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <div className="text-sm">{cost.createdBy.name}</div>
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge variant="outline">{cost.category}</Badge>
-                                            </TableCell>
-                                            <TableCell className="max-w-[200px] truncate" title={cost.description}>
-                                                {cost.description}
-                                            </TableCell>
-                                            <TableCell className="font-bold">
-                                                {formatCurrency(cost.amount, cost.currency)}
-                                            </TableCell>
-                                            <TableCell>
-                                                {cost.receiptUrl ? (
-                                                    <button
-                                                        onClick={() => setSelectedReceipt(cost.receiptUrl!)}
-                                                        className="relative h-10 w-10 overflow-hidden rounded-md border border-slate-200 hover:border-emerald-500 transition-colors block cursor-pointer"
-                                                    >
-                                                        <Image 
-                                                            src={cost.receiptUrl} 
-                                                            alt="Receipt thumbnail" 
-                                                            fill 
-                                                            className="object-cover" 
-                                                            unoptimized 
-                                                        />
-                                                    </button>
-                                                ) : (
-                                                    <span className="text-muted-foreground text-xs">-</span>
-                                                )}
-                                            </TableCell>
-                                            <TableCell>
-                                                {getStatusBadge(cost.status)}
-                                                {cost.status === 'REJECTED' && cost.rejectionReason && (
-                                                    <div className="text-xs text-red-500 mt-1">{cost.rejectionReason}</div>
-                                                )}
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <div className="flex justify-end gap-2">
-                                                    {cost.status === 'PENDING' && (
-                                                        <>
-                                                            <Button
-                                                                size="sm"
-                                                                variant="outline"
-                                                                className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                                                                onClick={() => handleUpdateStatus(cost.id, 'APPROVED')}
-                                                                disabled={processing === cost.id}
-                                                            >
-                                                                {processing === cost.id ? <CustomSpinner className="h-4 w-4 animate-spin" /> : <CheckCircle2Icon className="h-4 w-4" />}
-                                                            </Button>
-                                                            <Button
-                                                                size="sm"
-                                                                variant="outline"
-                                                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                                                onClick={() => setRejectDialog({ id: cost.id, open: true })}
-                                                                disabled={processing === cost.id}
-                                                            >
-                                                                <XCircleIcon className="h-4 w-4" />
-                                                            </Button>
-                                                        </>
-                                                    )}
-                                                    <Button
-                                                        size="sm"
-                                                        variant="ghost"
-                                                        className="text-gray-400 hover:text-red-600 hover:bg-red-50"
-                                                        onClick={() => setDeleteDialog({ id: cost.id, open: true })}
-                                                        title="Sil"
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
-                                )}
-                            </TableBody>
-                        </Table>
-                    )}
-                </CardContent>
-            </Card>
+			{/* Receipt Preview Dialog */}
+			<Dialog
+				open={!!selectedReceipt}
+				onOpenChange={(open) => !open && setSelectedReceipt(null)}
+			>
+				<DialogContent className="max-w-4xl p-0 overflow-hidden rounded-3xl border-none shadow-2xl backdrop-blur-xl bg-white/95 dark:bg-slate-900/95">
+					<DialogHeader className="p-6 pb-0">
+						<DialogTitle className="text-xl font-bold">
+							Fiş Görüntüle
+						</DialogTitle>
+					</DialogHeader>
+					{selectedReceipt && (
+						<div className="relative h-[70vh] w-full bg-black/5 flex items-center justify-center p-4">
+							<Image
+								src={selectedReceipt}
+								alt="Receipt"
+								fill
+								className="object-contain p-4"
+								unoptimized
+							/>
+						</div>
+					)}
+				</DialogContent>
+			</Dialog>
 
-            {/* Receipt Preview Dialog */}
-            <Dialog open={!!selectedReceipt} onOpenChange={(open) => !open && setSelectedReceipt(null)}>
-                <DialogContent className="max-w-4xl p-0 overflow-hidden rounded-3xl border-none shadow-2xl backdrop-blur-xl bg-white/95 dark:bg-slate-900/95">
-                    <DialogHeader className="p-6 pb-0">
-                        <DialogTitle className="text-xl font-bold">Fiş Görüntüle</DialogTitle>
-                    </DialogHeader>
-                    {selectedReceipt && (
-                        <div className="relative h-[70vh] w-full bg-black/5 flex items-center justify-center p-4">
-                            <Image 
-                                src={selectedReceipt} 
-                                alt="Receipt" 
-                                fill 
-                                className="object-contain p-4" 
-                                unoptimized 
-                            />
-                        </div>
-                    )}
-                </DialogContent>
-            </Dialog>
+			{/* Rejection Dialog */}
+			<Dialog
+				open={rejectDialog.open}
+				onOpenChange={(open) => setRejectDialog((prev) => ({ ...prev, open }))}
+			>
+				<DialogContent className="sm:max-w-[450px] rounded-3xl p-8 border-none shadow-2xl backdrop-blur-xl bg-white/95 dark:bg-slate-900/95">
+					<DialogHeader className="space-y-3">
+						<div className="h-12 w-12 rounded-2xl bg-red-50 dark:bg-red-950/30 flex items-center justify-center mb-2">
+							<XCircleIcon className="h-6 w-6 text-red-600 dark:text-red-400" />
+						</div>
+						<DialogTitle className="text-2xl font-bold tracking-tight">
+							Red Nedeni
+						</DialogTitle>
+						<DialogDescription className="text-slate-500 dark:text-slate-400">
+							Masrafın neden reddedildiğini açıklayın.
+						</DialogDescription>
+					</DialogHeader>
+					<div className="space-y-6 mt-4">
+						<div className="space-y-2">
+							<Label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+								Açıklama
+							</Label>
+							<Input
+								placeholder="Neden reddedildiğini yazın..."
+								value={rejectionReason}
+								onChange={(e) => setRejectionReason(e.target.value)}
+								className="rounded-xl h-12 border-slate-200 focus:ring-red-500/20"
+							/>
+						</div>
+						<DialogFooter className="flex flex-col sm:flex-row gap-3">
+							<Button
+								variant="outline"
+								onClick={() => setRejectDialog({ id: "", open: false })}
+								className="rounded-2xl h-11 px-6 font-semibold flex-1"
+							>
+								İptal
+							</Button>
+							<Button
+								variant="destructive"
+								onClick={() =>
+									handleUpdateStatus(
+										rejectDialog.id,
+										"REJECTED",
+										rejectionReason,
+									)
+								}
+								disabled={!rejectionReason || processing === rejectDialog.id}
+								className="rounded-2xl h-11 px-6 font-bold bg-red-600 hover:bg-red-700 shadow-lg shadow-red-600/20 flex-1"
+							>
+								{processing === rejectDialog.id ? (
+									<CustomSpinner className="mr-2 h-4 w-4 animate-spin" />
+								) : (
+									"Reddet"
+								)}
+							</Button>
+						</DialogFooter>
+					</div>
+				</DialogContent>
+			</Dialog>
 
-            {/* Rejection Dialog */}
-            <Dialog open={rejectDialog.open} onOpenChange={(open) => setRejectDialog(prev => ({ ...prev, open }))}>
-                <DialogContent className="sm:max-w-[450px] rounded-3xl p-8 border-none shadow-2xl backdrop-blur-xl bg-white/95 dark:bg-slate-900/95">
-                    <DialogHeader className="space-y-3">
-                        <div className="h-12 w-12 rounded-2xl bg-red-50 dark:bg-red-950/30 flex items-center justify-center mb-2">
-                            <XCircleIcon className="h-6 w-6 text-red-600 dark:text-red-400" />
-                        </div>
-                        <DialogTitle className="text-2xl font-bold tracking-tight">Red Nedeni</DialogTitle>
-                        <DialogDescription className="text-slate-500 dark:text-slate-400">
-                            Masrafın neden reddedildiğini açıklayın.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-6 mt-4">
-                        <div className="space-y-2">
-                            <Label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Açıklama</Label>
-                            <Input
-                                placeholder="Neden reddedildiğini yazın..."
-                                value={rejectionReason}
-                                onChange={(e) => setRejectionReason(e.target.value)}
-                                className="rounded-xl h-12 border-slate-200 focus:ring-red-500/20"
-                            />
-                        </div>
-                        <DialogFooter className="flex flex-col sm:flex-row gap-3">
-                            <Button 
-                                variant="outline" 
-                                onClick={() => setRejectDialog({ id: '', open: false })}
-                                className="rounded-2xl h-11 px-6 font-semibold flex-1"
-                            >
-                                İptal
-                            </Button>
-                            <Button
-                                variant="destructive"
-                                onClick={() => handleUpdateStatus(rejectDialog.id, 'REJECTED', rejectionReason)}
-                                disabled={!rejectionReason || processing === rejectDialog.id}
-                                className="rounded-2xl h-11 px-6 font-bold bg-red-600 hover:bg-red-700 shadow-lg shadow-red-600/20 flex-1"
-                            >
-                                {processing === rejectDialog.id ? (
-                                    <CustomSpinner className="mr-2 h-4 w-4 animate-spin" />
-                                ) : (
-                                    'Reddet'
-                                )}
-                            </Button>
-                        </DialogFooter>
-                    </div>
-                </DialogContent>
-            </Dialog>
-
-            {/* Delete Confirmation Dialog */}
-            <ConfirmDialog
-                open={deleteDialog.open}
-                onOpenChange={(open) => setDeleteDialog(prev => ({ ...prev, open }))}
-                title="Maliyet Kaydı Silinecek"
-                description="Bu maliyet kaydını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve veritabanından kalıcı olarak silinecektir."
-                confirmText="Evet, Kalıcı Olarak Sil"
-                cancelText="Vazgeç"
-                onConfirm={handleDelete}
-                variant="destructive"
-                isLoading={deleting}
-            />
-        </div>
-    )
+			{/* Delete Confirmation Dialog */}
+			<ConfirmDialog
+				open={deleteDialog.open}
+				onOpenChange={(open) => setDeleteDialog((prev) => ({ ...prev, open }))}
+				title="Maliyet Kaydı Silinecek"
+				description="Bu maliyet kaydını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve veritabanından kalıcı olarak silinecektir."
+				confirmText="Evet, Kalıcı Olarak Sil"
+				cancelText="Vazgeç"
+				onConfirm={handleDelete}
+				variant="destructive"
+				isLoading={deleting}
+			/>
+		</div>
+	);
 }
 
 export default function CostsPage() {
-    return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h2 className="text-3xl font-bold tracking-tight">Maliyet Yönetimi</h2>
-            </div>
-            <Suspense fallback={<CostListSkeleton />}>
-                <CostsTable />
-            </Suspense>
-        </div>
-    )
+	return (
+		<div className="space-y-6">
+			<div className="flex items-center justify-between">
+				<h2 className="text-3xl font-bold tracking-tight">Maliyet Yönetimi</h2>
+			</div>
+			<Suspense fallback={<CostListSkeleton />}>
+				<CostsTable />
+			</Suspense>
+		</div>
+	);
 }

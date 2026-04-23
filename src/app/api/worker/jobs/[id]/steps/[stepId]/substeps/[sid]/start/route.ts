@@ -1,45 +1,48 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
-import { verifyAuth } from '@/lib/auth-helper';
+import { NextResponse } from "next/server";
+import { verifyAuth } from "@/lib/auth-helper";
+import { prisma } from "@/lib/db";
 
-export async function POST(request: Request, props: { params: Promise<{ id: string; stepId: string; sid: string }> }) {
-    try {
-        console.log('[DEBUG] POST request received');
-        const params = await props.params;
-        console.log('[DEBUG] Start Substep Params:', params);
+export async function POST(
+	request: Request,
+	props: { params: Promise<{ id: string; stepId: string; sid: string }> },
+) {
+	try {
+		const params = await props.params;
 
-        const session = await verifyAuth(request);
-        const { sid } = params;
-        console.log('[DEBUG] SubstepId:', sid);
+		const _session = await verifyAuth(request);
+		const { sid } = params;
 
-        const substep = await prisma.jobSubStep.findUnique({
-            where: { id: sid }
-        });
-        console.log('[DEBUG] Substep found:', substep ? 'Yes' : 'No');
+		const substep = await prisma.jobSubStep.findUnique({
+			where: { id: sid },
+		});
 
-        if (!substep) {
-            return NextResponse.json({ error: 'Substep not found' }, { status: 404 });
-        }
+		if (!substep) {
+			return NextResponse.json({ error: "Substep not found" }, { status: 404 });
+		}
 
-        if (substep.startedAt) {
-            return NextResponse.json({ error: 'Substep already started' }, { status: 400 });
-        }
+		if (substep.startedAt) {
+			return NextResponse.json(
+				{ error: "Substep already started" },
+				{ status: 400 },
+			);
+		}
 
-        console.log('[DEBUG] Attempting to update substep with startedAt...');
-        const updatedSubstep = await prisma.jobSubStep.update({
-            where: { id: sid },
-            data: {
-                startedAt: new Date()
-            }
-        });
-        console.log('[DEBUG] Substep updated successfully');
+		const updatedSubstep = await prisma.jobSubStep.update({
+			where: { id: sid },
+			data: {
+				startedAt: new Date(),
+			},
+		});
 
-        return NextResponse.json(updatedSubstep);
-    } catch (error: any) {
-        console.error('Error starting substep:', error);
-        return NextResponse.json({
-            error: 'Internal Server Error',
-            details: error.message || String(error)
-        }, { status: 500 });
-    }
+		return NextResponse.json(updatedSubstep);
+	} catch (error: any) {
+		console.error("Error starting substep:", error);
+		return NextResponse.json(
+			{
+				error: "Internal Server Error",
+				details: error.message || String(error),
+			},
+			{ status: 500 },
+		);
+	}
 }

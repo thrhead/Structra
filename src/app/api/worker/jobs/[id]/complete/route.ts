@@ -1,215 +1,225 @@
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
-import { verifyAuth } from '@/lib/auth-helper'
-import { publishToUser, broadcast, publishToJob } from '@/lib/ably'
-import { JobCompletedPayload } from '@/lib/socket-events'
-import { sendJobCompletedEmail } from '@/lib/email'
-import { notifyAdminsOfJobCompletion } from '@/lib/notification-helper'
-import cloudinary from '@/lib/cloudinary'
-import { EventBus } from '@/lib/event-bus'
-import { checkConflict } from '@/lib/conflict-check'
-import { logAudit, AuditAction, getDeviceInfo } from '@/lib/audit'
+import { NextResponse } from "next/server";
+import { broadcast, publishToUser } from "@/lib/ably";
+import { AuditAction, getDeviceInfo, logAudit } from "@/lib/audit";
+import { verifyAuth } from "@/lib/auth-helper";
+import cloudinary from "@/lib/cloudinary";
+import { checkConflict } from "@/lib/conflict-check";
+import { prisma } from "@/lib/db";
+import { sendJobCompletedEmail } from "@/lib/email";
+import { EventBus } from "@/lib/event-bus";
+import { notifyAdminsOfJobCompletion } from "@/lib/notifications";
+import type { JobCompletedPayload } from "@/lib/socket-events";
 
 export async function POST(
-  req: Request,
-  props: { params: Promise<{ id: string }> }
+	req: Request,
+	props: { params: Promise<{ id: string }> },
 ) {
-  try {
-    const session = await verifyAuth(req)
-    if (!session || !['WORKER', 'TEAM_LEAD', 'ADMIN', 'MANAGER'].includes(session.user.role)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+	try {
+		const session = await verifyAuth(req);
+		if (!session || !["WORKER", "TEAM_LEAD"].includes(session.user.role)) {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
 
-    const { signature, signatureLatitude, signatureLongitude } = await req.json()
-    const params = await props.params
-    const { id: jobId } = params
+		const { signature, signatureLatitude, signatureLongitude } =
+			await req.json();
+		const params = await props.params;
+		const { id: jobId } = params;
 
-    const job = await prisma.job.findFirst({
-      where: {
-        id: jobId
-      },
-      include: {
-        steps: {
-          include: {
-            subSteps: true
-          }
-        },
-        creator: true,
-        customer: true,
-        assignments: {
-          include: {
-            team: true
-          },
-          take: 1
-        }
-      }
-    })
+		const job = await prisma.job.findFirst({
+			where: {
+				id: jobId,
+				assignments: {
+					some: {
+						OR: [
+							{ workerId: session.user.id },
+							{ team: { members: { some: { userId: session.user.id } } } },
+						],
+					},
+				},
+			},
+			include: {
+				steps: {
+					include: {
+						subSteps: true,
+					},
+				},
+				creator: true,
+				customer: true,
+				assignments: {
+					include: {
+						team: true,
+					},
+					take: 1,
+				},
+			},
+		});
 
-    if (!job) {
-      return NextResponse.json({ error: 'Job not found' }, { status: 404 })
-    }
+		if (!job) {
+			return NextResponse.json(
+				{ error: "Job not found or access denied" },
+				{ status: 404 },
+			);
+		}
 
-    // Check Access
-    if (!['ADMIN', 'MANAGER'].includes(session.user.role)) {
-      const hasAccess = await prisma.jobAssignment.findFirst({
-        where: {
-          jobId,
-          OR: [
-            { workerId: session.user.id },
-            { team: { members: { some: { userId: session.user.id } } } }
-          ]
-        }
-      })
-      if (!hasAccess) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
+		const conflict = await checkConflict(req, job.updatedAt);
+		if (conflict) return conflict;
 
-    const conflict = await checkConflict(req, job.updatedAt)
-    if (conflict) return conflict
+		const allStepsAndSubStepsCompleted = job.steps.every((step) => {
+			const stepDone = step.isCompleted;
+			const subStepsDone =
+				step.subSteps.length === 0 ||
+				step.subSteps.every((ss) => ss.isCompleted);
+			return stepDone && subStepsDone;
+		});
 
-    const allStepsAndSubStepsCompleted = job.steps.every(step => {
-      const stepDone = step.isCompleted;
-      const subStepsDone = step.subSteps.length === 0 || step.subSteps.every(ss => ss.isCompleted);
-      return stepDone && subStepsDone;
-    })
+		if (!allStepsAndSubStepsCompleted) {
+			return NextResponse.json(
+				{
+					error:
+						"bu montajı tamamlayarak kapatmak için tüm alt iş emirlerini tamamlamanız gerekiyor",
+				},
+				{ status: 400 },
+			);
+		}
 
-    if (!allStepsAndSubStepsCompleted) {
-      return NextResponse.json({
-        error: 'bu montajı tamamlayarak kapatmak için tüm alt iş emirlerini tamamlamanız gerekiyor'
-      }, { status: 400 })
-    }
+		let signatureUrl = null;
+		if (signature) {
+			try {
+				const uploadResponse = await cloudinary.uploader.upload(signature, {
+					folder: "signatures",
+					resource_type: "image",
+				});
+				signatureUrl = uploadResponse.secure_url;
+			} catch (uploadError) {
+				console.error("Signature upload error:", uploadError);
+			}
+		}
 
-    let signatureUrl = null
-    if (signature) {
-      try {
-        const uploadResponse = await cloudinary.uploader.upload(signature, {
-          folder: 'signatures',
-          resource_type: 'image'
-        })
-        signatureUrl = uploadResponse.secure_url
-      } catch (uploadError) {
-        console.error('Signature upload error:', uploadError)
-      }
-    }
+		const updatedJob = await prisma.job.update({
+			where: { id: jobId },
+			data: {
+				status: "PENDING_APPROVAL",
+				completedDate: new Date(),
+				signatureUrl,
+				signatureLatitude: signatureLatitude
+					? parseFloat(signatureLatitude)
+					: null,
+				signatureLongitude: signatureLongitude
+					? parseFloat(signatureLongitude)
+					: null,
+			},
+		});
 
-    const updatedJob = await prisma.job.update({
-      where: { id: jobId },
-      data: {
-        status: 'PENDING_APPROVAL',
-        completedDate: new Date(),
-        updatedAt: new Date(),
-        signatureUrl,
-        signatureLatitude: signatureLatitude ? parseFloat(signatureLatitude) : null,
-        signatureLongitude: signatureLongitude ? parseFloat(signatureLongitude) : null
-      }
-    })
+		// Detailed Audit Logging
+		const deviceInfo = getDeviceInfo(req);
+		await logAudit(
+			session.user.id,
+			AuditAction.JOB_COMPLETED,
+			{
+				jobId: jobId,
+				title: job.title,
+				userName: session.user.name || session.user.email,
+				signatureUrl,
+				location: {
+					lat: signatureLatitude,
+					lng: signatureLongitude,
+				},
+				...deviceInfo,
+				snapshot: job, // Final state before marking as pending approval
+			},
+			deviceInfo.platform,
+		);
 
-    // Detailed Audit Logging
-    const deviceInfo = getDeviceInfo(req);
-    await logAudit(
-        session.user.id,
-        AuditAction.JOB_COMPLETED,
-        {
-            jobId: jobId,
-            title: job.title,
-            userName: session.user.name || session.user.email,
-            signatureUrl,
-            location: {
-                lat: signatureLatitude,
-                lng: signatureLongitude
-            },
-            ...deviceInfo,
-            snapshot: job // Final state before marking as pending approval
-        },
-        deviceInfo.platform
-    );
+		const approvers = await prisma.user.findMany({
+			where: {
+				role: { in: ["ADMIN", "MANAGER"] },
+				isActive: true,
+			},
+		});
 
-    const approvers = await prisma.user.findMany({
-      where: {
-        role: { in: ['ADMIN', 'MANAGER'] },
-        isActive: true
-      }
-    })
+		if (approvers.length === 0) {
+			return NextResponse.json(
+				{
+					error: "No approver found",
+				},
+				{ status: 500 },
+			);
+		}
 
-    if (approvers.length === 0) {
-      return NextResponse.json({
-        error: 'No approver found'
-      }, { status: 500 })
-    }
+		// Create approvals for all admins/managers
+		const approval = await prisma.approval.create({
+			data: {
+				jobId,
+				requesterId: session.user.id,
+				approverId: approvers[0].id, // Direct first one for now, or loop for all
+				status: "PENDING",
+				type: "JOB_COMPLETION",
+			},
+		});
 
-    // Create approvals for all admins/managers
-    const approval = await prisma.approval.create({
-      data: {
-        jobId,
-        requesterId: session.user.id,
-        approverId: approvers[0].id, // Direct first one for now, or loop for all
-        status: 'PENDING',
-        type: 'JOB_COMPLETION'
-      }
-    })
+		const ablyPayload: JobCompletedPayload = {
+			jobId: updatedJob.id,
+			title: updatedJob.title,
+			completedBy: session.user.name || session.user.email || "Unknown",
+			completedAt: updatedJob.completedDate || new Date(),
+		};
 
-    const ablyPayload: JobCompletedPayload = {
-      jobId: updatedJob.id,
-      title: updatedJob.title,
-      completedBy: session.user.name || session.user.email || 'Unknown',
-      completedAt: updatedJob.completedDate || new Date()
-    }
+		try {
+			if (job.creator?.id) {
+				await publishToUser(job.creator.id, "job:status_changed", {
+					...ablyPayload,
+					status: "PENDING_APPROVAL",
+				});
+			}
+			await notifyAdminsOfJobCompletion(jobId);
+			await broadcast("job:status_changed", {
+				...ablyPayload,
+				status: "PENDING_APPROVAL",
+			});
+		} catch (ablyError) {
+			console.error("Ably error (non-fatal):", ablyError);
+		}
 
-    try {
-      if (job.creator?.id) {
-        await publishToUser(job.creator.id, 'job:status_changed', { ...ablyPayload, status: 'PENDING_APPROVAL' })
-      }
-      await notifyAdminsOfJobCompletion(jobId)
-      await broadcast('job:status_changed', { ...ablyPayload, status: 'PENDING_APPROVAL' })
+		// Send email to all approvers
+		approvers.forEach((approver) => {
+			if (approver.email) {
+				sendJobCompletedEmail(approver.email, {
+					id: updatedJob.id,
+					title: updatedJob.title,
+					customerName: job.customer?.company || "Unknown",
+					completedDate: updatedJob.completedDate || new Date(),
+					teamName: job.assignments[0]?.team?.name || "Unknown Team",
+					completedBy: session.user.name || session.user.email || "Unknown",
+				}).catch((err) => console.error("Email send failed:", err));
+			}
+		});
 
-      // Emit job:updated to sync client states and avoid "updated by other" warning
-      await publishToJob(jobId, 'job:updated', { 
-        id: jobId, 
-        updatedAt: updatedJob.updatedAt, 
-        updatedBy: session.user.id,
-        status: updatedJob.status
-      });
+		await EventBus.emit("job.completed", {
+			jobId: jobId,
+			title: updatedJob.title,
+			completedBy: {
+				id: session.user.id,
+				name: session.user.name,
+				email: session.user.email,
+			},
+			signatureUrl: updatedJob.signatureUrl,
+			location: {
+				latitude: updatedJob.signatureLatitude,
+				longitude: updatedJob.signatureLongitude,
+			},
+			timestamp: updatedJob.completedDate,
+		});
 
-    } catch (ablyError) {
-      console.error('Ably error (non-fatal):', ablyError);
-    }
-
-    // Send email to all approvers
-    approvers.forEach(approver => {
-      if (approver.email) {
-        sendJobCompletedEmail(approver.email, {
-          id: updatedJob.id,
-          title: updatedJob.title,
-          customerName: job.customer?.company || 'Unknown',
-          completedDate: updatedJob.completedDate || new Date(),
-          teamName: job.assignments[0]?.team?.name || 'Unknown Team',
-          completedBy: session.user.name || session.user.email || 'Unknown'
-        }).catch(err => console.error('Email send failed:', err))
-      }
-    });
-
-    await EventBus.emit('job.completed', {
-      jobId: jobId,
-      title: updatedJob.title,
-      completedBy: {
-        id: session.user.id,
-        name: session.user.name,
-        email: session.user.email
-      },
-      signatureUrl: updatedJob.signatureUrl,
-      location: {
-        latitude: updatedJob.signatureLatitude,
-        longitude: updatedJob.signatureLongitude
-      },
-      timestamp: updatedJob.completedDate
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: 'İş tamamlandı ve onay için gönderildi',
-      approval
-    })
-  } catch (error) {
-    console.error('Complete job error:', error)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
-  }
+		return NextResponse.json({
+			success: true,
+			message: "İş tamamlandı ve onay için gönderildi",
+			approval,
+		});
+	} catch (error) {
+		console.error("Complete job error:", error);
+		return NextResponse.json(
+			{ error: "Internal Server Error" },
+			{ status: 500 },
+		);
+	}
 }

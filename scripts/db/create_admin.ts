@@ -1,35 +1,35 @@
-import { prisma } from '../lib/db'
-import { hash } from 'bcryptjs'
+import { hash } from "bcryptjs";
+import { prisma } from "../lib/db";
 
 async function main() {
-    const email = process.env.ADMIN_EMAIL
-    const password = process.env.ADMIN_PASSWORD
-    const hashedPassword = await hash(password, 10)
+	const email = process.env.ADMIN_EMAIL;
+	const password = process.env.ADMIN_PASSWORD;
+	const hashedPassword = await hash(password, 10);
 
-    const user = await prisma.user.upsert({
-        where: { email },
-        update: {
-            passwordHash: hashedPassword,
-            role: 'ADMIN',
-            isActive: true
-        },
-        create: {
-            email,
-            name: 'Admin',
-            passwordHash: hashedPassword,
-            role: 'ADMIN',
-            isActive: true
-        }
-    })
+	const user = await prisma.user.upsert({
+		where: { email },
+		update: {
+			passwordHash: hashedPassword,
+			role: "ADMIN",
+			isActive: true,
+		},
+		create: {
+			email,
+			name: "Admin",
+			passwordHash: hashedPassword,
+			role: "ADMIN",
+			isActive: true,
+		},
+	});
 
-    console.log('Admin user created/updated:', user.email)
+	console.log("Admin user created/updated:", user.email);
 }
 
 main()
-    .catch(e => {
-        console.error(e)
-        process.exit(1)
-    })
-    .finally(async () => {
-        await prisma.$disconnect()
-    })
+	.catch((e) => {
+		console.error(e);
+		process.exit(1);
+	})
+	.finally(async () => {
+		await prisma.$disconnect();
+	});

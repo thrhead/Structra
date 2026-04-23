@@ -1,249 +1,311 @@
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
-import { verifyAuth } from '@/lib/auth-helper'
-import { z } from 'zod'
-import { EventBus } from '@/lib/event-bus'
-import { checkConflict } from '@/lib/conflict-check'
-import { logger } from '@/lib/logger'
-import { logAudit, AuditAction, getDeviceInfo } from '@/lib/audit'
-import { sendJobNotification } from '@/lib/notification-helper'
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { AuditAction, getDeviceInfo, logAudit } from "@/lib/audit";
+import { verifyAuth } from "@/lib/auth-helper";
+import { checkConflict } from "@/lib/conflict-check";
+import { prisma } from "@/lib/db";
+import { EventBus } from "@/lib/event-bus";
+import { logger } from "@/lib/logger";
+import { sendJobNotification } from "@/lib/notification-helper";
 
 const updateJobSchema = z.object({
-    startedAt: z.string().optional().nullable(),
-    completedDate: z.string().optional().nullable(),
-    scheduledDate: z.string().optional().nullable(),
-    scheduledEndDate: z.string().optional().nullable(),
-})
+	startedAt: z.string().optional().nullable(),
+	completedDate: z.string().optional().nullable(),
+	scheduledDate: z.string().optional().nullable(),
+	scheduledEndDate: z.string().optional().nullable(),
+});
 
 const fullUpdateJobSchema = z.object({
-    title: z.string().min(1),
-    description: z.string().optional().nullable(),
-    customerId: z.string().min(1),
-    teamId: z.string().optional().nullable(),
-    workerId: z.string().optional().nullable(),
-    jobLeadId: z.string().optional().nullable(),
-    priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).optional(),
-    status: z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).optional(),
-    acceptanceStatus: z.enum(['PENDING', 'ACCEPTED', 'REJECTED']).optional(),
-    location: z.string().optional().nullable(),
-    scheduledDate: z.string(),
-    scheduledEndDate: z.string(),
-    startedAt: z.string().optional().nullable(),
-    completedDate: z.string().optional().nullable(),
-    steps: z.array(z.any()).optional().nullable() // Basic validation for steps, detailed handling inside
-})
+	title: z.string().min(1),
+	description: z.string().optional().nullable(),
+	customerId: z.string().min(1),
+	teamId: z.string().optional().nullable(),
+	workerId: z.string().optional().nullable(),
+	jobLeadId: z.string().optional().nullable(),
+	priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).optional(),
+	status: z
+		.enum(["PENDING", "IN_PROGRESS", "COMPLETED", "CANCELLED"])
+		.optional(),
+	acceptanceStatus: z.enum(["PENDING", "ACCEPTED", "REJECTED"]).optional(),
+	location: z.string().optional().nullable(),
+	scheduledDate: z.string(),
+	scheduledEndDate: z.string(),
+	startedAt: z.string().optional().nullable(),
+	completedDate: z.string().optional().nullable(),
+	steps: z.array(z.any()).optional().nullable(), // Basic validation for steps, detailed handling inside
+});
 
 export async function PUT(
-    req: Request,
-    props: { params: Promise<{ id: string }> }
+	req: Request,
+	props: { params: Promise<{ id: string }> },
 ) {
-    try {
-        const session = await verifyAuth(req)
-        if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        }
+	try {
+		const session = await verifyAuth(req);
+		if (!session || !["ADMIN", "MANAGER"].includes(session.user.role)) {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
 
-        const params = await props.params
-        const body = await req.json()
+		const params = await props.params;
+		const body = await req.json();
 
-        // Platform detection
-        const xPlatform = req.headers.get('x-platform');
-        const userAgent = req.headers.get('user-agent') || '';
-        const isMobileUA = /mobile|android|iphone|ipad|expo/i.test(userAgent);
-        const platform = xPlatform || body.platform || (isMobileUA ? 'mobile' : 'web');
+		// Platform detection
+		const xPlatform = req.headers.get("x-platform");
+		const userAgent = req.headers.get("user-agent") || "";
+		const isMobileUA = /mobile|android|iphone|ipad|expo/i.test(userAgent);
+		const _platform =
+			xPlatform || body.platform || (isMobileUA ? "mobile" : "web");
 
-        // Parse body with full schema
-        const data = fullUpdateJobSchema.parse(body)
+		// Parse body with full schema
+		const data = fullUpdateJobSchema.parse(body);
 
-        // Seviye 3: Çatışma Kontrolü
-        const currentJob = await prisma.job.findUnique({
-            where: { id: params.id },
-            select: { updatedAt: true }
-        })
-        const conflict = await checkConflict(req, currentJob?.updatedAt)
-        if (conflict) return conflict
+		// Seviye 3: Çatışma Kontrolü
+		const currentJob = await prisma.job.findUnique({
+			where: { id: params.id },
+			select: { updatedAt: true },
+		});
+		const conflict = await checkConflict(req, currentJob?.updatedAt);
+		if (conflict) return conflict;
 
-        const updatedJob = await prisma.job.update({
-            where: { id: params.id },
-            data: {
-                title: data.title,
-                description: data.description,
-                customerId: data.customerId,
-                jobLeadId: data.jobLeadId || null,
-                assignments: (data.teamId || data.workerId) ? {
-                    deleteMany: {},
-                    create: { 
-                        teamId: (data.teamId && data.teamId !== 'none') ? data.teamId : null,
-                        workerId: (data.workerId && data.workerId !== 'none') ? data.workerId : null
-                    }
-                } : undefined,
-                priority: data.priority,
-                status: data.status,
-                acceptanceStatus: data.acceptanceStatus,
-                location: data.location,
-                scheduledDate: new Date(data.scheduledDate),
-                scheduledEndDate: new Date(data.scheduledEndDate),
-                startedAt: data.startedAt ? new Date(data.startedAt) : null,
-                completedDate: data.completedDate ? new Date(data.completedDate) : null,
-            }
-        })
+		const updatedJob = await prisma.job.update({
+			where: { id: params.id },
+			data: {
+				title: data.title,
+				description: data.description,
+				customerId: data.customerId,
+				jobLeadId: data.jobLeadId || null,
+				assignments:
+					data.teamId || data.workerId
+						? {
+								deleteMany: {},
+								create: {
+									teamId:
+										data.teamId && data.teamId !== "none" ? data.teamId : null,
+									workerId:
+										data.workerId && data.workerId !== "none"
+											? data.workerId
+											: null,
+								},
+							}
+						: undefined,
+				priority: data.priority,
+				status: data.status,
+				acceptanceStatus: data.acceptanceStatus,
+				location: data.location,
+				scheduledDate: new Date(data.scheduledDate),
+				scheduledEndDate: new Date(data.scheduledEndDate),
+				startedAt: data.startedAt ? new Date(data.startedAt) : null,
+				completedDate: data.completedDate ? new Date(data.completedDate) : null,
+			},
+		});
 
-        // Trigger side effects
-        await EventBus.emit('job.updated', updatedJob);
+		// Trigger side effects
+		await EventBus.emit("job.updated", updatedJob);
 
-        // Notify assigned team, worker or job lead
-        const hasAssignment = (data.teamId && data.teamId !== 'none') || 
-                            (data.workerId && data.workerId !== 'none') || 
-                            (data.jobLeadId && data.jobLeadId !== 'none');
-        
-        if (hasAssignment) {
-            await sendJobNotification(
-                updatedJob.id,
-                'İş Güncellendi / Atandı',
-                `"${updatedJob.title}" başlıklı iş güncellendi veya size atandı.`,
-                'INFO',
-                `/worker/jobs/${updatedJob.id}`
-            ).catch(err => console.error('Failed to send job update (PUT) notification:', err));
-        }
+		// Notify assigned team, worker or job lead
+		const hasAssignment =
+			(data.teamId && data.teamId !== "none") ||
+			(data.workerId && data.workerId !== "none") ||
+			(data.jobLeadId && data.jobLeadId !== "none");
 
-        // LOGGING: Audit log for job update
-        const deviceInfo = getDeviceInfo(req);
-        await logAudit(session.user.id, AuditAction.JOB_UPDATE, {
-            jobId: updatedJob.id,
-            title: updatedJob.title,
-            jobNo: updatedJob.jobNo,
-            userName: session.user.name || session.user.email,
-            updates: Object.keys(data),
-            ...deviceInfo,
-            snapshot: currentJob // State before update
-        }, deviceInfo.platform);
+		if (hasAssignment) {
+			await sendJobNotification(
+				updatedJob.id,
+				"İş Güncellendi / Atandı",
+				`"${updatedJob.title}" başlıklı iş güncellendi veya size atandı.`,
+				"INFO",
+				`/worker/jobs/${updatedJob.id}`,
+			).catch((err) =>
+				console.error("Failed to send job update (PUT) notification:", err),
+			);
+		}
 
-        return NextResponse.json({ success: true, job: updatedJob })
-    } catch (error) {
-        console.error('Update job (PUT) error:', error)
-        logger.error('Failed to update job (PUT)', { error: (error as Error).message });
-        if (error instanceof z.ZodError) {
-            return NextResponse.json({ error: error.message }, { status: 400 })
-        }
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
-    }
+		// LOGGING: Audit log for job update
+		const deviceInfo = getDeviceInfo(req);
+		await logAudit(
+			session.user.id,
+			AuditAction.JOB_UPDATE,
+			{
+				jobId: updatedJob.id,
+				title: updatedJob.title,
+				jobNo: updatedJob.jobNo,
+				userName: session.user.name || session.user.email,
+				updates: Object.keys(data),
+				...deviceInfo,
+				snapshot: currentJob, // State before update
+			},
+			deviceInfo.platform,
+		);
+
+		return NextResponse.json({ success: true, job: updatedJob });
+	} catch (error) {
+		console.error("Update job (PUT) error:", error);
+		logger.error("Failed to update job (PUT)", {
+			error: (error as Error).message,
+		});
+		if (error instanceof z.ZodError) {
+			return NextResponse.json({ error: error.message }, { status: 400 });
+		}
+		return NextResponse.json(
+			{ error: "Internal Server Error" },
+			{ status: 500 },
+		);
+	}
 }
 
 export async function PATCH(
-    req: Request,
-    props: { params: Promise<{ id: string }> }
+	req: Request,
+	props: { params: Promise<{ id: string }> },
 ) {
-    try {
-        const session = await verifyAuth(req)
-        if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        }
+	try {
+		const session = await verifyAuth(req);
+		if (!session || !["ADMIN", "MANAGER"].includes(session.user.role)) {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
 
-        const params = await props.params
-        const body = await req.json()
-        
-        // Platform detection
-        const xPlatform = req.headers.get('x-platform');
-        const userAgent = req.headers.get('user-agent') || '';
-        const isMobileUA = /mobile|android|iphone|ipad|expo/i.test(userAgent);
-        const platform = xPlatform || body.platform || (isMobileUA ? 'mobile' : 'web');
+		const params = await props.params;
+		const body = await req.json();
 
-        const { startedAt, completedDate, scheduledDate, scheduledEndDate } = updateJobSchema.parse(body)
+		// Platform detection
+		const xPlatform = req.headers.get("x-platform");
+		const userAgent = req.headers.get("user-agent") || "";
+		const isMobileUA = /mobile|android|iphone|ipad|expo/i.test(userAgent);
+		const _platform =
+			xPlatform || body.platform || (isMobileUA ? "mobile" : "web");
 
-        // Seviye 3: Çatışma Kontrolü
-        const currentJob = await prisma.job.findUnique({
-            where: { id: params.id },
-            select: { updatedAt: true }
-        })
-        const conflict = await checkConflict(req, currentJob?.updatedAt)
-        if (conflict) return conflict
+		const { startedAt, completedDate, scheduledDate, scheduledEndDate } =
+			updateJobSchema.parse(body);
 
-        const updatedJob = await prisma.job.update({
-            where: { id: params.id },
-            data: {
-                startedAt: startedAt ? new Date(startedAt) : (startedAt === null ? null : undefined),
-                completedDate: completedDate ? new Date(completedDate) : (completedDate === null ? null : undefined),
-                scheduledDate: scheduledDate ? new Date(scheduledDate) : (scheduledDate === null ? null : undefined),
-                scheduledEndDate: scheduledEndDate ? new Date(scheduledEndDate) : (scheduledEndDate === null ? null : undefined),
-                status: completedDate ? 'COMPLETED' : undefined 
-            }
-        })
+		// Seviye 3: Çatışma Kontrolü
+		const currentJob = await prisma.job.findUnique({
+			where: { id: params.id },
+			select: { updatedAt: true },
+		});
+		const conflict = await checkConflict(req, currentJob?.updatedAt);
+		if (conflict) return conflict;
 
-        // Trigger side effects
-        await EventBus.emit('job.updated', updatedJob);
+		const updatedJob = await prisma.job.update({
+			where: { id: params.id },
+			data: {
+				startedAt: startedAt
+					? new Date(startedAt)
+					: startedAt === null
+						? null
+						: undefined,
+				completedDate: completedDate
+					? new Date(completedDate)
+					: completedDate === null
+						? null
+						: undefined,
+				scheduledDate: scheduledDate
+					? new Date(scheduledDate)
+					: scheduledDate === null
+						? null
+						: undefined,
+				scheduledEndDate: scheduledEndDate
+					? new Date(scheduledEndDate)
+					: scheduledEndDate === null
+						? null
+						: undefined,
+				status: completedDate ? "COMPLETED" : undefined,
+			},
+		});
 
-        // LOGGING: Audit log for job update (PATCH)
-        const deviceInfo = getDeviceInfo(req);
-        await logAudit(session.user.id, AuditAction.JOB_UPDATE, {
-            jobId: updatedJob.id,
-            title: updatedJob.title,
-            jobNo: updatedJob.jobNo,
-            userName: session.user.name || session.user.email,
-            updates: Object.keys(body),
-            ...deviceInfo,
-            snapshot: currentJob // State before update
-        }, deviceInfo.platform);
+		// Trigger side effects
+		await EventBus.emit("job.updated", updatedJob);
 
-        return NextResponse.json({ success: true, job: updatedJob })
-    } catch (error) {
-        console.error('Update job error:', error)
-        logger.error('Failed to update job (PATCH)', { error: (error as Error).message });
-        if (error instanceof z.ZodError) {
-            return NextResponse.json({ error: error.message }, { status: 400 })
-        }
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
-    }
+		// LOGGING: Audit log for job update (PATCH)
+		const deviceInfo = getDeviceInfo(req);
+		await logAudit(
+			session.user.id,
+			AuditAction.JOB_UPDATE,
+			{
+				jobId: updatedJob.id,
+				title: updatedJob.title,
+				jobNo: updatedJob.jobNo,
+				userName: session.user.name || session.user.email,
+				updates: Object.keys(body),
+				...deviceInfo,
+				snapshot: currentJob, // State before update
+			},
+			deviceInfo.platform,
+		);
+
+		return NextResponse.json({ success: true, job: updatedJob });
+	} catch (error) {
+		console.error("Update job error:", error);
+		logger.error("Failed to update job (PATCH)", {
+			error: (error as Error).message,
+		});
+		if (error instanceof z.ZodError) {
+			return NextResponse.json({ error: error.message }, { status: 400 });
+		}
+		return NextResponse.json(
+			{ error: "Internal Server Error" },
+			{ status: 500 },
+		);
+	}
 }
 
 export async function DELETE(
-    req: Request,
-    props: { params: Promise<{ id: string }> }
+	req: Request,
+	props: { params: Promise<{ id: string }> },
 ) {
-    try {
-        const session = await verifyAuth(req)
-        if (!session || session.user.role !== 'ADMIN') {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        }
+	try {
+		const session = await verifyAuth(req);
+		if (!session || session.user.role !== "ADMIN") {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
 
-        const params = await props.params
-        
-        // Platform detection
-        const xPlatform = req.headers.get('x-platform');
-        const userAgent = req.headers.get('user-agent') || '';
-        const isMobileUA = /mobile|android|iphone|ipad|expo/i.test(userAgent);
-        const platform = xPlatform || (isMobileUA ? 'mobile' : 'web');
+		const params = await props.params;
 
-        // Check if job exists
-        const job = await prisma.job.findUnique({
-            where: { id: params.id }
-        })
+		// Platform detection
+		const xPlatform = req.headers.get("x-platform");
+		const userAgent = req.headers.get("user-agent") || "";
+		const isMobileUA = /mobile|android|iphone|ipad|expo/i.test(userAgent);
+		const _platform = xPlatform || (isMobileUA ? "mobile" : "web");
 
-        if (!job) {
-            return NextResponse.json({ error: 'Job not found' }, { status: 404 })
-        }
+		// Check if job exists
+		const job = await prisma.job.findUnique({
+			where: { id: params.id },
+		});
 
-        await prisma.job.delete({
-            where: { id: params.id }
-        })
+		if (!job) {
+			return NextResponse.json({ error: "Job not found" }, { status: 404 });
+		}
 
-        // Trigger side effects
-        await EventBus.emit('job.deleted', { id: params.id });
+		await prisma.job.delete({
+			where: { id: params.id },
+		});
 
-        // LOGGING: Audit log for job deletion
-        const deviceInfo = getDeviceInfo(req);
-        await logAudit(session.user.id, AuditAction.JOB_DELETE, {
-            jobId: params.id,
-            title: job.title,
-            jobNo: job.jobNo,
-            userName: session.user.name || session.user.email,
-            ...deviceInfo,
-            snapshot: job // Final state before deletion
-        }, deviceInfo.platform);
+		// Trigger side effects
+		await EventBus.emit("job.deleted", { id: params.id });
 
-        return NextResponse.json({ success: true, message: 'Job deleted successfully' })
-    } catch (error) {
-        console.error('Delete job error:', error)
-        logger.error('Failed to delete job', { error: (error as Error).message });
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
-    }
+		// LOGGING: Audit log for job deletion
+		const deviceInfo = getDeviceInfo(req);
+		await logAudit(
+			session.user.id,
+			AuditAction.JOB_DELETE,
+			{
+				jobId: params.id,
+				title: job.title,
+				jobNo: job.jobNo,
+				userName: session.user.name || session.user.email,
+				...deviceInfo,
+				snapshot: job, // Final state before deletion
+			},
+			deviceInfo.platform,
+		);
+
+		return NextResponse.json({
+			success: true,
+			message: "Job deleted successfully",
+		});
+	} catch (error) {
+		console.error("Delete job error:", error);
+		logger.error("Failed to delete job", { error: (error as Error).message });
+		return NextResponse.json(
+			{ error: "Internal Server Error" },
+			{ status: 500 },
+		);
+	}
 }

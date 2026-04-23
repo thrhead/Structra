@@ -1,23 +1,23 @@
-'use client'
+"use client";
 
-import { useSidebarTheme } from '@/hooks/use-sidebar-theme'
-import { CustomerSidebar as Modern } from './sidebar-modern'
-import { CustomerSidebar as Classic } from './sidebar-classic'
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from "react";
+import { useSidebarTheme } from "@/hooks/use-sidebar-theme";
+import { CustomerSidebar as Classic } from "./sidebar-classic";
+import { CustomerSidebar as Modern } from "./sidebar-modern";
 
 export function CustomerSidebar() {
-  const { theme } = useSidebarTheme()
-  const [mounted, setMounted] = useState(false)
+	const { theme } = useSidebarTheme();
+	const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+	useEffect(() => {
+		setMounted(true);
+	}, []);
 
-  if (!mounted) return null
+	if (!mounted) return null;
 
-  if (theme === 'classic') {
-    return <Classic /> 
-  }
+	if (theme === "classic") {
+		return <Classic />;
+	}
 
-  return <Modern />
+	return <Modern />;
 }

@@ -1,2 +1,4 @@
-import { redirect } from "@/lib/navigation"
-export default function RedirectToReports() { redirect("/admin/reports?tab=performance") }
+import { redirect } from "@/lib/navigation";
+export default function RedirectToReports() {
+	redirect("/admin/reports?tab=performance");
+}

@@ -1,9 +1,6 @@
-
-export const dynamic = 'force-dynamic'
-
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
-import { getApiKeyFromRequest } from '@/lib/api-key-helper'
+import { NextResponse } from "next/server";
+import { getApiKeyFromRequest } from "@/lib/api-key-helper";
+import { prisma } from "@/lib/db";
 
 /**
  * @openapi
@@ -22,19 +19,22 @@ import { getApiKeyFromRequest } from '@/lib/api-key-helper'
  *                 $ref: '#/components/schemas/Customer'
  */
 export async function GET(req: Request) {
-    try {
-        const apiKeyData = await getApiKeyFromRequest(req)
-        if (!apiKeyData) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        }
+	try {
+		const apiKeyData = await getApiKeyFromRequest(req);
+		if (!apiKeyData) {
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
 
-        const customers = await prisma.customer.findMany({
-            orderBy: { company: 'asc' }
-        })
+		const customers = await prisma.customer.findMany({
+			orderBy: { company: "asc" },
+		});
 
-        return NextResponse.json(customers)
-    } catch (error) {
-        console.error('Public API Customers fetch error:', error)
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
-    }
+		return NextResponse.json(customers);
+	} catch (error) {
+		console.error("Public API Customers fetch error:", error);
+		return NextResponse.json(
+			{ error: "Internal Server Error" },
+			{ status: 500 },
+		);
+	}
 }

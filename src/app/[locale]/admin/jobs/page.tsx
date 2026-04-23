@@ -1,388 +1,519 @@
-import { auth } from "@/lib/auth"
-import { redirect } from "@/lib/navigation"
-import { prisma } from "@/lib/db"
-import { JobDialog } from "@/components/admin/job-dialog"
-import { BulkUploadDialog } from "@/components/admin/bulk-upload-dialog"
-import { AdvancedFilter } from "@/components/admin/advanced-filter"
-import { DeleteJobButton } from "@/components/admin/delete-job-button"
+import { format } from "date-fns";
+import { tr } from "date-fns/locale";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { SearchIcon, CalendarIcon, MapPinIcon, BriefcaseIcon, EditIcon, Ban, AlertTriangle, UserIcon } from "lucide-react"
+	AlertTriangle,
+	Ban,
+	BriefcaseIcon,
+	CalendarIcon,
+	EditIcon,
+	MapPinIcon,
+	SearchIcon,
+	UserIcon,
+} from "lucide-react";
+import dynamic from "next/dynamic";
+import { AdvancedFilter } from "@/components/admin/advanced-filter";
+import { BulkUploadDialog } from "@/components/admin/bulk-upload-dialog";
+import { DeleteJobButton } from "@/components/admin/delete-job-button";
+import { JobDialog } from "@/components/admin/job-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs"
-import { Link } from "@/lib/navigation"
-import { format } from "date-fns"
-import { tr } from "date-fns/locale"
-import { getJobs } from "@/lib/data/jobs"
-import dynamic from 'next/dynamic'
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { auth } from "@/lib/auth";
+import { getJobs } from "@/lib/data/jobs";
+import { prisma } from "@/lib/db";
+import { Link, redirect } from "@/lib/navigation";
 
 const GlobalJobsTree = dynamic(
-  () => import('@/components/admin/global-jobs-tree').then(mod => mod.GlobalJobsTree),
-  { ssr: false, loading: () => <div className="p-8 text-center text-gray-500 dark:text-slate-400 animate-pulse bg-gray-50 rounded-lg h-[400px] flex items-center justify-center">Ağaç Görünümü Yükleniyor...</div> }
-)
+	() =>
+		import("@/components/admin/global-jobs-tree").then(
+			(mod) => mod.GlobalJobsTree,
+		),
+	{
+		ssr: false,
+		loading: () => (
+			<div className="p-8 text-center text-gray-500 dark:text-slate-400 animate-pulse bg-gray-50 rounded-lg h-[400px] flex items-center justify-center">
+				Ağaç Görünümü Yükleniyor...
+			</div>
+		),
+	},
+);
 
-const priorityColors: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-  LOW: "secondary",
-  MEDIUM: "default",
-  HIGH: "destructive",
-  URGENT: "destructive"
-}
+const priorityColors: Record<
+	string,
+	"default" | "secondary" | "destructive" | "outline"
+> = {
+	LOW: "secondary",
+	MEDIUM: "default",
+	HIGH: "destructive",
+	URGENT: "destructive",
+};
 
-const statusColors: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-  PENDING: "secondary",
-  IN_PROGRESS: "default",
-  COMPLETED: "outline",
-  CANCELLED: "destructive"
-}
+const statusColors: Record<
+	string,
+	"default" | "secondary" | "destructive" | "outline"
+> = {
+	PENDING_APPROVAL: "warning",
+	PENDING: "secondary",
+	IN_PROGRESS: "default",
+	COMPLETED: "outline",
+	CANCELLED: "destructive",
+};
 
 const statusLabels: Record<string, string> = {
-  PENDING: "Bekliyor",
-  IN_PROGRESS: "Devam Ediyor",
-  COMPLETED: "Tamamlandı",
-  CANCELLED: "İptal",
-  ON_HOLD: "Beklemede"
-}
+	PENDING_APPROVAL: "Onay Bekliyor",
+	PENDING: "Bekliyor",
+	IN_PROGRESS: "Devam Ediyor",
+	COMPLETED: "Tamamlandı",
+	CANCELLED: "İptal",
+	ON_HOLD: "Beklemede",
+};
 
 export default async function JobsPage(props: {
-  searchParams: Promise<{
-    search?: string;
-    jobNo?: string;
-    status?: string;
-    teams?: string;
-    from?: string;
-    to?: string;
-    page?: string
-  }>
+	searchParams: Promise<{
+		search?: string;
+		jobNo?: string;
+		status?: string;
+		teams?: string;
+		from?: string;
+		to?: string;
+		page?: string;
+	}>;
 }) {
-  const searchParams = await props.searchParams
-  const session = await auth()
+	const searchParams = await props.searchParams;
+	const session = await auth();
 
-  if (!session || session.user.role !== "ADMIN") {
-    redirect("/login")
-  }
+	if (!session || session.user.role !== "ADMIN") {
+		redirect("/login");
+	}
 
-  // Parse filters
-  const statusFilter = searchParams.status ? searchParams.status.split(',') : undefined
-  const teamsFilter = searchParams.teams ? searchParams.teams.split(',') : undefined
-  const dateRangeFilter = searchParams.from ? {
-    start: new Date(searchParams.from),
-    end: searchParams.to ? new Date(searchParams.to) : new Date(searchParams.from)
-  } : undefined
+	// Parse filters
+	const statusFilter = searchParams.status
+		? searchParams.status.split(",")
+		: undefined;
+	const teamsFilter = searchParams.teams
+		? searchParams.teams.split(",")
+		: undefined;
+	const dateRangeFilter = searchParams.from
+		? {
+				start: new Date(searchParams.from),
+				end: searchParams.to
+					? new Date(searchParams.to)
+					: new Date(searchParams.from),
+			}
+		: undefined;
 
-  // Parallel data fetching
-  const [jobsData, customers, teams, templates] = await Promise.all([
-    getJobs({
-      filter: {
-        search: searchParams.search,
-        jobNo: searchParams.jobNo,
-        status: statusFilter,
-        teams: teamsFilter,
-        dateRange: dateRangeFilter
-      },
-      limit: 50,
-      page: searchParams.page ? parseInt(searchParams.page) : 1
-    }),
-    prisma.customer.findMany({
-      include: { user: { select: { name: true } } }
-    }),
-    prisma.team.findMany({
-      where: { isActive: true }
-    }),
-    prisma.jobTemplate.findMany({
-      include: { steps: { include: { subSteps: true } } }
-    })
-  ])
+	// Parallel data fetching
+	const [jobsData, customers, teams, templates] = await Promise.all([
+		getJobs({
+			filter: {
+				search: searchParams.search,
+				jobNo: searchParams.jobNo,
+				status: statusFilter,
+				teams: teamsFilter,
+				dateRange: dateRangeFilter,
+			},
+			limit: 50,
+			page: searchParams.page ? parseInt(searchParams.page, 10) : 1,
+		}),
+		prisma.customer.findMany({
+			include: { user: { select: { name: true } } },
+		}),
+		prisma.team.findMany({
+			where: { isActive: true },
+		}),
+		prisma.jobTemplate.findMany({
+			include: { steps: { include: { subSteps: true } } },
+		}),
+	]);
 
-  const { jobs } = jobsData
+	const { jobs } = jobsData;
 
-  // Map templates
-  const mappedTemplates = templates.map(t => ({
-    id: t.id,
-    name: t.name,
-    steps: t.steps.map(s => ({
-      title: s.title,
-      description: '',
-      subSteps: s.subSteps.map(ss => ({ title: ss.title }))
-    }))
-  }))
+	// Map templates
+	const mappedTemplates = templates.map((t) => ({
+		id: t.id,
+		name: t.name,
+		steps: t.steps.map((s) => ({
+			title: s.title,
+			description: "",
+			subSteps: s.subSteps.map((ss) => ({ title: ss.title })),
+		})),
+	}));
 
-  const mappedCustomers = customers.map(c => ({
-    id: c.id,
-    company: c.company,
-    user: { name: c.user.name || '' }
-  }))
+	const mappedCustomers = customers.map((c) => ({
+		id: c.id,
+		company: c.company,
+		user: { name: c.user.name || "" },
+	}));
 
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Operasyon</p>
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-0.5">İşler</h1>
-          <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">Montaj ve servis işlerini yönetin.</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <AdvancedFilter
-            teams={teams.map(t => ({ id: t.id, name: t.name }))}
-          />
-          <BulkUploadDialog />
-          <JobDialog
-            customers={mappedCustomers}
-            teams={teams}
-            templates={mappedTemplates}
-          />
-        </div>
-      </div>
+	return (
+		<div className="space-y-6">
+			<div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+				<div>
+					<p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+						Operasyon
+					</p>
+					<h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-0.5">
+						İşler
+					</h1>
+					<p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
+						Montaj ve servis işlerini yönetin.
+					</p>
+				</div>
+				<div className="flex items-center gap-2">
+					<AdvancedFilter
+						teams={teams.map((t) => ({ id: t.id, name: t.name }))}
+					/>
+					<BulkUploadDialog />
+					<JobDialog
+						customers={mappedCustomers}
+						teams={teams}
+						templates={mappedTemplates}
+					/>
+				</div>
+			</div>
 
-      <div className="rounded-3xl border border-slate-200/60 dark:border-slate-800/50 bg-white dark:bg-slate-900/80 shadow-sm overflow-hidden">
-        {/* Active Filters Summary */}
-        {(searchParams.status || searchParams.teams || searchParams.search || searchParams.jobNo || searchParams.from) && (
-          <div className="px-5 py-3 border-b border-slate-100 dark:border-slate-800/50 bg-slate-50/50 dark:bg-slate-900/50 flex flex-wrap gap-2 items-center">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mr-1">Aktif Filtreler:</span>
-            {searchParams.search && (
-              <Badge variant="secondary" className="gap-1 bg-white dark:bg-slate-900 dark:border-slate-800 border-slate-200">
-                Arama: {searchParams.search}
-              </Badge>
-            )}
-            {searchParams.jobNo && (
-              <Badge variant="secondary" className="gap-1 bg-blue-50 text-blue-700 border-blue-100">
-                İş No: {searchParams.jobNo}
-              </Badge>
-            )}
-            {statusFilter?.map(s => (
-              <Badge key={s} variant="outline" className="bg-white dark:bg-slate-900 dark:border-slate-800 capitalize">
-                Durum: {statusLabels[s] || s}
-              </Badge>
-            ))}
-            {teamsFilter?.map(tId => {
-              const teamName = teams.find(t => t.id === tId)?.name
-              return (
-                <Badge key={tId} variant="outline" className="bg-white dark:bg-slate-900 dark:border-slate-800">
-                  Ekip: {teamName || tId}
-                </Badge>
-              )
-            })}
-            {searchParams.from && (
-              <Badge variant="outline" className="bg-white dark:bg-slate-900 dark:border-slate-800">
-                Tarih: {format(new Date(searchParams.from), 'P', { locale: tr })}
-                {searchParams.to ? ` - ${format(new Date(searchParams.to), 'P', { locale: tr })}` : ''}
-              </Badge>
-            )}
-            <Link href="/admin/jobs" className="text-xs text-blue-600 hover:underline font-medium ml-auto">
-              Tümünü Temizle
-            </Link>
-          </div>
-        )}
+			<div className="rounded-3xl border border-slate-200/60 dark:border-slate-800/50 bg-white dark:bg-slate-900/80 shadow-sm overflow-hidden">
+				{/* Active Filters Summary */}
+				{(searchParams.status ||
+					searchParams.teams ||
+					searchParams.search ||
+					searchParams.jobNo ||
+					searchParams.from) && (
+					<div className="px-5 py-3 border-b border-slate-100 dark:border-slate-800/50 bg-slate-50/50 dark:bg-slate-900/50 flex flex-wrap gap-2 items-center">
+						<span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mr-1">
+							Aktif Filtreler:
+						</span>
+						{searchParams.search && (
+							<Badge
+								variant="secondary"
+								className="gap-1 bg-white dark:bg-slate-900 dark:border-slate-800 border-slate-200"
+							>
+								Arama: {searchParams.search}
+							</Badge>
+						)}
+						{searchParams.jobNo && (
+							<Badge
+								variant="secondary"
+								className="gap-1 bg-blue-50 text-blue-700 border-blue-100"
+							>
+								İş No: {searchParams.jobNo}
+							</Badge>
+						)}
+						{statusFilter?.map((s) => (
+							<Badge
+								key={s}
+								variant="outline"
+								className="bg-white dark:bg-slate-900 dark:border-slate-800 capitalize"
+							>
+								Durum: {statusLabels[s] || s}
+							</Badge>
+						))}
+						{teamsFilter?.map((tId) => {
+							const teamName = teams.find((t) => t.id === tId)?.name;
+							return (
+								<Badge
+									key={tId}
+									variant="outline"
+									className="bg-white dark:bg-slate-900 dark:border-slate-800"
+								>
+									Ekip: {teamName || tId}
+								</Badge>
+							);
+						})}
+						{searchParams.from && (
+							<Badge
+								variant="outline"
+								className="bg-white dark:bg-slate-900 dark:border-slate-800"
+							>
+								Tarih:{" "}
+								{format(new Date(searchParams.from), "P", { locale: tr })}
+								{searchParams.to
+									? ` - ${format(new Date(searchParams.to), "P", { locale: tr })}`
+									: ""}
+							</Badge>
+						)}
+						<Link
+							href="/admin/jobs"
+							className="text-xs text-blue-600 hover:underline font-medium ml-auto"
+						>
+							Tümünü Temizle
+						</Link>
+					</div>
+				)}
 
-        <div className="p-4 border-b border-slate-100 dark:border-slate-800/50">
-          <div className="relative max-w-sm">
-            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <form>
-              <Input
-                name="search"
-                placeholder="İş, müşteri veya firma ara..."
-                className="pl-10 rounded-xl border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-indigo-500/20"
-                defaultValue={searchParams.search}
-              />
-            </form>
-          </div>
-        </div>
+				<div className="p-4 border-b border-slate-100 dark:border-slate-800/50">
+					<div className="relative max-w-sm">
+						<SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+						<form>
+							<Input
+								name="search"
+								placeholder="İş, müşteri veya firma ara..."
+								className="pl-10 rounded-xl border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-indigo-500/20"
+								defaultValue={searchParams.search}
+							/>
+						</form>
+					</div>
+				</div>
 
-        <Tabs defaultValue="list" className="w-full">
-          <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800/50 bg-slate-50/30 dark:bg-slate-900/30 flex items-center justify-between">
-            <h2 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Görünüm</h2>
-            <TabsList className="grid w-[260px] grid-cols-2 h-8 rounded-xl bg-slate-100 dark:bg-slate-800/60 p-0.5">
-              <TabsTrigger value="list" className="rounded-lg text-xs">Liste</TabsTrigger>
-              <TabsTrigger value="tree" className="rounded-lg text-xs">Ağaç</TabsTrigger>
-            </TabsList>
-          </div>
+				<Tabs defaultValue="list" className="w-full">
+					<div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800/50 bg-slate-50/30 dark:bg-slate-900/30 flex items-center justify-between">
+						<h2 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+							Görünüm
+						</h2>
+						<TabsList className="grid w-[260px] grid-cols-2 h-8 rounded-xl bg-slate-100 dark:bg-slate-800/60 p-0.5">
+							<TabsTrigger value="list" className="rounded-lg text-xs">
+								Liste
+							</TabsTrigger>
+							<TabsTrigger value="tree" className="rounded-lg text-xs">
+								Ağaç
+							</TabsTrigger>
+						</TabsList>
+					</div>
 
-          <TabsContent value="list" className="m-0 border-none outline-none">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>İş Başlığı</TableHead>
-                  <TableHead>Müşteri</TableHead>
-                  <TableHead>Atanan Ekip</TableHead>
-                  <TableHead className="w-[150px]">İlerleme</TableHead>
-                  <TableHead>Onaylanan Tutar</TableHead>
-                  <TableHead>Öncelik</TableHead>
-                  <TableHead>Durum</TableHead>
-                  <TableHead>Tarih</TableHead>
-                  <TableHead className="w-[50px]"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {jobs.map((job) => {
-                  const totalSteps = job.steps?.length || 0;
-                  const completedSteps = job.steps?.filter(s => s.isCompleted).length || 0;
-                  const progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+					<TabsContent value="list" className="m-0 border-none outline-none">
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead>İş Başlığı</TableHead>
+									<TableHead>Müşteri</TableHead>
+									<TableHead>Atanan Ekip</TableHead>
+									<TableHead className="w-[150px]">İlerleme</TableHead>
+									<TableHead>Onaylanan Tutar</TableHead>
+									<TableHead>Öncelik</TableHead>
+									<TableHead>Durum</TableHead>
+									<TableHead>Tarih</TableHead>
+									<TableHead className="w-[50px]"></TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{jobs.map((job) => {
+									const totalSteps = job.steps?.length || 0;
+									const completedSteps =
+										job.steps?.filter((s) => s.isCompleted).length || 0;
+									const progress =
+										totalSteps > 0
+											? Math.round((completedSteps / totalSteps) * 100)
+											: 0;
 
-                  const pendingCosts = job.costs?.filter(c => c.status === 'PENDING') || [];
-                  const approvedCosts = job.costs?.filter(c => c.status === 'APPROVED') || [];
-                  const totalApprovedAmount = approvedCosts.reduce((sum, c) => sum + c.amount, 0);
-                  const totalPendingAmount = pendingCosts.reduce((sum, c) => sum + c.amount, 0);
+									const pendingCosts =
+										job.costs?.filter((c) => c.status === "PENDING") || [];
+									const approvedCosts =
+										job.costs?.filter((c) => c.status === "APPROVED") || [];
+									const totalApprovedAmount = approvedCosts.reduce(
+										(sum, c) => sum + c.amount,
+										0,
+									);
+									const totalPendingAmount = pendingCosts.reduce(
+										(sum, c) => sum + c.amount,
+										0,
+									);
 
-                  const hasPendingApprovals =
-                    pendingCosts.length > 0 ||
-                    (job.steps?.some(s => s.subSteps?.some(ss => ss.approvalStatus === 'PENDING')) || false);
+									const hasPendingApprovals =
+										pendingCosts.length > 0 ||
+										job.steps?.some((s) =>
+											s.subSteps?.some((ss) => ss.approvalStatus === "PENDING"),
+										) ||
+										false;
 
-                  return (
-                    <TableRow key={job.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded-xl text-orange-600 dark:text-orange-400">
-                            <BriefcaseIcon className="h-4 w-4" />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2 mb-0.5">
-                              <div className="text-[10px] font-bold text-orange-600 uppercase tracking-wider">
-                                {job.jobNo || 'NO-CODE'}
-                              </div>
-                              <div className="text-[10px] font-mono font-bold text-blue-600 bg-blue-50 px-1 rounded">
-                                #{job.id.slice(-6).toUpperCase()}
-                              </div>
-                            </div>
-                            <Link href={`/admin/jobs/${job.id}`} className="font-medium text-slate-800 dark:text-slate-100 hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline block leading-tight transition-colors">
-                              {job.title}
-                            </Link>
-                            {job.location && (
-                              <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-slate-400 mt-1">
-                                <MapPinIcon className="h-3 w-3" />
-                                <span className="truncate max-w-[150px]">{job.location}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="font-medium">{job.customer?.company || 'Bilinmeyen Müşteri'}</div>
-                        <div className="text-sm text-gray-500 dark:text-slate-400">{job.customer?.user?.name || ''}</div>
-                        {job._count?.steps === 0 && job.status === 'PENDING' && (
-                          <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                            <Ban className="h-3 w-3 mr-1" /> İşe Başlanmadı
-                          </div>
-                        )}
-                        {hasPendingApprovals && (
-                          <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                            <AlertTriangle className="h-3 w-3 mr-1" /> Onay Bekliyor
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {job.assignments.length > 0 && job.assignments[0].team ? (
-                          <div className="space-y-1">
-                            <Badge variant="outline" className="font-normal">
-                              {job.assignments[0].team.name}
-                            </Badge>
-                            {job.assignments[0].team.lead && (
-                              <div className="text-xs text-gray-500 dark:text-slate-400 flex items-center">
-                                <UserIcon className="h-3 w-3 mr-1" /> Lider: {job.assignments[0].team.lead.name}
-                              </div>
-                            )}
-                          </div>
-                        ) : job.assignments.length > 0 && job.assignments[0].worker ? (
-                          <div className="space-y-1">
-                            <Badge variant="outline" className="font-normal bg-blue-50">
-                              {job.assignments[0].worker.name}
-                            </Badge>
-                            <div className="text-xs text-gray-400">Bireysel Atama</div>
-                          </div>
-                        ) : (
-                          <span className="text-sm text-gray-400 italic">Atanmamış</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="w-full max-w-[140px]">
-                          <div className="flex items-center justify-between text-xs mb-1">
-                            <span className="text-gray-500 dark:text-slate-400">{completedSteps}/{totalSteps} Adım</span>
-                            <span className="font-medium text-gray-700">%{progress}</span>
-                          </div>
-                          <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                            <div
-                              className="bg-indigo-500 dark:bg-indigo-400 h-1.5 rounded-full transition-all duration-500"
-                              style={{ width: `${progress}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span className="font-bold text-gray-900 dark:text-slate-100">
-                            {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', minimumFractionDigits: 0 }).format(totalApprovedAmount)}
-                          </span>
-                          {totalPendingAmount > 0 && (
-                            <span className="text-xs text-yellow-600 font-medium">
-                              + {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', minimumFractionDigits: 0 }).format(totalPendingAmount)} Bekleyen
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={priorityColors[job.priority] || "default"}>
-                          {job.priority}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={statusColors[job.status] || "default"}>
-                          {statusLabels[job.status] || job.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1 text-sm text-gray-600">
-                          <CalendarIcon className="h-3 w-3" />
-                          {job.scheduledDate
-                            ? format(new Date(job.scheduledDate), 'd MMM', { locale: tr })
-                            : format(new Date(job.createdAt), 'd MMM', { locale: tr })
-                          }
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <JobDialog
-                            customers={mappedCustomers}
-                            teams={teams}
-                            templates={mappedTemplates}
-                            job={job}
-                            trigger={
-                              <button className="inline-flex items-center justify-center p-2 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                                <EditIcon className="h-4 w-4" />
-                              </button>
-                            }
-                          />
-                          <DeleteJobButton jobId={job.id} jobTitle={job.title} />
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-                {jobs.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={9} className="text-center py-12 text-slate-400 dark:text-slate-500">
-                      Kayıtlı iş bulunamadı.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TabsContent>
+									return (
+										<TableRow key={job.id}>
+											<TableCell>
+												<div className="flex items-center gap-2">
+													<div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded-xl text-orange-600 dark:text-orange-400">
+														<BriefcaseIcon className="h-4 w-4" />
+													</div>
+													<div>
+														<div className="flex items-center gap-2 mb-0.5">
+															<div className="text-[10px] font-bold text-orange-600 uppercase tracking-wider">
+																{job.jobNo || "NO-CODE"}
+															</div>
+															<div className="text-[10px] font-mono font-bold text-blue-600 bg-blue-50 px-1 rounded">
+																#{job.id.slice(-6).toUpperCase()}
+															</div>
+														</div>
+														<Link
+															href={`/admin/jobs/${job.id}`}
+															className="font-medium text-slate-800 dark:text-slate-100 hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline block leading-tight transition-colors"
+														>
+															{job.title}
+														</Link>
+														{job.location && (
+															<div className="flex items-center gap-1 text-xs text-gray-500 dark:text-slate-400 mt-1">
+																<MapPinIcon className="h-3 w-3" />
+																<span className="truncate max-w-[150px]">
+																	{job.location}
+																</span>
+															</div>
+														)}
+													</div>
+												</div>
+											</TableCell>
+											<TableCell>
+												<div className="font-medium">
+													{job.customer?.company || "Bilinmeyen Müşteri"}
+												</div>
+												<div className="text-sm text-gray-500 dark:text-slate-400">
+													{job.customer?.user?.name || ""}
+												</div>
+												{job._count?.steps === 0 &&
+													job.status === "PENDING" && (
+														<div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+															<Ban className="h-3 w-3 mr-1" /> İşe Başlanmadı
+														</div>
+													)}
+												{hasPendingApprovals && (
+													<div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+														<AlertTriangle className="h-3 w-3 mr-1" /> Onay
+														Bekliyor
+													</div>
+												)}
+											</TableCell>
+											<TableCell>
+												{job.assignments.length > 0 &&
+												job.assignments[0].team ? (
+													<div className="space-y-1">
+														<Badge variant="outline" className="font-normal">
+															{job.assignments[0].team.name}
+														</Badge>
+														{job.assignments[0].team.lead && (
+															<div className="text-xs text-gray-500 dark:text-slate-400 flex items-center">
+																<UserIcon className="h-3 w-3 mr-1" /> Lider:{" "}
+																{job.assignments[0].team.lead.name}
+															</div>
+														)}
+													</div>
+												) : job.assignments.length > 0 &&
+													job.assignments[0].worker ? (
+													<div className="space-y-1">
+														<Badge
+															variant="outline"
+															className="font-normal bg-blue-50"
+														>
+															{job.assignments[0].worker.name}
+														</Badge>
+														<div className="text-xs text-gray-400">
+															Bireysel Atama
+														</div>
+													</div>
+												) : (
+													<span className="text-sm text-gray-400 italic">
+														Atanmamış
+													</span>
+												)}
+											</TableCell>
+											<TableCell>
+												<div className="w-full max-w-[140px]">
+													<div className="flex items-center justify-between text-xs mb-1">
+														<span className="text-gray-500 dark:text-slate-400">
+															{completedSteps}/{totalSteps} Adım
+														</span>
+														<span className="font-medium text-gray-700">
+															%{progress}
+														</span>
+													</div>
+													<div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+														<div
+															className="bg-indigo-500 dark:bg-indigo-400 h-1.5 rounded-full transition-all duration-500"
+															style={{ width: `${progress}%` }}
+														></div>
+													</div>
+												</div>
+											</TableCell>
+											<TableCell>
+												<div className="flex flex-col">
+													<span className="font-bold text-gray-900 dark:text-slate-100">
+														{new Intl.NumberFormat("tr-TR", {
+															style: "currency",
+															currency: "TRY",
+															minimumFractionDigits: 0,
+														}).format(totalApprovedAmount)}
+													</span>
+													{totalPendingAmount > 0 && (
+														<span className="text-xs text-yellow-600 font-medium">
+															+{" "}
+															{new Intl.NumberFormat("tr-TR", {
+																style: "currency",
+																currency: "TRY",
+																minimumFractionDigits: 0,
+															}).format(totalPendingAmount)}{" "}
+															Bekleyen
+														</span>
+													)}
+												</div>
+											</TableCell>
+											<TableCell>
+												<Badge
+													variant={priorityColors[job.priority] || "default"}
+												>
+													{job.priority}
+												</Badge>
+											</TableCell>
+											<TableCell>
+												<Badge variant={statusColors[job.status] || "default"}>
+													{statusLabels[job.status] || job.status}
+												</Badge>
+											</TableCell>
+											<TableCell>
+												<div className="flex items-center gap-1 text-sm text-gray-600">
+													<CalendarIcon className="h-3 w-3" />
+													{job.scheduledDate
+														? format(new Date(job.scheduledDate), "d MMM", {
+																locale: tr,
+															})
+														: format(new Date(job.createdAt), "d MMM", {
+																locale: tr,
+															})}
+												</div>
+											</TableCell>
+											<TableCell>
+												<div className="flex items-center gap-1">
+													<JobDialog
+														customers={mappedCustomers}
+														teams={teams}
+														templates={mappedTemplates}
+														job={job}
+														trigger={
+															<button className="inline-flex items-center justify-center p-2 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+																<EditIcon className="h-4 w-4" />
+															</button>
+														}
+													/>
+													<DeleteJobButton
+														jobId={job.id}
+														jobTitle={job.title}
+													/>
+												</div>
+											</TableCell>
+										</TableRow>
+									);
+								})}
+								{jobs.length === 0 && (
+									<TableRow>
+										<TableCell
+											colSpan={9}
+											className="text-center py-12 text-slate-400 dark:text-slate-500"
+										>
+											Kayıtlı iş bulunamadı.
+										</TableCell>
+									</TableRow>
+								)}
+							</TableBody>
+						</Table>
+					</TabsContent>
 
-          <TabsContent value="tree" className="m-0 border-none outline-none">
-            <GlobalJobsTree jobs={jobs as any} />
-          </TabsContent>
-        </Tabs>
-      </div>
-    </div >
-  )
+					<TabsContent value="tree" className="m-0 border-none outline-none">
+						<GlobalJobsTree jobs={jobs as any} />
+					</TabsContent>
+				</Tabs>
+			</div>
+		</div>
+	);
 }

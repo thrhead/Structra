@@ -1,232 +1,264 @@
-import { useState, useCallback, useMemo } from 'react';
-import { Platform, Alert } from 'react-native';
-import costService from '../services/cost.service';
-import jobService from '../services/job.service';
-import { useAlert } from '../context/AlertContext';
+import { useCallback, useMemo, useState } from "react";
+import { Platform } from "react-native";
+import { useAlert } from "../context/AlertContext";
+import costService from "../services/cost.service";
+import jobService from "../services/job.service";
 
 export const useWorkerExpenses = () => {
-    const { showAlert } = useAlert();
-    const [projects, setProjects] = useState([]);
-    const [expenses, setExpenses] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [selectedProject, setSelectedProject] = useState(null);
-    const [selectedCategory, setSelectedCategory] = useState('Tümü');
-    const [searchQuery, setSearchQuery] = useState('');
+	const { showAlert } = useAlert();
+	const [projects, setProjects] = useState([]);
+	const [expenses, setExpenses] = useState([]);
+	const [loading, setLoading] = useState(true);
+	const [selectedProject, setSelectedProject] = useState(null);
+	const [selectedCategory, setSelectedCategory] = useState("Tümü");
+	const [searchQuery, setSearchQuery] = useState("");
 
-    const loadData = useCallback(async () => {
-        try {
-            setLoading(true);
-            const [myJobs, myCosts] = await Promise.all([
-                jobService.getMyJobs(),
-                costService.getMyCosts()
-            ]);
+	const loadData = useCallback(async () => {
+		try {
+			setLoading(true);
+			const [myJobs, myCosts] = await Promise.all([
+				jobService.getMyJobs(),
+				costService.getMyCosts(),
+			]);
 
-            setProjects(myJobs || []);
-            setExpenses(myCosts || []);
+			setProjects(myJobs || []);
+			setExpenses(myCosts || []);
 
-            // Set default project if available and not already set
-            if (myJobs && myJobs.length > 0 && !selectedProject) {
-                setSelectedProject(myJobs[0]);
-            }
-        } catch (error) {
-            console.error('Error loading expenses:', error);
-            showAlert('Hata', 'Masraflar yüklenirken bir hata oluştu.', [], 'error');
-        } finally {
-            setLoading(false);
-        }
-    }, [selectedProject]);
+			// Set default project if available and not already set
+			if (myJobs && myJobs.length > 0 && !selectedProject) {
+				setSelectedProject(myJobs[0]);
+			}
+		} catch (error) {
+			console.error("Error loading expenses:", error);
+			showAlert("Hata", "Masraflar yüklenirken bir hata oluştu.", [], "error");
+		} finally {
+			setLoading(false);
+		}
+	}, [selectedProject, showAlert]);
 
-    const createExpense = useCallback(async (formData, receiptImage) => {
-        if (!formData.title || !formData.amount) {
-            showAlert('Hata', 'Lütfen başlık ve tutar giriniz.', [], 'error');
-            return false;
-        }
+	const createExpense = useCallback(
+		async (formData, receiptImage) => {
+			if (!formData.title || !formData.amount) {
+				showAlert("Hata", "Lütfen başlık ve tutar giriniz.", [], "error");
+				return false;
+			}
 
-        if (!formData.jobId) {
-            showAlert('Hata', 'Lütfen bir proje seçiniz. Eğer projeniz yoksa masraf ekleyemezsiniz.', [], 'error');
-            return false;
-        }
+			if (!formData.jobId) {
+				showAlert(
+					"Hata",
+					"Lütfen bir proje seçiniz. Eğer projeniz yoksa masraf ekleyemezsiniz.",
+					[],
+					"error",
+				);
+				return false;
+			}
 
-        try {
-            const finalDescription = formData.description
-                ? `${formData.title} - ${formData.description}`
-                : formData.title;
+			try {
+				const finalDescription = formData.description
+					? `${formData.title} - ${formData.description}`
+					: formData.title;
 
-            const data = new FormData();
-            data.append('jobId', formData.jobId);
-            data.append('amount', parseFloat(formData.amount).toString());
-            data.append('currency', 'TRY');
-            data.append('category', formData.category);
-            data.append('description', finalDescription);
-            data.append('date', formData.date.toISOString());
+				const data = new FormData();
+				data.append("jobId", formData.jobId);
+				data.append("amount", parseFloat(formData.amount).toString());
+				data.append("currency", "TRY");
+				data.append("category", formData.category);
+				data.append("description", finalDescription);
+				data.append("date", formData.date.toISOString());
 
-            if (receiptImage) {
-                if (Platform.OS === 'web') {
-                    const response = await fetch(receiptImage);
-                    const blob = await response.blob();
-                    const filename = receiptImage.split('/').pop() || 'receipt.jpg';
-                    data.append('receipt', blob, filename);
-                } else {
-                    // Ensure we have a filename
-                    const uriParts = receiptImage.split('/');
-                    const filename = uriParts[uriParts.length - 1] || `receipt_${Date.now()}.jpg`;
-                    
-                    // Extract extension
-                    const fileType = filename.split('.').pop();
-                    const type = fileType ? `image/${fileType}` : 'image/jpeg';
+				if (receiptImage) {
+					if (Platform.OS === "web") {
+						const response = await fetch(receiptImage);
+						const blob = await response.blob();
+						const filename = receiptImage.split("/").pop() || "receipt.jpg";
+						data.append("receipt", blob, filename);
+					} else {
+						// Ensure we have a filename
+						const uriParts = receiptImage.split("/");
+						const filename =
+							uriParts[uriParts.length - 1] || `receipt_${Date.now()}.jpg`;
 
-                    data.append('receipt', {
-                        uri: receiptImage,
-                        name: filename,
-                        type: type
-                    });
-                }
-            }
+						// Extract extension
+						const fileType = filename.split(".").pop();
+						const type = fileType ? `image/${fileType}` : "image/jpeg";
 
-            await costService.create(data);
-            showAlert('Başarılı', 'Masraf başarıyla eklendi.', [], 'success');
-            loadData(); // Reload data
-            return true;
-        } catch (error) {
-            console.error('Create expense error:', error);
-            showAlert('Hata', 'Masraf eklenirken bir hata oluştu.', [], 'error');
-            return false;
-        }
-    }, [loadData]);
+						data.append("receipt", {
+							uri: receiptImage,
+							name: filename,
+							type: type,
+						});
+					}
+				}
 
-    const updateExpense = useCallback(async (id, formData, receiptImage) => {
-        if (!formData.title || !formData.amount) {
-            showAlert('Hata', 'Lütfen başlık ve tutar giriniz.', [], 'error');
-            return false;
-        }
+				await costService.create(data);
+				showAlert("Başarılı", "Masraf başarıyla eklendi.", [], "success");
+				loadData(); // Reload data
+				return true;
+			} catch (error) {
+				console.error("Create expense error:", error);
+				showAlert("Hata", "Masraf eklenirken bir hata oluştu.", [], "error");
+				return false;
+			}
+		},
+		[loadData, showAlert],
+	);
 
-        try {
-            const finalDescription = formData.description
-                ? `${formData.title} - ${formData.description}`
-                : formData.title;
+	const updateExpense = useCallback(
+		async (id, formData, receiptImage) => {
+			if (!formData.title || !formData.amount) {
+				showAlert("Hata", "Lütfen başlık ve tutar giriniz.", [], "error");
+				return false;
+			}
 
-            const data = new FormData();
-            if (formData.jobId) data.append('jobId', formData.jobId);
-            data.append('amount', parseFloat(formData.amount).toString());
-            data.append('currency', 'TRY');
-            data.append('category', formData.category);
-            data.append('description', finalDescription);
-            data.append('date', formData.date.toISOString());
+			try {
+				const finalDescription = formData.description
+					? `${formData.title} - ${formData.description}`
+					: formData.title;
 
-            if (receiptImage && !receiptImage.startsWith('http')) {
-                if (Platform.OS === 'web') {
-                    const response = await fetch(receiptImage);
-                    const blob = await response.blob();
-                    const filename = receiptImage.split('/').pop() || 'receipt.jpg';
-                    data.append('receipt', blob, filename);
-                } else {
-                    const uriParts = receiptImage.split('/');
-                    const filename = uriParts[uriParts.length - 1] || `receipt_${Date.now()}.jpg`;
-                    const fileType = filename.split('.').pop();
-                    const type = fileType ? `image/${fileType}` : 'image/jpeg';
+				const data = new FormData();
+				if (formData.jobId) data.append("jobId", formData.jobId);
+				data.append("amount", parseFloat(formData.amount).toString());
+				data.append("currency", "TRY");
+				data.append("category", formData.category);
+				data.append("description", finalDescription);
+				data.append("date", formData.date.toISOString());
 
-                    data.append('receipt', {
-                        uri: receiptImage,
-                        name: filename,
-                        type: type
-                    });
-                }
-            }
+				if (receiptImage && !receiptImage.startsWith("http")) {
+					if (Platform.OS === "web") {
+						const response = await fetch(receiptImage);
+						const blob = await response.blob();
+						const filename = receiptImage.split("/").pop() || "receipt.jpg";
+						data.append("receipt", blob, filename);
+					} else {
+						const uriParts = receiptImage.split("/");
+						const filename =
+							uriParts[uriParts.length - 1] || `receipt_${Date.now()}.jpg`;
+						const fileType = filename.split(".").pop();
+						const type = fileType ? `image/${fileType}` : "image/jpeg";
 
-            await costService.update(id, data);
-            showAlert('Başarılı', 'Masraf başarıyla güncellendi.', [], 'success');
-            loadData();
-            return true;
-        } catch (error) {
-            console.error('Update expense error:', error);
-            showAlert('Hata', 'Masraf güncellenirken bir hata oluştu.', [], 'error');
-            return false;
-        }
-    }, [loadData]);
+						data.append("receipt", {
+							uri: receiptImage,
+							name: filename,
+							type: type,
+						});
+					}
+				}
 
-    const deleteExpense = useCallback(async (id) => {
-        try {
-            await costService.delete(id);
-            showAlert('Başarılı', 'Masraf başarıyla silindi.', [], 'success');
-            loadData();
-            return true;
-        } catch (error) {
-            console.error('Delete expense error:', error);
-            showAlert('Hata', 'Masraf silinirken bir hata oluştu.', [], 'error');
-            return false;
-        }
-    }, [loadData]);
+				await costService.update(id, data);
+				showAlert("Başarılı", "Masraf başarıyla güncellendi.", [], "success");
+				loadData();
+				return true;
+			} catch (error) {
+				console.error("Update expense error:", error);
+				showAlert(
+					"Hata",
+					"Masraf güncellenirken bir hata oluştu.",
+					[],
+					"error",
+				);
+				return false;
+			}
+		},
+		[loadData, showAlert],
+	);
 
-    const filteredExpenses = useMemo(() => {
-        return expenses.filter(expense => {
-            const matchesProject = selectedProject ? expense.jobId === selectedProject.id : true;
-            const matchesCategory = selectedCategory === 'Tümü' ? true : expense.category === selectedCategory;
-            const matchesSearch = searchQuery
-                ? (expense.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    expense.category?.toLowerCase().includes(searchQuery.toLowerCase()))
-                : true;
-            return matchesProject && matchesCategory && matchesSearch;
-        });
-    }, [expenses, selectedProject, selectedCategory, searchQuery]);
+	const deleteExpense = useCallback(
+		async (id) => {
+			try {
+				await costService.delete(id);
+				showAlert("Başarılı", "Masraf başarıyla silindi.", [], "success");
+				loadData();
+				return true;
+			} catch (error) {
+				console.error("Delete expense error:", error);
+				showAlert("Hata", "Masraf silinirken bir hata oluştu.", [], "error");
+				return false;
+			}
+		},
+		[loadData, showAlert],
+	);
 
-    const groupedExpenses = useMemo(() => {
-        const groups = {
-            'Bugün': [],
-            'Dün': [],
-            'Geçen Hafta': [],
-            'Geçen Ay': [],
-            'Daha Eski': []
-        };
+	const filteredExpenses = useMemo(() => {
+		return expenses.filter((expense) => {
+			const matchesProject = selectedProject
+				? expense.jobId === selectedProject.id
+				: true;
+			const matchesCategory =
+				selectedCategory === "Tümü"
+					? true
+					: expense.category === selectedCategory;
+			const matchesSearch = searchQuery
+				? expense.description
+						?.toLowerCase()
+						.includes(searchQuery.toLowerCase()) ||
+					expense.category?.toLowerCase().includes(searchQuery.toLowerCase())
+				: true;
+			return matchesProject && matchesCategory && matchesSearch;
+		});
+	}, [expenses, selectedProject, selectedCategory, searchQuery]);
 
-        const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
-        const lastWeek = new Date(today);
-        lastWeek.setDate(lastWeek.getDate() - 7);
-        const lastMonth = new Date(today);
-        lastMonth.setMonth(lastMonth.getMonth() - 1);
+	const groupedExpenses = useMemo(() => {
+		const groups = {
+			Bugün: [],
+			Dün: [],
+			"Geçen Hafta": [],
+			"Geçen Ay": [],
+			"Daha Eski": [],
+		};
 
-        filteredExpenses.forEach(expense => {
-            const date = new Date(expense.date);
-            const expenseDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+		const now = new Date();
+		const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+		const yesterday = new Date(today);
+		yesterday.setDate(yesterday.getDate() - 1);
+		const lastWeek = new Date(today);
+		lastWeek.setDate(lastWeek.getDate() - 7);
+		const lastMonth = new Date(today);
+		lastMonth.setMonth(lastMonth.getMonth() - 1);
 
-            if (expenseDate.getTime() === today.getTime()) {
-                groups['Bugün'].push(expense);
-            } else if (expenseDate.getTime() === yesterday.getTime()) {
-                groups['Dün'].push(expense);
-            } else if (expenseDate > lastWeek) {
-                groups['Geçen Hafta'].push(expense);
-            } else if (expenseDate > lastMonth) {
-                groups['Geçen Ay'].push(expense);
-            } else {
-                groups['Daha Eski'].push(expense);
-            }
-        });
+		filteredExpenses.forEach((expense) => {
+			const date = new Date(expense.date);
+			const expenseDate = new Date(
+				date.getFullYear(),
+				date.getMonth(),
+				date.getDate(),
+			);
 
-        return groups;
-    }, [filteredExpenses]);
+			if (expenseDate.getTime() === today.getTime()) {
+				groups.Bugün.push(expense);
+			} else if (expenseDate.getTime() === yesterday.getTime()) {
+				groups.Dün.push(expense);
+			} else if (expenseDate > lastWeek) {
+				groups["Geçen Hafta"].push(expense);
+			} else if (expenseDate > lastMonth) {
+				groups["Geçen Ay"].push(expense);
+			} else {
+				groups["Daha Eski"].push(expense);
+			}
+		});
 
-    return {
-        // State
-        projects,
-        expenses,
-        loading,
-        selectedProject,
-        selectedCategory,
-        searchQuery,
+		return groups;
+	}, [filteredExpenses]);
 
-        // Computed
-        filteredExpenses,
-        groupedExpenses,
+	return {
+		// State
+		projects,
+		expenses,
+		loading,
+		selectedProject,
+		selectedCategory,
+		searchQuery,
 
-        // Actions
-        setSelectedProject,
-        setSelectedCategory,
-        setSearchQuery,
-        loadData,
-        createExpense,
-        updateExpense,
-        deleteExpense
-    };
+		// Computed
+		filteredExpenses,
+		groupedExpenses,
+
+		// Actions
+		setSelectedProject,
+		setSelectedCategory,
+		setSearchQuery,
+		loadData,
+		createExpense,
+		updateExpense,
+		deleteExpense,
+	};
 };
