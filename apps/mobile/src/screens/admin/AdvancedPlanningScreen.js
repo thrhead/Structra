@@ -32,7 +32,7 @@ const AdvancedPlanningScreen = () => {
 	const [selectedTeamId, setSelectedTeamId] = useState(null);
 	const [viewMode, setViewMode] = useState("list"); // 'list' or 'timeline'
 
-	const fetchPlanningData = async () => {
+	const fetchPlanningData = useCallback(async () => {
 		try {
 			const response = await api.get("/api/admin/planning");
 			setData(response.data);
@@ -42,7 +42,7 @@ const AdvancedPlanningScreen = () => {
 			setLoading(false);
 			setRefreshing(false);
 		}
-	};
+	}, []);
 
 	useEffect(() => {
 		fetchPlanningData();

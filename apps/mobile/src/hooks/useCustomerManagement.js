@@ -8,11 +8,7 @@ export const useCustomerManagement = () => {
 	const [refreshing, setRefreshing] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
 
-	useEffect(() => {
-		loadCustomers();
-	}, [loadCustomers]);
-
-	const loadCustomers = async () => {
+	const loadCustomers = useCallback(async () => {
 		try {
 			const data = await customerService.getAll();
 			setCustomers(data);
@@ -23,7 +19,11 @@ export const useCustomerManagement = () => {
 			setLoading(false);
 			setRefreshing(false);
 		}
-	};
+	}, []);
+
+	useEffect(() => {
+		loadCustomers();
+	}, [loadCustomers]);
 
 	const filteredCustomers = useMemo(() => {
 		if (!searchQuery.trim()) return customers;

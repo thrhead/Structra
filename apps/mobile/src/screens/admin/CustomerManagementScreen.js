@@ -36,6 +36,11 @@ export default function CustomerManagementScreen({ navigation, route }) {
 	const [modalVisible, setModalVisible] = useState(false);
 	const [editingCustomer, setEditingCustomer] = useState(null);
 
+	const handleAddCustomer = useCallback(() => {
+		setEditingCustomer(null);
+		setModalVisible(true);
+	}, []);
+
 	useEffect(() => {
 		if (route.params?.openCreate) {
 			handleAddCustomer();
@@ -44,19 +49,9 @@ export default function CustomerManagementScreen({ navigation, route }) {
 		}
 	}, [
 		route.params?.openCreate, // Clear the param so it doesn't reopen on every navigation back
-		navigation.setParams,
+		navigation,
 		handleAddCustomer,
 	]);
-
-	const onRefresh = () => {
-		setRefreshing(true);
-		loadCustomers();
-	};
-
-	const handleAddCustomer = () => {
-		setEditingCustomer(null);
-		setModalVisible(true);
-	};
 
 	const handleEditCustomer = (customer) => {
 		setEditingCustomer(customer);

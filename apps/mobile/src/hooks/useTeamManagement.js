@@ -14,11 +14,7 @@ export const useTeamManagement = () => {
 
 	const isAdmin = user?.role?.toUpperCase() === "ADMIN";
 
-	useEffect(() => {
-		loadData();
-	}, [loadData]);
-
-	const loadData = async () => {
+	const loadData = useCallback(async () => {
 		try {
 			setLoading(true);
 			const [teamsData, usersData] = await Promise.all([
@@ -47,7 +43,11 @@ export const useTeamManagement = () => {
 			setLoading(false);
 			setRefreshing(false);
 		}
-	};
+	}, [isAdmin, user.id]);
+
+	useEffect(() => {
+		loadData();
+	}, [loadData]);
 
 	const onRefresh = () => {
 		setRefreshing(true);

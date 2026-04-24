@@ -22,11 +22,7 @@ export default function JobAssignmentScreen({ navigation }) {
 	const [loading, setLoading] = useState(true);
 	const [refreshing, setRefreshing] = useState(false);
 
-	useEffect(() => {
-		loadData();
-	}, [loadData]);
-
-	const loadData = async () => {
+	const loadData = useCallback(async () => {
 		try {
 			setLoading(true);
 			const jobsData = await jobService.getAll();
@@ -38,7 +34,11 @@ export default function JobAssignmentScreen({ navigation }) {
 			setLoading(false);
 			setRefreshing(false);
 		}
-	};
+	}, [showAlert]);
+
+	useEffect(() => {
+		loadData();
+	}, [loadData]);
 
 	const onRefresh = () => {
 		setRefreshing(true);

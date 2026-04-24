@@ -32,18 +32,7 @@ const ChatScreen = () => {
 	const channelRef = useRef(null);
 	const flatListRef = useRef(null);
 
-	useEffect(() => {
-		loadInitialData();
-		setupAbly();
-
-		return () => {
-			if (channelRef.current) {
-				channelRef.current.unsubscribe();
-			}
-		};
-	}, [setupAbly, loadInitialData]);
-
-	const loadInitialData = async () => {
+	const loadInitialData = useCallback(async () => {
 		try {
 			// Load current user
 			const userStr = await AsyncStorage.getItem("user");
@@ -57,9 +46,9 @@ const ChatScreen = () => {
 			console.error("Failed to load chat data:", error);
 			setLoading(false);
 		}
-	};
+	}, [jobId]);
 
-	const setupAbly = async () => {
+	const setupAbly = useCallback(async () => {
 		try {
 			const token = await AsyncStorage.getItem("authToken");
 			const userStr = await AsyncStorage.getItem("user");
@@ -114,7 +103,18 @@ const ChatScreen = () => {
 		} catch (error) {
 			console.error("[Chat] Failed to setup Ably:", error);
 		}
-	};
+	}, [jobId]);
+
+	useEffect(() => {
+		loadInitialData();
+		setupAbly();
+
+		return () => {
+			if (channelRef.current) {
+				channelRef.current.unsubscribe();
+			}
+		};
+	}, [setupAbly, loadInitialData]);
 
 	const handleSend = async () => {
 		if (!inputText.trim()) return;

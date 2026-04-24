@@ -23,11 +23,7 @@ export const useCostManagement = () => {
 	);
 	const [endDate, setEndDate] = useState(new Date());
 
-	useEffect(() => {
-		loadData();
-	}, [loadData]);
-
-	const loadData = async () => {
+	const loadData = useCallback(async () => {
 		try {
 			setLoading(true);
 			const [jobsData, costsData, usersData] = await Promise.all([
@@ -45,7 +41,11 @@ export const useCostManagement = () => {
 			setLoading(false);
 			setRefreshing(false);
 		}
-	};
+	}, []);
+
+	useEffect(() => {
+		loadData();
+	}, [loadData]);
 
 	const filteredCosts = useMemo(() => {
 		let filtered = costs;

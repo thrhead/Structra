@@ -10,11 +10,7 @@ export const useUserManagement = () => {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [activeTab, setActiveTab] = useState("ALL");
 
-	useEffect(() => {
-		loadUsers();
-	}, [loadUsers]);
-
-	const loadUsers = async () => {
+	const loadUsers = useCallback(async () => {
 		try {
 			const data = await userService.getAll();
 			setUsers(data);
@@ -25,7 +21,11 @@ export const useUserManagement = () => {
 			setLoading(false);
 			setRefreshing(false);
 		}
-	};
+	}, [showAlert]);
+
+	useEffect(() => {
+		loadUsers();
+	}, [loadUsers]);
 
 	const filteredUsers = useMemo(() => {
 		let filtered = users;

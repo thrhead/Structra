@@ -21,7 +21,7 @@ const TeamDetailScreen = ({ route, navigation }) => {
 	const [loading, setLoading] = useState(true);
 	const [refreshing, setRefreshing] = useState(false);
 
-	const fetchTeamDetails = async (isMounted = true) => {
+	const fetchTeamDetails = useCallback(async (isMounted = true) => {
 		try {
 			const response = await api.get(`/api/admin/teams/${teamId}`);
 			if (isMounted) setTeam(response.data);
@@ -33,7 +33,7 @@ const TeamDetailScreen = ({ route, navigation }) => {
 				setRefreshing(false);
 			}
 		}
-	};
+	}, [teamId]);
 
 	useEffect(() => {
 		let isMounted = true;

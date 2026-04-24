@@ -64,11 +64,7 @@ export default function EditJobScreen({ route, navigation }) {
 		useState(false);
 	const [showTemplateModal, setShowTemplateModal] = useState(false);
 
-	useEffect(() => {
-		loadData();
-	}, [loadData]);
-
-	const loadData = async () => {
+	const loadData = useCallback(async () => {
 		try {
 			const [customersData, teamsData] = await Promise.all([
 				customerService.getAll(),
@@ -80,7 +76,11 @@ export default function EditJobScreen({ route, navigation }) {
 			console.error("Error loading data:", error);
 			showAlert(t("common.error"), t("jobs.fetchError"), [], "error");
 		}
-	};
+	}, [showAlert, t]);
+
+	useEffect(() => {
+		loadData();
+	}, [loadData]);
 
 	const getCustomerLabel = () => {
 		const customer = customers.find((c) => c.id === formData.customerId);

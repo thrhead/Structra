@@ -37,22 +37,17 @@ export default function UserManagementScreen({ navigation, route }) {
 	const [modalVisible, setModalVisible] = useState(false);
 	const [editingUser, setEditingUser] = useState(null);
 
+	const handleAddUser = useCallback(() => {
+		setEditingUser(null);
+		setModalVisible(true);
+	}, []);
+
 	useEffect(() => {
 		if (route.params?.openCreate) {
 			handleAddUser();
 			navigation.setParams({ openCreate: false });
 		}
-	}, [route.params, navigation.setParams, handleAddUser]);
-
-	const onRefresh = () => {
-		setRefreshing(true);
-		loadUsers();
-	};
-
-	const handleAddUser = () => {
-		setEditingUser(null);
-		setModalVisible(true);
-	};
+	}, [route.params, navigation, handleAddUser]);
 
 	const handleEditUser = (user) => {
 		setEditingUser(user);

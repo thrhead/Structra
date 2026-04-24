@@ -10,11 +10,7 @@ export const useApprovals = () => {
 	const [approvals, setApprovals] = useState([]);
 	const [filter, setFilter] = useState("ALL");
 
-	useEffect(() => {
-		loadApprovals();
-	}, [loadApprovals]);
-
-	const loadApprovals = async () => {
+	const loadApprovals = useCallback(async () => {
 		try {
 			setLoading(true);
 			const [pendingCosts, approvalData] = await Promise.all([
@@ -93,7 +89,11 @@ export const useApprovals = () => {
 			setLoading(false);
 			setRefreshing(false);
 		}
-	};
+	}, [showAlert]);
+
+	useEffect(() => {
+		loadApprovals();
+	}, [loadApprovals]);
 
 	const onRefresh = () => {
 		setRefreshing(true);

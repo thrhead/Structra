@@ -45,15 +45,7 @@ const ReportsScreen = () => {
     { id: "operational", title: "Operasyonel", icon: Zap, tab: "operational" },
   ];
 
-  useEffect(() => {
-    let isMounted = true;
-    fetchReports(isMounted);
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const fetchReports = async (isMounted = true) => {
+  const fetchReports = useCallback(async (isMounted = true) => {
     try {
       setLoading(true);
       const token = await AsyncStorage.getItem("authToken");
@@ -78,7 +70,15 @@ const ReportsScreen = () => {
     } finally {
       if (isMounted) setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetchReports(isMounted);
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchReports]);
 
   const handleTemplateSelect = (temp) => {
     setSelectedTemplate(temp.id);

@@ -54,11 +54,7 @@ export default function CreateJobScreen({ navigation }) {
 	const [showPriorityModal, setShowPriorityModal] = useState(false);
 	const [showTemplateModal, setShowTemplateModal] = useState(false);
 
-	useEffect(() => {
-		loadData();
-	}, [loadData]);
-
-	const loadData = async () => {
+	const loadData = useCallback(async () => {
 		try {
 			const [customersData, teamsData] = await Promise.all([
 				customerService.getAll(),
@@ -70,7 +66,11 @@ export default function CreateJobScreen({ navigation }) {
 			console.error("Error loading data:", error);
 			showAlert("Hata", "Veriler yüklenemedi", [], "error");
 		}
-	};
+	}, [showAlert]);
+
+	useEffect(() => {
+		loadData();
+	}, [loadData]);
 
 	const getCustomerLabel = () => {
 		const customer = customers.find((c) => c.id === formData.customerId);
