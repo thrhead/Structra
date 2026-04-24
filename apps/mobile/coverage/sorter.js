@@ -85,6 +85,14 @@ var addSorting = (() => {
 		}
 		return cols;
 	}
+	function escapeHtml(value) {
+		return String(value)
+			.replace(/&/g, "&amp;")
+			.replace(/</g, "&lt;")
+			.replace(/>/g, "&gt;")
+			.replace(/"/g, "&quot;")
+			.replace(/'/g, "&#39;");
+	}
 	// attaches a data attribute to every tr element with an object
 	// of data values keyed by column name
 	function loadRowData(tableRow) {
@@ -100,6 +108,8 @@ var addSorting = (() => {
 			val = colNode.getAttribute("data-value");
 			if (col.type === "number") {
 				val = Number(val);
+			} else {
+				val = escapeHtml(val);
 			}
 			data[col.key] = val;
 		}
