@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { tr } from "date-fns/locale";
+import { tr } from "date-fns/locale/tr";
 import { ArrowLeft, Clock, EditIcon, User } from "lucide-react";
 import { DeleteJobButton } from "@/components/admin/delete-job-button";
 import { JobDetailsClientWrapper } from "@/components/admin/job-details-client-wrapper";

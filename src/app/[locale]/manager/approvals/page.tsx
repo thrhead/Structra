@@ -1,5 +1,5 @@
 import { formatDistanceToNow } from "date-fns";
-import { tr } from "date-fns/locale";
+import { tr } from "date-fns/locale/tr";
 import { ApprovalDialog } from "@/components/approvals/approval-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

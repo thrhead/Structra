@@ -1,5 +1,5 @@
 import { format, startOfMonth, subMonths } from "date-fns";
-import { tr } from "date-fns/locale";
+import { tr } from "date-fns/locale/tr";
 import { NextResponse } from "next/server";
 import { verifyAdminOrManager } from "@/lib/auth-helper";
 import { prisma } from "@/lib/db";

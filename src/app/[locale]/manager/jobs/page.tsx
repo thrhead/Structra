@@ -1,5 +1,6 @@
 import { format } from "date-fns";
-import { enUS, tr } from "date-fns/locale";
+import { tr } from "date-fns/locale/tr";
+import { enUS } from "date-fns/locale/en-US";
 import {
 	BriefcaseIcon,
 	CalendarIcon,

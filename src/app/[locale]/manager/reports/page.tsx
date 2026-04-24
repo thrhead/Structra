@@ -1,5 +1,6 @@
 import { endOfDay, format, startOfDay, subDays } from "date-fns";
-import { enUS, tr } from "date-fns/locale";
+import { tr } from "date-fns/locale/tr";
+import { enUS } from "date-fns/locale/en-US";
 import { getTranslations } from "next-intl/server";
 import { JobStatusChart } from "@/components/charts/job-status-chart";
 import { TeamPerformanceChart } from "@/components/charts/team-performance-chart";

@@ -1,7 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { tr } from "date-fns/locale";
+import { tr } from "date-fns/locale/tr";
 import { Bell, Check, CheckCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";

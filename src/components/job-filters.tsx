@@ -1,7 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { tr } from "date-fns/locale";
+import { tr } from "date-fns/locale/tr";
 import { CalendarIcon, ChevronDown, ChevronUp, Filter, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";

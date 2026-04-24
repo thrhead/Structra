@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { tr } from "date-fns/locale";
+import { tr } from "date-fns/locale/tr";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { DEJAVU_SANS_BOLD, DEJAVU_SANS_NORMAL } from "./fonts/dejavu-fonts";

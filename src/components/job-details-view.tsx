@@ -1,7 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { tr } from "date-fns/locale";
+import { tr } from "date-fns/locale/tr";
 import {
 	Briefcase,
 	Calendar,

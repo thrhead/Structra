@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { format } from "date-fns";
-import { tr } from "date-fns/locale";
+import { tr } from "date-fns/locale/tr";
 import { Eye, PencilIcon, SearchIcon } from "lucide-react";
 import { DeleteUserButton } from "@/components/admin/delete-user-button";
 import { UserDialog } from "@/components/admin/user-dialog";
