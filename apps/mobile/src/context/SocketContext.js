@@ -1,7 +1,7 @@
 import Ably from "ably";
 import { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
 import { Platform } from "react-native";
-import { API_BASE_URL } from "../services/api";
+import { API_BASE_URL, getAuthToken } from "../services/api";
 import { useAuth } from "./AuthContext";
 
 const SocketContext = createContext({
@@ -31,17 +31,18 @@ export const SocketProvider = ({ children }) => {
 
 	const fetchUnreadCount = useCallback(async () => {
 		try {
-			// We can use the existing axios instance which has the auth token
+			const token = await getAuthToken();
+			if (!token) return;
+
 			const response = await fetch(`${API_BASE_URL}/api/notifications`, {
 				headers: {
-					Authorization: `Bearer ${await require("../services/api").getAuthToken()}`,
+					Authorization: `Bearer ${token}`,
 				},
 			});
 
 			if (response.ok) {
 				const data = await response.json();
 				// API returns { notifications: Array, unreadCount: Number }
-				// Handle both object with 'notifications' key and direct array for robustness
 				const notificationsList =
 					data.notifications || (Array.isArray(data) ? data : []);
 				const count =
@@ -58,87 +59,90 @@ export const SocketProvider = ({ children }) => {
 	}, []);
 
 	// Create a compatible socket object
-	const createSocketWrapper = useCallback((ably) => {
-		// Map to keep track of wrapped callbacks for unsubscription
-		const wrappedCallbacks = new Map();
+	const createSocketWrapper = useCallback(
+		(ably) => {
+			// Map to keep track of wrapped callbacks for unsubscription
+			const wrappedCallbacks = new Map();
 
-		return {
-			ably,
-			on: (event, callback) => {
-				const wrappedCallback = (message) => {
-					if (message?.data) {
-						callback(message.data);
-					} else {
-						callback(message);
-					}
-				};
-
-				// Store the mapping
-				if (!wrappedCallbacks.has(event)) {
-					wrappedCallbacks.set(event, new Map());
-				}
-				wrappedCallbacks.get(event).set(callback, wrappedCallback);
-
-				if (event === "connect") {
-					ably.connection.on("connected", callback);
-				} else if (event === "disconnect") {
-					ably.connection.on("disconnected", callback);
-				} else if (event === "error") {
-					ably.connection.on("failed", callback);
-				} else if (event === "job:updated") {
-					// This is a special case for JobDetailScreen
-					Object.values(jobChannelsRef.current).forEach((channel) => {
-						channel.subscribe("job:updated", wrappedCallback);
-					});
-					ably._jobUpdateCallback = callback;
-				} else {
-					// Default to user channel for other events
-					const userChannel = ably.channels.get(`user:${user?.id}`);
-					userChannel.subscribe(event, wrappedCallback);
-
-					// Also listen on system channel for broadcast events
-					const systemChannel = ably.channels.get("system");
-					systemChannel.subscribe(event, wrappedCallback);
-				}
-			},
-			off: (event, callback) => {
-				const eventMap = wrappedCallbacks.get(event);
-				const wrappedCallback = eventMap ? eventMap.get(callback) : null;
-
-				if (event === "connect") {
-					ably.connection.off("connected", callback);
-				} else if (event === "disconnect") {
-					ably.connection.off("disconnected", callback);
-				} else if (event === "job:updated") {
-					Object.values(jobChannelsRef.current).forEach((channel) => {
-						if (wrappedCallback) {
-							channel.unsubscribe("job:updated", wrappedCallback);
+			return {
+				ably,
+				on: (event, callback) => {
+					const wrappedCallback = (message) => {
+						if (message?.data) {
+							callback(message.data);
 						} else {
-							channel.unsubscribe("job:updated");
+							callback(message);
 						}
-					});
-					ably._jobUpdateCallback = null;
-				} else {
-					const userChannel = ably.channels.get(`user:${user?.id}`);
-					const systemChannel = ably.channels.get("system");
+					};
 
-					if (wrappedCallback) {
-						userChannel.unsubscribe(event, wrappedCallback);
-						systemChannel.unsubscribe(event, wrappedCallback);
-						eventMap.delete(callback);
-					} else {
-						userChannel.unsubscribe(event);
-						systemChannel.unsubscribe(event);
+					// Store the mapping
+					if (!wrappedCallbacks.has(event)) {
+						wrappedCallbacks.set(event, new Map());
 					}
-				}
-			},
-			emit: (event, ...args) => {
-				// Simple emit to user-specific channel
-				const userChannel = ably.channels.get(`user:${user?.id}`);
-				userChannel.publish(event, args[0]);
-			},
-		};
-	}, [user?.id]);
+					wrappedCallbacks.get(event).set(callback, wrappedCallback);
+
+					if (event === "connect") {
+						ably.connection.on("connected", callback);
+					} else if (event === "disconnect") {
+						ably.connection.on("disconnected", callback);
+					} else if (event === "error") {
+						ably.connection.on("failed", callback);
+					} else if (event === "job:updated") {
+						// This is a special case for JobDetailScreen
+						Object.values(jobChannelsRef.current).forEach((channel) => {
+							channel.subscribe("job:updated", wrappedCallback);
+						});
+						ably._jobUpdateCallback = callback;
+					} else {
+						// Default to user channel for other events
+						const userChannel = ably.channels.get(`user:${user?.id}`);
+						userChannel.subscribe(event, wrappedCallback);
+
+						// Also listen on system channel for broadcast events
+						const systemChannel = ably.channels.get("system");
+						systemChannel.subscribe(event, wrappedCallback);
+					}
+				},
+				off: (event, callback) => {
+					const eventMap = wrappedCallbacks.get(event);
+					const wrappedCallback = eventMap ? eventMap.get(callback) : null;
+
+					if (event === "connect") {
+						ably.connection.off("connected", callback);
+					} else if (event === "disconnect") {
+						ably.connection.off("disconnected", callback);
+					} else if (event === "job:updated") {
+						Object.values(jobChannelsRef.current).forEach((channel) => {
+							if (wrappedCallback) {
+								channel.unsubscribe("job:updated", wrappedCallback);
+							} else {
+								channel.unsubscribe("job:updated");
+							}
+						});
+						ably._jobUpdateCallback = null;
+					} else {
+						const userChannel = ably.channels.get(`user:${user?.id}`);
+						const systemChannel = ably.channels.get("system");
+
+						if (wrappedCallback) {
+							userChannel.unsubscribe(event, wrappedCallback);
+							systemChannel.unsubscribe(event, wrappedCallback);
+							eventMap.delete(callback);
+						} else {
+							userChannel.unsubscribe(event);
+							systemChannel.unsubscribe(event);
+						}
+					}
+				},
+				emit: (event, ...args) => {
+					// Simple emit to user-specific channel
+					const userChannel = ably.channels.get(`user:${user?.id}`);
+					userChannel.publish(event, args[0]);
+				},
+			};
+		},
+		[user?.id],
+	);
 
 	const joinJobRoom = (jobId) => {
 		if (!clientRef.current) return;
@@ -200,8 +204,7 @@ export const SocketProvider = ({ children }) => {
 				// Ably SDK calls this with tokenParams, we need to call callback(err, tokenRequest)
 				(async () => {
 					try {
-						const api = require("../services/api");
-						const token = await api.getAuthToken();
+						const token = await getAuthToken();
 
 						const response = await fetch(`${API_BASE_URL}/api/ably/auth`, {
 							headers: {
@@ -317,7 +320,7 @@ export const SocketProvider = ({ children }) => {
 		};
 	}, [
 		isAuthenticated,
-		user, // Fetch initial unread count
+		user,
 		fetchUnreadCount,
 		createSocketWrapper,
 	]);
@@ -330,11 +333,12 @@ export const SocketProvider = ({ children }) => {
 				prev.map((n) => (n.id === notificationId ? { ...n, isRead: true } : n)),
 			);
 
+			const token = await getAuthToken();
 			const response = await fetch(`${API_BASE_URL}/api/notifications`, {
 				method: "PATCH",
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: `Bearer ${await require("../services/api").getAuthToken()}`,
+					Authorization: `Bearer ${token}`,
 				},
 				body: JSON.stringify({ id: notificationId }),
 			});
@@ -354,10 +358,11 @@ export const SocketProvider = ({ children }) => {
 			setUnreadCount(0);
 			setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
 
+			const token = await getAuthToken();
 			const response = await fetch(`${API_BASE_URL}/api/notifications`, {
 				method: "PATCH",
 				headers: {
-					Authorization: `Bearer ${await require("../services/api").getAuthToken()}`,
+					Authorization: `Bearer ${token}`,
 				},
 			});
 

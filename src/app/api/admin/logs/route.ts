@@ -54,10 +54,14 @@ export async function GET(req: Request) {
 				totalPages: Math.ceil(total / limit),
 			},
 		});
-	} catch (error) {
+	} catch (error: any) {
 		console.error("Admin logs fetch error:", error);
 		return NextResponse.json(
-			{ error: "Internal Server Error" },
+			{ 
+				error: "Internal Server Error", 
+				details: error.message,
+				code: error.code // Prisma error codes if any
+			},
 			{ status: 500 },
 		);
 	}

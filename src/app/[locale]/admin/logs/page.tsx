@@ -50,7 +50,7 @@ export default function LogsPage() {
 	const [showPruneConfirm, setShowPruneConfirm] = useState(false);
 	const [isPruning, setIsPruning] = useState(false);
 
-	const fetchLogs = async () => {
+	const fetchLogs = useCallback(async () => {
 		setLoading(true);
 		try {
 			const params = new URLSearchParams({
@@ -62,15 +62,21 @@ export default function LogsPage() {
 			if (search) params.append("search", search);
 
 			const res = await fetch(`/api/admin/logs?${params.toString()}`);
+			if (!res.ok) {
+				const errorData = await res.json().catch(() => ({}));
+				throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
+			}
 			const data = await res.json();
 			setLogs(data.logs || []);
-			setPagination(data.pagination || { totalPages: 1 });
-		} catch (_error) {
-			toast.error("Logs could not be loaded");
+			setPagination(data.pagination || { totalPages: 1, total: 0 });
+		} catch (error: any) {
+			console.error("Logs fetch error:", error);
+			toast.error(error.message || "Logs could not be loaded");
+			setLogs([]);
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, [page, level, platform, search]);
 
 	useEffect(() => {
 		fetchLogs();
