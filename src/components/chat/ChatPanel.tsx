@@ -45,58 +45,6 @@ export function ChatPanel({ jobId, title }: ChatPanelProps) {
 		setMounted(true);
 	}, []);
 
-	useEffect(() => {
-		if (!mounted || !client || !isConnected) return;
-		loadMessages();
-
-		const channel = client.channels.get(`job:${jobId}`);
-
-		const handleNewMessage = async (message: any) => {
-			const newMessage = message.data as Message;
-			// Avoid adding our own message if it's already in state from handleSend
-			if (newMessage.senderId === session?.user?.id) {
-				const alreadyExists = messages.some((m) => m.id === newMessage.id);
-				if (alreadyExists) return;
-			}
-
-			if (newMessage.isEncrypted) {
-				const decrypted = await CryptoService.decrypt(newMessage.content);
-				newMessage.content = decrypted;
-			}
-			setMessages((prev) => [...prev, newMessage]);
-		};
-
-		const handleTypingStart = (message: any) => {
-			if (message.data.userId !== session?.user?.id) setIsTyping(true);
-		};
-
-		const handleTypingStop = () => {
-			setIsTyping(false);
-		};
-
-		channel.subscribe("receive:message", handleNewMessage);
-		channel.subscribe("typing:start", handleTypingStart);
-		channel.subscribe("typing:stop", handleTypingStop);
-
-		return () => {
-			channel.unsubscribe();
-		};
-	}, [
-		client,
-		isConnected,
-		jobId,
-		mounted,
-		session?.user?.id,
-		loadMessages,
-		messages.some,
-	]);
-
-	useEffect(() => {
-		if (scrollRef.current) {
-			scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-		}
-	}, []);
-
 	const loadMessages = async () => {
 		try {
 			setLoading(true);
@@ -139,6 +87,64 @@ export function ChatPanel({ jobId, title }: ChatPanelProps) {
 			setLoading(false);
 		}
 	};
+
+	useEffect(() => {
+		if (!mounted || !client || !isConnected) return;
+		loadMessages();
+
+		const channel = client.channels.get(`job:${jobId}`);
+
+		const handleNewMessage = async (message: any) => {
+			const newMessage = message.data as Message;
+			// Avoid adding our own message if it's already in state from handleSend
+			if (newMessage.senderId === session?.user?.id) {
+				setMessages((currentMessages) => {
+					const alreadyExists = currentMessages.some(
+						(m) => m.id === newMessage.id,
+					);
+					if (alreadyExists) return currentMessages;
+					return [...currentMessages, newMessage];
+				});
+				return;
+			}
+
+			if (newMessage.isEncrypted) {
+				const decrypted = await CryptoService.decrypt(newMessage.content);
+				newMessage.content = decrypted;
+			}
+			setMessages((prev) => [...prev, newMessage]);
+		};
+
+		const handleTypingStart = (message: any) => {
+			if (message.data.userId !== session?.user?.id) setIsTyping(true);
+		};
+
+		const handleTypingStop = () => {
+			setIsTyping(false);
+		};
+
+		channel.subscribe("receive:message", handleNewMessage);
+		channel.subscribe("typing:start", handleTypingStart);
+		channel.subscribe("typing:stop", handleTypingStop);
+
+		return () => {
+			channel.unsubscribe();
+		};
+	}, [
+		client,
+		isConnected,
+		jobId,
+		mounted,
+		session?.user?.id,
+		// loadMessages is excluded from deps because it would cause infinite loops
+		// if not wrapped in useCallback, and it only needs to run on mount/connect.
+	]);
+
+	useEffect(() => {
+		if (scrollRef.current) {
+			scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+		}
+	}, [messages, isTyping]);
 
 	const handleSend = async () => {
 		if (!inputText.trim() || !session?.user?.id) return;
