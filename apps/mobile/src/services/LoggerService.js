@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
 import * as Device from "expo-device";
-import api from "./api";
+import { API_URL } from "../config";
 
 const STORAGE_KEY = "SYSTEM_LOGS";
 const BATCH_SIZE = 5; // Reduced from 20 for faster testing
@@ -125,8 +125,15 @@ export const LoggerService = {
 			logs = await LoggerService.getLogs();
 			if (logs.length === 0) return;
 
-			// Use the batch endpoint
-			const response = await api.post("/api/logs/batch", logs);
+			// Use the batch endpoint using fetch to avoid circular dependency
+			const response = await fetch(`${API_URL}/api/logs/batch`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					"X-Platform": "mobile",
+				},
+				body: JSON.stringify(logs),
+			});
 
 			if (response.status === 201) {
 				// Clear synced logs
