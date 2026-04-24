@@ -219,7 +219,18 @@ export default function JobDetailScreen({ route, navigation }) {
                     }
                 }
                 await jobService.toggleSubstep(jobId, stepId, substepId, !currentStatus, job.updatedAt);
-                loadJobDetails();
+                
+                // If we are marking as COMPLETED, show success modal
+                if (!currentStatus) {
+                    setSuccessMessage(t('alerts.jobCompleteSuccess')); // Or a specific "onaya gönderildi" message if appropriate
+                    // Small delay to let DB update and local state refresh
+                    setTimeout(() => {
+                        loadJobDetails();
+                        setSuccessModalVisible(true);
+                    }, 500);
+                } else {
+                    loadJobDetails();
+                }
             } catch (error) {
                 console.error('Substep toggle error:', error);
                 showAlert(t('common.error'), t('alerts.processError'), [], 'error');
@@ -281,7 +292,17 @@ export default function JobDetailScreen({ route, navigation }) {
                 }
 
                 await jobService.toggleStep(jobId, stepId, !currentStatus, job.updatedAt);
-                loadJobDetails();
+                
+                // If we are marking as COMPLETED, show success modal
+                if (!currentStatus) {
+                    setSuccessMessage(t('alerts.jobCompleteSuccess'));
+                    setTimeout(() => {
+                        loadJobDetails();
+                        setSuccessModalVisible(true);
+                    }, 500);
+                } else {
+                    loadJobDetails();
+                }
             } catch (error) {
                 console.error('Step toggle error:', error);
                 showAlert(t('common.error'), t('alerts.processError'), [], 'error');
@@ -584,8 +605,11 @@ export default function JobDetailScreen({ route, navigation }) {
             await jobService.completeJob(jobId, job.signature || null, job.signatureCoords || null, job.updatedAt);
             LoggerService.audit('Job completed by worker', { jobId, jobTitle: job.title });
             setSuccessMessage(t('alerts.jobCompleteSuccess'));
-            setSuccessModalVisible(true);
-            loadJobDetails();
+            
+            setTimeout(() => {
+                loadJobDetails();
+                setSuccessModalVisible(true);
+            }, 500);
         } catch (error) {
             console.error('Error completing job:', error);
             showAlert(t('common.error'), t('alerts.jobCompleteError'), [], 'error');
