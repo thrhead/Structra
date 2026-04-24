@@ -17,14 +17,17 @@ export const AuthProvider = ({ children }) => {
 	const [user, setUser] = useState(null);
 	const [loading, setLoading] = useState(true);
 
-	useEffect(() => {
-		checkUser();
-
-		registerLogoutCallback(() => {
-			LoggerService.warn("Session expired - forced logout");
-			setUser(null);
-		});
-	}, [checkUser]);
+	const setupPushNotifications = async (userId) => {
+		try {
+			const pushToken =
+				await notificationService.registerForPushNotificationsAsync();
+			if (pushToken) {
+				await notificationService.sendPushTokenToBackend(pushToken, userId);
+			}
+		} catch (error) {
+			console.error("Failed to setup push notifications:", error);
+		}
+	};
 
 	const checkUser = async () => {
 		try {
@@ -51,17 +54,14 @@ export const AuthProvider = ({ children }) => {
 		}
 	};
 
-	const setupPushNotifications = async (userId) => {
-		try {
-			const pushToken =
-				await notificationService.registerForPushNotificationsAsync();
-			if (pushToken) {
-				await notificationService.sendPushTokenToBackend(pushToken, userId);
-			}
-		} catch (error) {
-			console.error("Failed to setup push notifications:", error);
-		}
-	};
+	useEffect(() => {
+		checkUser();
+
+		registerLogoutCallback(() => {
+			LoggerService.warn("Session expired - forced logout");
+			setUser(null);
+		});
+	}, []);
 
 	const login = async (email, password) => {
 		try {
