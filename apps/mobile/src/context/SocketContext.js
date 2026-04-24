@@ -1,5 +1,5 @@
 import Ably from "ably";
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
 import { Platform } from "react-native";
 import { API_BASE_URL } from "../services/api";
 import { useAuth } from "./AuthContext";
@@ -29,8 +29,36 @@ export const SocketProvider = ({ children }) => {
 	const channelRef = useRef(null);
 	const jobChannelsRef = useRef({});
 
+	const fetchUnreadCount = useCallback(async () => {
+		try {
+			// We can use the existing axios instance which has the auth token
+			const response = await fetch(`${API_BASE_URL}/api/notifications`, {
+				headers: {
+					Authorization: `Bearer ${await require("../services/api").getAuthToken()}`,
+				},
+			});
+
+			if (response.ok) {
+				const data = await response.json();
+				// API returns { notifications: Array, unreadCount: Number }
+				// Handle both object with 'notifications' key and direct array for robustness
+				const notificationsList =
+					data.notifications || (Array.isArray(data) ? data : []);
+				const count =
+					typeof data.unreadCount === "number"
+						? data.unreadCount
+						: notificationsList.filter((n) => !n.isRead).length;
+
+				setUnreadCount(count);
+				setNotifications(notificationsList);
+			}
+		} catch (error) {
+			console.error("[Socket] Error fetching notifications:", error);
+		}
+	}, []);
+
 	// Create a compatible socket object
-	const createSocketWrapper = (ably) => {
+	const createSocketWrapper = useCallback((ably) => {
 		// Map to keep track of wrapped callbacks for unsubscription
 		const wrappedCallbacks = new Map();
 
@@ -110,7 +138,7 @@ export const SocketProvider = ({ children }) => {
 				userChannel.publish(event, args[0]);
 			},
 		};
-	};
+	}, [user?.id]);
 
 	const joinJobRoom = (jobId) => {
 		if (!clientRef.current) return;
@@ -293,34 +321,6 @@ export const SocketProvider = ({ children }) => {
 		fetchUnreadCount,
 		createSocketWrapper,
 	]);
-
-	const fetchUnreadCount = async () => {
-		try {
-			// We can use the existing axios instance which has the auth token
-			const response = await fetch(`${API_BASE_URL}/api/notifications`, {
-				headers: {
-					Authorization: `Bearer ${await require("../services/api").getAuthToken()}`,
-				},
-			});
-
-			if (response.ok) {
-				const data = await response.json();
-				// API returns { notifications: Array, unreadCount: Number }
-				// Handle both object with 'notifications' key and direct array for robustness
-				const notificationsList =
-					data.notifications || (Array.isArray(data) ? data : []);
-				const count =
-					typeof data.unreadCount === "number"
-						? data.unreadCount
-						: notificationsList.filter((n) => !n.isRead).length;
-
-				setUnreadCount(count);
-				setNotifications(notificationsList);
-			}
-		} catch (error) {
-			console.error("[Socket] Error fetching notifications:", error);
-		}
-	};
 
 	const markAsRead = async (notificationId) => {
 		try {
