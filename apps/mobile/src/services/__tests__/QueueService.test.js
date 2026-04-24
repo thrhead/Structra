@@ -1,30 +1,30 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "@jest/globals";
 import { QueueService } from "../QueueService";
 
-vi.mock("@react-native-async-storage/async-storage", () => ({
+jest.mock("@react-native-async-storage/async-storage", () => ({
 	default: {
-		setItem: vi.fn(),
-		getItem: vi.fn(),
-		removeItem: vi.fn(),
+		setItem: jest.fn(),
+		getItem: jest.fn(),
+		removeItem: jest.fn(),
 	},
 }));
 
 // Mock expo-file-system
-vi.mock("expo-file-system", () => ({
+jest.mock("expo-file-system", () => ({
 	documentDirectory: "test-dir/",
-	getInfoAsync: vi.fn().mockResolvedValue({ exists: true }),
-	makeDirectoryAsync: vi.fn(),
-	writeAsStringAsync: vi.fn(),
-	readAsStringAsync: vi.fn(),
-	deleteAsync: vi.fn(),
+	getInfoAsync: jest.fn().mockResolvedValue({ exists: true }),
+	makeDirectoryAsync: jest.fn(),
+	writeAsStringAsync: jest.fn(),
+	readAsStringAsync: jest.fn(),
+	deleteAsync: jest.fn(),
 }));
 
 describe("QueueService", () => {
 	const STORAGE_KEY = "OFFLINE_QUEUE";
 
 	beforeEach(() => {
-		vi.clearAllMocks();
+		jest.clearAllMocks();
 	});
 
 	it("should add an item to the queue", async () => {

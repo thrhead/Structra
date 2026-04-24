@@ -1,5 +1,5 @@
 import NetInfo from "@react-native-community/netinfo";
-import * as FileSystem from "expo-file-system/legacy";
+import * as FileSystem from "expo-file-system";
 import { AppState } from "react-native";
 import api from "./api";
 import { LoggerService } from "./LoggerService";
