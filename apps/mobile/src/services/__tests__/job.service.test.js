@@ -1,20 +1,20 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "@jest/globals";
 import api from "../api";
 import jobService from "../job.service";
 
-vi.mock("../api", () => ({
+jest.mock("../api", () => ({
 	default: {
-		post: vi.fn(),
-		put: vi.fn(),
-		get: vi.fn(),
-		patch: vi.fn(),
-		delete: vi.fn(),
+		post: jest.fn(),
+		put: jest.fn(),
+		get: jest.fn(),
+		patch: jest.fn(),
+		delete: jest.fn(),
 	},
 }));
 
 describe("JobService (Offline Support)", () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
+		jest.clearAllMocks();
 	});
 
 	it("should handle offline completion when api returns 202", async () => {

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "@jest/globals";
 import { getRoleBadgeColor, getRoleText } from "../role-helper";
 
 describe("role-helper utilities", () => {

@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "@jest/globals";
 import LoginForm from "../../components/LoginForm";
 import { AlertProvider } from "../../context/AlertContext";
 import { AuthProvider } from "../../context/AuthContext";
@@ -8,20 +8,20 @@ import { ThemeProvider } from "../../context/ThemeContext";
 import authService from "../../services/auth.service";
 
 // Mock Dependencies
-vi.mock("../../services/auth.service");
-vi.mock("@react-native-async-storage/async-storage", () => ({
+jest.mock("../../services/auth.service");
+jest.mock("@react-native-async-storage/async-storage", () => ({
 	default: {
-		getItem: vi.fn(),
-		setItem: vi.fn(),
-		removeItem: vi.fn(),
+		getItem: jest.fn(),
+		setItem: jest.fn(),
+		removeItem: jest.fn(),
 	},
 }));
 
-vi.mock("@expo/vector-icons", () => ({
+jest.mock("@expo/vector-icons", () => ({
 	MaterialIcons: "MaterialIcons",
 }));
 
-vi.mock("react-i18next", () => ({
+jest.mock("react-i18next", () => ({
 	useTranslation: () => ({
 		t: (key) => key,
 	}),
@@ -37,7 +37,7 @@ const Wrapper = ({ children }) => (
 
 describe("AuthFlow Integration", () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
+		jest.clearAllMocks();
 		AsyncStorage.getItem.mockResolvedValue(null);
 	});
 
@@ -50,7 +50,7 @@ describe("AuthFlow Integration", () => {
 			token: mockToken,
 		});
 
-		const onLoginSuccess = vi.fn();
+		const onLoginSuccess = jest.fn();
 		const { getByPlaceholderText, getByText } = render(
 			<Wrapper>
 				<LoginForm onLoginSuccess={onLoginSuccess} />

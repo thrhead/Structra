@@ -1,38 +1,38 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "@jest/globals";
 import api from "../api";
 import { LoggerService, LogLevel } from "../LoggerService";
 
-vi.mock("@react-native-async-storage/async-storage", () => ({
+jest.mock("@react-native-async-storage/async-storage", () => ({
 	default: {
-		getItem: vi.fn(),
-		setItem: vi.fn(),
-		removeItem: vi.fn(),
+		getItem: jest.fn(),
+		setItem: jest.fn(),
+		removeItem: jest.fn(),
 	},
 }));
 
-vi.mock("../api", () => ({
+jest.mock("../api", () => ({
 	default: {
-		post: vi.fn(),
+		post: jest.fn(),
 	},
 }));
 
-vi.mock("@react-native-community/netinfo", () => ({
+jest.mock("@react-native-community/netinfo", () => ({
 	default: {
-		fetch: vi.fn(),
+		fetch: jest.fn(),
 	},
 }));
 
 // Mock global ErrorUtils
 global.ErrorUtils = {
-	getGlobalHandler: vi.fn(),
-	setGlobalHandler: vi.fn(),
+	getGlobalHandler: jest.fn(),
+	setGlobalHandler: jest.fn(),
 };
 
 describe("LoggerService", () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
+		jest.clearAllMocks();
 		LoggerService._interval = null;
 		AsyncStorage.getItem.mockResolvedValue("[]");
 	});
@@ -61,7 +61,7 @@ describe("LoggerService", () => {
 	it("should trigger sync when batch size reached", async () => {
 		// Mock 4 logs already in storage
 		AsyncStorage.getItem.mockResolvedValue(JSON.stringify([{}, {}, {}, {}]));
-		const syncSpy = vi.spyOn(LoggerService, "sync");
+		const syncSpy = jest.spyOn(LoggerService, "sync");
 
 		await LoggerService.log(LogLevel.INFO, "5th message");
 

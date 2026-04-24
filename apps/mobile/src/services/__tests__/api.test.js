@@ -1,39 +1,39 @@
 import NetInfo from "@react-native-community/netinfo";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "@jest/globals";
 
 import api from "../api";
 import { QueueService } from "../QueueService";
 
-vi.mock("@react-native-community/netinfo", () => ({
+jest.mock("@react-native-community/netinfo", () => ({
 	default: {
-		fetch: vi.fn(),
-		addEventListener: vi.fn(),
+		fetch: jest.fn(),
+		addEventListener: jest.fn(),
 	},
 }));
 
-vi.mock("@react-native-async-storage/async-storage", () => ({
+jest.mock("@react-native-async-storage/async-storage", () => ({
 	default: {
-		getItem: vi.fn(),
-		setItem: vi.fn(),
-		removeItem: vi.fn(),
+		getItem: jest.fn(),
+		setItem: jest.fn(),
+		removeItem: jest.fn(),
 	},
 }));
 
-vi.mock("../QueueService", () => ({
+jest.mock("../QueueService", () => ({
 	QueueService: {
-		addItem: vi.fn(),
-		getItems: vi.fn(),
-		removeItem: vi.fn(),
-		updateItem: vi.fn(),
-		initialize: vi.fn(),
+		addItem: jest.fn(),
+		getItems: jest.fn(),
+		removeItem: jest.fn(),
+		updateItem: jest.fn(),
+		initialize: jest.fn(),
 	},
 }));
 
 describe("API Interceptor (Offline Sync)", () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
+		jest.clearAllMocks();
 		// Mock adapter to prevent real network requests
-		api.defaults.adapter = vi.fn().mockResolvedValue({
+		api.defaults.adapter = jest.fn().mockResolvedValue({
 			data: { success: true },
 			status: 200,
 			statusText: "OK",
