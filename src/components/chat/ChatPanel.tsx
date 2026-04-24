@@ -1,351 +1,294 @@
-"use client";
+'use client'
 
-import { Lock, Send, WifiOff } from "lucide-react";
-import { useSession } from "next-auth/react";
-import { useEffect, useRef, useState } from "react";
-import { useAbly } from "@/components/providers/ably-provider";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { CustomSpinner } from "@/components/ui/custom-spinner";
-import { Input } from "@/components/ui/input";
-import { CryptoService } from "@/lib/crypto-service";
-import { offlineDB } from "@/lib/offline-db";
-import { cn } from "@/lib/utils";
+import React, { useState, useEffect, useRef } from 'react'
+import { useAbly } from '@/components/providers/ably-provider'
+import { useSession } from 'next-auth/react'
+import { CryptoService } from '@/lib/crypto-service'
+import { offlineDB } from '@/lib/offline-db'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Lock, Send, WifiOff, Loader2 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
+import { CustomSpinner } from '@/components/ui/custom-spinner';
 interface Message {
-	id: string;
-	content: string;
-	senderId: string;
-	sentAt: string;
-	isEncrypted: boolean;
-	sender: {
-		id: string;
-		name: string | null;
-		avatarUrl: string | null;
-	};
+    id: string
+    content: string
+    senderId: string
+    sentAt: string
+    isEncrypted: boolean
+    sender: {
+        id: string
+        name: string | null
+        avatarUrl: string | null
+    }
 }
 
 interface ChatPanelProps {
-	jobId: string;
-	title?: string;
+    jobId: string
+    title?: string
 }
 
 export function ChatPanel({ jobId, title }: ChatPanelProps) {
-	const { client, isConnected } = useAbly();
-	const { data: session } = useSession();
-	const [messages, setMessages] = useState<Message[]>([]);
-	const [inputText, setInputText] = useState("");
-	const [loading, setLoading] = useState(true);
-	const [isTyping, setIsTyping] = useState(false);
-	const [mounted, setMounted] = useState(false);
-	const scrollRef = useRef<HTMLDivElement>(null);
-	const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const { client, isConnected } = useAbly()
+    const { data: session } = useSession()
+    const [messages, setMessages] = useState<Message[]>([])
+    const [inputText, setInputText] = useState('')
+    const [loading, setLoading] = useState(true)
+    const [isTyping, setIsTyping] = useState(false)
+    const [mounted, setMounted] = useState(false)
+    const scrollRef = useRef<HTMLDivElement>(null)
+    const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-	useEffect(() => {
-		setMounted(true);
-	}, []);
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
-	const loadMessages = async () => {
-		try {
-			setLoading(true);
+    useEffect(() => {
+        if (!mounted || !client || !isConnected) return
+        loadMessages()
 
-			// 1. Load from Local DB first (Instant)
-			const localMessages = await offlineDB.messages
-				.where("jobId")
-				.equals(jobId)
-				.sortBy("sentAt");
+        const channel = client.channels.get(`job:${jobId}`)
 
-			if (localMessages.length > 0) {
-				setMessages(localMessages as any);
-				setLoading(false);
-			}
+        const handleNewMessage = async (message: any) => {
+            const newMessage = message.data as Message
+            // Avoid adding our own message if it's already in state from handleSend
+            if (newMessage.senderId === session?.user?.id) {
+                const alreadyExists = messages.some(m => m.id === newMessage.id)
+                if (alreadyExists) return
+            }
 
-			// 2. Fetch from API (Network)
-			const response = await fetch(`/api/messages?jobId=${jobId}`);
-			if (!response.ok) throw new Error("Failed to fetch");
+            if (newMessage.isEncrypted) {
+                const decrypted = await CryptoService.decrypt(newMessage.content)
+                newMessage.content = decrypted
+            }
+            setMessages((prev) => [...prev, newMessage])
+        }
 
-			const data = await response.json();
+        const handleTypingStart = (message: any) => {
+            if (message.data.userId !== session?.user?.id) setIsTyping(true)
+        }
 
-			// 3. Process and Decrypt
-			const processedMessages = await Promise.all(
-				data.map(async (msg: any) => {
-					let content = msg.content;
-					if (msg.isEncrypted) {
-						content = await CryptoService.decrypt(msg.content);
-					}
-					return { ...msg, content, status: "sent" };
-				}),
-			);
+        const handleTypingStop = () => {
+            setIsTyping(false)
+        }
 
-			setMessages(processedMessages);
+        channel.subscribe('receive:message', handleNewMessage)
+        channel.subscribe('typing:start', handleTypingStart)
+        channel.subscribe('typing:stop', handleTypingStop)
 
-			// 4. Update Local DB
-			await offlineDB.messages.bulkPut(processedMessages);
-		} catch (error) {
-			console.error("Chat load error:", error);
-		} finally {
-			setLoading(false);
-		}
-	};
+        return () => {
+            channel.unsubscribe()
+        }
+    }, [client, isConnected, jobId, mounted, session?.user?.id])
 
-	useEffect(() => {
-		if (!mounted || !client || !isConnected) return;
-		loadMessages();
+    useEffect(() => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+        }
+    }, [messages, isTyping])
 
-		const channel = client.channels.get(`job:${jobId}`);
+    const loadMessages = async () => {
+        try {
+            setLoading(true)
 
-		const handleNewMessage = async (message: any) => {
-			const newMessage = message.data as Message;
-			// Avoid adding our own message if it's already in state from handleSend
-			if (newMessage.senderId === session?.user?.id) {
-				setMessages((currentMessages) => {
-					const alreadyExists = currentMessages.some(
-						(m) => m.id === newMessage.id,
-					);
-					if (alreadyExists) return currentMessages;
-					return [...currentMessages, newMessage];
-				});
-				return;
-			}
+            // 1. Load from Local DB first (Instant)
+            const localMessages = await offlineDB.messages
+                .where('jobId')
+                .equals(jobId)
+                .sortBy('sentAt')
 
-			if (newMessage.isEncrypted) {
-				const decrypted = await CryptoService.decrypt(newMessage.content);
-				newMessage.content = decrypted;
-			}
-			setMessages((prev) => [...prev, newMessage]);
-		};
+            if (localMessages.length > 0) {
+                setMessages(localMessages as any)
+                setLoading(false)
+            }
 
-		const handleTypingStart = (message: any) => {
-			if (message.data.userId !== session?.user?.id) setIsTyping(true);
-		};
+            // 2. Fetch from API (Network)
+            const response = await fetch(`/api/messages?jobId=${jobId}`)
+            if (!response.ok) throw new Error('Failed to fetch')
 
-		const handleTypingStop = () => {
-			setIsTyping(false);
-		};
+            const data = await response.json()
 
-		channel.subscribe("receive:message", handleNewMessage);
-		channel.subscribe("typing:start", handleTypingStart);
-		channel.subscribe("typing:stop", handleTypingStop);
+            // 3. Process and Decrypt
+            const processedMessages = await Promise.all(
+                data.map(async (msg: any) => {
+                    let content = msg.content
+                    if (msg.isEncrypted) {
+                        content = await CryptoService.decrypt(msg.content)
+                    }
+                    return { ...msg, content, status: 'sent' }
+                })
+            )
 
-		return () => {
-			channel.unsubscribe();
-		};
-	}, [
-		client,
-		isConnected,
-		jobId,
-		mounted,
-		session?.user?.id,
-		// loadMessages is excluded from deps because it would cause infinite loops
-		// if not wrapped in useCallback, and it only needs to run on mount/connect.
-	]);
+            setMessages(processedMessages)
 
-	useEffect(() => {
-		if (scrollRef.current) {
-			scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-		}
-	}, [messages, isTyping]);
+            // 4. Update Local DB
+            await offlineDB.messages.bulkPut(processedMessages)
 
-	const handleSend = async () => {
-		if (!inputText.trim() || !session?.user?.id) return;
+        } catch (error) {
+            console.error('Chat load error:', error)
+        } finally {
+            setLoading(false)
+        }
+    }
 
-		const content = inputText.trim();
-		setInputText("");
+    const handleSend = async () => {
+        if (!inputText.trim() || !session?.user?.id) return
 
-		try {
-			// Encrypt before sending
-			const encryptedContent = await CryptoService.encrypt(content);
+        const content = inputText.trim()
+        setInputText('')
 
-			const response = await fetch("/api/messages", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					content: encryptedContent,
-					jobId,
-					isEncrypted: true,
-				}),
-			});
+        try {
+            // Encrypt before sending
+            const encryptedContent = await CryptoService.encrypt(content)
 
-			if (!response.ok) throw new Error("Send failed");
+            const response = await fetch('/api/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    content: encryptedContent,
+                    jobId,
+                    isEncrypted: true
+                })
+            })
 
-			const sentMessage = await response.json();
-			// The response will have encrypted content, but for UI we want plain
-			const displayMessage = { ...sentMessage, content };
+            if (!response.ok) throw new Error('Send failed')
 
-			// Check if already received via Ably to avoid duplicates
-			setMessages((prev) => {
-				if (prev.some((m) => m.id === displayMessage.id)) return prev;
-				return [...prev, displayMessage];
-			});
-		} catch (error) {
-			console.error("Send error:", error);
-		}
-	};
+            const sentMessage = await response.json()
+            // The response will have encrypted content, but for UI we want plain
+            const displayMessage = { ...sentMessage, content }
+            
+            // Check if already received via Ably to avoid duplicates
+            setMessages((prev) => {
+                if (prev.some(m => m.id === displayMessage.id)) return prev
+                return [...prev, displayMessage]
+            })
 
-	const sendTypingStatus = (status: "start" | "stop") => {
-		if (client && isConnected) {
-			const channel = client.channels.get(`job:${jobId}`);
-			channel.publish(`typing:${status}`, { userId: session?.user?.id });
-		}
-	};
+        } catch (error) {
+            console.error('Send error:', error)
+        }
+    }
 
-	if (!mounted || loading) {
-		return (
-			<div
-				role="status"
-				className="flex h-[400px] items-center justify-center rounded-lg border bg-card"
-			>
-				<CustomSpinner className="h-6 w-6 animate-spin text-primary" />
-			</div>
-		);
-	}
+    const sendTypingStatus = (status: 'start' | 'stop') => {
+        if (client && isConnected) {
+            const channel = client.channels.get(`job:${jobId}`)
+            channel.publish(`typing:${status}`, { userId: session?.user?.id })
+        }
+    }
 
-	return (
-		<div className="flex h-[500px] flex-col rounded-lg border bg-card shadow-sm overflow-hidden">
-			{/* Header */}
-			<div className="flex items-center justify-between border-b p-3 bg-muted/50">
-				<div className="flex items-center gap-2">
-					<div
-						className={cn(
-							"h-2 w-2 rounded-full",
-							isConnected ? "bg-green-500" : "bg-red-500 animate-pulse",
-						)}
-					/>
-					<span className="text-sm font-semibold">{title || "İş Sohbeti"}</span>
-					{!isConnected && (
-						<span className="text-xs text-red-500 ml-2">
-							Yeniden bağlanılıyor...
-						</span>
-					)}
-				</div>
-				{!isConnected ? (
-					<CustomSpinner className="h-4 w-4 animate-spin text-muted-foreground" />
-				) : null}
-			</div>
+    if (!mounted || loading) {
+        return (
+            <div role="status" className="flex h-[400px] items-center justify-center rounded-lg border bg-card">
+                <CustomSpinner className="h-6 w-6 animate-spin text-primary" />
+            </div>
+        )
+    }
 
-			{/* Messages Area */}
-			<div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
-				{messages.length === 0 ? (
-					<p className="text-center text-xs text-muted-foreground py-10 italic">
-						Henüz mesaj yok. İlk mesajı siz gönderin.
-					</p>
-				) : (
-					messages.map((msg) => {
-						const isMine = msg.senderId === session?.user?.id;
-						return (
-							<div
-								key={msg.id}
-								className={cn("flex", isMine ? "justify-end" : "justify-start")}
-							>
-								<div
-									className={cn(
-										"flex max-w-[80%] gap-2",
-										isMine ? "flex-row-reverse" : "flex-row",
-									)}
-								>
-									{!isMine && (
-										<Avatar className="h-8 w-8">
-											<AvatarImage src={msg.sender.avatarUrl || ""} />
-											<AvatarFallback>
-												{msg.sender.name?.[0] || "?"}
-											</AvatarFallback>
-										</Avatar>
-									)}
-									<div className="flex flex-col">
-										{!isMine && (
-											<span className="text-[10px] font-medium mb-1 ml-1 text-muted-foreground">
-												{msg.sender.name}
-											</span>
-										)}
-										<div
-											className={cn(
-												"rounded-2xl px-3 py-2 text-sm shadow-sm relative",
-												isMine
-													? "bg-primary text-primary-foreground rounded-tr-none"
-													: "bg-muted rounded-tl-none",
-											)}
-										>
-											<p className="break-words">{msg.content}</p>
-											<div className="flex items-center justify-end gap-1 mt-1 opacity-70">
-												<span className="text-[9px]">
-													{new Date(msg.sentAt).toLocaleTimeString([], {
-														hour: "2-digit",
-														minute: "2-digit",
-													})}
-												</span>
-												{msg.isEncrypted && <Lock className="h-2 w-2" />}
-												{(msg as any).status === "queued" && (
-													<WifiOff className="h-2 w-2 ml-1" />
-												)}
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						);
-					})
-				)}
-				{isTyping && (
-					<div className="flex justify-start">
-						<div className="flex items-center gap-2">
-							<span className="bg-muted text-muted-foreground rounded-full px-3 py-1.5 text-xs flex gap-1 items-center">
-								<span
-									className="h-1.5 w-1.5 bg-current rounded-full animate-bounce"
-									style={{ animationDelay: "0ms" }}
-								/>
-								<span
-									className="h-1.5 w-1.5 bg-current rounded-full animate-bounce"
-									style={{ animationDelay: "150ms" }}
-								/>
-								<span
-									className="h-1.5 w-1.5 bg-current rounded-full animate-bounce"
-									style={{ animationDelay: "300ms" }}
-								/>
-							</span>
-						</div>
-					</div>
-				)}
-			</div>
+    return (
+        <div className="flex h-[500px] flex-col rounded-lg border bg-card shadow-sm overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b p-3 bg-muted/50">
+                <div className="flex items-center gap-2">
+                    <div className={cn("h-2 w-2 rounded-full", isConnected ? "bg-green-500" : "bg-red-500 animate-pulse")} />
+                    <span className="text-sm font-semibold">{title || 'İş Sohbeti'}</span>
+                    {!isConnected && <span className="text-xs text-red-500 ml-2">Yeniden bağlanılıyor...</span>}
+                </div>
+                {!isConnected ? <CustomSpinner className="h-4 w-4 animate-spin text-muted-foreground" /> : null}
+            </div>
 
-			{/* Input Area */}
-			<div className="p-3 border-t bg-background">
-				<form
-					onSubmit={(e) => {
-						e.preventDefault();
-						handleSend();
-					}}
-					className="flex gap-2"
-				>
-					<Input
-						placeholder="Mesajınızı yazın..."
-						value={inputText}
-						onChange={(e) => setInputText(e.target.value)}
-						className="flex-1 h-9 bg-muted/30 focus-visible:ring-primary"
-						onKeyDown={() => {
-							sendTypingStatus("start");
-							if (typingTimeoutRef.current)
-								clearTimeout(typingTimeoutRef.current);
-							typingTimeoutRef.current = setTimeout(() => {
-								sendTypingStatus("stop");
-							}, 2000);
-						}}
-					/>
-					<Button
-						type="submit"
-						size="icon"
-						disabled={!inputText.trim() || !isConnected}
-						className="h-9 w-9 shrink-0"
-					>
-						<Send className="h-4 w-4" />
-					</Button>
-				</form>
-				<div className="mt-1 flex items-center justify-center gap-1">
-					<Lock className="h-2 w-2 text-muted-foreground" />
-					<span className="text-[8px] text-muted-foreground">
-						Mesajlar uçtan uca şifrelenir.
-					</span>
-				</div>
-			</div>
-		</div>
-	);
+            {/* Messages Area */}
+            <div
+                ref={scrollRef}
+                className="flex-1 overflow-y-auto p-4 space-y-4"
+            >
+                {messages.length === 0 ? (
+                    <p className="text-center text-xs text-muted-foreground py-10 italic">
+                        Henüz mesaj yok. İlk mesajı siz gönderin.
+                    </p>
+                ) : (
+                    messages.map((msg) => {
+                        const isMine = msg.senderId === session?.user?.id
+                        return (
+                            <div key={msg.id} className={cn("flex", isMine ? "justify-end" : "justify-start")}>
+                                <div className={cn("flex max-w-[80%] gap-2", isMine ? "flex-row-reverse" : "flex-row")}>
+                                    {!isMine && (
+                                        <Avatar className="h-8 w-8">
+                                            <AvatarImage src={msg.sender.avatarUrl || ''} />
+                                            <AvatarFallback>{msg.sender.name?.[0] || '?'}</AvatarFallback>
+                                        </Avatar>
+                                    )}
+                                    <div className="flex flex-col">
+                                        {!isMine && (
+                                            <span className="text-[10px] font-medium mb-1 ml-1 text-muted-foreground">
+                                                {msg.sender.name}
+                                            </span>
+                                        )}
+                                        <div className={cn(
+                                            "rounded-2xl px-3 py-2 text-sm shadow-sm relative",
+                                            isMine ? "bg-primary text-primary-foreground rounded-tr-none" : "bg-muted rounded-tl-none"
+                                        )}>
+                                            <p className="break-words">{msg.content}</p>
+                                            <div className="flex items-center justify-end gap-1 mt-1 opacity-70">
+                                                <span className="text-[9px]">
+                                                    {new Date(msg.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                                {msg.isEncrypted && <Lock className="h-2 w-2" />}
+                                                {(msg as any).status === 'queued' && <WifiOff className="h-2 w-2 ml-1" />}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )
+                    })
+                )}
+                {isTyping && (
+                    <div className="flex justify-start">
+                        <div className="flex items-center gap-2">
+                            <span className="bg-muted text-muted-foreground rounded-full px-3 py-1.5 text-xs flex gap-1 items-center">
+                                <span className="h-1.5 w-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                                <span className="h-1.5 w-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                                <span className="h-1.5 w-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                            </span>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Input Area */}
+            <div className="p-3 border-t bg-background">
+                <form
+                    onSubmit={(e) => { e.preventDefault(); handleSend(); }}
+                    className="flex gap-2"
+                >
+                    <Input
+                        placeholder="Mesajınızı yazın..."
+                        value={inputText}
+                        onChange={(e) => setInputText(e.target.value)}
+                        className="flex-1 h-9 bg-muted/30 focus-visible:ring-primary"
+                        onKeyDown={() => {
+                            sendTypingStatus('start')
+                            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
+                            typingTimeoutRef.current = setTimeout(() => {
+                                sendTypingStatus('stop')
+                            }, 2000)
+                        }}
+                    />
+                    <Button
+                        type="submit"
+                        size="icon"
+                        disabled={!inputText.trim() || !isConnected}
+                        className="h-9 w-9 shrink-0"
+                    >
+                        <Send className="h-4 w-4" />
+                    </Button>
+                </form>
+                <div className="mt-1 flex items-center justify-center gap-1">
+                    <Lock className="h-2 w-2 text-muted-foreground" />
+                    <span className="text-[8px] text-muted-foreground">Mesajlar uçtan uca şifrelenir.</span>
+                </div>
+            </div>
+        </div>
+    )
 }

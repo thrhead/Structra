@@ -1,48 +1,49 @@
-import { Resend } from "resend";
+import { Resend } from 'resend'
 
 // Initialize Resend client
 // Initialize Resend client safely
-const resendApiKey = process.env.RESEND_API_KEY || "re_123456789"; // Fallback to prevent crash on init
-const resend = new Resend(resendApiKey);
+const resendApiKey = process.env.RESEND_API_KEY || 're_123456789'; // Fallback to prevent crash on init
+const resend = new Resend(resendApiKey)
 
-const FROM_EMAIL = process.env.FROM_EMAIL || "onboarding@resend.dev";
-const APP_URL = process.env.NEXTAUTH_URL || "http://localhost:3000";
+const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev'
+const APP_URL = process.env.NEXTAUTH_URL || 'http://localhost:3000'
 
 // Email sender function with error handling
 async function sendEmail(to: string, subject: string, html: string) {
-	try {
-		const { data, error } = await resend.emails.send({
-			from: FROM_EMAIL,
-			to: [to],
-			subject,
-			html,
-		});
+  try {
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: [to],
+      subject,
+      html,
+    })
 
-		if (error) {
-			console.error("Email sending failed:", error);
-			return { success: false, error };
-		}
+    if (error) {
+      console.error('Email sending failed:', error)
+      return { success: false, error }
+    }
 
-		return { success: true, data };
-	} catch (error) {
-		console.error("Email sending error:", error);
-		return { success: false, error };
-	}
+    console.log('Email sent successfully:', data)
+    return { success: true, data }
+  } catch (error) {
+    console.error('Email sending error:', error)
+    return { success: false, error }
+  }
 }
 
 // Job Completed Email
 export async function sendJobCompletedEmail(
-	to: string,
-	jobData: {
-		id: string;
-		title: string;
-		customerName: string;
-		completedDate: Date;
-		teamName: string;
-		completedBy: string;
-	},
+  to: string,
+  jobData: {
+    id: string
+    title: string
+    customerName: string
+    completedDate: Date
+    teamName: string
+    completedBy: string
+  }
 ) {
-	const html = `
+  const html = `
     <!DOCTYPE html>
     <html>
     <head>
@@ -82,7 +83,7 @@ export async function sendJobCompletedEmail(
               <span class="detail-label">Tamamlayan:</span> ${jobData.completedBy}
             </div>
             <div class="detail-row">
-              <span class="detail-label">Tamamlanma Tarihi:</span> ${new Date(jobData.completedDate).toLocaleDateString("tr-TR")}
+              <span class="detail-label">Tamamlanma Tarihi:</span> ${new Date(jobData.completedDate).toLocaleDateString('tr-TR')}
             </div>
           </div>
 
@@ -100,25 +101,25 @@ export async function sendJobCompletedEmail(
       </div>
     </body>
     </html>
-  `;
+  `
 
-	return sendEmail(to, `✅ İş Tamamlandı - ${jobData.title}`, html);
+  return sendEmail(to, `✅ İş Tamamlandı - ${jobData.title}`, html)
 }
 
 // Cost Approval Request Email
-async function _sendCostApprovalEmail(
-	to: string,
-	costData: {
-		id: string;
-		amount: number;
-		category: string;
-		description: string;
-		jobTitle: string;
-		submittedBy: string;
-		date: Date;
-	},
+export async function sendCostApprovalEmail(
+  to: string,
+  costData: {
+    id: string
+    amount: number
+    category: string
+    description: string
+    jobTitle: string
+    submittedBy: string
+    date: Date
+  }
 ) {
-	const html = `
+  const html = `
     <!DOCTYPE html>
     <html>
     <head>
@@ -165,7 +166,7 @@ async function _sendCostApprovalEmail(
               <span class="detail-label">Gönderen:</span> ${costData.submittedBy}
             </div>
             <div class="detail-row">
-              <span class="detail-label">Tarih:</span> ${new Date(costData.date).toLocaleDateString("tr-TR")}
+              <span class="detail-label">Tarih:</span> ${new Date(costData.date).toLocaleDateString('tr-TR')}
             </div>
           </div>
 
@@ -183,29 +184,29 @@ async function _sendCostApprovalEmail(
       </div>
     </body>
     </html>
-  `;
+  `
 
-	return sendEmail(to, `💰 Yeni Masraf Onayı - ₺${costData.amount}`, html);
+  return sendEmail(to, `💰 Yeni Masraf Onayı - ₺${costData.amount}`, html)
 }
 
 // Cost Status Update Email
-async function _sendCostStatusEmail(
-	to: string,
-	costData: {
-		id: string;
-		amount: number;
-		category: string;
-		description: string;
-		jobTitle: string;
-		status: "APPROVED" | "REJECTED";
-	},
+export async function sendCostStatusEmail(
+  to: string,
+  costData: {
+    id: string
+    amount: number
+    category: string
+    description: string
+    jobTitle: string
+    status: 'APPROVED' | 'REJECTED'
+  }
 ) {
-	const isApproved = costData.status === "APPROVED";
-	const statusColor = isApproved ? "#16A34A" : "#DC2626";
-	const statusIcon = isApproved ? "✅" : "❌";
-	const statusText = isApproved ? "Onaylandı" : "Reddedildi";
+  const isApproved = costData.status === 'APPROVED'
+  const statusColor = isApproved ? '#16A34A' : '#DC2626'
+  const statusIcon = isApproved ? '✅' : '❌'
+  const statusText = isApproved ? 'Onaylandı' : 'Reddedildi'
 
-	const html = `
+  const html = `
     <!DOCTYPE html>
     <html>
     <head>
@@ -249,19 +250,15 @@ async function _sendCostStatusEmail(
             </div>
           </div>
 
-          ${
-						isApproved
-							? `
+          ${isApproved ? `
             <p style="color: #16A34A; font-weight: bold;">
               Masrafınız onaylandı. Teşekkürler!
             </p>
-          `
-							: `
+          ` : `
             <p style="color: #DC2626;">
               Masrafınız reddedildi. Lütfen yöneticinizle iletişime geçin.
             </p>
-          `
-					}
+          `}
         </div>
         <div class="footer">
           <p>Montaj Takip Sistemi © ${new Date().getFullYear()}</p>
@@ -269,28 +266,24 @@ async function _sendCostStatusEmail(
       </div>
     </body>
     </html>
-  `;
+  `
 
-	return sendEmail(
-		to,
-		`${statusIcon} Masraf ${statusText} - ₺${costData.amount}`,
-		html,
-	);
+  return sendEmail(to, `${statusIcon} Masraf ${statusText} - ₺${costData.amount}`, html)
 }
 
 // Job Assignment Email
-async function _sendJobAssignmentEmail(
-	to: string,
-	jobData: {
-		id: string;
-		title: string;
-		customerName: string;
-		scheduledDate: Date;
-		teamName: string;
-		location: string;
-	},
+export async function sendJobAssignmentEmail(
+  to: string,
+  jobData: {
+    id: string
+    title: string
+    customerName: string
+    scheduledDate: Date
+    teamName: string
+    location: string
+  }
 ) {
-	const html = `
+  const html = `
     <!DOCTYPE html>
     <html>
     <head>
@@ -330,7 +323,7 @@ async function _sendJobAssignmentEmail(
               <span class="detail-label">Lokasyon:</span> ${jobData.location}
             </div>
             <div class="detail-row">
-              <span class="detail-label">Planlanan Tarih:</span> ${new Date(jobData.scheduledDate).toLocaleDateString("tr-TR")}
+              <span class="detail-label">Planlanan Tarih:</span> ${new Date(jobData.scheduledDate).toLocaleDateString('tr-TR')}
             </div>
           </div>
 
@@ -348,7 +341,7 @@ async function _sendJobAssignmentEmail(
       </div>
     </body>
     </html>
-  `;
+  `
 
-	return sendEmail(to, `📋 Yeni İş Ataması - ${jobData.title}`, html);
+  return sendEmail(to, `📋 Yeni İş Ataması - ${jobData.title}`, html)
 }

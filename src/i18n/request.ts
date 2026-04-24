@@ -1,23 +1,23 @@
-import { getRequestConfig } from "next-intl/server";
+import {getRequestConfig} from 'next-intl/server';
+ 
+export default getRequestConfig(async ({requestLocale}) => {
+  let locale = await requestLocale;
+ 
+  if (!locale || !['en', 'tr'].includes(locale)) {
+    locale = 'tr';
+  }
 
-export default getRequestConfig(async ({ requestLocale }) => {
-	let locale = await requestLocale;
-
-	if (!locale || !["en", "tr"].includes(locale)) {
-		locale = "tr";
-	}
-
-	let messages;
-	try {
-		// Relative to this file (src/i18n/request.ts), messages are in ../messages/
-		messages = (await import(`../messages/${locale}.json`)).default;
-	} catch (error) {
-		console.error(`Failed to load messages for locale ${locale}:`, error);
-		messages = {};
-	}
-
-	return {
-		locale,
-		messages,
-	};
+  let messages;
+  try {
+    // Relative to this file (src/i18n/request.ts), messages are in ../messages/
+    messages = (await import(`../messages/${locale}.json`)).default;
+  } catch (error) {
+    console.error(`Failed to load messages for locale ${locale}:`, error);
+    messages = {}; 
+  }
+ 
+  return {
+    locale,
+    messages
+  };
 });

@@ -1,154 +1,25 @@
-"use client";
+'use client'
 
-import { useMemo } from "react";
+import { useMemo } from 'react'
 
 const MOCK_PARTS = [
-	{
-		id: "mounting-plate",
-		name: "Montaj Sacı",
-		color: "#94a3b8",
-		completedColor: "#22c55e",
-		position: [0, 2.5, -0.5],
-		scale: [3, 0.1, 0.8],
-		geometry: "box",
-		order: 1,
-		explodedOffset: [0, 1.5, -2],
-		instructions: [
-			"Montaj sacını duvara tutun ve su terazisi ile hizalayın",
-			"İşaretleme noktalarını belirleyin",
-			"Dübel delikleri açın (8mm)",
-			"Sacı 4 adet M8 dübel ile sabitleyin",
-		],
-	},
-	{
-		id: "indoor-unit-body",
-		name: "İç Ünite Gövdesi",
-		color: "#f8fafc",
-		completedColor: "#22c55e",
-		position: [0, 2.5, 0],
-		scale: [3.2, 0.9, 0.7],
-		geometry: "box",
-		order: 2,
-		explodedOffset: [0, 1.5, 2],
-		instructions: [
-			"İç üniteyi montaj sacına asın",
-			"Alt kilitleme tırnaklarını oturtun",
-			"Drenaj hortumunu bağlayın",
-			"Elektrik bağlantısını yapın",
-		],
-	},
-	{
-		id: "indoor-filter",
-		name: "İç Ünite Filtresi",
-		color: "#e2e8f0",
-		completedColor: "#22c55e",
-		position: [0, 2.35, 0.3],
-		rotation: [0.15, 0, 0],
-		scale: [2.8, 0.05, 0.5],
-		geometry: "box",
-		order: 3,
-		explodedOffset: [0, 0, 3],
-		instructions: [
-			"Ön kapağı açın",
-			"Filtreleri ray boyunca kaydırın",
-			"Tam oturduğundan emin olun",
-		],
-	},
-	{
-		id: "copper-pipe",
-		name: "Bakır Boru Hattı",
-		color: "#d97706",
-		completedColor: "#22c55e",
-		position: [1.8, 1.2, 0],
-		rotation: [0, 0, 0.785],
-		scale: [0.08, 2.5, 0.08],
-		geometry: "cylinder",
-		order: 4,
-		explodedOffset: [3, 0, 0],
-		instructions: [
-			"Bakır boruları duvar deliğinden geçirin",
-			"Flare somunlarını tork anahtarı ile sıkın",
-			"Vakum pompası ile sistemi vakumlayın",
-			"Kaçak testi yapın",
-		],
-	},
-	{
-		id: "outdoor-unit",
-		name: "Dış Ünite",
-		color: "#cbd5e1",
-		completedColor: "#22c55e",
-		position: [0, -1.5, 0],
-		scale: [2.5, 2, 1.2],
-		geometry: "box",
-		order: 5,
-		explodedOffset: [0, -3, 0],
-		instructions: [
-			"Dış ünite konsolunu sabitleyin",
-			"Dış üniteyi konsola yerleştirin",
-			"Titreşim padlerini takın",
-			"Bakır boru bağlantılarını yapın",
-		],
-	},
-	{
-		id: "outdoor-fan",
-		name: "Dış Ünite Fanı",
-		color: "#64748b",
-		completedColor: "#22c55e",
-		position: [0, -1.5, 0.65],
-		rotation: [1.5708, 0, 0],
-		scale: [0.7, 0.1, 0.7],
-		geometry: "cylinder",
-		order: 6,
-		explodedOffset: [0, 0, 3],
-		instructions: [
-			"Fan pervanelerini kontrol edin",
-			"Motor bağlantılarını kontrol edin",
-			"Manuel döndürerek test edin",
-		],
-	},
-	{
-		id: "electrical-cable",
-		name: "Elektrik Kablosu",
-		color: "#1e293b",
-		completedColor: "#22c55e",
-		position: [-1.5, 0.5, 0],
-		scale: [0.05, 3.5, 0.05],
-		geometry: "cylinder",
-		order: 7,
-		explodedOffset: [-3, 0, 0],
-		instructions: [
-			"Ana sigortayı kapatın",
-			"Kablo kanalını döşeyin",
-			"İç/dış ünite bağlantıları yapın",
-			"Topraklama kablosunu bağlayın",
-		],
-	},
-	{
-		id: "test-run",
-		name: "Test Çalıştırması",
-		color: "#fbbf24",
-		completedColor: "#22c55e",
-		position: [0, 0.5, 2],
-		scale: [0.4, 0.4, 0.4],
-		geometry: "sphere",
-		order: 8,
-		explodedOffset: [0, 0, 3],
-		instructions: [
-			"Soğutma modunda çalıştırın",
-			"Çıkış sıcaklığını ölçün",
-			"Isıtma modunu test edin",
-			"Uzaktan kumanda kontrolü",
-		],
-	},
+    { id: 'mounting-plate', name: 'Montaj Sacı', color: '#94a3b8', completedColor: '#22c55e', position: [0, 2.5, -0.5], scale: [3, 0.1, 0.8], geometry: 'box', order: 1, explodedOffset: [0, 1.5, -2], instructions: ['Montaj sacını duvara tutun ve su terazisi ile hizalayın', 'İşaretleme noktalarını belirleyin', 'Dübel delikleri açın (8mm)', 'Sacı 4 adet M8 dübel ile sabitleyin'] },
+    { id: 'indoor-unit-body', name: 'İç Ünite Gövdesi', color: '#f8fafc', completedColor: '#22c55e', position: [0, 2.5, 0], scale: [3.2, 0.9, 0.7], geometry: 'box', order: 2, explodedOffset: [0, 1.5, 2], instructions: ['İç üniteyi montaj sacına asın', 'Alt kilitleme tırnaklarını oturtun', 'Drenaj hortumunu bağlayın', 'Elektrik bağlantısını yapın'] },
+    { id: 'indoor-filter', name: 'İç Ünite Filtresi', color: '#e2e8f0', completedColor: '#22c55e', position: [0, 2.35, 0.3], rotation: [0.15, 0, 0], scale: [2.8, 0.05, 0.5], geometry: 'box', order: 3, explodedOffset: [0, 0, 3], instructions: ['Ön kapağı açın', 'Filtreleri ray boyunca kaydırın', 'Tam oturduğundan emin olun'] },
+    { id: 'copper-pipe', name: 'Bakır Boru Hattı', color: '#d97706', completedColor: '#22c55e', position: [1.8, 1.2, 0], rotation: [0, 0, 0.785], scale: [0.08, 2.5, 0.08], geometry: 'cylinder', order: 4, explodedOffset: [3, 0, 0], instructions: ['Bakır boruları duvar deliğinden geçirin', 'Flare somunlarını tork anahtarı ile sıkın', 'Vakum pompası ile sistemi vakumlayın', 'Kaçak testi yapın'] },
+    { id: 'outdoor-unit', name: 'Dış Ünite', color: '#cbd5e1', completedColor: '#22c55e', position: [0, -1.5, 0], scale: [2.5, 2, 1.2], geometry: 'box', order: 5, explodedOffset: [0, -3, 0], instructions: ['Dış ünite konsolunu sabitleyin', 'Dış üniteyi konsola yerleştirin', 'Titreşim padlerini takın', 'Bakır boru bağlantılarını yapın'] },
+    { id: 'outdoor-fan', name: 'Dış Ünite Fanı', color: '#64748b', completedColor: '#22c55e', position: [0, -1.5, 0.65], rotation: [1.5708, 0, 0], scale: [0.7, 0.1, 0.7], geometry: 'cylinder', order: 6, explodedOffset: [0, 0, 3], instructions: ['Fan pervanelerini kontrol edin', 'Motor bağlantılarını kontrol edin', 'Manuel döndürerek test edin'] },
+    { id: 'electrical-cable', name: 'Elektrik Kablosu', color: '#1e293b', completedColor: '#22c55e', position: [-1.5, 0.5, 0], scale: [0.05, 3.5, 0.05], geometry: 'cylinder', order: 7, explodedOffset: [-3, 0, 0], instructions: ['Ana sigortayı kapatın', 'Kablo kanalını döşeyin', 'İç/dış ünite bağlantıları yapın', 'Topraklama kablosunu bağlayın'] },
+    { id: 'test-run', name: 'Test Çalıştırması', color: '#fbbf24', completedColor: '#22c55e', position: [0, 0.5, 2], scale: [0.4, 0.4, 0.4], geometry: 'sphere', order: 8, explodedOffset: [0, 0, 3], instructions: ['Soğutma modunda çalıştırın', 'Çıkış sıcaklığını ölçün', 'Isıtma modunu test edin', 'Uzaktan kumanda kontrolü'] }
 ];
 
 function generateHTML(steps: any[]) {
-	const parts = MOCK_PARTS.map((part, idx) => {
-		const step = steps[idx];
-		return { ...part, isCompleted: step?.isCompleted || false };
-	});
+    const parts = MOCK_PARTS.map((part, idx) => {
+        const step = steps[idx];
+        return { ...part, isCompleted: step?.isCompleted || false };
+    });
 
-	return `
+    return `
 <!DOCTYPE html>
 <html><head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -533,22 +404,23 @@ window.addEventListener('load', init);
 }
 
 interface Assembly3DViewerProps {
-	steps: any[];
-	jobTitle: string;
+    steps: any[]
+    jobTitle: string
 }
 
 export function Assembly3DViewer({ steps, jobTitle }: Assembly3DViewerProps) {
-	// Generate the HTML for the iframe
-	const html = useMemo(() => generateHTML(steps || []), [steps]);
+    // Generate the HTML for the iframe
+    const html = useMemo(() => generateHTML(steps || []), [steps]);
 
-	return (
-		<div className="w-full h-[600px] rounded-xl border border-gray-200 shadow-sm overflow-hidden bg-white">
-			<iframe
-				srcDoc={html}
-				title={`3D Assembly Guide - ${jobTitle}`}
-				className="w-full h-full border-none"
-				sandbox="allow-scripts allow-same-origin"
-			/>
-		</div>
-	);
+    return (
+        <div className="w-full h-[600px] rounded-xl border border-gray-200 shadow-sm overflow-hidden bg-white">
+            <iframe
+                srcDoc={html}
+                title={`3D Assembly Guide - ${jobTitle}`}
+                className="w-full h-full border-none"
+                sandbox="allow-scripts allow-same-origin"
+            />
+        </div>
+    )
 }
+

@@ -10,23 +10,16 @@ const EventList = ({ selectedDate, events, onEventPress, theme }) => {
 
     return (
         <View style={[styles.eventsContainer, { backgroundColor: theme ? theme.colors.background : '#0f172a' }]}>
-            <View style={styles.headerRow}>
-                <Text style={[styles.eventsTitle, { color: textMain }]}>
-                    {new Date(selectedDate).toLocaleDateString('tr-TR', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric'
-                    })}
-                </Text>
-                <Text style={[styles.eventCount, { color: theme.colors.primary }]}>
-                    {events.length} İş
-                </Text>
-            </View>
-            <ScrollView style={styles.eventsList} showsVerticalScrollIndicator={false}>
+            <Text style={[styles.eventsTitle, { color: textMain }]}>
+                {new Date(selectedDate).toLocaleDateString('tr-TR', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                })}
+            </Text>
+            <ScrollView style={styles.eventsList}>
                 {events.length === 0 ? (
-                    <View style={styles.emptyState}>
-                        <Text style={[styles.noEvents, { color: textSub }]}>Bu tarihte planlanmış iş yok</Text>
-                    </View>
+                    <Text style={[styles.noEvents, { color: textSub }]}>Bu tarihte planlanmış iş yok</Text>
                 ) : (
                     events.map((event) => (
                         <TouchableOpacity
@@ -39,34 +32,19 @@ const EventList = ({ selectedDate, events, onEventPress, theme }) => {
                                 }
                             ]}
                             onPress={() => onEventPress(event.id)}
-                            activeOpacity={0.7}
                         >
-                            <View style={styles.eventHeader}>
-                                <Text style={[styles.eventTitle, { color: textMain }]} numberOfLines={2}>{event.title}</Text>
-                                {event.status && (
-                                    <View style={[styles.statusBadge, { backgroundColor: getStatusColor(event.status) }]}>
-                                        <Text style={styles.statusText}>{event.status}</Text>
-                                    </View>
-                                )}
-                            </View>
-
-                            <View style={styles.eventDetails}>
-                                {event.allDay ? (
-                                    <Text style={[styles.eventTime, { color: textSub }]}>🕒 Tüm Gün</Text>
-                                ) : (
-                                    <Text style={[styles.eventTime, { color: textSub }]}>
-                                        🕒 {new Date(event.start).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
-                                        {event.end && ` - ${new Date(event.end).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}`}
-                                    </Text>
-                                )}
-
-                                {event.location && (
-                                    <Text style={[styles.eventDetail, { color: textSub }]} numberOfLines={1}>📍 {event.location}</Text>
-                                )}
-                                {event.assignments && (
-                                    <Text style={[styles.eventDetail, { color: textSub }]} numberOfLines={1}>👤 {event.assignments}</Text>
-                                )}
-                            </View>
+                            <Text style={[styles.eventTitle, { color: textMain }]}>{event.title}</Text>
+                            {event.status && (
+                                <View style={[styles.statusBadge, { backgroundColor: getStatusColor(event.status) }]}>
+                                    <Text style={styles.statusText}>{event.status}</Text>
+                                </View>
+                            )}
+                            {event.location && (
+                                <Text style={[styles.eventDetail, { color: textSub }]}>📍 {event.location}</Text>
+                            )}
+                            {event.assignments && (
+                                <Text style={[styles.eventDetail, { color: textSub }]}>👤 {event.assignments}</Text>
+                            )}
                         </TouchableOpacity>
                     ))
                 )}
@@ -78,87 +56,46 @@ const EventList = ({ selectedDate, events, onEventPress, theme }) => {
 const styles = StyleSheet.create({
     eventsContainer: {
         flex: 1,
-        paddingHorizontal: 16,
-        paddingTop: 16,
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(0,0,0,0.05)'
-    },
-    headerRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 16,
+        padding: 16,
     },
     eventsTitle: {
         fontSize: 18,
-        fontWeight: '700',
-    },
-    eventCount: {
-        fontSize: 14,
         fontWeight: '600',
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        backgroundColor: 'rgba(0,0,0,0.05)',
-        borderRadius: 12,
-        overflow: 'hidden'
+        marginBottom: 12,
     },
     eventsList: {
         flex: 1,
     },
-    emptyState: {
-        paddingVertical: 40,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
     noEvents: {
         textAlign: 'center',
-        fontSize: 15,
-        fontWeight: '500'
+        marginTop: 24,
     },
     eventCard: {
-        borderRadius: 12,
-        padding: 16,
+        borderRadius: 8,
+        padding: 12,
         marginBottom: 12,
-        borderLeftWidth: 5,
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-    },
-    eventHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: 12,
-        gap: 8,
+        borderLeftWidth: 4,
     },
     eventTitle: {
-        flex: 1,
         fontSize: 16,
         fontWeight: '600',
-        lineHeight: 22,
+        marginBottom: 8,
     },
     statusBadge: {
+        alignSelf: 'flex-start',
         paddingHorizontal: 8,
         paddingVertical: 4,
-        borderRadius: 6,
+        borderRadius: 4,
+        marginBottom: 8,
     },
     statusText: {
         color: '#fff',
-        fontSize: 11,
-        fontWeight: '600',
-        textTransform: 'uppercase',
-    },
-    eventDetails: {
-        gap: 6,
-    },
-    eventTime: {
-        fontSize: 13,
+        fontSize: 12,
         fontWeight: '500',
     },
     eventDetail: {
-        fontSize: 13,
+        fontSize: 14,
+        marginTop: 4,
     },
 });
 

@@ -1,184 +1,160 @@
-export const dynamic = "force-dynamic";
-
-import { format } from "date-fns";
-import { tr } from "date-fns/locale/tr";
-import { Eye, PencilIcon, SearchIcon } from "lucide-react";
-import { DeleteUserButton } from "@/components/admin/delete-user-button";
-import { UserDialog } from "@/components/admin/user-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+export const dynamic = "force-dynamic"
+import { auth } from "@/lib/auth"
+import { redirect } from "@/lib/navigation"
+import { UserDialog } from "@/components/admin/user-dialog"
+import { DeleteUserButton } from "@/components/admin/delete-user-button"
 import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/components/ui/table";
-import { auth } from "@/lib/auth";
-import { getUsers } from "@/lib/data/users";
-import { Link, redirect } from "@/lib/navigation";
-import { cn } from "@/lib/utils";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { Button, buttonVariants } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { SearchIcon, PencilIcon, Eye } from "lucide-react"
+import { format } from "date-fns"
+import { tr } from "date-fns/locale"
+import { getUsers } from "@/lib/data/users"
+import { Link } from "@/lib/navigation"
+import { cn } from "@/lib/utils"
 
 export default async function UsersPage(props: {
-	searchParams: Promise<{ search?: string }>;
+  searchParams: Promise<{ search?: string }>
 }) {
-	const searchParams = await props.searchParams;
-	const session = await auth();
+  const searchParams = await props.searchParams
+  const session = await auth()
 
-	if (!session || session.user.role !== "ADMIN") {
-		redirect("/login");
-	}
+  if (!session || session.user.role !== "ADMIN") {
+    redirect("/login")
+  }
 
-	const { users } = await getUsers({
-		filter: { search: searchParams.search },
-		limit: 100, // Temporarily fetch more since pagination UI isn't here yet
-	});
+  const { users } = await getUsers({
+    filter: { search: searchParams.search },
+    limit: 100 // Temporarily fetch more since pagination UI isn't here yet
+  })
 
-	const roleColors: Record<string, string> = {
-		ADMIN: "bg-red-100 text-red-800",
-		MANAGER: "bg-purple-100 text-purple-800",
-		TEAM_LEAD: "bg-blue-100 text-blue-800",
-		WORKER: "bg-green-100 text-green-800",
-		CUSTOMER: "bg-orange-100 text-orange-800",
-	};
+  const roleColors: Record<string, string> = {
+    ADMIN: "bg-red-100 text-red-800",
+    MANAGER: "bg-purple-100 text-purple-800",
+    TEAM_LEAD: "bg-blue-100 text-blue-800",
+    WORKER: "bg-green-100 text-green-800",
+    CUSTOMER: "bg-orange-100 text-orange-800",
+  }
 
-	const roleLabels: Record<string, string> = {
-		ADMIN: "Yönetici",
-		MANAGER: "Müdür",
-		TEAM_LEAD: "Takım Lideri",
-		WORKER: "Çalışan",
-		CUSTOMER: "Müşteri",
-	};
+  const roleLabels: Record<string, string> = {
+    ADMIN: "Yönetici",
+    MANAGER: "Müdür",
+    TEAM_LEAD: "Takım Lideri",
+    WORKER: "Çalışan",
+    CUSTOMER: "Müşteri",
+  }
 
-	return (
-		<div className="space-y-6">
-			<div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-				<div>
-					<p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
-						Kullanıcı Yönetimi
-					</p>
-					<h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-0.5">
-						Kullanıcılar
-					</h1>
-					<p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
-						Sistemdeki tüm kullanıcıları buradan yönetebilirsiniz.
-					</p>
-				</div>
-				<UserDialog />
-			</div>
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Kullanıcı Yönetimi</p>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mt-0.5">Kullanıcılar</h1>
+          <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">Sistemdeki tüm kullanıcıları buradan yönetebilirsiniz.</p>
+        </div>
+        <UserDialog />
+      </div>
 
-			<div className="rounded-3xl border border-slate-200/60 dark:border-slate-800/50 bg-white dark:bg-slate-900/80 shadow-sm overflow-hidden">
-				<div className="p-4 border-b border-slate-100 dark:border-slate-800/50">
-					<div className="relative max-w-sm">
-						<SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-						<form>
-							<Input
-								name="search"
-								placeholder="İsim veya e-posta ara..."
-								className="pl-10 rounded-xl border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-indigo-500/20"
-								defaultValue={searchParams.search}
-							/>
-						</form>
-					</div>
-				</div>
+      <div className="rounded-3xl border border-slate-200/60 dark:border-slate-800/50 bg-white dark:bg-slate-900/80 shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-slate-100 dark:border-slate-800/50">
+          <div className="relative max-w-sm">
+            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <form>
+              <Input
+                name="search"
+                placeholder="İsim veya e-posta ara..."
+                className="pl-10 rounded-xl border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-indigo-500/20"
+                defaultValue={searchParams.search}
+              />
+            </form>
+          </div>
+        </div>
 
-				<Table>
-					<TableHeader>
-						<TableRow>
-							<TableHead>Ad Soyad</TableHead>
-							<TableHead>E-posta</TableHead>
-							<TableHead>Rol</TableHead>
-							<TableHead>Telefon</TableHead>
-							<TableHead>Durum</TableHead>
-							<TableHead>Kayıt Tarihi</TableHead>
-							<TableHead className="w-[120px] text-right">İşlemler</TableHead>
-						</TableRow>
-					</TableHeader>
-					<TableBody>
-						{users.map((user) => (
-							<TableRow key={user.id}>
-								<TableCell className="font-medium">
-									<Link
-										href={`/admin/users/${user.id}`}
-										className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
-									>
-										{user.name}
-									</Link>
-								</TableCell>
-								<TableCell>{user.email}</TableCell>
-								<TableCell>
-									<Badge
-										variant="secondary"
-										className={roleColors[user.role] || ""}
-									>
-										{roleLabels[user.role] || user.role}
-									</Badge>
-								</TableCell>
-								<TableCell>{(user as any).phone || "-"}</TableCell>
-								<TableCell>
-									<Badge
-										variant={(user as any).isActive ? "default" : "destructive"}
-									>
-										{(user as any).isActive ? "Aktif" : "Pasif"}
-									</Badge>
-								</TableCell>
-								<TableCell>
-									{format(new Date(user.createdAt), "d MMM yyyy", {
-										locale: tr,
-									})}
-								</TableCell>
-								<TableCell className="text-right">
-									<div className="flex justify-end gap-2">
-										<Link
-											href={`/admin/users/${user.id}`}
-											className={cn(
-												buttonVariants({ variant: "ghost", size: "icon" }),
-												"h-8 w-8 p-0",
-											)}
-											title="Detayları Gör"
-										>
-											<Eye className="h-4 w-4 text-gray-500 dark:text-slate-400" />
-										</Link>
-										<UserDialog
-											user={JSON.parse(JSON.stringify(user))}
-											trigger={
-												<Button
-													variant="ghost"
-													size="icon"
-													className="h-8 w-8 p-0"
-													title="Düzenle"
-												>
-													<PencilIcon className="h-4 w-4 text-gray-500 dark:text-slate-400" />
-												</Button>
-											}
-										/>
-										{user.id !== session.user.id && (
-											<DeleteUserButton
-												userId={user.id}
-												userName={user.name || user.email}
-												size="icon"
-												variant="ghost"
-											/>
-										)}
-									</div>
-								</TableCell>
-							</TableRow>
-						))}
-						{users.length === 0 && (
-							<TableRow>
-								<TableCell
-									colSpan={7}
-									className="text-center py-12 text-slate-400 dark:text-slate-500"
-								>
-									Kullanıcı bulunamadı.
-								</TableCell>
-							</TableRow>
-						)}
-					</TableBody>
-				</Table>
-			</div>
-		</div>
-	);
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Ad Soyad</TableHead>
+              <TableHead>E-posta</TableHead>
+              <TableHead>Rol</TableHead>
+              <TableHead>Telefon</TableHead>
+              <TableHead>Durum</TableHead>
+              <TableHead>Kayıt Tarihi</TableHead>
+              <TableHead className="w-[120px] text-right">İşlemler</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {users.map((user) => (
+              <TableRow key={user.id}>
+                <TableCell className="font-medium">
+                  <Link 
+                    href={`/admin/users/${user.id}`}
+                    className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                  >
+                    {user.name}
+                  </Link>
+                </TableCell>
+                <TableCell>{user.email}</TableCell>
+                <TableCell>
+                  <Badge variant="secondary" className={roleColors[user.role] || ""}>
+                    {roleLabels[user.role] || user.role}
+                  </Badge>
+                </TableCell>
+                <TableCell>{(user as any).phone || '-'}</TableCell>
+                <TableCell>
+                  <Badge variant={(user as any).isActive ? "default" : "destructive"}>
+                    {(user as any).isActive ? 'Aktif' : 'Pasif'}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  {format(new Date(user.createdAt), 'd MMM yyyy', { locale: tr })}
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    <Link
+                      href={`/admin/users/${user.id}`}
+                      className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "h-8 w-8 p-0")}
+                      title="Detayları Gör"
+                    >
+                      <Eye className="h-4 w-4 text-gray-500 dark:text-slate-400" />
+                    </Link>
+                    <UserDialog
+                      user={JSON.parse(JSON.stringify(user))}
+                      trigger={
+                        <Button variant="ghost" size="icon" className="h-8 w-8 p-0" title="Düzenle">
+                          <PencilIcon className="h-4 w-4 text-gray-500 dark:text-slate-400" />
+                        </Button>
+                      }
+                    />
+                    {user.id !== session.user.id && (
+                      <DeleteUserButton 
+                        userId={user.id} 
+                        userName={user.name || user.email} 
+                        size="icon" 
+                        variant="ghost" 
+                      />
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+            {users.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-12 text-slate-400 dark:text-slate-500">
+                  Kullanıcı bulunamadı.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  )
 }

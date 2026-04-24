@@ -1,4 +1,4 @@
-i# Structra v3.0 - Kurumsal Saha Operasyon Yönetimi
+# Structra v3.0 - Kurumsal Saha Operasyon Yönetimi
 
 Structra, saha ekiplerini yöneten işletmeler için tasarlanmış, **v3.0** sürümüyle yüksek performanslı ve uçtan uca izlenebilirlik sağlayan modern bir iş yönetim çözümüdür. 2026 standartlarına uygun olarak optimize edilen sistem, saha montaj ve bakım süreçlerini milisaniyeler düzeyinde bir hızla dijitalleştirir.
 
@@ -68,6 +68,6 @@ NEXT_PUBLIC_SOCKET_URL="http://localhost:3000"
 - [Proje Yol Haritası](memory-bank/progress.md)
 - [API Dokümantasyonu](docs/API_REFERENCE.md)
 - [Kullanıcı Kılavuzları](docs/guides/README.md)
-1
+
 ---
 *Geleceğin saha operasyonlarını bugün Structra ile yönetin.*
