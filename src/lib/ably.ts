@@ -36,7 +36,7 @@ export const publishToUser = async (
 		const channel = client.channels.get(`user:${userId}`);
 		await channel.publish(event, data);
 	} catch (error) {
-		console.error(`❌ Error publishing to user ${userId}:`, error);
+		console.error("❌ Error publishing to user %s:", userId, error);
 	}
 };
 
@@ -48,7 +48,7 @@ export const publishToJob = async (jobId: string, event: string, data: any) => {
 		const channel = client.channels.get(`job:${jobId}`);
 		await channel.publish(event, data);
 	} catch (error) {
-		console.error(`❌ Error publishing to job ${jobId}:`, error);
+		console.error("❌ Error publishing to job %s:", jobId, error);
 	}
 };
 
