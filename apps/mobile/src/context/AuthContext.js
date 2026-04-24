@@ -1,5 +1,11 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+	createContext,
+	useCallback,
+	useContext,
+	useEffect,
+	useState,
+} from "react";
 import {
 	clearAuthToken,
 	getAuthToken,
@@ -17,7 +23,7 @@ export const AuthProvider = ({ children }) => {
 	const [user, setUser] = useState(null);
 	const [loading, setLoading] = useState(true);
 
-	const setupPushNotifications = async (userId) => {
+	const setupPushNotifications = useCallback(async (userId) => {
 		try {
 			const pushToken =
 				await notificationService.registerForPushNotificationsAsync();
@@ -27,9 +33,9 @@ export const AuthProvider = ({ children }) => {
 		} catch (error) {
 			console.error("Failed to setup push notifications:", error);
 		}
-	};
+	}, []);
 
-	const checkUser = async () => {
+	const checkUser = useCallback(async () => {
 		try {
 			await withTimeout(
 				(async () => {
@@ -52,7 +58,7 @@ export const AuthProvider = ({ children }) => {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, [setupPushNotifications]);
 
 	useEffect(() => {
 		checkUser();
@@ -61,7 +67,7 @@ export const AuthProvider = ({ children }) => {
 			LoggerService.warn("Session expired - forced logout");
 			setUser(null);
 		});
-	}, []);
+	}, [checkUser]);
 
 	const login = async (email, password) => {
 		try {

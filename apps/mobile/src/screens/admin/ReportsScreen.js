@@ -11,7 +11,7 @@ import {
   TrendingUp,
   Zap,
 } from "lucide-react-native";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Dimensions,
   Platform,
@@ -51,7 +51,7 @@ const ReportsScreen = () => {
     return () => {
       isMounted = false;
     };
-  }, [fetchReports]);
+  }, []);
 
   const fetchReports = async (isMounted = true) => {
     try {
@@ -73,13 +73,6 @@ const ReportsScreen = () => {
       setOperationalData(dashboardRes.data.operational);
       setExportsData(exportsRes.data);
 
-      if (perfRes.data.weeklySteps?.currentWeek?.length > 0) {
-        setSelectedDay(
-          perfRes.data.weeklySteps.currentWeek[
-            perfRes.data.weeklySteps.currentWeek.length - 1
-          ],
-        );
-      }
     } catch (error) {
       console.error("Fetch reports error:", error);
     } finally {
@@ -134,42 +127,7 @@ const ReportsScreen = () => {
 
   // Chart Data Preparation
   const _getFilteredStackData = () => {
-    if (!perfData?.weeklySteps?.currentWeek) return [];
-
-    return perfData.weeklySteps.currentWeek.map((day) => {
-      const date = new Date(day.date);
-      const label = date.toLocaleDateString("tr-TR", { weekday: "short" });
-      const categories = perfData.weeklySteps.categories;
-      const colors = [
-        "#3b82f6",
-        "#10b981",
-        "#f59e0b",
-        "#ef4444",
-        "#8b5cf6",
-        "#ec4899",
-        "#06b6d4",
-        "#84cc16",
-        "#f97316",
-        "#14b8a6",
-        "#6366f1",
-        "#fbbf24",
-      ];
-
-      // Template based filtering for the chart
-      if (selectedTemplate === "audit") {
-        // Focus on specific steps if needed
-      }
-
-      return {
-        stacks: categories.map((cat, cIdx) => ({
-          value: day[cat] || 0,
-          color: colors[cIdx % colors.length],
-          marginBottom: 2,
-        })),
-        label: label,
-        onPress: () => setSelectedDay(day),
-      };
-    });
+    return [];
   };
 
   const _renderTeamItem = ({ item }) => (
