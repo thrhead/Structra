@@ -73,6 +73,26 @@ export default function JobDetailScreen({ route, navigation }) {
 	const [selectedStepId, setSelectedStepId] = useState(null);
 	const [selectedSubstepId, setSelectedSubstepId] = useState(null);
 
+	const loadJobDetails = React.useCallback(async () => {
+		try {
+			setLoading(true);
+			const data = await jobService.getJobById(jobId);
+			if (data.id) {
+				setJob(data);
+			} else if (data.job) {
+				setJob(data.job);
+			} else {
+				showAlert(t("common.error"), t("alerts.jobNotFound"), [], "error");
+				navigation.goBack();
+			}
+		} catch (error) {
+			console.error("Error loading job details:", error);
+			showAlert(t("common.error"), t("alerts.detailsLoadError"), [], "error");
+		} finally {
+			setLoading(false);
+		}
+	}, [jobId, navigation, showAlert, t]);
+
 	const formatDate = (dateString) => {
 		if (!dateString) return null;
 		return new Date(dateString).toLocaleString(
@@ -125,26 +145,6 @@ export default function JobDetailScreen({ route, navigation }) {
 			joinJobRoom,
 		]),
 	);
-
-	const loadJobDetails = async () => {
-		try {
-			setLoading(true);
-			const data = await jobService.getJobById(jobId);
-			if (data.id) {
-				setJob(data);
-			} else if (data.job) {
-				setJob(data.job);
-			} else {
-				showAlert(t("common.error"), t("alerts.jobNotFound"), [], "error");
-				navigation.goBack();
-			}
-		} catch (error) {
-			console.error("Error loading job details:", error);
-			showAlert(t("common.error"), t("alerts.detailsLoadError"), [], "error");
-		} finally {
-			setLoading(false);
-		}
-	};
 
 	const handleBack = () => {
 		if (navigation.canGoBack()) {
