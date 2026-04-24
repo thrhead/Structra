@@ -78,13 +78,7 @@ export default function WorkerDashboardScreen({ navigation }) {
 		setActiveFilter(filter);
 	};
 
-	useFocusEffect(
-		useCallback(() => {
-			loadDashboardData();
-		}, [loadDashboardData]),
-	);
-
-	const loadDashboardData = async () => {
+	const loadDashboardData = useCallback(async () => {
 		try {
 			setLoading(true);
 			const jobs = await jobService.getMyJobs();
@@ -142,7 +136,13 @@ export default function WorkerDashboardScreen({ navigation }) {
 			setLoading(false);
 			setRefreshing(false);
 		}
-	};
+	}, []);
+
+	useFocusEffect(
+		useCallback(() => {
+			loadDashboardData();
+		}, [loadDashboardData]),
+	);
 
 	const onRefresh = () => {
 		setRefreshing(true);

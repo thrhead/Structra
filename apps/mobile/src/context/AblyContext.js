@@ -22,7 +22,16 @@ export const AblyProvider = ({ children }) => {
 	useEffect(() => {
 		if (!isAuthenticated || !user) {
 			if (clientRef.current) {
-				clientRef.current.close();
+				try {
+					const closePromise = clientRef.current.close();
+					if (closePromise && typeof closePromise.catch === "function") {
+						closePromise.catch((err) =>
+							console.warn("[AblyContext] Error closing client (promise):", err),
+						);
+					}
+				} catch (error) {
+					console.warn("[AblyContext] Error closing client:", error);
+				}
 				clientRef.current = null;
 				setClient(null);
 				setChannel(null);
@@ -102,7 +111,16 @@ export const AblyProvider = ({ children }) => {
 
 		return () => {
 			if (clientRef.current) {
-				clientRef.current.close();
+				try {
+					const closePromise = clientRef.current.close();
+					if (closePromise && typeof closePromise.catch === "function") {
+						closePromise.catch((err) =>
+							console.warn("[AblyContext] Error closing client on cleanup (promise):", err),
+						);
+					}
+				} catch (error) {
+					console.warn("[AblyContext] Error closing client on cleanup:", error);
+				}
 				clientRef.current = null;
 			}
 		};
