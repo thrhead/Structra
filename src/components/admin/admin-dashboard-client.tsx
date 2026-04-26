@@ -42,6 +42,7 @@ export default function AdminDashboardClient({
     }, 0) || 0
 
     return {
+      id: c.id,
       name: c.company || "İsimsiz Müşteri",
       email: c.email || "e-posta yok",
       totalSpent: totalSpent,
