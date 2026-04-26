@@ -179,7 +179,7 @@ export default function AdminDashboardScreen({ navigation }) {
                                             <BarChart
                                                 data={chartData}
                                                 width={width - 80}
-                                                height={180}
+                                                height={220}
                                                 barWidth={24}
                                                 spacing={12}
                                                 noOfSections={3}
@@ -193,7 +193,7 @@ export default function AdminDashboardScreen({ navigation }) {
                                                 isAnimated
                                             />
                                         ) : (
-                                            <View style={{ height: 180, justifyContent: 'center', alignItems: 'center' }}>
+                                            <View style={{ height: 220, justifyContent: 'center', alignItems: 'center' }}>
                                                 <TrendingUp size={48} color={theme.colors.subText} style={{ opacity: 0.5, marginBottom: 16 }} />
                                                 <Text style={{ color: theme.colors.subText, fontSize: 14 }}>{t('common.noData') || 'Veri bulunmuyor'}</Text>
                                             </View>

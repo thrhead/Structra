@@ -28,6 +28,8 @@ import StatCard from '../../components/StatCard';
 import JobGridItem from '../../components/JobGridItem';
 import { useAlert } from '../../context/AlertContext';
 import LoadingOverlay from '../../components/common/LoadingOverlay';
+import { BarChart, PieChart } from 'react-native-gifted-charts';
+import { TrendingUp, PieChart as PieIcon } from 'lucide-react-native';
 
 import CustomSpinner from '../../components/CustomSpinner';
 if (Platform.OS === 'android') {
@@ -64,7 +66,9 @@ export default function WorkerDashboardScreen({ navigation }) {
     const [stats, setStats] = useState({
         activeJobs: 0,
         completedJobs: 0,
-        totalEarnings: 0
+        totalEarnings: 0,
+        weeklyPerformance: [],
+        distribution: []
     });
     const [activeJobs, setActiveJobs] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -107,10 +111,54 @@ export default function WorkerDashboardScreen({ navigation }) {
             });
 
             setActiveJobs(formattedActiveJobs);
+            // Process Weekly Performance (Completed steps in last 7 days)
+            const last7Days = [...Array(7)].map((_, i) => {
+                const d = new Date();
+                d.setDate(d.getDate() - (6 - i));
+                return d.toISOString().split('T')[0];
+            });
+
+            const performance = last7Days.map(date => {
+                let count = 0;
+                jobs.forEach(job => {
+                    if (job.steps) {
+                        job.steps.forEach(step => {
+                            if (step.isCompleted && step.completedAt && step.completedAt.startsWith(date)) {
+                                count++;
+                            }
+                        });
+                    }
+                });
+                
+                const dayName = new Date(date).toLocaleDateString('tr-TR', { weekday: 'short' });
+                return { 
+                    value: count, 
+                    label: dayName,
+                    frontColor: theme.colors.primary,
+                    topLabelComponent: () => (
+                        <Text style={{ color: theme.colors.text, fontSize: 10, fontWeight: 'bold', marginBottom: 4 }}>{count}</Text>
+                    )
+                };
+            });
+
+            // Process Distribution
+            const pendingCount = jobs.filter(j => j.status === 'PENDING').length;
+            const inProgressCount = jobs.filter(j => j.status === 'IN_PROGRESS').length;
+            const completedCount = jobs.filter(j => j.status === 'COMPLETED').length;
+            const total = pendingCount + inProgressCount + completedCount;
+
+            const distribution = [
+                { value: pendingCount, color: '#f59e0b', text: 'Bekleyen', label: 'Bekleyen' },
+                { value: inProgressCount, color: theme.colors.primary, text: 'Devam Eden', label: 'Devam Eden' },
+                { value: completedCount, color: '#22c55e', text: 'Tamamlanan', label: 'Tamamlanan' }
+            ].filter(d => d.value > 0);
+
             setStats({
                 activeJobs: active.length,
                 completedJobs: completed.length,
-                totalEarnings: costs ? costs.reduce((sum, cost) => sum + (cost.amount || 0), 0) : 0
+                totalEarnings: costs ? costs.reduce((sum, cost) => sum + (cost.amount || 0), 0) : 0,
+                weeklyPerformance: performance,
+                distribution: distribution
             });
 
         } catch (error) {
@@ -317,6 +365,69 @@ export default function WorkerDashboardScreen({ navigation }) {
                     ) : (
                         <>
                             {renderHeader()}
+                            
+                            {/* Performance Charts Section */}
+                            <View style={styles.sectionContainer}>
+                                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Haftalık Performans</Text>
+                                <View style={[styles.chartCard, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder }]}>
+                                    {stats.weeklyPerformance.length > 0 ? (
+                                        <BarChart
+                                            data={stats.weeklyPerformance}
+                                            width={width - 80}
+                                            height={180}
+                                            barWidth={24}
+                                            spacing={12}
+                                            noOfSections={3}
+                                            barBorderRadius={6}
+                                            hideRules
+                                            xAxisThickness={0}
+                                            yAxisThickness={0}
+                                            yAxisTextStyle={{ color: theme.colors.subText, fontSize: 10 }}
+                                            xAxisLabelTextStyle={{ color: theme.colors.subText, fontSize: 10 }}
+                                            showGradient
+                                            isAnimated
+                                        />
+                                    ) : (
+                                        <View style={styles.emptyChart}>
+                                            <TrendingUp size={40} color={theme.colors.subText} style={{ opacity: 0.4 }} />
+                                            <Text style={{ color: theme.colors.subText, marginTop: 8 }}>Veri yok</Text>
+                                        </View>
+                                    )}
+                                </View>
+                            </View>
+
+                            <View style={styles.sectionContainer}>
+                                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Görev Dağılımı</Text>
+                                <View style={[styles.chartCard, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }]}>
+                                    {stats.distribution.length > 0 ? (
+                                        <>
+                                            <PieChart
+                                                data={stats.distribution}
+                                                radius={60}
+                                                innerRadius={40}
+                                                showText
+                                                textColor="white"
+                                                textSize={10}
+                                                focusOnPress
+                                            />
+                                            <View style={{ gap: 8 }}>
+                                                {stats.distribution.map((item, i) => (
+                                                    <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                                        <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: item.color }} />
+                                                        <Text style={{ color: theme.colors.text, fontSize: 12 }}>{item.label}: {item.value}</Text>
+                                                    </View>
+                                                ))}
+                                            </View>
+                                        </>
+                                    ) : (
+                                        <View style={styles.emptyChart}>
+                                            <PieIcon size={40} color={theme.colors.subText} style={{ opacity: 0.4 }} />
+                                            <Text style={{ color: theme.colors.subText, marginTop: 8 }}>Veri yok</Text>
+                                        </View>
+                                    )}
+                                </View>
+                            </View>
+
                             {renderActiveTasks()}
 
                             <View style={styles.sectionContainer}>
@@ -531,4 +642,15 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         borderRadius: 12,
     },
+    chartCard: {
+        padding: 20,
+        borderRadius: 24,
+        borderWidth: 1,
+        alignItems: 'center',
+    },
+    emptyChart: {
+        height: 180,
+        justifyContent: 'center',
+        alignItems: 'center',
+    }
 });
