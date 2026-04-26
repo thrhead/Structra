@@ -76,6 +76,14 @@ export default function DashboardMiniCharts({
   const basePrefix = `/${locale}`
 
   const [selectedDay, setSelectedDay] = useState<WeeklyStatEntry | null>(null)
+  const [isMobile, setIsMobile] = React.useState(false)
+
+  React.useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   const donutData = [
     { name: 'Aktif (Devam)', value: activeJobs - pendingOnlyJobs },
@@ -155,36 +163,40 @@ export default function DashboardMiniCharts({
         <CardContent className="px-4 pb-4 pt-4">
           {hasWeeklyData ? (
             <>
-              <ResponsiveContainer width="100%" height={selectedDay ? 140 : 200}>
-                <BarChart data={weeklyStats} barSize={28}>
-                  <XAxis
-                    dataKey="name"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 11, fontWeight: 700, fill: '#94a3b8' }}
-                  />
-                  <YAxis hide allowDecimals={false} />
-                  <Tooltip content={<CustomBarTooltip />} cursor={{ fill: 'rgba(99,102,241,0.06)', radius: 8 } as any} />
-                  <Bar 
-                    dataKey="count" 
-                    radius={[8, 8, 0, 0]} 
-                    name="Tamamlanan"
-                    onClick={handleBarClick}
-                    className="cursor-pointer"
-                  >
-                    {weeklyStats.map((entry, i) => (
-                      <Cell
-                        key={i}
-                        fill={selectedDay?.date === entry.date 
-                          ? '#4f46e5' 
-                          : `hsl(${240 + i * 8}, ${65 + i * 2}%, ${52 + i}%)`
-                        }
-                        className="hover:opacity-80 transition-opacity cursor-pointer"
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="h-[220px] sm:h-[260px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={weeklyStats} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <XAxis
+                      dataKey="name"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }}
+                      interval={0}
+                    />
+                    <YAxis hide allowDecimals={false} />
+                    <Tooltip content={<CustomBarTooltip />} cursor={{ fill: 'rgba(99,102,241,0.06)', radius: 8 } as any} />
+                    <Bar 
+                      dataKey="count" 
+                      radius={[6, 6, 0, 0]} 
+                      name="Tamamlanan"
+                      onClick={handleBarClick}
+                      className="cursor-pointer"
+                      barSize={isMobile ? 20 : 32}
+                    >
+                      {weeklyStats.map((entry, i) => (
+                        <Cell
+                          key={i}
+                          fill={selectedDay?.date === entry.date 
+                            ? '#4f46e5' 
+                            : `hsl(${240 + i * 8}, ${65 + i * 2}%, ${52 + i}%)`
+                          }
+                          className="hover:opacity-80 transition-opacity cursor-pointer"
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
 
               {/* ── Selected Day Detail Panel ── */}
               {selectedDay && selectedDay.jobs.length > 0 && (
