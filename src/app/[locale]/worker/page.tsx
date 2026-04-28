@@ -48,6 +48,7 @@ const statusLabels: Record<string, string> = {
 }
 
 import { WorkerStats } from '@/components/worker/worker-stats'
+import { WorkerCharts } from '@/components/worker/worker-charts'
 
 import { CustomSpinner } from '@/components/ui/custom-spinner';
 export default function WorkerDashboard() {
@@ -136,6 +137,7 @@ export default function WorkerDashboard() {
       </div>
 
       <WorkerStats stats={stats} />
+      <WorkerCharts jobs={jobs} />
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">

@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import {
     Users, Building2, UsersRound, Briefcase, ClipboardCheck, Banknote,
-    Calendar, TrendingUp, BarChart3, Sun, Moon, PlusCircle, UserPlus, ChevronRight, ShieldCheck
+    Calendar, TrendingUp, BarChart3, Sun, Moon, PlusCircle, UserPlus, ChevronRight, ShieldCheck, PieChart as PieIcon
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
@@ -15,7 +15,7 @@ import GlassCard from '../../components/ui/GlassCard';
 import { useDashboardStats } from '../../hooks/useDashboardStats';
 import CustomDrawer from '../../components/admin/CustomDrawer';
 import DashboardStatsGrid from '../../components/admin/DashboardStatsGrid';
-import { BarChart } from 'react-native-gifted-charts';
+import { BarChart, PieChart } from 'react-native-gifted-charts';
 import RecentJobsList from '../../components/admin/RecentJobsList';
 import DashboardBottomNav from '../../components/admin/DashboardBottomNav';
 import { useAlert } from '../../context/AlertContext';
@@ -54,6 +54,17 @@ export default function AdminDashboardScreen({ navigation }) {
             <Text style={{ color: theme.colors.text, fontSize: 10, fontWeight: 'bold', marginBottom: 4 }}>{stat.count}</Text>
         )
     }));
+
+    // Prepare distribution data for Admin (similar to worker)
+    const pendingCount = statsData?.pendingOnlyJobs || 0;
+    const inProgressCount = (statsData?.activeJobs || 0) - pendingCount;
+    const completedCount = statsData?.totalCompletedJobs || 0;
+
+    const distributionData = [
+        { value: pendingCount, color: '#f59e0b', text: 'Bekleyen', label: 'Bekleyen' },
+        { value: inProgressCount > 0 ? inProgressCount : 0, color: theme.colors.primary, text: 'Devam Eden', label: 'Devam Eden' },
+        { value: completedCount, color: '#22c55e', text: 'Tamamlanan', label: 'Tamamlanan' }
+    ].filter(d => d.value > 0);
 
     const handleLogout = async () => {
         showAlert(
@@ -179,7 +190,7 @@ export default function AdminDashboardScreen({ navigation }) {
                                             <BarChart
                                                 data={chartData}
                                                 width={width - 80}
-                                                height={180}
+                                                height={220}
                                                 barWidth={24}
                                                 spacing={12}
                                                 noOfSections={3}
@@ -193,9 +204,42 @@ export default function AdminDashboardScreen({ navigation }) {
                                                 isAnimated
                                             />
                                         ) : (
-                                            <View style={{ height: 180, justifyContent: 'center', alignItems: 'center' }}>
+                                            <View style={{ height: 220, justifyContent: 'center', alignItems: 'center' }}>
                                                 <TrendingUp size={48} color={theme.colors.subText} style={{ opacity: 0.5, marginBottom: 16 }} />
                                                 <Text style={{ color: theme.colors.subText, fontSize: 14 }}>{t('common.noData') || 'Veri bulunmuyor'}</Text>
+                                            </View>
+                                        )}
+                                    </View>
+                                </View>
+
+                                {/* Job Distribution (Worker Parity) */}
+                                <View style={styles.section}>
+                                    <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Görev Dağılımı</Text>
+                                    <View style={[styles.chartContainer, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' }]}>
+                                        {distributionData.length > 0 ? (
+                                            <>
+                                                <PieChart
+                                                    data={distributionData}
+                                                    radius={60}
+                                                    innerRadius={40}
+                                                    showText
+                                                    textColor="white"
+                                                    textSize={10}
+                                                    focusOnPress
+                                                />
+                                                <View style={{ gap: 8 }}>
+                                                    {distributionData.map((item, i) => (
+                                                        <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                                            <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: item.color }} />
+                                                            <Text style={{ color: theme.colors.text, fontSize: 12 }}>{item.label}: {item.value}</Text>
+                                                        </View>
+                                                    ))}
+                                                </View>
+                                            </>
+                                        ) : (
+                                            <View style={{ height: 120, justifyContent: 'center', alignItems: 'center' }}>
+                                                <PieIcon size={40} color={theme.colors.subText} style={{ opacity: 0.4 }} />
+                                                <Text style={{ color: theme.colors.subText, marginTop: 8 }}>{t('common.noData') || 'Veri bulunmuyor'}</Text>
                                             </View>
                                         )}
                                     </View>

@@ -60,7 +60,9 @@ export async function GET(req: Request) {
         steps: {
           select: {
             id: true,
-            isCompleted: true
+            title: true,
+            isCompleted: true,
+            completedAt: true
           }
         },
         costs: true

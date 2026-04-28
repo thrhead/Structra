@@ -35,7 +35,10 @@ import {
 } from "@/components/ui/table"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
+import { Link } from "@/lib/navigation"
+
 interface CustomerData {
+  id: string
   name: string
   email: string
   totalSpent: number
@@ -86,7 +89,7 @@ const columns: ColumnDef<CustomerData>[] = [
   },
   {
     id: "actions",
-    cell: () => (
+    cell: ({ row }) => (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
@@ -97,11 +100,27 @@ const columns: ColumnDef<CustomerData>[] = [
             <IconDotsVertical size={16} />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-40 rounded-xl">
-          <DropdownMenuItem className="text-xs font-bold">Detayları Gör</DropdownMenuItem>
-          <DropdownMenuItem className="text-xs font-bold">Düzenle</DropdownMenuItem>
+        <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-xl border-slate-200 dark:border-slate-800">
+          <DropdownMenuItem asChild className="text-xs font-bold cursor-pointer focus:bg-indigo-50 dark:focus:bg-indigo-950/30 focus:text-indigo-600">
+            <Link href={`/admin/customers/${row.original.id}`}>
+              Detaylı Raporu Gör
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild className="text-xs font-bold cursor-pointer">
+            <Link href={`/admin/customers`}>
+              Müşteriyi Düzenle
+            </Link>
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem className="text-xs font-bold text-red-600">Sil</DropdownMenuItem>
+          <DropdownMenuItem asChild className="text-xs font-bold cursor-pointer">
+            <Link href={`/admin/customers`}>
+              Tüm Listeye Git
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem className="text-xs font-bold text-red-600 cursor-pointer focus:bg-red-50 dark:focus:bg-red-950/30">
+            Devre Dışı Bırak
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     ),
