@@ -1,5 +1,6 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import { QueueService } from './QueueService';
@@ -84,7 +85,9 @@ api.interceptors.request.use(
             }
 
             if (!config.headers.Authorization) {
-                const token = await AsyncStorage.getItem('authToken');
+                const token = Platform.OS === 'web' 
+                    ? await AsyncStorage.getItem('authToken') 
+                    : await SecureStore.getItemAsync('authToken');
                 if (token) {
                     config.headers.Authorization = `Bearer ${token}`;
                 }
@@ -113,15 +116,24 @@ api.interceptors.response.use(
         // Cache successful GET requests
         if (response.config.method === 'get' && response.status >= 200 && response.status < 300) {
             try {
-                const cacheKey = `cache_request_${response.config.url}_${JSON.stringify(response.config.params)}`;
-                // We store the whole response structure we care about
-                const dataToCache = {
-                    data: response.data,
-                    status: response.status,
-                    statusText: response.statusText,
-                    headers: response.headers,
-                };
-                await AsyncStorage.setItem(cacheKey, JSON.stringify(dataToCache));
+                // EXCLUDE SENSITIVE ENDPOINTS FROM CACHING
+                const sensitiveEndpoints = ['/api/worker/profile', '/api/user', '/api/auth'];
+                const isSensitive = sensitiveEndpoints.some(ep => response.config.url.includes(ep));
+                
+                if (!isSensitive) {
+                    const cacheKey = `cache_request_${response.config.url}_${JSON.stringify(response.config.params)}`;
+                    // We store the whole response structure we care about
+                    const dataToCache = {
+                        data: response.data,
+                        status: response.status,
+                        statusText: response.statusText,
+                        headers: response.headers,
+                    };
+                    // EXCLUDE SENSITIVE ENDPOINTS FROM CACHING
+                const sensitiveEndpoints = ['/api/worker/profile', '/api/user', '/api/auth'];
+                const isSensitive = sensitiveEndpoints.some(ep => response.config.url.includes(ep));
+                if (!isSensitive) { await AsyncStorage.setItem(cacheKey, JSON.stringify(dataToCache)); }
+                }
             } catch (e) {
                 console.warn('[API] Failed to cache response:', e);
             }
@@ -163,8 +175,13 @@ api.interceptors.response.use(
             });
 
             if (status === 401) {
-                await AsyncStorage.removeItem('authToken');
-                await AsyncStorage.removeItem('user');
+                if (Platform.OS === 'web') {
+                    await AsyncStorage.removeItem('authToken');
+                    await AsyncStorage.removeItem('user');
+                } else {
+                    await SecureStore.deleteItemAsync('authToken');
+                    await SecureStore.deleteItemAsync('user');
+                }
                 if (logoutCallback) logoutCallback();
             }
 
@@ -204,7 +221,11 @@ const setApiHeaderToken = (token) => {
 
 export const setAuthToken = async (token) => {
     try {
-        await AsyncStorage.setItem('authToken', token);
+        if (Platform.OS === 'web') {
+            if (Platform.OS === 'web') { await AsyncStorage.setItem('authToken', token); } else { await SecureStore.setItemAsync('authToken', token); }
+        } else {
+            await SecureStore.setItemAsync('authToken', token);
+        }
         setApiHeaderToken(token);
     } catch (error) {
         console.error('Error saving auth token:', error);
@@ -213,8 +234,13 @@ export const setAuthToken = async (token) => {
 
 export const clearAuthToken = async () => {
     try {
-        await AsyncStorage.removeItem('authToken');
-        await AsyncStorage.removeItem('user');
+        if (Platform.OS === 'web') {
+            await AsyncStorage.removeItem('authToken');
+            await AsyncStorage.removeItem('user');
+        } else {
+            await SecureStore.deleteItemAsync('authToken');
+            await SecureStore.deleteItemAsync('user');
+        }
         setApiHeaderToken(null);
     } catch (error) {
         console.error('Error clearing auth token:', error);
@@ -223,7 +249,9 @@ export const clearAuthToken = async () => {
 
 export const getAuthToken = async () => {
     try {
-        const token = await AsyncStorage.getItem('authToken');
+        const token = Platform.OS === 'web' 
+            ? await AsyncStorage.getItem('authToken') 
+            : await SecureStore.getItemAsync('authToken');
         if (token) {
             setApiHeaderToken(token);
         }

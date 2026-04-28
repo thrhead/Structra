@@ -1,5 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 import authService from '../services/auth.service';
 import { setAuthToken, clearAuthToken, registerLogoutCallback, getAuthToken } from '../services/api';
 import { withTimeout } from '../utils/async-helper';
@@ -25,7 +27,7 @@ export const AuthProvider = ({ children }) => {
     const checkUser = async () => {
         try {
             await withTimeout((async () => {
-                const savedUser = await AsyncStorage.getItem('user');
+                const savedUser = Platform.OS === 'web' ? await AsyncStorage.getItem('user') : await SecureStore.getItemAsync('user');
                 const token = await getAuthToken();
 
                 if (savedUser && token) {
@@ -60,7 +62,7 @@ export const AuthProvider = ({ children }) => {
             const response = await authService.login(email, password);
 
             if (response.user && response.token) {
-                await AsyncStorage.setItem('user', JSON.stringify(response.user));
+                if (Platform.OS === 'web') { await AsyncStorage.setItem('user', JSON.stringify(response.user)); } else { await SecureStore.setItemAsync('user', JSON.stringify(response.user)); }
                 await setAuthToken(response.token);
                 setUser(response.user);
                 
@@ -91,7 +93,7 @@ export const AuthProvider = ({ children }) => {
             setUser(null);
 
             // 2. Clear local storage immediately
-            await AsyncStorage.removeItem('user');
+            if (Platform.OS === 'web') { await AsyncStorage.removeItem('user'); } else { await SecureStore.deleteItemAsync('user'); }
 
             // 3. Notify server
             authService.logout().catch(err => console.log('Server logout failed (non-critical):', err));

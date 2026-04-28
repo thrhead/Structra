@@ -53,9 +53,9 @@ const notificationService = {
                     token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
                 }
 
-                console.log('Push Token:', token);
+                if (__DEV__) console.log('Push Token Generated');
                 if (token) {
-                    await AsyncStorage.setItem('push_token_last', token);
+                    if (Platform.OS === 'web') { await AsyncStorage.setItem('push_token_last', token); } else { const SecureStore = require('expo-secure-store'); await SecureStore.setItemAsync('push_token_last', token); }
                 }
             } catch (e) {
                 console.log('Error fetching push token:', e);

@@ -1,11 +1,33 @@
 import AES from 'crypto-js/aes';
 import encUtf8 from 'crypto-js/enc-utf8';
+import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 
-// In a real mobile app, this secret should be stored securely (e.g., using expo-secure-store)
-// For now, using the same placeholder as web to ensure interoperability
-const SECRET_KEY = 'default_secret_key_must_be_32_bytes_long!!';
+const SECURE_KEY_NAME = 'app_crypto_secure_key';
 
 export class CryptoService {
+    /**
+     * Gets or generates the secret key securely
+     * @returns {Promise<string>} Secret key
+     */
+    static async getSecretKey() {
+        if (Platform.OS === 'web') {
+            let key = typeof window !== 'undefined' ? window.localStorage.getItem(SECURE_KEY_NAME) : null;
+            if (!key) {
+                key = Array.from({ length: 32 }, () => Math.floor(Math.random() * 36).toString(36)).join('');
+                if (typeof window !== 'undefined') window.localStorage.setItem(SECURE_KEY_NAME, key);
+            }
+            return key;
+        }
+
+        let key = await SecureStore.getItemAsync(SECURE_KEY_NAME);
+        if (!key) {
+            key = Array.from({ length: 32 }, () => Math.floor(Math.random() * 36).toString(36)).join('');
+            await SecureStore.setItemAsync(SECURE_KEY_NAME, key);
+        }
+        return key;
+    }
+
     /**
      * Encrypts a message content
      * @param {string} content Plain text message
@@ -13,11 +35,12 @@ export class CryptoService {
      */
     static async encrypt(content) {
         try {
-            const encrypted = AES.encrypt(content, SECRET_KEY).toString();
+            const key = await this.getSecretKey();
+            const encrypted = AES.encrypt(content, key).toString();
             return encrypted;
         } catch (error) {
             console.error('Mobile Encryption failed:', error);
-            return content; // Fallback to plain text on error
+            throw new Error('Encryption failed');
         }
     }
 
@@ -32,12 +55,18 @@ export class CryptoService {
         }
 
         try {
-            const bytes = AES.decrypt(token, SECRET_KEY);
+            const key = await this.getSecretKey();
+            const bytes = AES.decrypt(token, key);
             const decrypted = bytes.toString(encUtf8);
-            return decrypted || token;
+            
+            if (!decrypted) {
+                throw new Error('Decryption resulted in empty string');
+            }
+            
+            return decrypted;
         } catch (error) {
             console.error('Mobile Decryption failed:', error);
-            return token; // Return original text if decryption fails
+            throw new Error('Decryption failed');
         }
     }
 }

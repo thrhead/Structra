@@ -56,7 +56,7 @@ async function registerForPushNotificationsAsync() {
         projectId,
       })
     ).data;
-    console.log('Push Token:', pushTokenString);
+    if (__DEV__) console.log('Push Token Generated');
     return pushTokenString;
   } catch (e) {
     console.error('Error getting push token:', e);
