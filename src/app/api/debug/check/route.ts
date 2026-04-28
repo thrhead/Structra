@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
+import { verifyAuth } from '@/lib/auth-helper';
 import { prisma } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(req: Request) {
+    const session = await verifyAuth(req);
+    if (!session || session.user.role !== 'ADMIN') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const diagnostics = {
         env: {
             hasAuthSecret: !!process.env.AUTH_SECRET,

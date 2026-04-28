@@ -108,8 +108,23 @@ export async function PATCH(
     // Seviye 3: Çatışma Kontrolü
     const currentJob = await prisma.job.findUnique({
       where: { id: params.id },
-      select: { updatedAt: true }
+      select: { updatedAt: true, assignments: { include: { team: { include: { members: true } } } } }
     })
+
+    if (!currentJob) return NextResponse.json({ error: 'Job not found' }, { status: 404 })
+
+
+    // Check access (skip for ADMIN/MANAGER)
+    if (!['ADMIN', 'MANAGER'].includes(session.user.role)) {
+      const hasAccess = currentJob.assignments.some(
+        a => a.workerId === session.user.id ||
+          (a.team && a.team.members?.some((m: any) => m.userId === session.user.id))
+      )
+
+      if (!hasAccess) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
+    }
 
     const conflict = await checkConflict(req, currentJob?.updatedAt)
     if (conflict) return conflict

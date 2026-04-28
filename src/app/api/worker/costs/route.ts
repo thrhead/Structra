@@ -48,13 +48,25 @@ export async function POST(req: Request) {
         const job = await prisma.job.findUnique({
             where: { id: data.jobId },
             include: {
-                creator: true
+                creator: true, assignments: { include: { team: { include: { members: true } } } }
             }
         })
 
         if (!job) {
             return NextResponse.json({ error: 'Job not found' }, { status: 404 })
         }
+
+        // Check access
+        if (session.user.role !== 'ADMIN' && session.user.role !== 'MANAGER') {
+            const hasAccess = job.assignments.some(
+                a => a.workerId === session.user.id ||
+                (a.team && a.team.members?.some((m: any) => m.userId === session.user.id))
+            )
+            if (!hasAccess) {
+                return NextResponse.json({ error: 'Forbidden: You are not assigned to this job' }, { status: 403 })
+            }
+        }
+
 
         let receiptUrl = data.receiptUrl
 

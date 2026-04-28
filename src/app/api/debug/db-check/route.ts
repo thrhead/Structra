@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { verifyAuth } from '@/lib/auth-helper'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
+export async function GET(req: Request) {
+    const session = await verifyAuth(req);
+    if (!session || session.user.role !== 'ADMIN') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     try {
         const workerCount = await prisma.user.count({
             where: { role: 'WORKER', isActive: true }

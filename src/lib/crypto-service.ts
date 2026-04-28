@@ -2,7 +2,11 @@ import AES from 'crypto-js/aes'
 import encUtf8 from 'crypto-js/enc-utf8'
 
 // Secret key should be loaded from environment variables in production
-const SECRET_KEY = process.env.MESSAGING_SECRET_KEY || 'default_secret_key_must_be_32_bytes_long!!'
+const getSecretKey = () => {
+    const key = process.env.MESSAGING_SECRET_KEY;
+    if (!key) throw new Error('MESSAGING_SECRET_KEY is not configured');
+    return key;
+}
 
 export class CryptoService {
     /**
@@ -12,7 +16,7 @@ export class CryptoService {
      */
     static async encrypt(content: string): Promise<string> {
         try {
-            const encrypted = AES.encrypt(content, SECRET_KEY).toString()
+            const encrypted = AES.encrypt(content, getSecretKey()).toString()
             return encrypted
         } catch (error) {
             console.error('Encryption failed:', error)
@@ -27,12 +31,13 @@ export class CryptoService {
      */
     static async decrypt(token: string): Promise<string> {
         try {
-            const bytes = AES.decrypt(token, SECRET_KEY)
+            const bytes = AES.decrypt(token, getSecretKey())
             const decrypted = bytes.toString(encUtf8)
-            return decrypted || token // Return original if empty (failed)
+            if (!decrypted) throw new Error('Decryption failed');
+            return decrypted;
         } catch (error) {
             console.error('Decryption failed:', error)
-            return token 
+            throw new Error('Decryption failed'); 
         }
     }
 }
