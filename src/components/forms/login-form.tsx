@@ -1,10 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { signIn, getSession } from "next-auth/react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Bricolage_Grotesque } from 'next/font/google'
 
@@ -13,6 +11,103 @@ const bricolage = Bricolage_Grotesque({
   weight: ['300', '400', '700'],
   display: 'swap',
 })
+
+function NexusInput({
+  id,
+  type,
+  label,
+  placeholder,
+  value,
+  onChange,
+  error,
+  disabled,
+}: {
+  id: string
+  type: string
+  label: string
+  placeholder: string
+  value: string
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  error?: string
+  disabled?: boolean
+}) {
+  const [focused, setFocused] = useState(false)
+
+  return (
+    <div className="space-y-2">
+      <label
+        htmlFor={id}
+        style={{
+          fontFamily: 'SFMono-Regular, ui-monospace, monospace',
+          fontSize: '12px',
+          fontWeight: 600,
+          lineHeight: '16px',
+          letterSpacing: '1.2px',
+          textTransform: 'uppercase' as const,
+          color: focused ? '#00E5FF' : '#FFFFFF',
+          transition: 'color 150ms ease',
+          display: 'block',
+        }}
+      >
+        {label}
+      </label>
+      <div className="relative">
+        <input
+          id={id}
+          type={type}
+          placeholder={placeholder}
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          style={{
+            width: '100%',
+            padding: '14px 16px',
+            background: 'rgba(10, 10, 10, 0.6)',
+            border: `1px solid ${focused ? '#00E5FF' : error ? '#ef4444' : 'rgba(255, 255, 255, 0.15)'}`,
+            borderRadius: '4px',
+            color: '#FFFFFF',
+            fontSize: '14px',
+            lineHeight: '22.75px',
+            fontFamily: 'inherit',
+            outline: 'none',
+            transition: 'border-color 150ms ease, box-shadow 150ms ease',
+            boxShadow: focused ? '0 0 8px 0 rgba(0, 229, 255, 0.3)' : 'none',
+          }}
+          className="placeholder:text-white/30"
+        />
+        {/* Bottom accent line */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: '50%',
+            transform: `translateX(-50%) scaleX(${focused ? 1 : 0})`,
+            width: '100%',
+            height: '1px',
+            background: '#00E5FF',
+            transition: 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+            transformOrigin: 'center',
+          }}
+        />
+      </div>
+      {error && (
+        <p
+          style={{
+            color: '#ef4444',
+            fontSize: '12px',
+            fontFamily: 'SFMono-Regular, ui-monospace, monospace',
+            letterSpacing: '0.5px',
+            marginTop: '4px',
+          }}
+        >
+          {error}
+        </p>
+      )}
+    </div>
+  )
+}
 
 export function LoginForm() {
   const router = useRouter()
@@ -76,77 +171,269 @@ export function LoginForm() {
   }
 
   return (
-    <div className="bg-[#0A0A0A]/40 backdrop-blur-[4px] border border-white/20 p-8 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25),0_0_8px_0_rgba(0,229,255,1)]">
-      <div className="text-center mb-10">
-        <h1 className={`${bricolage.className} text-[52px] font-light leading-none tracking-[-0.05em] uppercase text-white mb-2`}>
-          Montaj Takip
+    <div
+      style={{
+        background: 'rgba(10, 10, 10, 0.4)',
+        backdropFilter: 'blur(4px)',
+        WebkitBackdropFilter: 'blur(4px)',
+        border: '1px solid rgba(255, 255, 255, 0.12)',
+        padding: '32px',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 8px 0 rgba(0, 229, 255, 0.5)',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Top accent line */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '1px',
+          background: 'linear-gradient(to right, transparent, #00E5FF, transparent)',
+        }}
+      />
+
+      {/* Corner accents */}
+      <div style={{ position: 'absolute', top: 0, left: 0, width: '24px', height: '24px', borderTop: '1px solid #00E5FF', borderLeft: '1px solid #00E5FF' }} />
+      <div style={{ position: 'absolute', top: 0, right: 0, width: '24px', height: '24px', borderTop: '1px solid #00E5FF', borderRight: '1px solid #00E5FF' }} />
+      <div style={{ position: 'absolute', bottom: 0, left: 0, width: '24px', height: '24px', borderBottom: '1px solid #00E5FF', borderLeft: '1px solid #00E5FF' }} />
+      <div style={{ position: 'absolute', bottom: 0, right: 0, width: '24px', height: '24px', borderBottom: '1px solid #00E5FF', borderRight: '1px solid #00E5FF' }} />
+
+      {/* Status indicator */}
+      <div className="flex items-center gap-2 mb-8">
+        <div
+          style={{
+            width: '6px',
+            height: '6px',
+            borderRadius: '9999px',
+            background: '#00E5FF',
+            boxShadow: '0 0 8px rgba(0, 229, 255, 0.6)',
+            animation: 'pulse 2s ease infinite',
+          }}
+        />
+        <span
+          style={{
+            fontFamily: 'SFMono-Regular, ui-monospace, monospace',
+            fontSize: '11px',
+            fontWeight: 600,
+            letterSpacing: '1.2px',
+            textTransform: 'uppercase',
+            color: 'rgba(255, 255, 255, 0.4)',
+          }}
+        >
+          Secure Connection
+        </span>
+      </div>
+
+      {/* Header */}
+      <div className="mb-10">
+        {/* Mobile-only brand */}
+        <p
+          className="lg:hidden mb-3"
+          style={{
+            fontFamily: 'SFMono-Regular, ui-monospace, monospace',
+            fontSize: '11px',
+            fontWeight: 600,
+            letterSpacing: '1.2px',
+            textTransform: 'uppercase',
+            color: '#00E5FF',
+          }}
+        >
+          Nexus Core
+        </p>
+
+        <h1
+          className={bricolage.className}
+          style={{
+            fontSize: '42px',
+            fontWeight: 300,
+            lineHeight: '42px',
+            letterSpacing: '-0.05em',
+            textTransform: 'uppercase' as const,
+            color: '#FFFFFF',
+            marginBottom: '12px',
+          }}
+        >
+          Giriş
+          <span style={{ color: '#00E5FF' }}>.</span>
         </h1>
-        <p className="text-[#00E5FF] font-mono text-[12px] font-semibold tracking-[1.2px] uppercase">
+
+        <p
+          style={{
+            fontFamily: 'SFMono-Regular, ui-monospace, monospace',
+            fontSize: '12px',
+            fontWeight: 600,
+            lineHeight: '16px',
+            letterSpacing: '1.2px',
+            textTransform: 'uppercase' as const,
+            color: '#00E5FF',
+          }}
+        >
           Hesabınıza giriş yapın
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
-          <div className="bg-red-500/10 border border-red-500/50 text-red-500 px-4 py-3 rounded-[4px] text-[14px] font-sans">
+          <div
+            style={{
+              background: 'rgba(239, 68, 68, 0.08)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              borderRadius: '4px',
+              padding: '12px 16px',
+              color: '#ef4444',
+              fontSize: '13px',
+              fontFamily: 'inherit',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="15" y1="9" x2="9" y2="15" />
+              <line x1="9" y1="9" x2="15" y2="15" />
+            </svg>
             {error}
           </div>
         )}
 
-        <div className="space-y-2">
-          <label htmlFor="email" className="block text-[#FFFFFF] font-mono text-[12px] font-semibold tracking-[1.2px] uppercase">
-            E-posta
-          </label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="ornek@sirket.com"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            // @ts-ignore
-            error={errors.email}
-            disabled={isLoading}
-            className="bg-transparent border border-white/20 text-white placeholder:text-white/40 rounded-[4px] focus-visible:ring-[#00E5FF] focus-visible:border-[#00E5FF] transition-colors font-sans text-[14px]"
-          />
-          {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
-        </div>
-
-        <div className="space-y-2">
-          <label htmlFor="password" className="block text-[#FFFFFF] font-mono text-[12px] font-semibold tracking-[1.2px] uppercase">
-            Şifre
-          </label>
-          <Input
-            id="password"
-            type="password"
-            placeholder="••••••••"
-            value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            // @ts-ignore
-            error={errors.password}
-            disabled={isLoading}
-            className="bg-transparent border border-white/20 text-white placeholder:text-white/40 rounded-[4px] focus-visible:ring-[#00E5FF] focus-visible:border-[#00E5FF] transition-colors font-sans text-[14px]"
-          />
-          {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
-        </div>
-
-        <Button
-          type="submit"
-          className="w-full bg-[#00E5FF] text-[#000000] hover:bg-[#00E5FF]/80 rounded-[4px] py-[14px] h-auto font-mono text-[12px] font-semibold tracking-[1.2px] uppercase transition-colors"
+        <NexusInput
+          id="email"
+          type="email"
+          label="E-posta"
+          placeholder="ornek@sirket.com"
+          value={formData.email}
+          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          error={errors.email}
           disabled={isLoading}
+        />
+
+        <NexusInput
+          id="password"
+          type="password"
+          label="Şifre"
+          placeholder="••••••••"
+          value={formData.password}
+          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+          error={errors.password}
+          disabled={isLoading}
+        />
+
+        {/* Submit button */}
+        <button
+          type="submit"
+          disabled={isLoading}
+          style={{
+            width: '100%',
+            padding: '14px',
+            background: isLoading ? 'rgba(0, 229, 255, 0.5)' : '#00E5FF',
+            color: '#000000',
+            border: 'none',
+            borderRadius: '4px',
+            fontFamily: 'SFMono-Regular, ui-monospace, monospace',
+            fontSize: '12px',
+            fontWeight: 600,
+            letterSpacing: '1.2px',
+            textTransform: 'uppercase' as const,
+            cursor: isLoading ? 'not-allowed' : 'pointer',
+            transition: 'all 150ms ease',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+          className="group"
+          onMouseEnter={(e) => {
+            if (!isLoading) {
+              e.currentTarget.style.background = 'rgba(0, 229, 255, 0.85)'
+              e.currentTarget.style.boxShadow = '0 0 16px rgba(0, 229, 255, 0.4)'
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isLoading) {
+              e.currentTarget.style.background = '#00E5FF'
+              e.currentTarget.style.boxShadow = 'none'
+            }
+          }}
         >
-          {isLoading ? "Giriş yapılıyor..." : "Giriş Yap"}
-        </Button>
+          {isLoading ? (
+            <span className="flex items-center justify-center gap-2">
+              <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+              </svg>
+              Giriş Yapılıyor...
+            </span>
+          ) : (
+            "Giriş Yap"
+          )}
+        </button>
       </form>
 
-      <div className="mt-8 text-center text-[14px] font-sans text-white/60">
-        <p>
-          Hesabınız yok mu?{" "}
-          <Link href="/register" className="text-[#00E5FF] hover:text-white transition-colors duration-300 font-mono text-[12px] font-semibold tracking-[1.2px] uppercase ml-2">
-            Kayıt olun
-          </Link>
+      {/* Footer */}
+      <div className="mt-8 flex items-center justify-between">
+        <p
+          style={{
+            fontSize: '14px',
+            lineHeight: '22.75px',
+            color: 'rgba(255, 255, 255, 0.4)',
+          }}
+        >
+          Hesabınız yok mu?
+        </p>
+        <Link
+          href="/register"
+          style={{
+            fontFamily: 'SFMono-Regular, ui-monospace, monospace',
+            fontSize: '12px',
+            fontWeight: 600,
+            letterSpacing: '1.2px',
+            textTransform: 'uppercase',
+            color: '#00E5FF',
+            textDecoration: 'none',
+            transition: 'color 150ms ease',
+            borderBottom: '1px solid transparent',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = '#FFFFFF'
+            e.currentTarget.style.borderBottomColor = '#FFFFFF'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = '#00E5FF'
+            e.currentTarget.style.borderBottomColor = 'transparent'
+          }}
+        >
+          Kayıt Olun →
+        </Link>
+      </div>
+
+      {/* Version tag */}
+      <div
+        className="mt-6 pt-6"
+        style={{ borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}
+      >
+        <p
+          style={{
+            fontFamily: 'SFMono-Regular, ui-monospace, monospace',
+            fontSize: '10px',
+            fontWeight: 600,
+            letterSpacing: '1px',
+            textTransform: 'uppercase',
+            color: 'rgba(255, 255, 255, 0.15)',
+            textAlign: 'center',
+          }}
+        >
+          Structra v4.0 — Field Service Management
         </p>
       </div>
+
+      {/* Keyframes */}
+      <style jsx>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.4; }
+        }
+      `}</style>
     </div>
   )
 }
-
