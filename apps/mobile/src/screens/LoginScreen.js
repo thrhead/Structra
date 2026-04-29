@@ -44,7 +44,7 @@ export default function LoginScreen() {
             </View>
           </View>
           <View style={styles.versionContainer}>
-            <Text style={styles.versionText}>V1.0 • Construction Mgmt System</Text>
+            <Text style={styles.versionText}>V1.0 • Montaj Takip Sistemi</Text>
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
