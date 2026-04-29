@@ -4,11 +4,11 @@ import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { signIn, getSession } from "next-auth/react"
 import Link from "next/link"
-import { Bricolage_Grotesque } from 'next/font/google'
+import { Outfit } from 'next/font/google'
 
-const bricolage = Bricolage_Grotesque({
+const outfit = Outfit({
   subsets: ['latin'],
-  weight: ['300', '400', '700'],
+  weight: ['300', '400', '600', '700'],
   display: 'swap',
 })
 
@@ -44,7 +44,7 @@ function NexusInput({
           lineHeight: '16px',
           letterSpacing: '1.2px',
           textTransform: 'uppercase' as const,
-          color: focused ? '#00E5FF' : '#FFFFFF',
+          color: focused ? '#ff5500' : '#FFFFFF',
           transition: 'color 150ms ease',
           display: 'block',
         }}
@@ -65,7 +65,7 @@ function NexusInput({
             width: '100%',
             padding: '14px 16px',
             background: 'rgba(10, 10, 10, 0.6)',
-            border: `1px solid ${focused ? '#00E5FF' : error ? '#ef4444' : 'rgba(255, 255, 255, 0.15)'}`,
+            border: `1px solid ${focused ? '#ff5500' : error ? '#ef4444' : 'rgba(255, 255, 255, 0.15)'}`,
             borderRadius: '4px',
             color: '#FFFFFF',
             fontSize: '14px',
@@ -73,7 +73,7 @@ function NexusInput({
             fontFamily: 'inherit',
             outline: 'none',
             transition: 'border-color 150ms ease, box-shadow 150ms ease',
-            boxShadow: focused ? '0 0 8px 0 rgba(0, 229, 255, 0.3)' : 'none',
+            boxShadow: focused ? '0 0 8px 0 rgba(255, 85, 0, 0.3)' : 'none',
           }}
           className="placeholder:text-white/30"
         />
@@ -86,7 +86,7 @@ function NexusInput({
             transform: `translateX(-50%) scaleX(${focused ? 1 : 0})`,
             width: '100%',
             height: '1px',
-            background: '#00E5FF',
+            background: '#ff5500',
             transition: 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)',
             transformOrigin: 'center',
           }}
@@ -178,9 +178,14 @@ export function LoginForm() {
         WebkitBackdropFilter: 'blur(4px)',
         border: '1px solid rgba(255, 255, 255, 0.12)',
         padding: '32px',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 8px 0 rgba(0, 229, 255, 0.5)',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 4px 0 rgba(255, 85, 0, 0.2)',
         position: 'relative',
         overflow: 'hidden',
+        backgroundImage: `
+          linear-gradient(to right, rgba(255, 85, 0, 0.05) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(255, 85, 0, 0.05) 1px, transparent 1px)
+        `,
+        backgroundSize: '20px 20px',
       }}
     >
       {/* Top accent line */}
@@ -191,15 +196,15 @@ export function LoginForm() {
           left: 0,
           right: 0,
           height: '1px',
-          background: 'linear-gradient(to right, transparent, #00E5FF, transparent)',
+          background: 'linear-gradient(to right, transparent, #ff5500, transparent)',
         }}
       />
 
-      {/* Corner accents */}
-      <div style={{ position: 'absolute', top: 0, left: 0, width: '24px', height: '24px', borderTop: '1px solid #00E5FF', borderLeft: '1px solid #00E5FF' }} />
-      <div style={{ position: 'absolute', top: 0, right: 0, width: '24px', height: '24px', borderTop: '1px solid #00E5FF', borderRight: '1px solid #00E5FF' }} />
-      <div style={{ position: 'absolute', bottom: 0, left: 0, width: '24px', height: '24px', borderBottom: '1px solid #00E5FF', borderLeft: '1px solid #00E5FF' }} />
-      <div style={{ position: 'absolute', bottom: 0, right: 0, width: '24px', height: '24px', borderBottom: '1px solid #00E5FF', borderRight: '1px solid #00E5FF' }} />
+      {/* Corner accents mixed colors */}
+      <div style={{ position: 'absolute', top: 0, left: 0, width: '24px', height: '24px', borderTop: '1px solid #ef4444', borderLeft: '1px solid #ef4444' }} />
+      <div style={{ position: 'absolute', top: 0, right: 0, width: '24px', height: '24px', borderTop: '1px solid #ff5500', borderRight: '1px solid #ff5500' }} />
+      <div style={{ position: 'absolute', bottom: 0, left: 0, width: '24px', height: '24px', borderBottom: '1px solid #ffffff', borderLeft: '1px solid #ffffff', opacity: 0.5 }} />
+      <div style={{ position: 'absolute', bottom: 0, right: 0, width: '24px', height: '24px', borderBottom: '1px solid #ff5500', borderRight: '1px solid #ff5500' }} />
 
       {/* Status indicator */}
       <div className="flex items-center gap-2 mb-8">
@@ -208,8 +213,8 @@ export function LoginForm() {
             width: '6px',
             height: '6px',
             borderRadius: '9999px',
-            background: '#00E5FF',
-            boxShadow: '0 0 8px rgba(0, 229, 255, 0.6)',
+            background: '#ff5500',
+            boxShadow: '0 0 4px rgba(255, 85, 0, 0.3)',
             animation: 'pulse 2s ease infinite',
           }}
         />
@@ -238,14 +243,14 @@ export function LoginForm() {
             fontWeight: 600,
             letterSpacing: '1.2px',
             textTransform: 'uppercase',
-            color: '#00E5FF',
+            color: '#ff5500',
           }}
         >
           Nexus Core
         </p>
 
         <h1
-          className={bricolage.className}
+          className={outfit.className}
           style={{
             fontSize: '42px',
             fontWeight: 300,
@@ -257,7 +262,7 @@ export function LoginForm() {
           }}
         >
           Giriş
-          <span style={{ color: '#00E5FF' }}>.</span>
+          <span style={{ color: '#ff5500' }}>.</span>
         </h1>
 
         <p
@@ -268,7 +273,7 @@ export function LoginForm() {
             lineHeight: '16px',
             letterSpacing: '1.2px',
             textTransform: 'uppercase' as const,
-            color: '#00E5FF',
+            color: '#ff5500',
           }}
         >
           Hesabınıza giriş yapın
@@ -329,7 +334,7 @@ export function LoginForm() {
           style={{
             width: '100%',
             padding: '14px',
-            background: isLoading ? 'rgba(0, 229, 255, 0.5)' : '#00E5FF',
+            background: isLoading ? 'rgba(255, 85, 0, 0.5)' : '#ff5500',
             color: '#000000',
             border: 'none',
             borderRadius: '4px',
@@ -346,13 +351,13 @@ export function LoginForm() {
           className="group"
           onMouseEnter={(e) => {
             if (!isLoading) {
-              e.currentTarget.style.background = 'rgba(0, 229, 255, 0.85)'
-              e.currentTarget.style.boxShadow = '0 0 16px rgba(0, 229, 255, 0.4)'
+              e.currentTarget.style.background = 'rgba(255, 85, 0, 0.85)'
+              e.currentTarget.style.boxShadow = '0 0 16px rgba(255, 85, 0, 0.4)'
             }
           }}
           onMouseLeave={(e) => {
             if (!isLoading) {
-              e.currentTarget.style.background = '#00E5FF'
+              e.currentTarget.style.background = '#ff5500'
               e.currentTarget.style.boxShadow = 'none'
             }
           }}
@@ -389,7 +394,7 @@ export function LoginForm() {
             fontWeight: 600,
             letterSpacing: '1.2px',
             textTransform: 'uppercase',
-            color: '#00E5FF',
+            color: '#ff5500',
             textDecoration: 'none',
             transition: 'color 150ms ease',
             borderBottom: '1px solid transparent',
@@ -399,7 +404,7 @@ export function LoginForm() {
             e.currentTarget.style.borderBottomColor = '#FFFFFF'
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.color = '#00E5FF'
+            e.currentTarget.style.color = '#ff5500'
             e.currentTarget.style.borderBottomColor = 'transparent'
           }}
         >

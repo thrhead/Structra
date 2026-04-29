@@ -19,8 +19,8 @@ export default function AuthLayout({
           inset: 0,
           zIndex: 0,
           backgroundImage: `
-            linear-gradient(to right, rgba(0, 229, 255, 0.04) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(0, 229, 255, 0.04) 1px, transparent 1px)
+            linear-gradient(to right, rgba(255, 85, 0, 0.04) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255, 85, 0, 0.04) 1px, transparent 1px)
           `,
           backgroundSize: '40px 40px',
         }}
@@ -57,7 +57,7 @@ export default function AuthLayout({
           right: 0,
           height: '1px',
           zIndex: 20,
-          background: 'linear-gradient(to right, transparent, rgba(0, 229, 255, 0.3), transparent)',
+          background: 'linear-gradient(to right, transparent, rgba(255, 85, 0, 0.3), transparent)',
         }}
       />
     </div>

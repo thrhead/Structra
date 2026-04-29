@@ -44,15 +44,15 @@ export function LoginBackground() {
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.15)
     scene.add(ambientLight)
 
-    const dirLight = new THREE.DirectionalLight(0x00E5FF, 0.8)
+    const dirLight = new THREE.DirectionalLight(0xff0000, 0.4)
     dirLight.position.set(10, 20, 10)
     scene.add(dirLight)
 
-    const coreGlow = new THREE.PointLight(0x00E5FF, 4, 25)
+    const coreGlow = new THREE.PointLight(0xff3300, 1.5, 15)
     coreGlow.position.set(0, 3, 0)
     scene.add(coreGlow)
 
-    const secondaryGlow = new THREE.PointLight(0x0A3BFF, 2, 30)
+    const secondaryGlow = new THREE.PointLight(0xffffff, 0.8, 30)
     secondaryGlow.position.set(-8, 6, -8)
     scene.add(secondaryGlow)
 
@@ -61,15 +61,15 @@ export function LoginBackground() {
     // ═══════════════════════════════════════════════════
     const gridSize = 40
     const gridDivisions = 40
-    const gridHelper = new THREE.GridHelper(gridSize, gridDivisions, 0x00E5FF, 0x00E5FF)
-    gridHelper.material.opacity = 0.06
+    const gridHelper = new THREE.GridHelper(gridSize, gridDivisions, 0xef4444, 0xef4444)
+    gridHelper.material.opacity = 0.03
     gridHelper.material.transparent = true
     gridHelper.position.y = -0.01
     scene.add(gridHelper)
 
     // Extra finer grid
-    const fineGrid = new THREE.GridHelper(gridSize, gridDivisions * 2, 0x00E5FF, 0x00E5FF)
-    fineGrid.material.opacity = 0.02
+    const fineGrid = new THREE.GridHelper(gridSize, gridDivisions * 2, 0xffffff, 0xffffff)
+    fineGrid.material.opacity = 0.01
     fineGrid.material.transparent = true
     fineGrid.position.y = -0.02
     scene.add(fineGrid)
@@ -107,7 +107,7 @@ export function LoginBackground() {
     // Tier 1 edge glow
     const tier1Edge = new THREE.LineSegments(
       new THREE.EdgesGeometry(tier1.geometry),
-      new THREE.LineBasicMaterial({ color: 0x00E5FF, transparent: true, opacity: 0.15 })
+      new THREE.LineBasicMaterial({ color: 0xff5500, transparent: true, opacity: 0.15 })
     )
     tier1Edge.position.copy(tier1.position)
     platformGroup.add(tier1Edge)
@@ -122,7 +122,7 @@ export function LoginBackground() {
 
     const tier2Edge = new THREE.LineSegments(
       new THREE.EdgesGeometry(tier2.geometry),
-      new THREE.LineBasicMaterial({ color: 0x00E5FF, transparent: true, opacity: 0.2 })
+      new THREE.LineBasicMaterial({ color: 0xff5500, transparent: true, opacity: 0.2 })
     )
     tier2Edge.position.copy(tier2.position)
     platformGroup.add(tier2Edge)
@@ -137,7 +137,7 @@ export function LoginBackground() {
 
     const tier3Edge = new THREE.LineSegments(
       new THREE.EdgesGeometry(tier3.geometry),
-      new THREE.LineBasicMaterial({ color: 0x00E5FF, transparent: true, opacity: 0.25 })
+      new THREE.LineBasicMaterial({ color: 0xff5500, transparent: true, opacity: 0.25 })
     )
     tier3Edge.position.copy(tier3.position)
     platformGroup.add(tier3Edge)
@@ -146,9 +146,9 @@ export function LoginBackground() {
     // CENTRAL CORE — Glowing cyan cube
     // ═══════════════════════════════════════════════════
     const coreMat = new THREE.MeshStandardMaterial({
-      color: 0x00E5FF,
-      emissive: 0x00E5FF,
-      emissiveIntensity: 0.8,
+      color: 0xef4444,
+      emissive: 0xef4444,
+      emissiveIntensity: 0.3,
       roughness: 0.1,
       metalness: 0.6,
       transparent: true,
@@ -170,7 +170,7 @@ export function LoginBackground() {
 
     // Core inner glow plane (additive)
     const glowPlaneMat = new THREE.MeshBasicMaterial({
-      color: 0x00E5FF,
+      color: 0xff5500,
       transparent: true,
       opacity: 0.15,
       side: THREE.DoubleSide,
@@ -193,7 +193,7 @@ export function LoginBackground() {
     // Ring 1 — outer
     const ringGeo1 = new THREE.CylinderGeometry(3.2, 3.2, 2.2, 32, 4, true)
     const ringMat = new THREE.MeshBasicMaterial({
-      color: 0x00E5FF,
+      color: 0xff5500,
       wireframe: true,
       transparent: true,
       opacity: 0.18,
@@ -204,7 +204,7 @@ export function LoginBackground() {
     // Ring 2 — inner, positioned above outer ring
     const ringGeo2 = new THREE.CylinderGeometry(2.6, 2.6, 1.6, 24, 3, true)
     const ringMat2 = new THREE.MeshBasicMaterial({
-      color: 0x00E5FF,
+      color: 0xff5500,
       wireframe: true,
       transparent: true,
       opacity: 0.12,
@@ -216,7 +216,7 @@ export function LoginBackground() {
     // Ring edge accents — horizontal ring lines
     const torusGeo = new THREE.TorusGeometry(3.2, 0.015, 4, 64)
     const torusMat = new THREE.MeshBasicMaterial({
-      color: 0x00E5FF,
+      color: 0xff5500,
       transparent: true,
       opacity: 0.35,
     })
@@ -233,7 +233,7 @@ export function LoginBackground() {
 
     const torusMid = new THREE.Mesh(
       new THREE.TorusGeometry(3.2, 0.01, 4, 64),
-      new THREE.MeshBasicMaterial({ color: 0x00E5FF, transparent: true, opacity: 0.2 })
+      new THREE.MeshBasicMaterial({ color: 0xff5500, transparent: true, opacity: 0.2 })
     )
     torusMid.rotation.x = Math.PI / 2
     ringGroup.add(torusMid)
@@ -242,9 +242,9 @@ export function LoginBackground() {
     // DATA BLOCKS — Small cyan bars on the platform
     // ═══════════════════════════════════════════════════
     const dataBlockMat = new THREE.MeshStandardMaterial({
-      color: 0x00E5FF,
-      emissive: 0x00E5FF,
-      emissiveIntensity: 0.6,
+      color: 0xff5500,
+      emissive: 0xff5500,
+      emissiveIntensity: 0.2,
       roughness: 0.2,
       metalness: 0.8,
     })
@@ -305,9 +305,9 @@ export function LoginBackground() {
       const innerCube = new THREE.Mesh(
         new THREE.BoxGeometry(0.45, 0.45, 0.45),
         new THREE.MeshStandardMaterial({
-          color: 0x00E5FF,
-          emissive: 0x00E5FF,
-          emissiveIntensity: 0.9,
+          color: 0xef4444,
+          emissive: 0xef4444,
+          emissiveIntensity: 0.4,
           roughness: 0.1,
           metalness: 0.7,
         })
@@ -352,7 +352,7 @@ export function LoginBackground() {
     ])
     const leadLine = new THREE.Line(
       lineGeo,
-      new THREE.LineBasicMaterial({ color: 0x00E5FF, transparent: true, opacity: 0.4 })
+      new THREE.LineBasicMaterial({ color: 0xff5500, transparent: true, opacity: 0.4 })
     )
     labelGroup.add(leadLine)
 
@@ -367,12 +367,12 @@ export function LoginBackground() {
     ctx.fillRect(0, 0, 256, 96)
 
     // Border
-    ctx.strokeStyle = 'rgba(0, 229, 255, 0.5)'
+    ctx.strokeStyle = 'rgba(255, 85, 0, 0.5)'
     ctx.lineWidth = 1
     ctx.strokeRect(1, 1, 254, 94)
 
     // Title text
-    ctx.fillStyle = '#00E5FF'
+    ctx.fillStyle = '#ff5500'
     ctx.font = '600 16px SFMono-Regular, Consolas, monospace'
     ctx.textAlign = 'center'
     ctx.fillText('Logic Core', 128, 38)
@@ -422,7 +422,7 @@ export function LoginBackground() {
       blending: THREE.AdditiveBlending,
       uniforms: {
         uTime: { value: 0 },
-        uColor: { value: new THREE.Color(0x00E5FF) },
+        uColor: { value: new THREE.Color(0xff5500) },
       },
       vertexShader: `
         attribute float aPhase;
@@ -561,8 +561,8 @@ export function LoginBackground() {
           zIndex: 0,
           background: '#0A0A0A',
           backgroundImage: `
-            linear-gradient(to right, rgba(0, 229, 255, 0.03) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(0, 229, 255, 0.03) 1px, transparent 1px)
+            linear-gradient(to right, rgba(255, 85, 0, 0.03) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255, 85, 0, 0.03) 1px, transparent 1px)
           `,
           backgroundSize: '40px 40px',
         }}
@@ -573,7 +573,7 @@ export function LoginBackground() {
           position: 'absolute',
           inset: 0,
           zIndex: 1,
-          background: 'radial-gradient(ellipse at 50% 55%, rgba(0, 229, 255, 0.08) 0%, transparent 60%)',
+          background: 'radial-gradient(ellipse at 50% 55%, rgba(255, 85, 0, 0.08) 0%, transparent 60%)',
         }}
       />
       {/* WebGL Canvas */}
