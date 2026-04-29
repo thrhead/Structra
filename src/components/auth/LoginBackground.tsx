@@ -10,103 +10,105 @@ export function LoginBackground() {
   useEffect(() => {
     if (!mountRef.current) return
 
+    const container = mountRef.current;
+
     // Scene setup
     const scene = new THREE.Scene()
     
-    // Orthographic Camera
+    // Isometric Camera setup
     const aspect = window.innerWidth / window.innerHeight
-    const frustumSize = 20
+    const d = 10;
     const camera = new THREE.OrthographicCamera(
-      frustumSize * aspect / -2,
-      frustumSize * aspect / 2,
-      frustumSize / 2,
-      frustumSize / -2,
-      0.1,
+      -d * aspect,
+      d * aspect,
+      d,
+      -d,
+      1,
       1000
     )
-    camera.position.z = 10
+    camera.position.set(20, 20, 20)
+    camera.lookAt(scene.position)
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true })
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     renderer.setSize(window.innerWidth, window.innerHeight)
-    mountRef.current.appendChild(renderer.domElement)
+    container.appendChild(renderer.domElement)
 
-    // Dot-matrix Particles
-    const count = 2500
-    const positions = new Float32Array(count * 3)
-    const phases = new Float32Array(count)
-    const initialPositions = new Float32Array(count * 3)
-    
-    const range = 40
-    for (let i = 0; i < count; i++) {
-      const x = (Math.random() - 0.5) * range * aspect
-      const y = (Math.random() - 0.5) * range
-      const z = (Math.random() - 0.5) * 10
-      
-      positions[i * 3] = x
-      positions[i * 3 + 1] = y
-      positions[i * 3 + 2] = z
-      
-      initialPositions[i * 3] = x
-      initialPositions[i * 3 + 1] = y
-      initialPositions[i * 3 + 2] = z
-      
-      phases[i] = Math.random() * Math.PI * 2
-    }
+    // Lighting: ambient + directional + point
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4)
+    scene.add(ambientLight)
 
-    const geometry = new THREE.BufferGeometry()
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+    const directionalLight = new THREE.DirectionalLight(0x00E5FF, 1.2)
+    directionalLight.position.set(10, 20, 10)
+    scene.add(directionalLight)
 
-    const material = new THREE.PointsMaterial({
-      color: "#00E5FF",
-      size: 0.05,
+    const pointLight = new THREE.PointLight(0x0A3BFF, 2, 50)
+    pointLight.position.set(-10, 10, -10)
+    scene.add(pointLight)
+
+    // Geometry & Materials
+    const group = new THREE.Group()
+    scene.add(group)
+
+    const geometry = new THREE.BoxGeometry(1, 1, 1)
+    /chat
+    // Create a technical, retro-futurist grid of boxes
+    const gridSize = 6
+    const spacing = 1.2
+    const offset = (gridSize * spacing) / 2 - (spacing / 2)
+
+    const material = new THREE.MeshStandardMaterial({
+      color: 0x00E5FF,
+      roughness: 0.3,
+      metalness: 0.8,
       transparent: true,
-      opacity: 0.6,
-      sizeAttenuation: true
+      opacity: 0.8,
+      wireframe: true // Retro-futurist wireframe accent
     })
 
-    const points = new THREE.Points(geometry, material)
-    scene.add(points)
+    const solidMaterial = new THREE.MeshStandardMaterial({
+      color: 0x0A0A0A,
+      roughness: 0.1,
+      metalness: 0.9,
+      emissive: 0x002233,
+    })
+
+    for (let x = 0; x < gridSize; x++) {
+      for (let y = 0; y < gridSize; y++) {
+        for (let z = 0; z < gridSize; z++) {
+          // Sparse spacing: skip some boxes
+          if (Math.random() > 0.3) continue;
+
+          const useWireframe = Math.random() > 0.4
+          const mesh = new THREE.Mesh(geometry, useWireframe ? material : solidMaterial)
+          
+          mesh.position.set(
+            x * spacing - offset,
+            y * spacing - offset,
+            z * spacing - offset
+          )
+          
+          // Random scaling for technical look
+          const scale = 0.2 + Math.random() * 0.8
+          mesh.scale.set(scale, scale, scale)
+          
+          group.add(mesh)
+        }
+      }
+    }
 
     // Animation
     let animationFrameId
     const clock = new THREE.Clock()
-    const mouse = new THREE.Vector2()
-
-    const onMouseMove = (event: MouseEvent) => {
-      mouse.x = (event.clientX / window.innerWidth) * 2 - 1
-      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
-    }
-    window.addEventListener('mousemove', onMouseMove)
 
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate)
       const time = clock.getElapsedTime()
 
-      // Breathing pulse
-      material.opacity = 0.4 + Math.sin(time * 0.5) * 0.2
-      material.size = 0.04 + Math.sin(time * 0.5) * 0.01
-
-      // Subtle pointer-reactive drift
-      const positionsAttr = geometry.attributes.position
-      for (let i = 0; i < count; i++) {
-        const ix = i * 3
-        const iy = i * 3 + 1
-        
-        // Initial pos + drift
-        const driftX = Math.sin(time * 0.2 + phases[i]) * 0.1
-        const driftY = Math.cos(time * 0.2 + phases[i]) * 0.1
-        
-        // Pointer influence
-        const dx = initialPositions[ix] - (mouse.x * 2)
-        const dy = initialPositions[iy] - (mouse.y * 2)
-        const dist = Math.sqrt(dx * dx + dy * dy)
-        const influence = Math.max(0, 1 - dist / 5)
-        
-        positionsAttr.array[ix] = initialPositions[ix] + driftX + (mouse.x * influence * 0.5)
-        positionsAttr.array[iy] = initialPositions[iy] + driftY + (mouse.y * influence * 0.5)
-      }
-      positionsAttr.needsUpdate = true
+      // Slow orbital drift
+      group.rotation.y = time * 0.1
+      group.rotation.x = Math.sin(time * 0.05) * 0.1
+      group.position.y = Math.sin(time * 0.2) * 0.5
 
       renderer.render(scene, camera)
     }
@@ -115,10 +117,10 @@ export function LoginBackground() {
 
     const handleResize = () => {
       const aspect = window.innerWidth / window.innerHeight
-      camera.left = frustumSize * aspect / -2
-      camera.right = frustumSize * aspect / 2
-      camera.top = frustumSize / 2
-      camera.bottom = frustumSize / -2
+      camera.left = -d * aspect
+      camera.right = d * aspect
+      camera.top = d
+      camera.bottom = -d
       camera.updateProjectionMatrix()
       renderer.setSize(window.innerWidth, window.innerHeight)
     }
@@ -126,22 +128,22 @@ export function LoginBackground() {
 
     return () => {
       cancelAnimationFrame(animationFrameId)
-      window.removeEventListener('mousemove', onMouseMove)
       window.removeEventListener('resize', handleResize)
-      if (mountRef.current && renderer.domElement) {
-        mountRef.current.removeChild(renderer.domElement)
+      if (container && renderer.domElement && container.contains(renderer.domElement)) {
+        container.removeChild(renderer.domElement)
       }
       geometry.dispose()
       material.dispose()
+      solidMaterial.dispose()
       renderer.dispose()
     }
   }, [])
 
   return (
     <div className="absolute inset-0 w-full h-full bg-[#0A0A0A] -z-10 overflow-hidden">
+      {/* Fallback pattern / background grid */}
       <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,#00E5FF11_1px,transparent_1px),linear-gradient(to_bottom,#00E5FF11_1px,transparent_1px)] bg-[size:40px_40px] opacity-20" />
-      <div ref={mountRef} className="w-full h-full relative z-10" />
+      <div id="webgl-container" ref={mountRef} className="w-full h-full relative z-10" />
     </div>
   )
 }
-
