@@ -51,7 +51,7 @@ export function LoginBackground() {
     scene.add(group)
 
     const geometry = new THREE.BoxGeometry(1, 1, 1)
-    /chat
+    
     // Create a technical, retro-futurist grid of boxes
     const gridSize = 6
     const spacing = 1.2
