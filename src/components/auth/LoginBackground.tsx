@@ -1,82 +1,131 @@
 // @ts-nocheck
 "use client"
 
-import { useRef, useMemo, Suspense } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
-import { OrthographicCamera } from '@react-three/drei'
+import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 
-function ParticleField() {
-  const meshRef = useRef<THREE.InstancedMesh>(null!)
-  const count = 1000 
-  const dummy = useMemo(() => new THREE.Object3D(), [])
+export function LoginBackground() {
+  const mountRef = useRef<HTMLDivElement>(null)
 
-  const particles = useMemo(() => {
-    const temp = []
+  useEffect(() => {
+    if (!mountRef.current) return
+
+    // Scene setup
+    const scene = new THREE.Scene()
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+    camera.position.z = 30
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    renderer.setSize(window.innerWidth, window.innerHeight)
+    mountRef.current.appendChild(renderer.domElement)
+
+    // Particles
+    const count = 1000
+    const geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2)
+    const material = new THREE.MeshStandardMaterial({
+      color: "#00E5FF",
+      emissive: "#00E5FF",
+      emissiveIntensity: 0.5,
+      transparent: true,
+      opacity: 0.8,
+      roughness: 0.2,
+      metalness: 0.8,
+    })
+
+    const mesh = new THREE.InstancedMesh(geometry, material, count)
+    const dummy = new THREE.Object3D()
+    const particles = []
     const range = 50
+
     for (let i = 0; i < count; i++) {
       const x = (Math.random() - 0.5) * range
       const y = (Math.random() - 0.5) * range
       const z = (Math.random() - 0.5) * range
-      temp.push({ x, y, z, phase: Math.random() * Math.PI * 2 })
+      const phase = Math.random() * Math.PI * 2
+      particles.push({ x, y, z, phase })
+      
+      dummy.position.set(x, y, z)
+      dummy.updateMatrix()
+      mesh.setMatrixAt(i, dummy.matrix)
     }
-    return temp
-  }, [count])
+    scene.add(mesh)
 
-  useFrame((state) => {
-    const time = state.clock.getElapsedTime()
-    const mx = state.pointer.x * 2
-    const my = state.pointer.y * 2
+    // Lights
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2)
+    scene.add(ambientLight)
 
-    if (meshRef.current) {
-      meshRef.current.rotation.y = time * 0.05
-      meshRef.current.rotation.x = time * 0.02
-      meshRef.current.position.x = THREE.MathUtils.lerp(meshRef.current.position.x, mx, 0.05)
-      meshRef.current.position.y = THREE.MathUtils.lerp(meshRef.current.position.y, my, 0.05)
+    const directionalLight = new THREE.DirectionalLight("#00E5FF", 1.5)
+    directionalLight.position.set(10, 10, 10)
+    scene.add(directionalLight)
 
-      particles.forEach((particle, i) => {
+    const pointLight = new THREE.PointLight("#0A3BFF", 1)
+    pointLight.position.set(-10, -10, -10)
+    scene.add(pointLight)
+
+    scene.fog = new THREE.Fog('#0A0A0A', 20, 60)
+
+    // Animation
+    let animationFrameId
+    const clock = new THREE.Clock()
+    const mouse = new THREE.Vector2()
+
+    const onMouseMove = (event) => {
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
+    }
+    window.addEventListener('mousemove', onMouseMove)
+
+    const animate = () => {
+      animationFrameId = requestAnimationFrame(animate)
+      const time = clock.getElapsedTime()
+
+      mesh.rotation.y = time * 0.05
+      mesh.rotation.x = time * 0.02
+      
+      const targetX = mouse.x * 5
+      const targetY = mouse.y * 5
+      mesh.position.x += (targetX - mesh.position.x) * 0.05
+      mesh.position.y += (targetY - mesh.position.y) * 0.05
+
+      for (let i = 0; i < count; i++) {
+        const particle = particles[i]
         const scale = 1 + Math.sin(time * 0.5 + particle.phase) * 0.5
         dummy.position.set(particle.x, particle.y, particle.z)
         dummy.scale.set(scale, scale, scale)
         dummy.updateMatrix()
-        meshRef.current.setMatrixAt(i, dummy.matrix)
-      })
-      meshRef.current.instanceMatrix.needsUpdate = true
+        mesh.setMatrixAt(i, dummy.matrix)
+      }
+      mesh.instanceMatrix.needsUpdate = true
+
+      renderer.render(scene, camera)
     }
-  })
 
-  return (
-    <instancedMesh ref={meshRef} args={[null, null, count]}>
-      <boxGeometry args={[0.2, 0.2, 0.2]} />
-      <meshStandardMaterial 
-        color="#00E5FF" 
-        emissive="#00E5FF" 
-        emissiveIntensity={0.5} 
-        transparent 
-        opacity={0.8} 
-        roughness={0.2} 
-        metalness={0.8}
-      />
-    </instancedMesh>
-  )
-}
+    animate()
 
-export function LoginBackground() {
+    const handleResize = () => {
+      camera.aspect = window.innerWidth / window.innerHeight
+      camera.updateProjectionMatrix()
+      renderer.setSize(window.innerWidth, window.innerHeight)
+    }
+    window.addEventListener('resize', handleResize)
+
+    return () => {
+      cancelAnimationFrame(animationFrameId)
+      window.removeEventListener('mousemove', onMouseMove)
+      window.removeEventListener('resize', handleResize)
+      if (mountRef.current && renderer.domElement) {
+        mountRef.current.removeChild(renderer.domElement)
+      }
+      geometry.dispose()
+      material.dispose()
+      renderer.dispose()
+    }
+  }, [])
+
   return (
     <div className="absolute inset-0 w-full h-full bg-[#0A0A0A] -z-10 overflow-hidden">
-      <Canvas
-        gl={{ antialias: true, alpha: true }}
-        dpr={[1, 2]}
-      >
-        <Suspense fallback={null}>
-          <OrthographicCamera makeDefault position={[20, 20, 20]} zoom={20} />
-          <ambientLight intensity={0.2} />
-          <directionalLight position={[10, 10, 10]} intensity={1.5} color="#00E5FF" />
-          <pointLight position={[-10, -10, -10]} intensity={1} color="#0A3BFF" />
-          <ParticleField />
-          <fog attach="fog" args={['#0A0A0A', 20, 60]} />
-        </Suspense>
-      </Canvas>
+      <div ref={mountRef} className="w-full h-full" />
     </div>
   )
 }
