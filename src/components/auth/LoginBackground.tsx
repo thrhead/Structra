@@ -12,65 +12,68 @@ export function LoginBackground() {
 
     // Scene setup
     const scene = new THREE.Scene()
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
-    camera.position.z = 30
+    
+    // Orthographic Camera
+    const aspect = window.innerWidth / window.innerHeight
+    const frustumSize = 20
+    const camera = new THREE.OrthographicCamera(
+      frustumSize * aspect / -2,
+      frustumSize * aspect / 2,
+      frustumSize / 2,
+      frustumSize / -2,
+      0.1,
+      1000
+    )
+    camera.position.z = 10
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     renderer.setSize(window.innerWidth, window.innerHeight)
     mountRef.current.appendChild(renderer.domElement)
 
-    // Particles
-    const count = 1000
-    const geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2)
-    const material = new THREE.MeshStandardMaterial({
+    // Dot-matrix Particles
+    const count = 2500
+    const positions = new Float32Array(count * 3)
+    const phases = new Float32Array(count)
+    const initialPositions = new Float32Array(count * 3)
+    
+    const range = 40
+    for (let i = 0; i < count; i++) {
+      const x = (Math.random() - 0.5) * range * aspect
+      const y = (Math.random() - 0.5) * range
+      const z = (Math.random() - 0.5) * 10
+      
+      positions[i * 3] = x
+      positions[i * 3 + 1] = y
+      positions[i * 3 + 2] = z
+      
+      initialPositions[i * 3] = x
+      initialPositions[i * 3 + 1] = y
+      initialPositions[i * 3 + 2] = z
+      
+      phases[i] = Math.random() * Math.PI * 2
+    }
+
+    const geometry = new THREE.BufferGeometry()
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+
+    const material = new THREE.PointsMaterial({
       color: "#00E5FF",
-      emissive: "#00E5FF",
-      emissiveIntensity: 0.5,
+      size: 0.05,
       transparent: true,
-      opacity: 0.8,
-      roughness: 0.2,
-      metalness: 0.8,
+      opacity: 0.6,
+      sizeAttenuation: true
     })
 
-    const mesh = new THREE.InstancedMesh(geometry, material, count)
-    const dummy = new THREE.Object3D()
-    const particles = []
-    const range = 50
-
-    for (let i = 0; i < count; i++) {
-      const x = (Math.random() - 0.5) * range
-      const y = (Math.random() - 0.5) * range
-      const z = (Math.random() - 0.5) * range
-      const phase = Math.random() * Math.PI * 2
-      particles.push({ x, y, z, phase })
-      
-      dummy.position.set(x, y, z)
-      dummy.updateMatrix()
-      mesh.setMatrixAt(i, dummy.matrix)
-    }
-    scene.add(mesh)
-
-    // Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2)
-    scene.add(ambientLight)
-
-    const directionalLight = new THREE.DirectionalLight("#00E5FF", 1.5)
-    directionalLight.position.set(10, 10, 10)
-    scene.add(directionalLight)
-
-    const pointLight = new THREE.PointLight("#0A3BFF", 1)
-    pointLight.position.set(-10, -10, -10)
-    scene.add(pointLight)
-
-    scene.fog = new THREE.Fog('#0A0A0A', 20, 60)
+    const points = new THREE.Points(geometry, material)
+    scene.add(points)
 
     // Animation
     let animationFrameId
     const clock = new THREE.Clock()
     const mouse = new THREE.Vector2()
 
-    const onMouseMove = (event) => {
+    const onMouseMove = (event: MouseEvent) => {
       mouse.x = (event.clientX / window.innerWidth) * 2 - 1
       mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
     }
@@ -80,23 +83,30 @@ export function LoginBackground() {
       animationFrameId = requestAnimationFrame(animate)
       const time = clock.getElapsedTime()
 
-      mesh.rotation.y = time * 0.05
-      mesh.rotation.x = time * 0.02
-      
-      const targetX = mouse.x * 5
-      const targetY = mouse.y * 5
-      mesh.position.x += (targetX - mesh.position.x) * 0.05
-      mesh.position.y += (targetY - mesh.position.y) * 0.05
+      // Breathing pulse
+      material.opacity = 0.4 + Math.sin(time * 0.5) * 0.2
+      material.size = 0.04 + Math.sin(time * 0.5) * 0.01
 
+      // Subtle pointer-reactive drift
+      const positionsAttr = geometry.attributes.position
       for (let i = 0; i < count; i++) {
-        const particle = particles[i]
-        const scale = 1 + Math.sin(time * 0.5 + particle.phase) * 0.5
-        dummy.position.set(particle.x, particle.y, particle.z)
-        dummy.scale.set(scale, scale, scale)
-        dummy.updateMatrix()
-        mesh.setMatrixAt(i, dummy.matrix)
+        const ix = i * 3
+        const iy = i * 3 + 1
+        
+        // Initial pos + drift
+        const driftX = Math.sin(time * 0.2 + phases[i]) * 0.1
+        const driftY = Math.cos(time * 0.2 + phases[i]) * 0.1
+        
+        // Pointer influence
+        const dx = initialPositions[ix] - (mouse.x * 2)
+        const dy = initialPositions[iy] - (mouse.y * 2)
+        const dist = Math.sqrt(dx * dx + dy * dy)
+        const influence = Math.max(0, 1 - dist / 5)
+        
+        positionsAttr.array[ix] = initialPositions[ix] + driftX + (mouse.x * influence * 0.5)
+        positionsAttr.array[iy] = initialPositions[iy] + driftY + (mouse.y * influence * 0.5)
       }
-      mesh.instanceMatrix.needsUpdate = true
+      positionsAttr.needsUpdate = true
 
       renderer.render(scene, camera)
     }
@@ -104,7 +114,11 @@ export function LoginBackground() {
     animate()
 
     const handleResize = () => {
-      camera.aspect = window.innerWidth / window.innerHeight
+      const aspect = window.innerWidth / window.innerHeight
+      camera.left = frustumSize * aspect / -2
+      camera.right = frustumSize * aspect / 2
+      camera.top = frustumSize / 2
+      camera.bottom = frustumSize / -2
       camera.updateProjectionMatrix()
       renderer.setSize(window.innerWidth, window.innerHeight)
     }
@@ -125,7 +139,9 @@ export function LoginBackground() {
 
   return (
     <div className="absolute inset-0 w-full h-full bg-[#0A0A0A] -z-10 overflow-hidden">
-      <div ref={mountRef} className="w-full h-full" />
+      <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,#00E5FF11_1px,transparent_1px),linear-gradient(to_bottom,#00E5FF11_1px,transparent_1px)] bg-[size:40px_40px] opacity-20" />
+      <div ref={mountRef} className="w-full h-full relative z-10" />
     </div>
   )
 }
+

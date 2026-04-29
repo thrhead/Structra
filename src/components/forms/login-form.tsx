@@ -76,9 +76,9 @@ export function LoginForm() {
   }
 
   return (
-    <div className="bg-[#0A0A0A]/40 backdrop-blur-md border border-white/20 p-8 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25),0_0_8px_0_rgba(0,229,255,0.4)]">
+    <div className="bg-[#0A0A0A]/40 backdrop-blur-[4px] border border-white/20 p-8 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25),0_0_8px_0_rgba(0,229,255,1)]">
       <div className="text-center mb-10">
-        <h1 className={`${bricolage.className} text-[52px] font-light leading-[52px] tracking-[-0.05em] uppercase text-white mb-2`}>
+        <h1 className={`${bricolage.className} text-[52px] font-light leading-none tracking-[-0.05em] uppercase text-white mb-2`}>
           Montaj Takip
         </h1>
         <p className="text-[#00E5FF] font-mono text-[12px] font-semibold tracking-[1.2px] uppercase">
@@ -103,7 +103,7 @@ export function LoginForm() {
             placeholder="ornek@sirket.com"
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            // @ts-ignore - Assuming error prop exists on custom Input component or handling it
+            // @ts-ignore
             error={errors.email}
             disabled={isLoading}
             className="bg-transparent border border-white/20 text-white placeholder:text-white/40 rounded-[4px] focus-visible:ring-[#00E5FF] focus-visible:border-[#00E5FF] transition-colors font-sans text-[14px]"
@@ -149,3 +149,4 @@ export function LoginForm() {
     </div>
   )
 }
+
