@@ -1,4 +1,9 @@
-import { LoginBackground } from "@/components/auth/LoginBackground"
+import dynamic from 'next/dynamic'
+
+const LoginBackground = dynamic(
+  () => import("@/components/auth/LoginBackground").then(mod => mod.LoginBackground),
+  { ssr: false }
+)
 
 export default function AuthLayout({
   children,

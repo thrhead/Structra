@@ -106,7 +106,7 @@ const nextConfig = {
     typescript: {
         ignoreBuildErrors: true,
     },
-    transpilePackages: ['swagger-ui-react'],
+    transpilePackages: ['swagger-ui-react', 'three', '@react-three/fiber', '@react-three/drei'],
     images: {
         remotePatterns: [
             {
