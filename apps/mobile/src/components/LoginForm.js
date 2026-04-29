@@ -1,21 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, TextInput, ActivityIndicator, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
-import CustomInput from './CustomInput';
-import CustomButton from './CustomButton';
-import { API_BASE_URL } from '../services/api';
 
-const LoginForm = ({ onBack, onLoginSuccess }) => {
+const LoginForm = ({ onLoginSuccess }) => {
     const { t } = useTranslation();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
     const { login } = useAuth();
-    const { theme, isDark } = useTheme();
 
     const handleLogin = async () => {
         if (!email || !password) {
@@ -30,7 +26,6 @@ const LoginForm = ({ onBack, onLoginSuccess }) => {
         if (result.success) {
             if (onLoginSuccess) onLoginSuccess();
         } else {
-            console.error('Login Failed:', result);
             Alert.alert(
                 t('auth.errorTitle'),
                 `${result.error || t('common.error')}`
@@ -39,86 +34,163 @@ const LoginForm = ({ onBack, onLoginSuccess }) => {
     };
 
     return (
-        <View style={styles.loginFormContainer}>
-            <TouchableOpacity onPress={onBack} style={styles.backButton}>
-                <MaterialIcons name="arrow-back" size={24} color={theme.colors.primary} />
-                <Text style={{ color: theme.colors.primary, marginLeft: 5 }}>{t('common.back')}</Text>
-            </TouchableOpacity>
-
-            <Text style={[styles.loginTitle, { color: isDark ? theme.colors.text : theme.colors.primary }]}>{t('auth.login')}</Text>
-            {__DEV__ && (
-                <Text style={styles.debugText}>API: {API_BASE_URL}</Text>
-            )}
-
-            <CustomInput
-                placeholder={t('auth.email')}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                editable={!loading}
-            />
-
-            <CustomInput
-                placeholder={t('auth.password')}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-                rightIcon={showPassword ? 'visibility' : 'visibility-off'}
-                onRightIconPress={() => setShowPassword(!showPassword)}
-                editable={!loading}
-            />
-
-            <CustomButton
-                title={t('auth.login')}
-                onPress={handleLogin}
-                loading={loading}
-                style={{ marginTop: 10 }}
-            />
-
-            {__DEV__ && (
-                <View style={styles.hintContainer}>
-                    <Text style={[styles.hint, { color: theme.colors.subText }]}>{t('auth.adminHint')}</Text>
-                    <Text style={[styles.hint, { color: theme.colors.subText }]}>{t('auth.workerHint')}</Text>
+        <View style={styles.formContainer}>
+            <View style={styles.inputContainer}>
+                <View style={styles.iconContainer}>
+                    <MaterialIcons name="mail" size={20} color="rgba(255,255,255,0.5)" />
                 </View>
-            )}
+                <TextInput
+                    style={styles.input}
+                    placeholder={t('auth.email') || "Email"}
+                    placeholderTextColor="rgba(255,255,255,0.5)"
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    editable={!loading}
+                />
+            </View>
+
+            <View style={styles.inputContainer}>
+                <View style={styles.iconContainer}>
+                    <MaterialIcons name="lock" size={20} color="rgba(255,255,255,0.5)" />
+                </View>
+                <TextInput
+                    style={styles.input}
+                    placeholder={t('auth.password') || "Password"}
+                    placeholderTextColor="rgba(255,255,255,0.5)"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                    editable={!loading}
+                />
+                <TouchableOpacity 
+                    style={styles.eyeIconContainer} 
+                    onPress={() => setShowPassword(!showPassword)}
+                >
+                    <MaterialIcons 
+                        name={showPassword ? "visibility-off" : "visibility"} 
+                        size={20} 
+                        color="rgba(255,255,255,0.4)" 
+                    />
+                </TouchableOpacity>
+            </View>
+
+            <View style={styles.optionsContainer}>
+                <TouchableOpacity 
+                    style={styles.rememberMeContainer}
+                    onPress={() => setRememberMe(!rememberMe)}
+                >
+                    <View style={[styles.checkbox, rememberMe && styles.checkboxActive]}>
+                        {rememberMe && <MaterialIcons name="check" size={12} color="#fff" />}
+                    </View>
+                    <Text style={styles.rememberMeText}>Beni Hatırla</Text>
+                </TouchableOpacity>
+                <TouchableOpacity>
+                    <Text style={styles.forgotPasswordText}>Parolanızı mı Unuttunuz?</Text>
+                </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity 
+                style={styles.loginButton} 
+                onPress={handleLogin}
+                disabled={loading}
+            >
+                {loading ? (
+                    <ActivityIndicator color="#fff" />
+                ) : (
+                    <Text style={styles.loginButtonText}>{t('auth.login') || "Oturum aç"}</Text>
+                )}
+            </TouchableOpacity>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    loginFormContainer: {
-        flex: 1,
-        padding: 20,
-        justifyContent: 'center',
+    formContainer: {
+        width: '100%',
+        gap: 20,
     },
-    backButton: {
-        position: 'absolute',
-        top: 20,
-        left: 20,
+    inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        zIndex: 10,
+        backgroundColor: 'rgba(0,0,0,0.2)',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
+        borderRadius: 12,
+        height: 52,
     },
-    loginTitle: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        marginBottom: 30,
-        textAlign: 'center',
+    iconContainer: {
+        paddingLeft: 16,
+        paddingRight: 12,
+        justifyContent: 'center',
     },
-    debugText: {
-        color: 'gray',
-        textAlign: 'center',
-        fontSize: 10,
-        marginBottom: 10
+    input: {
+        flex: 1,
+        color: '#fff',
+        fontSize: 14,
+        height: '100%',
+        paddingRight: 16,
+        ...(Platform.OS === 'web' ? { outlineStyle: 'none' } : {})
     },
-    hintContainer: {
-        marginTop: 20,
+    eyeIconContainer: {
+        paddingHorizontal: 16,
+        justifyContent: 'center',
+        height: '100%',
+    },
+    optionsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: -4, 
+    },
+    rememberMeContainer: {
+        flexDirection: 'row',
         alignItems: 'center',
     },
-    hint: {
-        textAlign: 'center',
+    checkbox: {
+        width: 14,
+        height: 14,
+        borderRadius: 4,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.3)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 8,
+    },
+    checkboxActive: {
+        backgroundColor: '#3b82f6',
+        borderColor: '#3b82f6',
+    },
+    rememberMeText: {
+        color: 'rgba(255,255,255,0.7)',
         fontSize: 12,
+    },
+    forgotPasswordText: {
+        color: '#bfdbfe', 
+        fontSize: 12,
+        fontWeight: '500',
+    },
+    loginButton: {
+        backgroundColor: '#2563eb', 
+        height: 52,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 8,
+        shadowColor: '#1e3a8a',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.3,
+        shadowRadius: 15,
+        elevation: 8,
+    },
+    loginButtonText: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: 'bold',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
     },
 });
 
