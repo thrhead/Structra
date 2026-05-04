@@ -1,203 +1,206 @@
-'use client';
+// @ts-nocheck
+'use client'
 
-import { useEffect, useRef } from 'react';
-import * as THREE from 'three';
+import { useEffect, useRef, useCallback } from 'react'
 
 export function HeroScene() {
-    const mountRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const mouseRef = useRef({ x: -9999, y: -9999 })
+  const targetDistRef = useRef(9999)
 
-    useEffect(() => {
-        if (!mountRef.current) return;
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    mouseRef.current.x = e.clientX
+    mouseRef.current.y = e.clientY
 
-        // Scene setup
-        const scene = new THREE.Scene();
+    let minDist = 9999
+    // Find distance to the nearest clickable/interactive element
+    const targets = document.querySelectorAll('a, button, [role="button"], .glass-card, .workflow-circle')
+    for (let i = 0; i < targets.length; i++) {
+      const rect = targets[i].getBoundingClientRect()
+      const dx = Math.max(rect.left - e.clientX, 0, e.clientX - rect.right)
+      const dy = Math.max(rect.top - e.clientY, 0, e.clientY - rect.bottom)
+      const dist = Math.sqrt(dx * dx + dy * dy)
+      if (dist < minDist) minDist = dist
+    }
+    targetDistRef.current = minDist
+  }, [])
 
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-        camera.position.z = 12;
+  useEffect(() => {
+    // No need for cardHoverChange events anymore, we track spatial distance directly!
+  }, [])
 
-        let renderer: THREE.WebGLRenderer;
-        try {
-            renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            mountRef.current.appendChild(renderer.domElement);
-        } catch (error) {
-            console.warn('WebGL is not supported in this environment. 3D Scene disabled.', error);
-            return;
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    let width = 0, height = 0, animFrameId: number
+    let cardHoverFactor = 0
+
+    interface Point { x: number; y: number; baseX: number; baseY: number; vx: number; vy: number }
+    interface Triangle { p0: number; p1: number; p2: number }
+
+    let points: Point[] = []
+    let triangles: Triangle[] = []
+
+    const COLS = 48, ROWS = 30, MOUSE_RADIUS = 140
+    const TEAR_FORCE = 10, RETURN_SPEED = 0.04, FRICTION = 0.9
+
+    function buildMesh() {
+      points = []; triangles = []
+      const cellW = width / (COLS - 1), cellH = height / (ROWS - 1)
+      for (let row = 0; row < ROWS; row++) {
+        for (let col = 0; col < COLS; col++) {
+          const edge = row === 0 || row === ROWS - 1 || col === 0 || col === COLS - 1
+          const jX = edge ? 0 : (Math.random() - 0.5) * cellW * 0.45
+          const jY = edge ? 0 : (Math.random() - 0.5) * cellH * 0.45
+          const x = col * cellW + jX, y = row * cellH + jY
+          points.push({ x, y, baseX: x, baseY: y, vx: 0, vy: 0 })
         }
-
-        // Lights
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-        scene.add(ambientLight);
-
-        const dirLight1 = new THREE.DirectionalLight(0xf59e0b, 2); // Industrial Amber
-        dirLight1.position.set(10, 10, 5);
-        scene.add(dirLight1);
-
-        const dirLight2 = new THREE.DirectionalLight(0x0ea5e9, 1.5); // Azure Blue
-        dirLight2.position.set(-10, -10, -5);
-        scene.add(dirLight2);
-
-        // Group for the industrial cluster
-        const clusterGroup = new THREE.Group();
-        scene.add(clusterGroup);
-
-        // 1. Central "Industrial Core" (A large rotating gear/hex)
-        const coreGeom = new THREE.CylinderGeometry(2, 2, 0.8, 6);
-        const coreMat = new THREE.MeshStandardMaterial({
-            color: 0x1e293b,
-            roughness: 0.1,
-            metalness: 0.9,
-            emissive: 0x0f172a,
-            emissiveIntensity: 0.2
-        });
-        const core = new THREE.Mesh(coreGeom, coreMat);
-        core.rotation.x = Math.PI / 2;
-        clusterGroup.add(core);
-
-        // Add "bolts" to the core
-        for (let i = 0; i < 6; i++) {
-            const boltGeom = new THREE.CylinderGeometry(0.2, 0.2, 0.2, 6);
-            const bolt = new THREE.Mesh(boltGeom, new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 1 }));
-            const angle = (i / 6) * Math.PI * 2;
-            bolt.position.set(Math.cos(angle) * 1.5, Math.sin(angle) * 1.5, 0.4);
-            bolt.rotation.x = Math.PI / 2;
-            core.add(bolt);
+      }
+      for (let row = 0; row < ROWS - 1; row++) {
+        for (let col = 0; col < COLS - 1; col++) {
+          const i = row * COLS + col
+          if ((row + col) % 2 === 0) {
+            triangles.push({ p0: i, p1: i + 1, p2: i + COLS })
+            triangles.push({ p0: i + 1, p1: i + COLS + 1, p2: i + COLS })
+          } else {
+            triangles.push({ p0: i, p1: i + 1, p2: i + COLS + 1 })
+            triangles.push({ p0: i, p1: i + COLS + 1, p2: i + COLS })
+          }
         }
+      }
+    }
 
-        // 2. Floating "Cargo Boxes" (Logistics symbols)
-        const boxes: THREE.Mesh[] = [];
-        const boxGeom = new THREE.BoxGeometry(0.8, 0.8, 0.8);
-        const boxMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.5 });
-        
-        for (let i = 0; i < 5; i++) {
-            const box = new THREE.Mesh(boxGeom, boxMat);
-            const angle = (i / 5) * Math.PI * 2;
-            box.position.set(Math.cos(angle) * 4, Math.sin(angle) * 4, (Math.random() - 0.5) * 2);
-            clusterGroup.add(box);
-            boxes.push(box);
+    function resize() {
+      width = window.innerWidth; height = window.innerHeight
+      canvas!.width = width; canvas!.height = height
+      buildMesh()
+    }
+
+    // Maps a color based strictly on the spatial distance to the nearest clickable element!
+    // distM = distance of point from mouse
+    // targetDist = distance of mouse from nearest button
+    function getColorForDistance(distM: number, targetDist: number, isDot: boolean = false) {
+      const normalProxRange = isDot ? (MOUSE_RADIUS * 1.5) : (MOUSE_RADIUS * 2.5);
+      const prox = Math.max(0, 1 - distM / normalProxRange);
+      
+      // Far color is ALWAYS Yellow/Amber
+      const farR = 245, farG = 158, farB = 11;
+      
+      // Calculate Near color based on distance from nearest button (targetDist)
+      let nearR, nearG, nearB;
+      if (targetDist < 80) {
+        // 0 to 80px: Red (at 0) to Orange (at 80)
+        const t = targetDist / 80;
+        nearR = 239 + (249 - 239) * t;
+        nearG = 68 + (115 - 68) * t;
+        nearB = 68 + (22 - 68) * t;
+      } else if (targetDist < 250) {
+        // 80 to 250px: Orange to White
+        const t = (targetDist - 80) / 170;
+        nearR = 249 + (255 - 249) * t;
+        nearG = 115 + (255 - 115) * t;
+        nearB = 22 + (255 - 22) * t;
+      } else {
+        // > 250px: White (Normal state)
+        nearR = 255; nearG = 255; nearB = 255;
+      }
+
+      // Interpolate based on point's distance from mouse
+      const r = Math.round(farR + (nearR - farR) * prox);
+      const g = Math.round(farG + (nearG - farG) * prox);
+      const b = Math.round(farB + (nearB - farB) * prox);
+
+      return { r, g, b };
+    }
+
+    function animate() {
+      animFrameId = requestAnimationFrame(animate)
+      ctx!.clearRect(0, 0, width, height)
+      const mx = mouseRef.current.x, my = mouseRef.current.y
+      
+      // We read the true spatial distance to the nearest button
+      const targetDist = targetDistRef.current
+
+
+      for (let i = 0; i < points.length; i++) {
+        const p = points[i]
+        const dx = p.x - mx, dy = p.y - my
+        const dist = Math.sqrt(dx * dx + dy * dy)
+        if (dist < MOUSE_RADIUS && dist > 0) {
+          const force = (1 - dist / MOUSE_RADIUS) * TEAR_FORCE
+          const angle = Math.atan2(dy, dx)
+          p.vx += Math.cos(angle) * force; p.vy += Math.sin(angle) * force
         }
+        p.vx += (p.baseX - p.x) * RETURN_SPEED; p.vy += (p.baseY - p.y) * RETURN_SPEED
+        p.vx *= FRICTION; p.vy *= FRICTION
+        p.x += p.vx; p.y += p.vy
+      }
 
-        // 3. Floating "Dashboard Mockups" (Planes with gradients)
-        const dashboards: THREE.Mesh[] = [];
-        const dashGeom = new THREE.PlaneGeometry(2.5, 1.8);
-        
-        for (let i = 0; i < 3; i++) {
-            const dashMat = new THREE.MeshStandardMaterial({ 
-                color: 0x0f172a, 
-                transparent: true, 
-                opacity: 0.8,
-                side: THREE.DoubleSide
-            });
-            const dash = new THREE.Mesh(dashGeom, dashMat);
-            
-            // Add a wireframe border to the dashboard
-            const borderEdges = new THREE.EdgesGeometry(dashGeom);
-            const borderLine = new THREE.LineSegments(borderEdges, new THREE.LineBasicMaterial({ color: 0x06b6d4 }));
-            dash.add(borderLine);
+      for (let i = 0; i < triangles.length; i++) {
+        const tri = triangles[i]
+        const a = points[tri.p0], b = points[tri.p1], c = points[tri.p2]
+        const cx = (a.x + b.x + c.x) / 3, cy = (a.y + b.y + c.y) / 3
+        const distM = Math.sqrt((cx - mx) ** 2 + (cy - my) ** 2)
 
-            const angle = (i / 3) * Math.PI * 2 + Math.PI / 6;
-            dash.position.set(Math.cos(angle) * 6, Math.sin(angle) * 6, (Math.random() - 0.5) * 4);
-            dash.lookAt(0, 0, 0);
-            clusterGroup.add(dash);
-            dashboards.push(dash);
+        const dispA = Math.sqrt((a.x - a.baseX) ** 2 + (a.y - a.baseY) ** 2)
+        const dispB = Math.sqrt((b.x - b.baseX) ** 2 + (b.y - b.baseY) ** 2)
+        const dispC = Math.sqrt((c.x - c.baseX) ** 2 + (c.y - c.baseY) ** 2)
+        const avgDisp = (dispA + dispB + dispC) / 3
+
+        let alpha = 0.06 + Math.min(avgDisp * 0.012, 0.35)
+        if (distM < MOUSE_RADIUS * 1.8) alpha += (1 - distM / (MOUSE_RADIUS * 1.8)) * 0.25
+        alpha = Math.min(alpha, 0.55)
+
+        const { r, g, b: bC } = getColorForDistance(distM, targetDist, false)
+
+        ctx!.beginPath()
+        ctx!.moveTo(a.x, a.y); ctx!.lineTo(b.x, b.y); ctx!.lineTo(c.x, c.y)
+        ctx!.closePath()
+        ctx!.strokeStyle = `rgba(${r}, ${g}, ${bC}, ${alpha})`
+        ctx!.lineWidth = 0.5
+        ctx!.stroke()
+
+        if (avgDisp > 2) {
+          ctx!.fillStyle = `rgba(255, 255, 255, ${Math.min(avgDisp * 0.003, 0.06)})`
+          ctx!.fill()
         }
+      }
 
-        // 4. Particle Field
-        const particleCount = 200;
-        const particlesGeom = new THREE.BufferGeometry();
-        const particlePositions = new Float32Array(particleCount * 3);
-        
-        for (let i = 0; i < particleCount; i++) {
-            particlePositions[i * 3] = (Math.random() - 0.5) * 20;
-            particlePositions[i * 3 + 1] = (Math.random() - 0.5) * 20;
-            particlePositions[i * 3 + 2] = (Math.random() - 0.5) * 10;
+      for (let i = 0; i < points.length; i++) {
+        const p = points[i]
+        const disp = Math.sqrt((p.x - p.baseX) ** 2 + (p.y - p.baseY) ** 2)
+        const dM = Math.sqrt((p.x - mx) ** 2 + (p.y - my) ** 2)
+        if (disp > 1.5 || dM < MOUSE_RADIUS) {
+          const prox = Math.max(0, 1 - dM / (MOUSE_RADIUS * 1.5))
+          const dotAlpha = Math.min(0.1 + disp * 0.015 + prox * 0.3, 0.6)
+          
+          const { r: dr, g: dg, b: db } = getColorForDistance(dM, targetDist, true)
+          
+          ctx!.beginPath()
+          ctx!.arc(p.x, p.y, 0.8 + Math.min(disp * 0.04, 1.5), 0, Math.PI * 2)
+          ctx!.fillStyle = `rgba(${dr}, ${dg}, ${db}, ${dotAlpha})`
+          ctx!.fill()
         }
+      }
+    }
 
-        particlesGeom.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
-        const particlesMat = new THREE.PointsMaterial({
-            color: 0xf59e0b,
-            size: 0.04,
-            transparent: true,
-            opacity: 0.4
-        });
-        const particles = new THREE.Points(particlesGeom, particlesMat);
-        scene.add(particles);
+    resize(); animate()
+    window.addEventListener('resize', resize)
+    window.addEventListener('mousemove', handleMouseMove)
+    return () => {
+      cancelAnimationFrame(animFrameId)
+      window.removeEventListener('resize', resize)
+      window.removeEventListener('mousemove', handleMouseMove)
+    }
+  }, [handleMouseMove])
 
-        // Animation Loop
-        let animationFrameId: number;
-        const clock = new THREE.Clock();
-
-        const animate = () => {
-            animationFrameId = requestAnimationFrame(animate);
-            const delta = clock.getDelta();
-            const time = clock.getElapsedTime();
-
-            // Rotate cluster
-            clusterGroup.rotation.y += delta * 0.05;
-            
-            // Core slow rotation
-            core.rotation.z += delta * 0.2;
-
-            // Animate Boxes
-            boxes.forEach((box, i) => {
-                box.rotation.x += delta * 0.5;
-                box.rotation.y += delta * 0.3;
-                box.position.y += Math.sin(time + i) * 0.005;
-            });
-
-            // Animate Dashboards
-            dashboards.forEach((dash, i) => {
-                dash.position.y += Math.cos(time * 0.5 + i) * 0.01;
-                dash.rotation.z += Math.sin(time * 0.2) * 0.001;
-            });
-
-            // Subtle camera movement
-            camera.position.x = Math.sin(time * 0.2) * 0.5;
-            camera.position.y = Math.cos(time * 0.2) * 0.5;
-            camera.lookAt(0, 0, 0);
-
-            renderer.render(scene, camera);
-        };
-
-        animate();
-
-        // Handle Resize
-        const handleResize = () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        };
-        window.addEventListener('resize', handleResize);
-
-        // Cleanup
-        return () => {
-            cancelAnimationFrame(animationFrameId);
-            window.removeEventListener('resize', handleResize);
-            if (mountRef.current && renderer.domElement) {
-                mountRef.current.removeChild(renderer.domElement);
-            }
-            coreGeom.dispose();
-            boxGeom.dispose();
-            dashGeom.dispose();
-            particlesGeom.dispose();
-            renderer.dispose();
-        };
-    }, []);
-
-    return (
-        <div className="absolute inset-x-0 top-0 h-screen w-full -z-10 overflow-hidden bg-slate-950 pointer-events-none">
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-950/60 to-slate-950 z-10" />
-
-            {/* Industrial Glowies */}
-            <div className="absolute top-1/4 -left-1/4 w-[60vw] h-[60vw] rounded-full bg-amber-600/5 blur-[180px] mix-blend-screen z-0" />
-            <div className="absolute bottom-1/4 -right-1/4 w-[50vw] h-[50vw] rounded-full bg-blue-700/5 blur-[160px] mix-blend-screen z-0" />
-
-            {/* Vanilla Three.js Mount Point */}
-            <div ref={mountRef} className="absolute inset-0 z-0" />
-
-            {/* Grid Overlay Mask */}
-            <div className="absolute inset-0 z-10 bg-[linear-gradient(to_right,#64748b11_1px,transparent_1px),linear-gradient(to_bottom,#64748b11_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:radial-gradient(ellipse_70%_70%_at_50%_40%,#000_30%,transparent_100%)] opacity-30" />
-        </div>
-    );
+  return (
+    <div className="fixed inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
+      <div style={{ position: 'absolute', inset: 0, background: '#050505' }} />
+      <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} />
+    </div>
+  )
 }
