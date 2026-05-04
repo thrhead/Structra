@@ -117,10 +117,19 @@ export async function getJobs({ page = 1, limit = 20, filter }: GetJobsParams = 
           jobNo: true,
           projectNo: true,
           title: true,
+          description: true,
+          customerId: true,
+          jobLeadId: true,
           location: true,
           status: true,
+          acceptanceStatus: true,
           priority: true,
           scheduledDate: true,
+          scheduledEndDate: true,
+          startedAt: true,
+          completedDate: true,
+          budget: true,
+          estimatedDuration: true,
           createdAt: true,
           customer: {
             select: {
@@ -130,6 +139,7 @@ export async function getJobs({ page = 1, limit = 20, filter }: GetJobsParams = 
           },
           assignments: {
             select: {
+              teamId: true,
               team: {
                 select: {
                   id: true,
