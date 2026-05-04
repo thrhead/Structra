@@ -13,6 +13,9 @@ export async function getAdminDashboardData() {
     const thirtyDaysAgo = new Date(today)
     thirtyDaysAgo.setDate(today.getDate() - 30)
 
+    const sixMonthsAgo = new Date(today)
+    sixMonthsAgo.setMonth(today.getMonth() - 6)
+
     const [
       activeWorkersCount,
       todaysCosts,
@@ -43,7 +46,8 @@ export async function getAdminDashboardData() {
       allCustomers,
       allTeams,
       allTemplates,
-      allUsers
+      allUsers,
+      customersSixMonthsAgo
     ] = await Promise.all([
       // 0: activeWorkersCount
       prisma.user.count({
@@ -166,7 +170,7 @@ export async function getAdminDashboardData() {
 
       // 14: totalCustomers (real count, not just last 5)
       prisma.customer.count({
-        where: { isActive: true }
+        where: { user: { isActive: true } }
       }).catch(e => { console.error("totalCustomers fetch failed", e); return 0; }),
 
       // 15: latestLogs
@@ -275,7 +279,15 @@ export async function getAdminDashboardData() {
         },
         select: { id: true, name: true, role: true },
         orderBy: { name: 'asc' }
-      }).catch(e => { console.error("allUsers fetch failed", e); return []; })
+      }).catch(e => { console.error("allUsers fetch failed", e); return []; }),
+      
+      // 26: customersSixMonthsAgo (for growth rate)
+      prisma.customer.count({
+        where: {
+          user: { isActive: true },
+          createdAt: { lte: sixMonthsAgo }
+        }
+      }).catch(e => { console.error("customersSixMonthsAgo fetch failed", e); return 0; })
     ])
 
     const totalCostToday = todaysCosts.reduce((sum, cost) => sum + (cost.amount || 0), 0)
@@ -325,6 +337,15 @@ export async function getAdminDashboardData() {
     const completionRate = totalJobs > 0
       ? Math.round((totalCompletedJobs / totalJobs) * 100)
       : 0
+      
+    // Compute customer growth rate
+    let customerGrowthRate = 0
+    if (customersSixMonthsAgo === 0) {
+      customerGrowthRate = totalCustomers > 0 ? 100 : 0
+    } else {
+      customerGrowthRate = Math.round(((totalCustomers - customersSixMonthsAgo) / customersSixMonthsAgo) * 100)
+    }
+    const growthRateFormatted = customerGrowthRate > 0 ? `+${customerGrowthRate}%` : `${customerGrowthRate}%`
 
     const result = {
       activeWorkersCount,
@@ -342,6 +363,7 @@ export async function getAdminDashboardData() {
       completedJobsToday,
       completionRate,
       totalCustomers,
+      customerGrowthRate: growthRateFormatted,
       totalWorkers,
       activeTeams,
       latestLogs,
@@ -367,6 +389,7 @@ export async function getAdminDashboardData() {
       completionRate,
       workers: totalWorkers,
       customers: totalCustomers,
+      customerGrowthRate: growthRateFormatted,
       trendPoints: strategicTrendResult.length
     });
 
@@ -388,6 +411,7 @@ export async function getAdminDashboardData() {
       completedJobsToday: 0,
       completionRate: 0,
       totalCustomers: 0,
+      customerGrowthRate: '0%',
       totalWorkers: 0,
       activeTeams: 0,
       latestLogs: [],

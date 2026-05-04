@@ -30,7 +30,7 @@ export default function AdminDashboardClient({
     pendingJobs: data?.pendingOnlyJobs ?? 0,            // Only PENDING status (not IN_PROGRESS)
     unassignedJobs: data?.unassignedJobs ?? 0,          // PENDING jobs with no team assigned
     completedJobs: data?.totalCompletedJobs ?? 0,       // All-time completed jobs
-    growthRate: '+12%',
+    growthRate: data?.customerGrowthRate ?? '0%',
     completionRate: `${data?.completionRate ?? 0}%`     // Real completion rate from server
   }
 
@@ -47,7 +47,8 @@ export default function AdminDashboardClient({
       name: c.company || "İsimsiz Müşteri",
       email: c.email || "e-posta yok",
       totalSpent: totalSpent,
-      jobCount: c._count?.jobs || 0
+      jobCount: c._count?.jobs || 0,
+      isActive: c.user ? c.user.isActive : true
     }
   })
 

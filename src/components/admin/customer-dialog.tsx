@@ -42,6 +42,7 @@ const customerSchema = z.object({
 
 const customerEditSchema = customerSchema.extend({
   password: z.string().optional().or(z.literal('')),
+  isActive: z.boolean().optional(),
 })
 
 type FormData = z.infer<typeof customerEditSchema>
@@ -72,7 +73,8 @@ export function CustomerDialog({ customer, trigger }: CustomerDialogProps) {
       address: customer.address || '',
       taxId: customer.taxId || '',
       notes: customer.notes || '',
-      password: ''
+      password: '',
+      isActive: customer.user?.isActive !== false
     } : undefined
   })
 
@@ -137,6 +139,16 @@ export function CustomerDialog({ customer, trigger }: CustomerDialogProps) {
                   </Field>
                 </div>
 
+                {isEditing && (
+                  <Field className="flex flex-row items-center gap-3 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800 mb-4">
+                    <input type="checkbox" id="c-isActive" {...register('isActive')} className="h-5 w-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600" />
+                    <div className="space-y-0.5 leading-none">
+                      <FieldLabel htmlFor="c-isActive" className="text-sm font-bold cursor-pointer">Müşteri Hesabı Aktif</FieldLabel>
+                      <p className="text-xs text-slate-500">İşareti kaldırırsanız müşteri sisteme giriş yapamaz.</p>
+                    </div>
+                  </Field>
+                )}
+                
                 <div className="grid grid-cols-2 gap-4">
                   <Field>
                     <FieldLabel htmlFor="c-pass">

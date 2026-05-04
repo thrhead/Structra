@@ -99,6 +99,7 @@ const customerUpdateSchema = z.object({
     address: z.string().optional(),
     taxId: z.string().optional(),
     notes: z.string().optional(),
+    isActive: z.boolean().optional(),
 })
 
 export async function updateCustomerAction(data: z.infer<typeof customerUpdateSchema>) {
@@ -114,7 +115,7 @@ export async function updateCustomerAction(data: z.infer<typeof customerUpdateSc
         throw new Error('Geçersiz veri: ' + JSON.stringify(validated.error.flatten()))
     }
 
-    const { id, name, email, password, phone, company, address, taxId, notes } = validated.data
+    const { id, name, email, password, phone, company, address, taxId, notes, isActive } = validated.data
 
     try {
         await prisma.$transaction(async (tx) => {
@@ -133,6 +134,10 @@ export async function updateCustomerAction(data: z.infer<typeof customerUpdateSc
                 name,
                 email,
                 phone
+            }
+            
+            if (isActive !== undefined) {
+                updateUserData.isActive = isActive;
             }
 
             if (password && password.length >= 6) {
@@ -169,5 +174,45 @@ export async function updateCustomerAction(data: z.infer<typeof customerUpdateSc
         console.error('Customer update error:', error)
         logger.error('Failed to update customer', { error: error.message, customerId: id });
         throw new Error(error.message || 'Müşteri güncellenirken bir hata oluştu')
+    }
+}
+
+export async function toggleCustomerStatusAction(customerId: string) {
+    const session = await auth()
+
+    if (!session || session.user.role !== 'ADMIN') {
+        throw new Error('Yetkisiz işlem')
+    }
+
+    try {
+        const customer = await prisma.customer.findUnique({
+            where: { id: customerId },
+            include: { user: true }
+        })
+
+        if (!customer || !customer.user) {
+            throw new Error('Müşteri bulunamadı')
+        }
+
+        const newStatus = !customer.user.isActive
+
+        await prisma.user.update({
+            where: { id: customer.userId },
+            data: { isActive: newStatus }
+        })
+
+        // LOGGING
+        await logAudit(session.user.id, AuditAction.USER_UPDATE, {
+            customerId: customer.id,
+            action: newStatus ? 'activated' : 'deactivated',
+            platform: 'web'
+        }, 'web');
+
+        revalidatePath('/admin/customers')
+        revalidatePath('/admin')
+        return { success: true, isActive: newStatus }
+    } catch (error: any) {
+        console.error('Customer toggle status error:', error)
+        throw new Error(error.message || 'Müşteri durumu güncellenirken bir hata oluştu')
     }
 }

@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTransition } from "react"
 import {
   IconCircleCheckFilled,
   IconDotsVertical,
@@ -36,6 +37,9 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 import { Link } from "@/lib/navigation"
+import { toast } from "sonner"
+import { toggleCustomerStatusAction } from "@/lib/actions/customers"
+import { CustomSpinner } from "@/components/ui/custom-spinner"
 
 interface CustomerData {
   id: string
@@ -43,6 +47,66 @@ interface CustomerData {
   email: string
   totalSpent: number
   jobCount: number
+  isActive?: boolean
+}
+
+const ActionCell = ({ row }: { row: any }) => {
+  const [isPending, startTransition] = useTransition()
+  const customer = row.original
+  const isActive = customer.isActive !== false
+
+  const handleToggle = () => {
+    startTransition(async () => {
+      try {
+        const res = await toggleCustomerStatusAction(customer.id)
+        if (res.success) {
+          toast.success(`Müşteri ${res.isActive ? 'aktifleştirildi' : 'devre dışı bırakıldı'}`)
+        }
+      } catch (e: any) {
+        toast.error(e.message || 'Bir hata oluştu')
+      }
+    })
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          className="flex size-8 text-muted-foreground data-[state=open]:bg-muted ml-auto"
+          size="icon"
+          disabled={isPending}
+        >
+          {isPending ? <CustomSpinner className="w-4 h-4 animate-spin" /> : <IconDotsVertical size={16} />}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-xl border-slate-200 dark:border-slate-800">
+        <DropdownMenuItem asChild className="text-xs font-bold cursor-pointer focus:bg-indigo-50 dark:focus:bg-indigo-950/30 focus:text-indigo-600">
+          <Link href={`/admin/customers/${customer.id}`}>
+            Detaylı Raporu Gör
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild className="text-xs font-bold cursor-pointer">
+          <Link href={`/admin/customers`}>
+            Müşteriyi Düzenle
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild className="text-xs font-bold cursor-pointer">
+          <Link href={`/admin/customers`}>
+            Tüm Listeye Git
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem 
+          onClick={handleToggle}
+          className={`text-xs font-bold cursor-pointer ${isActive ? 'text-red-600 focus:bg-red-50 dark:focus:bg-red-950/30' : 'text-green-600 focus:bg-green-50 dark:focus:bg-green-950/30'}`}
+        >
+          {isActive ? 'Devre Dışı Bırak' : 'Aktive Et'}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
 }
 
 const columns: ColumnDef<CustomerData>[] = [
@@ -51,13 +115,18 @@ const columns: ColumnDef<CustomerData>[] = [
     header: "Müşteri",
     cell: ({ row }) => (
       <div className="flex items-center gap-3">
-        <Avatar className="h-8 w-8 rounded-lg">
+        <Avatar className="h-8 w-8 rounded-lg opacity-[0.8]">
           <AvatarFallback className="bg-indigo-50 text-indigo-600 font-black text-[10px]">
             {row.original.name.charAt(0)}
           </AvatarFallback>
         </Avatar>
         <div className="flex flex-col">
-          <span className="text-sm font-black italic">{row.original.name}</span>
+          <span className="text-sm font-black italic flex items-center gap-2">
+            {row.original.name}
+            {row.original.isActive === false && (
+              <Badge variant="destructive" className="h-4 text-[8px] px-1 py-0 uppercase">Pasif</Badge>
+            )}
+          </span>
           <span className="text-[10px] text-slate-400 font-bold uppercase truncate max-w-[150px]">
             {row.original.email}
           </span>
@@ -89,41 +158,7 @@ const columns: ColumnDef<CustomerData>[] = [
   },
   {
     id: "actions",
-    cell: ({ row }) => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            className="flex size-8 text-muted-foreground data-[state=open]:bg-muted ml-auto"
-            size="icon"
-          >
-            <IconDotsVertical size={16} />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-xl border-slate-200 dark:border-slate-800">
-          <DropdownMenuItem asChild className="text-xs font-bold cursor-pointer focus:bg-indigo-50 dark:focus:bg-indigo-950/30 focus:text-indigo-600">
-            <Link href={`/admin/customers/${row.original.id}`}>
-              Detaylı Raporu Gör
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild className="text-xs font-bold cursor-pointer">
-            <Link href={`/admin/customers`}>
-              Müşteriyi Düzenle
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem asChild className="text-xs font-bold cursor-pointer">
-            <Link href={`/admin/customers`}>
-              Tüm Listeye Git
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem className="text-xs font-bold text-red-600 cursor-pointer focus:bg-red-50 dark:focus:bg-red-950/30">
-            Devre Dışı Bırak
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
+    cell: ({ row }) => <ActionCell row={row} />,
   },
 ]
 
