@@ -24,6 +24,7 @@ export async function getAdminDashboardData() {
       totalJobs,
       activeJobs,
       pendingOnlyJobs,
+      unassignedJobs,
       totalCompletedJobs,
       completedJobsToday,
       totalWorkers,
@@ -124,6 +125,18 @@ export async function getAdminDashboardData() {
       prisma.job.count({
         where: { status: 'PENDING' }
       }).catch(e => { console.error("pendingOnlyJobs fetch failed", e); return 0; }),
+
+      // 9.5: unassignedJobs (PENDING but no team assigned)
+      prisma.job.count({
+        where: {
+          status: 'PENDING',
+          assignments: {
+            none: {
+              teamId: { not: null }
+            }
+          }
+        }
+      }).catch(e => { console.error("unassignedJobs fetch failed", e); return 0; }),
 
       // 10: totalCompletedJobs (all-time, for completion rate)
       prisma.job.count({
@@ -324,6 +337,7 @@ export async function getAdminDashboardData() {
       totalJobs,
       activeJobs,
       pendingOnlyJobs,
+      unassignedJobs,
       totalCompletedJobs,
       completedJobsToday,
       completionRate,

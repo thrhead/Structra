@@ -17,6 +17,7 @@ interface SectionCardsProps {
     totalCustomers: number
     activeTeams: number
     pendingJobs: number
+    unassignedJobs?: number
     completedJobs: number
     growthRate: string
     completionRate: string
@@ -29,6 +30,7 @@ export function SectionCards({ stats }: SectionCardsProps) {
     totalCustomers: 0,
     activeTeams: 0,
     pendingJobs: 0,
+    unassignedJobs: 0,
     completedJobs: 0,
     growthRate: '0%',
     completionRate: '0%'
@@ -124,7 +126,7 @@ export function SectionCards({ stats }: SectionCardsProps) {
           </CardHeader>
           <CardFooter className="flex-col items-start gap-2 mt-auto relative z-10 pb-6">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-blue-600 dark:text-blue-500">
-              <IconCalendar size={14} stroke={2.5} /> Ekip ataması bekleniyor
+              <IconCalendar size={14} stroke={2.5} /> {(safeStats.unassignedJobs ?? 0) > 0 ? `${safeStats.unassignedJobs} iş ekip bekliyor` : 'Tümü atandı'}
             </div>
             <div className="text-[10px] uppercase font-semibold tracking-widest text-slate-400 dark:text-slate-500">
               Planlama yoğunluğu

@@ -28,6 +28,7 @@ export default function AdminDashboardClient({
     totalCustomers: data?.totalCustomers ?? 0,          // Real DB count (active customers)
     activeTeams: data?.activeTeams ?? 0,
     pendingJobs: data?.pendingOnlyJobs ?? 0,            // Only PENDING status (not IN_PROGRESS)
+    unassignedJobs: data?.unassignedJobs ?? 0,          // PENDING jobs with no team assigned
     completedJobs: data?.totalCompletedJobs ?? 0,       // All-time completed jobs
     growthRate: '+12%',
     completionRate: `${data?.completionRate ?? 0}%`     // Real completion rate from server
