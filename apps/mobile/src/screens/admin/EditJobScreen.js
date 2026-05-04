@@ -680,6 +680,7 @@ export default function EditJobScreen({ route, navigation }) {
           { id: "PENDING", name: t("status.PENDING") },
           { id: "IN_PROGRESS", name: t("status.IN_PROGRESS") },
           { id: "COMPLETED", name: t("status.COMPLETED") },
+          { id: "PENDING_APPROVAL", name: t("status.PENDING_APPROVAL") },
           { id: "CANCELLED", name: t("status.CANCELLED") },
         ]}
         onSelect={(item) => setFormData({ ...formData, status: item.id })}

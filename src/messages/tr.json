@@ -190,7 +190,8 @@
       "IN_PROGRESS": "Devam Ediyor",
       "COMPLETED": "Tamamlandı",
       "CANCELLED": "İptal",
-      "ON_HOLD": "Beklemede"
+      "ON_HOLD": "Beklemede",
+      "PENDING_APPROVAL": "Onay Bekliyor"
     }
   },
   "Admin": {

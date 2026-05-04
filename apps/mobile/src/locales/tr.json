@@ -237,6 +237,7 @@
     "totalJobs": "Toplam İş",
     "completedJobs": "Tamamlanan",
     "memberCount": "{{count}} Üye",
+    "jobCount": "{{count}} İş",
     "planning": "Planlama",
     "timeline": "Zaman Çizelgesi",
     "routeOptimization": "Rota Optimizasyonu",
@@ -275,7 +276,13 @@
     "PENDING": "Beklemede",
     "IN_PROGRESS": "Devam Ediyor",
     "COMPLETED": "Tamamlandı",
-    "CANCELLED": "İptal Edildi"
+    "CANCELLED": "İptal Edildi",
+    "PENDING_APPROVAL": "Onay Bekliyor",
+    "pending": "Beklemede",
+    "in_progress": "Devam Ediyor",
+    "completed": "Tamamlandı",
+    "cancelled": "İptal Edildi",
+    "pending_approval": "Onay Bekliyor"
   },
   "acceptance": {
     "PENDING": "Onay Bekliyor",

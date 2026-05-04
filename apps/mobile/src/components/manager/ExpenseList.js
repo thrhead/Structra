@@ -4,8 +4,10 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/theme';
 import { getStatusColor, getStatusLabel } from '../../utils/status-helper';
 import { getCategoryColor, getCategoryIcon } from '../../utils/cost-helper';
+import { useTranslation } from 'react-i18next';
 
 const ExpenseList = ({ costs, loading, theme }) => {
+    const { t } = useTranslation();
     const colors = theme ? theme.colors : COLORS;
 
     if (loading) return null;
@@ -14,7 +16,7 @@ const ExpenseList = ({ costs, loading, theme }) => {
         return (
             <View style={styles.emptyState}>
                 <MaterialIcons name="receipt-long" size={64} color={colors.subText || COLORS.slate600} />
-                <Text style={[styles.emptyText, { color: colors.subText }]}>Masraf bulunamadı</Text>
+                <Text style={[styles.emptyText, { color: colors.subText }]}>{t('manager.expenseNotFound')}</Text>
             </View>
         );
     }
@@ -58,19 +60,19 @@ const ExpenseList = ({ costs, loading, theme }) => {
                     <MaterialIcons name={getCategoryIcon(item.category)} size={24} color={categoryColor} />
                 </View>
                 <View style={styles.expenseContent}>
-                    <Text style={[styles.expenseTitle, { color: colors.text }]}>{item.description || 'Masraf'}</Text>
+                    <Text style={[styles.expenseTitle, { color: colors.text }]}>{item.description || t('worker.expenses')}</Text>
                     <Text style={[styles.expenseDate, { color: colors.subText }]}>
                         {new Date(item.date || item.createdAt).toLocaleDateString('tr-TR')}
                     </Text>
                     <Text style={[styles.expenseUser, { color: colors.subText }]}>
-                        {item.createdBy?.name || 'Bilinmeyen'}
+                        {item.createdBy?.name || t('worker.system')}
                     </Text>
                 </View>
                 <View style={styles.expenseRight}>
                     <Text style={[styles.expenseAmount, { color: colors.text }]}>₺{parseFloat(item.amount || 0).toFixed(2)}</Text>
                     <View style={styles.statusContainer}>
                         <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
-                        <Text style={[styles.statusText, { color: statusColor }]}>{getStatusLabel(item.status)}</Text>
+                        <Text style={[styles.statusText, { color: statusColor }]}>{getStatusLabel(item.status, t)}</Text>
                     </View>
                 </View>
             </View>
@@ -83,21 +85,21 @@ const ExpenseList = ({ costs, loading, theme }) => {
         <View>
             {groupedCosts.today.length > 0 && (
                 <>
-                    <Text style={[styles.dateHeader, { color: colors.subText }]}>Bugün</Text>
+                    <Text style={[styles.dateHeader, { color: colors.subText }]}>{t('manager.today')}</Text>
                     {groupedCosts.today.map(renderCostItem)}
                 </>
             )}
 
             {groupedCosts.yesterday.length > 0 && (
                 <>
-                    <Text style={[styles.dateHeader, { color: colors.subText }]}>Dün</Text>
+                    <Text style={[styles.dateHeader, { color: colors.subText }]}>{t('manager.yesterday')}</Text>
                     {groupedCosts.yesterday.map(renderCostItem)}
                 </>
             )}
 
             {groupedCosts.older.length > 0 && (
                 <>
-                    <Text style={[styles.dateHeader, { color: colors.subText }]}>Daha Eski</Text>
+                    <Text style={[styles.dateHeader, { color: colors.subText }]}>{t('manager.older')}</Text>
                     {groupedCosts.older.map(renderCostItem)}
                 </>
             )}

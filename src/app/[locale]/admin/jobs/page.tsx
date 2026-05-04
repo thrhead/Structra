@@ -24,9 +24,10 @@ import {
 } from "@/components/ui/tabs"
 import { Link } from "@/lib/navigation"
 import { format } from "date-fns"
-import { tr } from "date-fns/locale"
+import { tr, enUS } from "date-fns/locale"
 import { getJobs } from "@/lib/data/jobs"
 import dynamic from 'next/dynamic'
+import { getTranslations } from "next-intl/server"
 
 const GlobalJobsTree = dynamic(
   () => import('@/components/admin/global-jobs-tree').then(mod => mod.GlobalJobsTree),
@@ -44,18 +45,12 @@ const statusColors: Record<string, "default" | "secondary" | "destructive" | "ou
   PENDING: "secondary",
   IN_PROGRESS: "default",
   COMPLETED: "outline",
-  CANCELLED: "destructive"
-}
-
-const statusLabels: Record<string, string> = {
-  PENDING: "Bekliyor",
-  IN_PROGRESS: "Devam Ediyor",
-  COMPLETED: "Tamamlandı",
-  CANCELLED: "İptal",
-  ON_HOLD: "Beklemede"
+  CANCELLED: "destructive",
+  PENDING_APPROVAL: "outline"
 }
 
 export default async function JobsPage(props: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{
     search?: string;
     jobNo?: string;
@@ -66,12 +61,16 @@ export default async function JobsPage(props: {
     page?: string
   }>
 }) {
+  const { locale } = await props.params
   const searchParams = await props.searchParams
   const session = await auth()
 
   if (!session || session.user.role !== "ADMIN") {
     redirect("/login")
   }
+
+  const tStatus = await getTranslations("Manager.status")
+  const dateLocale = locale === 'tr' ? tr : enUS
 
   // Parse filters
   const statusFilter = searchParams.status ? searchParams.status.split(',') : undefined
@@ -162,7 +161,7 @@ export default async function JobsPage(props: {
             )}
             {statusFilter?.map(s => (
               <Badge key={s} variant="outline" className="bg-white dark:bg-slate-900 dark:border-slate-800 capitalize">
-                Durum: {statusLabels[s] || s}
+                Durum: {tStatus(s)}
               </Badge>
             ))}
             {teamsFilter?.map(tId => {
@@ -175,8 +174,8 @@ export default async function JobsPage(props: {
             })}
             {searchParams.from && (
               <Badge variant="outline" className="bg-white dark:bg-slate-900 dark:border-slate-800">
-                Tarih: {format(new Date(searchParams.from), 'P', { locale: tr })}
-                {searchParams.to ? ` - ${format(new Date(searchParams.to), 'P', { locale: tr })}` : ''}
+                Tarih: {format(new Date(searchParams.from), 'P', { locale: dateLocale })}
+                {searchParams.to ? ` - ${format(new Date(searchParams.to), 'P', { locale: dateLocale })}` : ''}
               </Badge>
             )}
             <Link href="/admin/jobs" className="text-xs text-blue-600 hover:underline font-medium ml-auto">
@@ -336,15 +335,15 @@ export default async function JobsPage(props: {
                       </TableCell>
                       <TableCell>
                         <Badge variant={statusColors[job.status] || "default"}>
-                          {statusLabels[job.status] || job.status}
+                          {tStatus(job.status)}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1 text-sm text-gray-600">
                           <CalendarIcon className="h-3 w-3" />
                           {job.scheduledDate
-                            ? format(new Date(job.scheduledDate), 'd MMM', { locale: tr })
-                            : format(new Date(job.createdAt), 'd MMM', { locale: tr })
+                            ? format(new Date(job.scheduledDate), 'd MMM', { locale: dateLocale })
+                            : format(new Date(job.createdAt), 'd MMM', { locale: dateLocale })
                           }
                         </div>
                       </TableCell>

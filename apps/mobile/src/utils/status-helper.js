@@ -6,18 +6,21 @@ export const getStatusColor = (status) => {
         'IN_PROGRESS': COLORS.blue500,
         'COMPLETED': COLORS.green500,
         'ON_HOLD': COLORS.slate600,
-        'CANCELLED': COLORS.red500
+        'CANCELLED': COLORS.red500,
+        'PENDING_APPROVAL': COLORS.purple500
     };
     return colors[status] || COLORS.slate600;
 };
 
-export const getStatusLabel = (status) => {
+export const getStatusLabel = (status, t) => {
+    if (t) return t(`status.${status}`) || status;
     const labels = {
-        'PENDING': 'Beklemede',
-        'IN_PROGRESS': 'Devam Ediyor',
-        'COMPLETED': 'Tamamlandı',
-        'ON_HOLD': 'Askıda',
-        'CANCELLED': 'İptal'
+        'PENDING': 'Pending',
+        'IN_PROGRESS': 'In Progress',
+        'COMPLETED': 'Completed',
+        'ON_HOLD': 'On Hold',
+        'CANCELLED': 'Cancelled',
+        'PENDING_APPROVAL': 'Pending Approval'
     };
     return labels[status] || status;
 };

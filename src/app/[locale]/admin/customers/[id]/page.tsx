@@ -11,19 +11,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getCustomer, getCustomerDetailedReports } from "@/lib/data/customers"
 import { CustomerDetailedReport } from "@/components/admin/customer-detailed-report"
 import { format } from "date-fns"
-import { tr } from "date-fns/locale"
+import { tr, enUS } from "date-fns/locale"
+import { getTranslations } from "next-intl/server"
 
 export default async function CustomerDetailsPage({
     params
 }: {
-    params: { id: string }
+    params: { id: string, locale: string }
 }) {
-    const { id } = params
+    const { id, locale } = params
     const session = await auth()
 
     if (!session || session.user.role !== "ADMIN") {
         redirect("/login")
     }
+
+    const tStatus = await getTranslations("Manager.status")
+    const dateLocale = locale === 'tr' ? tr : enUS
 
     const [customer, reportData] = await Promise.all([
         getCustomer(id),
@@ -46,6 +50,7 @@ export default async function CustomerDetailsPage({
         IN_PROGRESS: "bg-blue-100 text-blue-800",
         COMPLETED: "bg-green-100 text-green-800",
         CANCELLED: "bg-red-100 text-red-800",
+        PENDING_APPROVAL: "bg-purple-100 text-purple-800",
     }
 
     return (
@@ -162,7 +167,7 @@ export default async function CustomerDetailsPage({
                                                     <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
                                                         <Briefcase className="h-3 w-3" />
                                                         <span>
-                                                            {format(new Date(job.createdAt), 'd MMM yyyy', { locale: tr })}
+                                                            {format(new Date(job.createdAt), 'd MMM yyyy', { locale: dateLocale })}
                                                         </span>
                                                         {job.location && (
                                                             <>
@@ -179,7 +184,7 @@ export default async function CustomerDetailsPage({
                                                         </Badge>
                                                     )}
                                                     <Badge className={statusColors[job.status] || "bg-gray-100 text-gray-800"}>
-                                                        {job.status}
+                                                        {tStatus(job.status)}
                                                     </Badge>
                                                 </div>
                                             </div>

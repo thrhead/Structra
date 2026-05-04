@@ -3,13 +3,15 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/theme';
 import { getStatusColor, getStatusLabel, getPriorityColor } from '../../utils/status-helper';
+import { useTranslation } from 'react-i18next';
 
 const JobReportList = ({ jobs, onJobPress, theme }) => {
+    const { t } = useTranslation();
     return (
         <View>
             <View style={styles.listHeader}>
-                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Detaylı İşler</Text>
-                <Text style={[styles.jobCount, { color: theme.colors.subText }]}>{jobs.length} İş</Text>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('manager.detailedJobs')}</Text>
+                <Text style={[styles.jobCount, { color: theme.colors.subText }]}>{t('manager.jobCount', { count: jobs.length })}</Text>
             </View>
 
             {jobs.map((job) => (
@@ -21,17 +23,17 @@ const JobReportList = ({ jobs, onJobPress, theme }) => {
                     <View style={styles.jobCardContent}>
                         <View style={styles.jobLeft}>
                             <Text style={[styles.jobTitle, { color: theme.colors.text }]}>{job.title}</Text>
-                            <Text style={[styles.jobCustomer, { color: theme.colors.subText }]}>{job.customer?.company || 'Müşteri Bilinmiyor'}</Text>
+                            <Text style={[styles.jobCustomer, { color: theme.colors.subText }]}>{job.customer?.company || t('common.noData')}</Text>
                             <View style={styles.jobMeta}>
                                 <View style={[styles.statusBadge, { backgroundColor: getStatusColor(job.status) + '20' }]}>
                                     <Text style={[styles.statusText, { color: getStatusColor(job.status) }]}>
-                                        {getStatusLabel(job.status)}
+                                        {getStatusLabel(job.status, t)}
                                     </Text>
                                 </View>
                                 {job.priority && (
                                     <View style={[styles.priorityBadge, { borderColor: getPriorityColor(job.priority) }]}>
                                         <Text style={[styles.priorityText, { color: getPriorityColor(job.priority) }]}>
-                                            {job.priority}
+                                            {t(`jobs.${job.priority.toLowerCase()}`)}
                                         </Text>
                                     </View>
                                 )}
@@ -45,7 +47,7 @@ const JobReportList = ({ jobs, onJobPress, theme }) => {
             {jobs.length === 0 && (
                 <View style={styles.emptyState}>
                     <MaterialIcons name="work-outline" size={64} color={theme.colors.subText} />
-                    <Text style={[styles.emptyText, { color: theme.colors.subText }]}>Henüz iş eklenmemiş</Text>
+                    <Text style={[styles.emptyText, { color: theme.colors.subText }]}>{t('admin.noJobs')}</Text>
                 </View>
             )}
         </View>

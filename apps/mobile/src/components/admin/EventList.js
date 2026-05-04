@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { getStatusColor } from '../../utils/status-helper';
+import { useTranslation } from 'react-i18next';
 
 const EventList = ({ selectedDate, events, onEventPress, theme }) => {
+    const { t } = useTranslation();
     // Fallback if theme prop isn't passed (though it should be)
     const cardBg = theme ? theme.colors.card : '#1e293b';
     const textMain = theme ? theme.colors.text : '#e2e8f0';
@@ -36,7 +38,7 @@ const EventList = ({ selectedDate, events, onEventPress, theme }) => {
                             <Text style={[styles.eventTitle, { color: textMain }]}>{event.title}</Text>
                             {event.status && (
                                 <View style={[styles.statusBadge, { backgroundColor: getStatusColor(event.status) }]}>
-                                    <Text style={styles.statusText}>{event.status}</Text>
+                                    <Text style={styles.statusText}>{t(`status.${event.status}`)}</Text>
                                 </View>
                             )}
                             {event.location && (

@@ -237,6 +237,7 @@
     "totalJobs": "Total Jobs",
     "completedJobs": "Completed",
     "memberCount": "{{count}} Members",
+    "jobCount": "{{count}} Jobs",
     "planning": "Planning",
     "timeline": "Timeline",
     "routeOptimization": "Route Optimization",
@@ -275,7 +276,13 @@
     "PENDING": "Pending",
     "IN_PROGRESS": "In Progress",
     "COMPLETED": "Completed",
-    "CANCELLED": "Cancelled"
+    "CANCELLED": "Cancelled",
+    "PENDING_APPROVAL": "Pending Approval",
+    "pending": "Pending",
+    "in_progress": "In Progress",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "pending_approval": "Pending Approval"
   },
   "acceptance": {
     "PENDING": "Pending Approval",
