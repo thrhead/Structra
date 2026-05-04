@@ -196,6 +196,7 @@ export async function getAdminDashboardData() {
         take: 5,
         orderBy: { createdAt: 'desc' },
         include: {
+          user: { select: { name: true, isActive: true } },
           _count: {
             select: { jobs: true }
           },

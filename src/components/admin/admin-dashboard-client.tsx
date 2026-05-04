@@ -35,22 +35,21 @@ export default function AdminDashboardClient({
   }
 
   const pulseData = directPulseData || data?.strategicTrend || []
+const topCustomers = directTopCustomers || (data?.latestCustomers || []).map((c: any) => {
+  // Aggregate all approved cost amounts from all jobs of this customer
+  const totalSpent = c.jobs?.reduce((sum: number, job: any) => {
+    return sum + (job.costs?.reduce((jSum: number, cost: any) => jSum + (cost.amount || 0), 0) || 0)
+  }, 0) || 0
 
-  const topCustomers = directTopCustomers || (data?.latestCustomers || []).map((c: any) => {
-    // Aggregate all approved cost amounts from all jobs of this customer
-    const totalSpent = c.jobs?.reduce((sum: number, job: any) => {
-      return sum + (job.costs?.reduce((jSum: number, cost: any) => jSum + (cost.amount || 0), 0) || 0)
-    }, 0) || 0
-
-    return {
-      id: c.id,
-      name: c.company || "İsimsiz Müşteri",
-      email: c.email || "e-posta yok",
-      totalSpent: totalSpent,
-      jobCount: c._count?.jobs || 0,
-      isActive: c.user ? c.user.isActive : true
-    }
-  })
+  return {
+    id: c.id,
+    name: c.company || "İsimsiz Müşteri",
+    email: c.email || "e-posta yok",
+    totalSpent: totalSpent,
+    jobCount: c._count?.jobs || 0,
+    isActive: c.user?.isActive ?? true
+  }
+})
 
   return (
     <div className="flex flex-col gap-8 py-2 w-full overflow-x-hidden animate-page-enter">
