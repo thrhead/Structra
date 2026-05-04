@@ -32,6 +32,7 @@ async function getCustomerDashboardData(userId: string) {
     return { 
       jobs: [], 
       stats: { totalJobs: 0, pendingJobs: 0, inProgressJobs: 0, completedJobs: 0, completionRate: 0 },
+      statusDistribution: [],
       recentUpdates: []
     }
   }

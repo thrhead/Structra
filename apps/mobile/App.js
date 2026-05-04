@@ -66,6 +66,7 @@ function getInitialRoute(user) {
     case 'MANAGER': return 'ManagerDashboard';
     case 'WORKER':
     case 'TEAM_LEAD':
+    case 'CUSTOMER':
       return 'WorkerDashboard';
     default: return 'Login';
   }

@@ -34,14 +34,25 @@ export async function createUserAction(data: any) {
 
         const passwordHash = await hash(password, 10)
 
-        await prisma.user.create({
-            data: {
-                name,
-                email,
-                passwordHash,
-                phone,
-                role,
-                isActive: true
+        await prisma.$transaction(async (tx) => {
+            const user = await tx.user.create({
+                data: {
+                    name,
+                    email,
+                    passwordHash,
+                    phone,
+                    role,
+                    isActive: true
+                }
+            })
+
+            if (role === 'CUSTOMER') {
+                await tx.customer.create({
+                    data: {
+                        userId: user.id,
+                        company: name || 'Yeni Müşteri',
+                    }
+                })
             }
         })
 
@@ -91,9 +102,26 @@ export async function updateUserAction(data: any) {
             updateData.passwordHash = await hash(password, 10)
         }
 
-        await prisma.user.update({
-            where: { id },
-            data: updateData
+        await prisma.$transaction(async (tx) => {
+            await tx.user.update({
+                where: { id },
+                data: updateData
+            })
+
+            if (role === 'CUSTOMER') {
+                const existingCustomer = await tx.customer.findUnique({
+                    where: { userId: id }
+                })
+
+                if (!existingCustomer) {
+                    await tx.customer.create({
+                        data: {
+                            userId: id,
+                            company: name || 'Yeni Müşteri',
+                        }
+                    })
+                }
+            }
         })
 
         revalidatePath('/admin/users')
