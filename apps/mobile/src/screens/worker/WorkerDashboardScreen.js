@@ -102,9 +102,9 @@ export default function WorkerDashboardScreen({ navigation }) {
                     ...job,
                     id: job.id,
                     title: job.title,
-                    location: job.location || job.customer?.company || 'Konum belirtilmemiş',
-                    time: job.scheduledDate ? new Date(job.scheduledDate).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : 'Saat belirtilmemiş',
-                    status: job.status === 'IN_PROGRESS' ? 'In Progress' : 'Pending',
+                    location: job.location || job.customer?.company || t('common.noData'),
+                    time: job.scheduledDate ? new Date(job.scheduledDate).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : t('worker.noDescription'),
+                    status: job.status,
                     progress: progress,
                     priority: job.priority
                 };
@@ -255,8 +255,8 @@ export default function WorkerDashboardScreen({ navigation }) {
 
     const getFilteredJobs = () => {
         if (activeFilter === 'ALL') return activeJobs;
-        if (activeFilter === 'IN_PROGRESS') return activeJobs.filter(job => job.status === 'In Progress');
-        if (activeFilter === 'PENDING') return activeJobs.filter(job => job.status === 'Pending');
+        if (activeFilter === 'IN_PROGRESS') return activeJobs.filter(job => job.status === 'IN_PROGRESS');
+        if (activeFilter === 'PENDING') return activeJobs.filter(job => job.status === 'PENDING');
         return activeJobs;
     };
 

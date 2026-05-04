@@ -4,7 +4,7 @@ import { getStatusColor } from '../../utils/status-helper';
 import { useTranslation } from 'react-i18next';
 
 const EventList = ({ selectedDate, events, onEventPress, theme }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     // Fallback if theme prop isn't passed (though it should be)
     const cardBg = theme ? theme.colors.card : '#1e293b';
     const textMain = theme ? theme.colors.text : '#e2e8f0';
@@ -13,7 +13,7 @@ const EventList = ({ selectedDate, events, onEventPress, theme }) => {
     return (
         <View style={[styles.eventsContainer, { backgroundColor: theme ? theme.colors.background : '#0f172a' }]}>
             <Text style={[styles.eventsTitle, { color: textMain }]}>
-                {new Date(selectedDate).toLocaleDateString('tr-TR', {
+                {new Date(selectedDate).toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', {
                     day: 'numeric',
                     month: 'long',
                     year: 'numeric'
@@ -21,7 +21,7 @@ const EventList = ({ selectedDate, events, onEventPress, theme }) => {
             </Text>
             <ScrollView style={styles.eventsList}>
                 {events.length === 0 ? (
-                    <Text style={[styles.noEvents, { color: textSub }]}>Bu tarihte planlanmış iş yok</Text>
+                    <Text style={[styles.noEvents, { color: textSub }]}>{t('manager.noPlanningData')}</Text>
                 ) : (
                     events.map((event) => (
                         <TouchableOpacity

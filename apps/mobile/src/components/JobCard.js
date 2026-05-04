@@ -2,12 +2,14 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { CircleDot, Clock, MoreHorizontal, MapPin } from 'lucide-react-native';
 import { useTheme } from '../context/ThemeContext';
-import { SPACING } from '../constants/theme';
+import { useTranslation } from 'react-i18next';
+import { getStatusLabel } from '../utils/status-helper';
 
 const { width } = Dimensions.get('window');
 
 const JobCard = ({ job, onPress, style }) => {
     const { theme, isDark, SPACING } = useTheme();
+    const { t } = useTranslation();
     const isInProgress = job.status === 'In Progress' || job.status === 'IN_PROGRESS';
 
     return (
@@ -49,7 +51,7 @@ const JobCard = ({ job, onPress, style }) => {
                             { color: theme.colors.primary } :
                             { color: theme.colors.tertiary }
                     ]}>
-                        {isInProgress ? 'Devam Ediyor' : 'Bekliyor'}
+                        {getStatusLabel(job.status, t)}
                     </Text>
                 </View>
                 <MoreHorizontal size={20} color={theme.colors.subText} />
@@ -63,7 +65,7 @@ const JobCard = ({ job, onPress, style }) => {
             <View style={styles.infoContainer}>
                 <View style={styles.infoRow}>
                     <MapPin size={16} color={theme.colors.subText} />
-                    <Text style={[styles.infoText, { color: theme.colors.subText }]}>{job.location}</Text>
+                    <Text style={[styles.infoText, { color: theme.colors.subText }]}>{job.location || t('common.noData')}</Text>
                 </View>
                 {job.time && (
                     <View style={styles.infoRow}>
@@ -87,21 +89,21 @@ const styles = StyleSheet.create({
     card: {
         width: width * 0.7,
         borderRadius: 22, // Modern Rounded
-        padding: SPACING.ml, // Was 20
-        marginRight: SPACING.m, // Was 16
+        padding: 20, // Manual fix for SPACING.ml if not available yet
+        marginRight: 16, // Manual fix for SPACING.m
         borderWidth: 1,
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: SPACING.m, // Was 16
+        marginBottom: 16,
     },
     statusBadge: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: SPACING.sm, // Standardized to 12 (was 10)
-        paddingVertical: SPACING.xs, // Was 4
+        paddingHorizontal: 12,
+        paddingVertical: 4,
         borderRadius: 8,
     },
     statusText: {
@@ -117,17 +119,17 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 16,
         fontWeight: 'bold',
-        marginBottom: SPACING.sm, // Was 12
+        marginBottom: 12,
         height: 44, // Fixed height for 2 lines
     },
     infoContainer: {
-        gap: SPACING.s, // Was 8
-        marginBottom: SPACING.ml, // Was 20
+        gap: 8,
+        marginBottom: 20,
     },
     infoRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: SPACING.s, // Was 8
+        gap: 8,
     },
     infoText: {
         fontSize: 13,
@@ -135,7 +137,7 @@ const styles = StyleSheet.create({
     progressContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: SPACING.sm, // Was 12
+        gap: 12,
         marginTop: 'auto',
     },
     progressBarBg: {

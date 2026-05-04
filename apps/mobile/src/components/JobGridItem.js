@@ -2,44 +2,43 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
+import { useTranslation } from 'react-i18next';
+import { getStatusLabel } from '../utils/status-helper';
 
 const JobGridItem = ({ job, onPress, style }) => {
     const { theme, isDark } = useTheme();
+    const { t } = useTranslation();
     const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
     // KESİN ÖLÇÜLER:
-    // 16px sol padding + 16px sağ padding + 16px orta boşluk = 48px toplam boşluk
     const numColumns = windowWidth > 600 ? 3 : 2;
     const totalPadding = 48; // (numColumns + 1) * 16
     const cardWidth = (windowWidth - totalPadding) / numColumns;
     
-    // Yükseklik: 4 kartın ekrana sığması için ekran boyunun %22'si idealdir
     const cardHeight = windowHeight * 0.22; 
 
     // Veri Eşleştirme
-    const companyName = job.customer?.company || job.customerName || 'Firma Yok';
-    const contactPerson = job.customer?.user?.name || job.contactPerson || 'Yetkili Yok';
+    const companyName = job.customer?.company || job.customerName || t('common.noData');
+    const contactPerson = job.customer?.user?.name || job.contactPerson || t('common.noData');
     
     const teamLead = 
         job.assignments?.[0]?.team?.lead?.name || 
         job.assignments?.[0]?.worker?.name ||      
         job.teamLeadName ||                        
         job.assignee?.name ||                      
-        'Sorumlu Atanmamış';
+        t('common.unassigned');
 
     const renderStatusBadge = () => {
         let bgColor = isDark ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.1)';
         let textColor = theme.colors.primary;
-        let label = 'Bekliyor';
+        let label = getStatusLabel(job.status, t);
 
         if (job.status === 'IN_PROGRESS' || job.status === 'In Progress') {
             bgColor = isDark ? 'rgba(34, 197, 94, 0.15)' : 'rgba(34, 197, 94, 0.1)';
             textColor = '#22c55e';
-            label = 'İşlemde';
         } else if (job.status === 'COMPLETED' || job.status === 'Completed') {
             bgColor = isDark ? 'rgba(156, 163, 175, 0.15)' : 'rgba(156, 163, 175, 0.1)';
             textColor = isDark ? '#9ca3af' : '#6b7280';
-            label = 'Bitti';
         }
 
         return (
@@ -98,7 +97,7 @@ const JobGridItem = ({ job, onPress, style }) => {
                 <View style={styles.infoIconRow}>
                     <MaterialIcons name="location-on" size={12} color={theme.colors.subText} />
                     <Text style={[styles.infoText, { color: theme.colors.subText }]} numberOfLines={1}>
-                        {job.location || 'Konum Yok'}
+                        {job.location || t('common.noData')}
                     </Text>
                 </View>
             </View>

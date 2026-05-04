@@ -277,11 +277,13 @@
     "IN_PROGRESS": "In Progress",
     "COMPLETED": "Completed",
     "CANCELLED": "Cancelled",
+    "ON_HOLD": "On Hold",
     "PENDING_APPROVAL": "Pending Approval",
     "pending": "Pending",
     "in_progress": "In Progress",
     "completed": "Completed",
     "cancelled": "Cancelled",
+    "on_hold": "On Hold",
     "pending_approval": "Pending Approval"
   },
   "acceptance": {

@@ -277,11 +277,13 @@
     "IN_PROGRESS": "Devam Ediyor",
     "COMPLETED": "Tamamlandı",
     "CANCELLED": "İptal Edildi",
+    "ON_HOLD": "Beklemede",
     "PENDING_APPROVAL": "Onay Bekliyor",
     "pending": "Beklemede",
     "in_progress": "Devam Ediyor",
     "completed": "Tamamlandı",
     "cancelled": "İptal Edildi",
+    "on_hold": "Beklemede",
     "pending_approval": "Onay Bekliyor"
   },
   "acceptance": {

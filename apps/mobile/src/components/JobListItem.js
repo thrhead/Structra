@@ -2,6 +2,8 @@ import React, { memo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
+import { getStatusLabel } from '../utils/status-helper';
+import { useTranslation } from 'react-i18next';
 
 const renderPriorityDot = (priority, theme) => {
     let color = theme.colors.tertiary; // Default or Low
@@ -11,13 +13,15 @@ const renderPriorityDot = (priority, theme) => {
     return <View style={[styles.priorityDot, { backgroundColor: color }]} />;
 };
 
-const renderStatusBadge = (status, theme, isDark) => {
+const renderStatusBadge = (status, theme, isDark, t) => {
+    const label = getStatusLabel(status, t);
+    
     if (status === 'IN_PROGRESS' || status === 'In Progress') {
         const bgColor = isDark ? 'rgba(57, 255, 20, 0.1)' : 'rgba(37, 99, 235, 0.1)';
         const textColor = isDark ? '#39FF14' : theme.colors.primary;
         return (
             <View style={[styles.badge, { backgroundColor: bgColor }]}>
-                <Text style={[styles.badgeText, { color: textColor }]}>Devam Ediyor</Text>
+                <Text style={[styles.badgeText, { color: textColor }]}>{label}</Text>
             </View>
         );
     }
@@ -26,7 +30,7 @@ const renderStatusBadge = (status, theme, isDark) => {
         const textColor = isDark ? '#60a5fa' : '#d97706';
         return (
             <View style={[styles.badge, { backgroundColor: bgColor }]}>
-                <Text style={[styles.badgeText, { color: textColor }]}>Bekliyor</Text>
+                <Text style={[styles.badgeText, { color: textColor }]}>{label}</Text>
             </View>
         );
     }
@@ -35,24 +39,31 @@ const renderStatusBadge = (status, theme, isDark) => {
         const textColor = isDark ? '#39FF14' : '#15803d';
         return (
             <View style={[styles.badge, { backgroundColor: bgColor }]}>
-                <Text style={[styles.badgeText, { color: textColor }]}>Tamamlandı</Text>
+                <Text style={[styles.badgeText, { color: textColor }]}>{label}</Text>
             </View>
         );
     }
-    if (status === 'PENDING_APPROVAL') {
+    if (status === 'PENDING_APPROVAL' || status === 'pending_approval') {
         const bgColor = isDark ? 'rgba(245, 158, 11, 0.2)' : 'rgba(245, 158, 11, 0.1)';
         const textColor = isDark ? '#fbbf24' : '#d97706';
         return (
             <View style={[styles.badge, { backgroundColor: bgColor }]}>
-                <Text style={[styles.badgeText, { color: textColor }]}>Onay Bekliyor</Text>
+                <Text style={[styles.badgeText, { color: textColor }]}>{label}</Text>
             </View>
         );
     }
-    return null;
+    
+    // Default fallback badge
+    return (
+        <View style={[styles.badge, { backgroundColor: isDark ? 'rgba(156, 163, 175, 0.1)' : 'rgba(156, 163, 175, 0.1)' }]}>
+            <Text style={[styles.badgeText, { color: isDark ? '#9ca3af' : '#6b7280' }]}>{label}</Text>
+        </View>
+    );
 };
 
 const JobListItem = ({ item, onPress }) => {
     const { theme, isDark } = useTheme();
+    const { t } = useTranslation();
 
     return (
         <TouchableOpacity
@@ -86,26 +97,26 @@ const JobListItem = ({ item, onPress }) => {
                         <Text style={[styles.cardTitle, { color: theme.colors.text }, item.status === 'COMPLETED' && styles.textStrike]}>{item.title}</Text>
                         <View style={styles.headerRight}>
                             {item.status !== 'COMPLETED' && renderPriorityDot(item.priority, theme)}
-                            {renderStatusBadge(item.status, theme, isDark)}
+                            {renderStatusBadge(item.status, theme, isDark, t)}
                         </View>
                     </View>
                     <View style={styles.cardFooter}>
                         <View style={styles.footerInfo}>
                             <View style={styles.infoRow}>
                                 <MaterialIcons name="event" size={16} color={theme.colors.secondary} />
-                                <Text style={[styles.infoText, { color: theme.colors.subText }]}>{item.scheduledDate ? new Date(item.scheduledDate).toLocaleDateString() : 'Tarih Yok'}</Text>
+                                <Text style={[styles.infoText, { color: theme.colors.subText }]}>{item.scheduledDate ? new Date(item.scheduledDate).toLocaleDateString() : t('common.noData')}</Text>
                             </View>
                             <View style={styles.infoRow}>
                                 <MaterialIcons name="person" size={16} color={theme.colors.secondary} />
                                 <Text style={[styles.infoText, { color: theme.colors.subText }]}>
-                                    Atanan: {item.assignments?.[0]?.team?.name || item.assignments?.[0]?.worker?.name || item.assignee?.name || 'Atanmamış'}
+                                    {t('common.responsible')}: {item.assignments?.[0]?.team?.name || item.assignments?.[0]?.worker?.name || item.assignee?.name || t('common.unassigned')}
                                 </Text>
                             </View>
                         </View>
                         <View
                             style={[styles.detailsButton, { backgroundColor: theme.colors.primary }]}
                         >
-                            <Text style={[styles.detailsButtonText, { color: theme.colors.textInverse }]}>Detaylar</Text>
+                            <Text style={[styles.detailsButtonText, { color: theme.colors.textInverse }]}>{t('worker.jobDetails')}</Text>
                         </View>
                     </View>
                 </View>

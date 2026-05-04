@@ -13,6 +13,7 @@ import { Calendar as CalendarIcon, Filter, Clock, MapPin, Users, ChevronRight, L
 import { useTheme } from '../../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import api from '../../services/api';
+import { getStatusColor, getStatusLabel } from '../../utils/status-helper';
 
 import CustomSpinner from '../../components/CustomSpinner';
 const { width } = Dimensions.get('window');
@@ -70,15 +71,23 @@ const AdvancedPlanningScreen = () => {
 
     const renderStatusBadge = (status) => {
         const colors = {
-            PLANNED: { bg: 'rgba(59, 130, 246, 0.1)', text: '#3B82F6', label: t('manager.planned') },
-            ASSIGNED: { bg: 'rgba(99, 102, 241, 0.1)', text: '#6366F1', label: t('manager.assigned') },
-            IN_PROGRESS: { bg: 'rgba(245, 158, 11, 0.1)', text: '#F59E0B', label: t('manager.inProgress') },
-            COMPLETED: { bg: 'rgba(34, 197, 94, 0.1)', text: '#22C55E', label: t('common.success') }
+            PLANNED: { bg: 'rgba(59, 130, 246, 0.1)', text: '#3B82F6' },
+            ASSIGNED: { bg: 'rgba(99, 102, 241, 0.1)', text: '#6366F1' },
+            IN_PROGRESS: { bg: 'rgba(245, 158, 11, 0.1)', text: '#F59E0B' },
+            COMPLETED: { bg: 'rgba(34, 197, 94, 0.1)', text: '#22C55E' },
+            PENDING: { bg: 'rgba(107, 114, 128, 0.1)', text: '#6B7280' },
+            ON_HOLD: { bg: 'rgba(139, 92, 246, 0.1)', text: '#8B5CF6' }
         };
-        const config = colors[status] || { bg: 'rgba(107, 114, 128, 0.1)', text: '#6B7280', label: status };
+        const config = colors[status] || { bg: 'rgba(107, 114, 128, 0.1)', text: '#6B7280' };
+        
+        // Specific labels for PLANNED and ASSIGNED since they are manager-specific
+        let label = getStatusLabel(status, t);
+        if (status === 'PLANNED') label = t('manager.planned');
+        if (status === 'ASSIGNED') label = t('manager.assigned');
+
         return (
             <View style={[styles.badge, { backgroundColor: config.bg }]}>
-                <Text style={[styles.badgeText, { color: config.text }]}>{config.label}</Text>
+                <Text style={[styles.badgeText, { color: config.text }]}>{label}</Text>
             </View>
         );
     };
