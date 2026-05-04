@@ -8,7 +8,7 @@ import GlassCard from "../ui/GlassCard";
 
 const JobInfoCard = ({ job }) => {
   const { theme } = useTheme();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   if (!job) return null;
 

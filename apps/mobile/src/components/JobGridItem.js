@@ -10,6 +10,13 @@ const JobGridItem = ({ job, onPress, style }) => {
     const { t } = useTranslation();
     const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
+    // Calculate progress if not provided or 0
+    const displayProgress = job.progress > 0 
+        ? job.progress 
+        : (job.steps && job.steps.length > 0 
+            ? Math.round((job.steps.filter(s => s.isCompleted).length / job.steps.length) * 100) 
+            : 0);
+
     // KESİN ÖLÇÜLER:
     const numColumns = windowWidth > 600 ? 3 : 2;
     const totalPadding = 48; // (numColumns + 1) * 16
@@ -104,14 +111,14 @@ const JobGridItem = ({ job, onPress, style }) => {
 
             <View style={styles.footer}>
                 <View style={styles.progressHeader}>
-                    <Text style={[styles.percentageText, { color: theme.colors.primary }]}>%{job.progress || 0}</Text>
+                    <Text style={[styles.percentageText, { color: theme.colors.primary }]}>%{displayProgress}</Text>
                 </View>
                 <View style={[styles.progressBg, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
                     <View 
                         style={[
                             styles.progressFill, 
                             { 
-                                width: `${job.progress || 0}%`, 
+                                width: `${displayProgress}%`, 
                                 backgroundColor: job.status === 'COMPLETED' ? '#22c55e' : theme.colors.primary 
                             }
                         ]} 
