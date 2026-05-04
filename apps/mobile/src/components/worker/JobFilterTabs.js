@@ -4,7 +4,7 @@ import { useTheme } from '../../context/ThemeContext';
 
 const JobFilterTabs = ({ selectedFilter, onSelectFilter }) => {
     const { theme, isDark } = useTheme();
-    const filters = ['Tümü', 'Bekleyen', 'Devam Eden', 'Onay Bekleyen', 'Onaylanan', 'Tamamlanan'];
+    const filters = ['Tümü', 'Bekleyen', 'Devam Eden', 'Onay Bekleyen', 'Tamamlanan'];
 
     return (
         <View style={styles.filterContainer}>

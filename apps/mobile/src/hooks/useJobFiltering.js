@@ -17,8 +17,8 @@ export const useJobFiltering = (jobs) => {
 
         // 1. Status Filtering logic
         const statusMap = {
-            'Devam Eden': 'IN_PROGRESS',
             'Bekleyen': 'PENDING',
+            'Devam Eden': 'IN_PROGRESS',
             'Onay Bekleyen': 'PENDING_APPROVAL',
             'Tamamlanan': 'COMPLETED'
         };

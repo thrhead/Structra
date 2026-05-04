@@ -95,7 +95,7 @@ export default function WorkerDashboardScreen({ navigation }) {
 
             const formattedActiveJobs = active.map(job => {
                 const totalSteps = job.steps ? job.steps.length : 0;
-                const completedSteps = job.steps ? job.steps.filter(s => s.isCompleted).length : 0;
+                const completedSteps = job.steps ? job.steps.filter(s => s.isCompleted || s.status === 'COMPLETED').length : 0;
                 const progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
 
                 return {
@@ -270,7 +270,7 @@ export default function WorkerDashboardScreen({ navigation }) {
             </View>
 
             <View style={styles.filterContainer}>
-                {['ALL', 'IN_PROGRESS', 'PENDING'].map(filter => (
+                {['ALL', 'PENDING', 'IN_PROGRESS'].map(filter => (
                     <TouchableOpacity
                         key={filter}
                         style={[
@@ -289,7 +289,7 @@ export default function WorkerDashboardScreen({ navigation }) {
                                 fontWeight: activeFilter === filter ? 'bold' : '600'
                             }
                         ]}>
-                            {filter === 'ALL' ? 'Tümü' : filter === 'IN_PROGRESS' ? 'Devam Eden' : 'Bekleyen'}
+                            {filter === 'ALL' ? 'Tümü' : filter === 'PENDING' ? 'Bekleyen' : 'Devam Eden'}
                         </Text>
                     </TouchableOpacity>
                 ))}
@@ -319,8 +319,8 @@ export default function WorkerDashboardScreen({ navigation }) {
                         </View>
                         <Text style={[styles.emptyStateText, { color: theme.colors.text }]}>
                             {activeFilter === 'ALL' ? 'Aktif görev bulunmuyor' :
-                                activeFilter === 'IN_PROGRESS' ? 'Devam eden görev yok' :
-                                    'Bekleyen görev yok'}
+                                activeFilter === 'PENDING' ? 'Bekleyen görev yok' :
+                                    'Devam eden görev yok'}
                         </Text>
                     </View>
                 }

@@ -14,7 +14,7 @@ const JobGridItem = ({ job, onPress, style }) => {
     const displayProgress = job.progress > 0 
         ? job.progress 
         : (job.steps && job.steps.length > 0 
-            ? Math.round((job.steps.filter(s => s.isCompleted).length / job.steps.length) * 100) 
+            ? Math.round((job.steps.filter(s => s.isCompleted || s.status === 'COMPLETED').length / job.steps.length) * 100) 
             : 0);
 
     // KESİN ÖLÇÜLER:
