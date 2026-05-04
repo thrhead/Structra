@@ -68,15 +68,15 @@ export function SectionCards({ stats }: SectionCardsProps) {
               {safeStats.totalCustomers}
             </CardTitle>
             <CardAction>
-              <Badge variant="outline" className="border-indigo-200/50 dark:border-indigo-900/50 text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-900/20 rounded-xl px-2.5 shadow-sm backdrop-blur-md">
-                <IconTrendingUp size={14} className="mr-1.5" />
+              <Badge variant="outline" className={`border-indigo-200/50 dark:border-indigo-900/50 ${parseFloat(safeStats.growthRate) < 0 ? 'text-rose-600 dark:text-rose-400 bg-rose-50/50 dark:bg-rose-900/20' : parseFloat(safeStats.growthRate) > 0 ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-900/20' : 'text-slate-600 dark:text-slate-400 bg-slate-50/50 dark:bg-slate-900/20'} rounded-xl px-2.5 shadow-sm backdrop-blur-md`}>
+                <IconTrendingUp size={14} className={`mr-1.5 ${parseFloat(safeStats.growthRate) < 0 ? 'rotate-180' : ''}`} />
                 {safeStats.growthRate}
               </Badge>
             </CardAction>
           </CardHeader>
           <CardFooter className="flex-col items-start gap-2 mt-auto relative z-10 pb-6">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400">
-              <IconTrendingUp size={14} stroke={2.5} /> Pozitif büyüme ivmesi
+            <div className={`flex items-center gap-1.5 text-xs font-semibold ${parseFloat(safeStats.growthRate) < 0 ? 'text-rose-600 dark:text-rose-400' : parseFloat(safeStats.growthRate) > 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-600 dark:text-slate-400'}`}>
+              <IconTrendingUp size={14} stroke={2.5} className={parseFloat(safeStats.growthRate) < 0 ? 'rotate-180' : ''} /> {parseFloat(safeStats.growthRate) >= 20 ? 'Hızlı büyüme ivmesi' : parseFloat(safeStats.growthRate) > 0 ? 'Pozitif büyüme ivmesi' : parseFloat(safeStats.growthRate) <= -20 ? 'Kritik düşüş uyarısı' : parseFloat(safeStats.growthRate) < 0 ? 'Negatif büyüme ivmesi' : 'Sabit büyüme ivmesi'}
             </div>
             <div className="text-[10px] uppercase font-semibold tracking-widest text-slate-400 dark:text-slate-500">
               Son 6 aylık değişim
@@ -101,10 +101,10 @@ export function SectionCards({ stats }: SectionCardsProps) {
           </CardHeader>
           <CardFooter className="flex-col items-start gap-2 mt-auto relative z-10 pb-6">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-orange-600 dark:text-orange-500">
-               <IconBriefcase size={14} stroke={2.5} /> Sahada şu an aktif
+               <IconBriefcase size={14} stroke={2.5} /> {safeStats.activeTeams === 0 ? 'Sahada aktif ekip bulunmuyor' : safeStats.pendingJobs > safeStats.activeTeams * 5 ? `Kapasite aşımı: Ekip başına ${(safeStats.pendingJobs / safeStats.activeTeams).toFixed(1)} iş` : safeStats.pendingJobs > 0 ? `Optimum kapasite: Ekip başına ${(safeStats.pendingJobs / safeStats.activeTeams).toFixed(1)} iş` : `${safeStats.activeTeams} ekip operasyona hazır`}
             </div>
             <div className="text-[10px] uppercase font-semibold tracking-widest text-slate-400 dark:text-slate-500">
-              Operasyon durumu
+              Kapasite ve yoğunluk
             </div>
           </CardFooter>
         </Card>
@@ -152,10 +152,10 @@ export function SectionCards({ stats }: SectionCardsProps) {
           </CardHeader>
           <CardFooter className="flex-col items-start gap-2 mt-auto relative z-10 pb-6">
             <div className={`flex items-center gap-1.5 text-xs font-semibold ${pColor.text}`}>
-              <IconCheck size={14} stroke={2.5} /> {parseFloat(safeStats.completionRate) > 66 ? 'Mükemmel başarı oranı' : parseFloat(safeStats.completionRate) > 33 ? 'İyi gelişim ivmesi' : 'Gelişim potansiyeli yüksek'}
+              <IconCheck size={14} stroke={2.5} /> {parseFloat(safeStats.completionRate) >= 90 ? 'Mükemmel operasyon başarısı' : parseFloat(safeStats.completionRate) >= 70 ? 'İstikrarlı ilerleme' : parseFloat(safeStats.completionRate) >= 40 ? 'Gelişim potansiyeli yüksek' : parseFloat(safeStats.completionRate) > 0 ? 'Operasyonel iyileştirme gerekli' : 'Henüz tamamlanan iş yok'}
             </div>
             <div className="text-[10px] uppercase font-semibold tracking-widest text-slate-400 dark:text-slate-500">
-              Bitirilen operasyon
+              Performans analizi
             </div>
           </CardFooter>
         </Card>
