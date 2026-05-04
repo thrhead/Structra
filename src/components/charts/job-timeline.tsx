@@ -30,6 +30,8 @@ interface TimelineStep {
     latitude?: number | null
     longitude?: number | null
     blockedReason: string | null
+    approvalStatus?: string
+    rejectionReason?: string | null
     order: number
     photos?: StepPhoto[]
     subSteps?: {
@@ -68,14 +70,18 @@ export function JobTimeline({ steps, scheduledDate, completedDate, jobId }: JobT
     const [loadingId, setLoadingId] = useState<string | null>(null)
     const [selectedPhoto, setSelectedPhoto] = useState<StepPhoto | null>(null)
 
-    const handleApprove = async (subStepId: string) => {
-        setLoadingId(subStepId)
+    const handleApprove = async (id: string, type: 'STEP' | 'SUBSTEP' = 'SUBSTEP') => {
+        setLoadingId(id)
         try {
-            const res = await fetch(`/api/manager/substeps/${subStepId}/approve`, {
+            const endpoint = type === 'STEP' 
+                ? `/api/manager/steps/${id}/approve`
+                : `/api/manager/substeps/${id}/approve`
+
+            const res = await fetch(endpoint, {
                 method: 'POST'
             })
             if (res.ok) {
-                toast.success('Alt adım onaylandı')
+                toast.success(type === 'STEP' ? 'İş adımı onaylandı' : 'Alt adım onaylandı')
                 router.refresh()
             } else {
                 toast.error('Onaylama başarısız')
@@ -87,19 +93,23 @@ export function JobTimeline({ steps, scheduledDate, completedDate, jobId }: JobT
         }
     }
 
-    const handleReject = async (subStepId: string) => {
+    const handleReject = async (id: string, type: 'STEP' | 'SUBSTEP' = 'SUBSTEP') => {
         const reason = prompt('Red nedeni girin:')
         if (!reason) return
 
-        setLoadingId(subStepId)
+        setLoadingId(id)
         try {
-            const res = await fetch(`/api/manager/substeps/${subStepId}/reject`, {
+            const endpoint = type === 'STEP'
+                ? `/api/manager/steps/${id}/reject`
+                : `/api/manager/substeps/${id}/reject`
+
+            const res = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ reason })
             })
             if (res.ok) {
-                toast.success('Alt adım reddedildi')
+                toast.success(type === 'STEP' ? 'İş adımı reddedildi' : 'Alt adım reddedildi')
                 router.refresh()
             } else {
                 toast.error('Reddetme başarısız')
@@ -144,17 +154,26 @@ export function JobTimeline({ steps, scheduledDate, completedDate, jobId }: JobT
                                     {index < steps.length - 1 && (
                                         <div className={cn(
                                             "absolute left-5 top-12 bottom-0 w-0.5",
-                                            step.isCompleted ? "bg-green-200" : step.blockedAt ? "bg-red-200" : "bg-gray-200"
+                                            step.approvalStatus === 'APPROVED' ? "bg-green-200" : 
+                                            step.isCompleted ? "bg-green-200" : 
+                                            step.blockedAt ? "bg-red-200" : "bg-gray-200"
                                         )} />
                                     )}
 
                                     <div className="flex gap-4">
                                         <div className={cn(
                                             "h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0",
-                                            step.isCompleted ? "bg-green-100" : step.blockedAt ? "bg-red-100" : "bg-gray-100"
+                                            step.approvalStatus === 'APPROVED' ? "bg-green-100" :
+                                            step.approvalStatus === 'REJECTED' ? "bg-red-100" :
+                                            step.isCompleted ? "bg-green-100" : 
+                                            step.blockedAt ? "bg-red-100" : "bg-gray-100"
                                         )}>
-                                            {step.isCompleted ? (
+                                            {step.approvalStatus === 'APPROVED' ? (
                                                 <CheckCircle className="h-5 w-5 text-green-600" />
+                                            ) : step.approvalStatus === 'REJECTED' ? (
+                                                <XCircle className="h-5 w-5 text-red-600" />
+                                            ) : step.isCompleted ? (
+                                                <AlertCircle className="h-5 w-5 text-yellow-600" />
                                             ) : step.blockedAt ? (
                                                 <XCircle className="h-5 w-5 text-red-600" />
                                             ) : (
@@ -165,10 +184,22 @@ export function JobTimeline({ steps, scheduledDate, completedDate, jobId }: JobT
                                         <div className="flex-1 pb-6">
                                             <div className="flex justify-between items-start mb-2">
                                                 <div>
-                                                    <p className="font-medium">{step.title}</p>
+                                                    <p className={cn("font-medium", step.approvalStatus === 'APPROVED' && "line-through text-gray-500")}>
+                                                        {step.title}
+                                                    </p>
                                                     {step.blockedAt && step.blockedReason && (
                                                         <Badge variant="destructive" className="mt-1">
                                                             {BLOCKED_REASONS[step.blockedReason] || step.blockedReason}
+                                                        </Badge>
+                                                    )}
+                                                    {step.approvalStatus === 'APPROVED' && (
+                                                        <Badge variant="outline" className="mt-1 text-xs bg-green-50 text-green-700 border-green-200">
+                                                            ✓ Onaylandı
+                                                        </Badge>
+                                                    )}
+                                                    {step.approvalStatus === 'REJECTED' && (
+                                                        <Badge variant="destructive" className="mt-1 text-xs">
+                                                            Reddedildi
                                                         </Badge>
                                                     )}
                                                 </div>
@@ -201,7 +232,68 @@ export function JobTimeline({ steps, scheduledDate, completedDate, jobId }: JobT
                                                         <span>Bloklandı: {format(new Date(step.blockedAt), 'd MMM, HH:mm', { locale: tr })}</span>
                                                     </div>
                                                 )}
+                                                {step.approvalStatus === 'REJECTED' && step.rejectionReason && (
+                                                    <div className="mt-1 text-xs text-red-600 font-medium">
+                                                        Red nedeni: {step.rejectionReason}
+                                                    </div>
+                                                )}
                                             </div>
+
+                                            {/* Step Approval UI */}
+                                            {step.isCompleted && step.approvalStatus === 'PENDING' && (
+                                                <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                                    <div className="flex items-center gap-2 text-yellow-800 text-xs mb-3">
+                                                        <AlertCircle className="h-4 w-4" />
+                                                        <span className="font-semibold">İş Adımı Onay Bekliyor</span>
+                                                    </div>
+                                                    
+                                                    {/* Photos for step approval if no substeps */}
+                                                    {(!step.subSteps || step.subSteps.length === 0) && step.photos && step.photos.length > 0 && (
+                                                        <div className="mb-3">
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {step.photos.map(photo => (
+                                                                    <button
+                                                                        key={photo.id}
+                                                                        onClick={() => setSelectedPhoto(photo)}
+                                                                        className="w-16 h-16 rounded border overflow-hidden hover:ring-2 hover:ring-blue-500 transition-all relative"
+                                                                    >
+                                                                        <Image
+                                                                            src={photo.url}
+                                                                            alt="İş adımı fotoğrafı"
+                                                                            fill
+                                                                            sizes="64px"
+                                                                            className="object-cover"
+                                                                        />
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    <div className="flex gap-2">
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            className="flex-1 h-8 text-xs bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                                                            onClick={() => handleApprove(step.id, 'STEP')}
+                                                            disabled={loadingId === step.id}
+                                                        >
+                                                            {loadingId === step.id ? <CustomSpinner className="h-3 w-3 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-1.5" />}
+                                                            Onayla
+                                                        </Button>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            className="flex-1 h-8 text-xs bg-red-50 border-red-200 text-red-700 hover:bg-red-100"
+                                                            onClick={() => handleReject(step.id, 'STEP')}
+                                                            disabled={loadingId === step.id}
+                                                        >
+                                                            <XCircle className="h-4 w-4 mr-1.5" />
+                                                            Reddet
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            )}
 
                                             {/* Alt Görevler */}
                                             {step.subSteps && step.subSteps.length > 0 && (
@@ -242,7 +334,7 @@ export function JobTimeline({ steps, scheduledDate, completedDate, jobId }: JobT
                                                                                     size="sm"
                                                                                     variant="outline"
                                                                                     className="h-7 text-xs bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
-                                                                                    onClick={() => handleApprove(subStep.id)}
+                                                                                    onClick={() => handleApprove(subStep.id, 'SUBSTEP')}
                                                                                     disabled={loadingId === subStep.id}
                                                                                 >
                                                                                     {loadingId === subStep.id ? <CustomSpinner className="h-3 w-3 animate-spin" /> : <CheckCircle className="h-3 w-3 mr-1" />}
@@ -252,7 +344,7 @@ export function JobTimeline({ steps, scheduledDate, completedDate, jobId }: JobT
                                                                                     size="sm"
                                                                                     variant="outline"
                                                                                     className="h-7 text-xs bg-red-50 border-red-200 text-red-700 hover:bg-red-100"
-                                                                                    onClick={() => handleReject(subStep.id)}
+                                                                                    onClick={() => handleReject(subStep.id, 'SUBSTEP')}
                                                                                     disabled={loadingId === subStep.id}
                                                                                 >
                                                                                     <XCircle className="h-3 w-3 mr-1" />
