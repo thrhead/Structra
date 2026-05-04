@@ -188,7 +188,7 @@ export function UserDialog({ user, trigger }: UserDialogProps) {
                           <SelectItem value="MANAGER">Müdür (Manager)</SelectItem>
                           <SelectItem value="TEAM_LEAD">Ekip Lideri</SelectItem>
                           <SelectItem value="WORKER">Saha Çalışanı</SelectItem>
-                          <SelectItem value="CUSTOMER">Müşteri Temsilcisi</SelectItem>
+                          <SelectItem value="CUSTOMER">Müşteri</SelectItem>
                         </SelectGroup>
                       </SelectContent>
                     </Select>
