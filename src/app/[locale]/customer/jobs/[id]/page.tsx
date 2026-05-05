@@ -108,8 +108,7 @@ const STATUS_COLORS: Record<string, string> = {
   CANCELLED: 'bg-red-100 text-red-800'
 }
 
-export default function CustomerJobDetailPage(props: { params: Promise<{ id: string }> }) {
-  const params = use(props.params)
+export default function CustomerJobDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const [job, setJob] = useState<JobDetail | null>(null)
   const [loading, setLoading] = useState(true)
@@ -118,37 +117,57 @@ export default function CustomerJobDetailPage(props: { params: Promise<{ id: str
   const [approveConfirmOpen, setApproveConfirmOpen] = useState(false)
   const [rejectionNote, setRejectionNote] = useState('')
   const [previewImage, setPreviewImage] = useState<string | null>(null)
+  const [jobId, setJobId] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchJob()
-  }, [params.id])
-
-  const fetchJob = async () => {
-    try {
-      const response = await fetch(`/api/customer/jobs/${params.id}`)
-      if (response.ok) {
-        const data = await response.json()
-        setJob(data)
-      } else {
-        console.error('Failed to fetch job')
-      }
-    } catch (error) {
-      console.error('Error fetching job:', error)
-    } finally {
-      setLoading(false)
+    // Next.js 15+ passes params as Promise, Next.js 14 passes object. Handle both safely
+    const unwrapParams = async () => {
+      const resolvedParams = await Promise.resolve(params)
+      setJobId(resolvedParams.id)
     }
-  }
+    unwrapParams()
+  }, [params])
+
+  useEffect(() => {
+    if (!jobId) return
+
+    const fetchJob = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch(`/api/customer/jobs/${jobId}`)
+        if (response.ok) {
+          const data = await response.json()
+          setJob(data)
+        } else {
+          console.error('Failed to fetch job')
+        }
+      } catch (error) {
+        console.error('Error fetching job:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchJob()
+  }, [jobId])
 
   const handleApprove = async () => {
+    if (!jobId) return
     try {
       setActionLoading(true)
-      const response = await fetch(`/api/customer/jobs/${params.id}/approve`, {
+      const response = await fetch(`/api/customer/jobs/${jobId}/approve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       })
 
       if (response.ok) {
         toast.success('İş başarıyla onaylandı.')
+        const fetchJob = async () => {
+          const res = await fetch(`/api/customer/jobs/${jobId}`)
+          if (res.ok) {
+            setJob(await res.json())
+          }
+        }
         fetchJob()
       } else {
         toast.error('Onay işlemi sırasında bir hata oluştu.')
@@ -162,6 +181,7 @@ export default function CustomerJobDetailPage(props: { params: Promise<{ id: str
   }
 
   const handleReject = async () => {
+    if (!jobId) return
     if (!rejectionNote.trim()) {
       toast.error('Lütfen reddetme sebebini belirtin.')
       return
@@ -169,7 +189,7 @@ export default function CustomerJobDetailPage(props: { params: Promise<{ id: str
 
     try {
       setActionLoading(true)
-      const response = await fetch(`/api/customer/jobs/${params.id}/reject`, {
+      const response = await fetch(`/api/customer/jobs/${jobId}/reject`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notes: rejectionNote })
@@ -178,6 +198,12 @@ export default function CustomerJobDetailPage(props: { params: Promise<{ id: str
       if (response.ok) {
         toast.success('İş reddedildi ve ekibe geri yönlendirildi.')
         setRejectDialogOpen(false)
+        const fetchJob = async () => {
+          const res = await fetch(`/api/customer/jobs/${jobId}`)
+          if (res.ok) {
+            setJob(await res.json())
+          }
+        }
         fetchJob()
       } else {
         toast.error('İşlem sırasında bir hata oluştu.')
