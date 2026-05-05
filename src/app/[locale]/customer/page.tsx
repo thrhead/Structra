@@ -218,7 +218,6 @@ export default async function CustomerDashboard(props: { params: Promise<{ local
                             size="sm"
                             className="h-8 text-[10px] font-bold text-blue-600 p-0 hover:bg-transparent"
                             asChild
-                            onClick={(e) => e.stopPropagation()}
                           >
                             <a href={`/api/v1/jobs/${job.id}/report`} download>
                               <div className="flex items-center">
