@@ -1,5 +1,10 @@
 {
+  "customer": {
+    "title": "Customer"
+  },
   "common": {
+    "welcome": "Welcome",
+    "seeAll": "See All",
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
@@ -199,7 +204,13 @@
     "uploadBulk": "Bulk Job Upload (Excel)",
     "uploadTemplate": "Upload Template (Excel)",
     "downloadSample": "Download Sample Template",
-    "comingSoon": "Coming Soon"
+    "comingSoon": "Coming Soon",
+    "total": "Total Jobs",
+    "status": {
+        "PENDING": "Pending",
+        "IN_PROGRESS": "In Progress",
+        "COMPLETED": "Completed"
+    }
   },
   "manager": {
     "budgetUsage": "Total Budget Used",

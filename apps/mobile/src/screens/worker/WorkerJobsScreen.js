@@ -48,7 +48,15 @@ export default function WorkerJobsScreen() {
     const fetchJobs = useCallback(async () => {
         try {
             setLoading(true);
-            const data = isAdmin ? await jobService.getAllJobs() : await jobService.getMyJobs();
+            let data;
+            if (isAdmin) {
+                data = await jobService.getAllJobs();
+            } else if (user?.role === 'CUSTOMER') {
+                const response = await jobService.getCustomerJobs();
+                data = response.jobs || [];
+            } else {
+                data = await jobService.getMyJobs();
+            }
             setJobs(data);
         } catch (error) {
             console.error('Error fetching jobs:', error);
@@ -56,7 +64,7 @@ export default function WorkerJobsScreen() {
         } finally {
             setLoading(false);
         }
-    }, [isAdmin]);
+    }, [isAdmin, user?.role, showAlert]);
 
     useFocusEffect(
         useCallback(() => {
@@ -79,7 +87,15 @@ export default function WorkerJobsScreen() {
         setRefreshing(true);
         // Do not set global loading true on refresh to keep list visible
         try {
-            const data = isAdmin ? await jobService.getAllJobs() : await jobService.getMyJobs();
+            let data;
+            if (isAdmin) {
+                data = await jobService.getAllJobs();
+            } else if (user?.role === 'CUSTOMER') {
+                const response = await jobService.getCustomerJobs();
+                data = response.jobs || [];
+            } else {
+                data = await jobService.getMyJobs();
+            }
             setJobs(data);
         } catch (error) {
             console.error('Error refreshing jobs:', error);

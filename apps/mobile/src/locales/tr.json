@@ -1,5 +1,10 @@
 {
+  "customer": {
+    "title": "Müşteri"
+  },
   "common": {
+    "welcome": "Hoş Geldiniz",
+    "seeAll": "Tümünü Gör",
     "save": "Kaydet",
     "cancel": "İptal",
     "delete": "Sil",
@@ -199,6 +204,12 @@
     "uploadBulk": "Toplu İş Yükle (Excel)",
     "uploadTemplate": "Şablon Yükle (Excel)",
     "downloadSample": "Örnek Şablon İndir",
+    "total": "Toplam İş",
+    "status": {
+        "PENDING": "Bekliyor",
+        "IN_PROGRESS": "Devam Ediyor",
+        "COMPLETED": "Tamamlandı"
+    },
     "comingSoon": "Yakında"
   },
   "manager": {

@@ -16,10 +16,15 @@ export const useWorkerExpenses = () => {
     const loadData = useCallback(async () => {
         try {
             setLoading(true);
-            const [myJobs, myCosts] = await Promise.all([
-                jobService.getMyJobs(),
-                costService.getMyCosts()
-            ]);
+            let myJobs = [];
+            try {
+                myJobs = await jobService.getMyJobs();
+            } catch (e) {
+                // If it fails (e.g. 401 for customers who shouldn't see worker expenses), try customer jobs as fallback
+                const res = await jobService.getCustomerJobs();
+                myJobs = res.jobs || [];
+            }
+            const myCosts = await costService.getMyCosts().catch(() => []);
 
             setProjects(myJobs || []);
             setExpenses(myCosts || []);

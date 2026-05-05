@@ -130,10 +130,10 @@ export default function CustomerDashboardScreen({ navigation }) {
                 <View style={styles.header}>
                     <View style={styles.headerTextContainer}>
                         <Text style={[styles.greeting, { color: theme.colors.subText }]}>
-                            {t('common.welcome')}
+                            {t('common.welcome', 'Hoş Geldiniz')}
                         </Text>
                         <Text style={[styles.name, { color: theme.colors.text }]} numberOfLines={1}>
-                            {user?.name || t('customer.title')}
+                            {user?.name || t('customer.title', 'Müşteri')}
                         </Text>
                     </View>
                     <View style={[styles.avatar, { backgroundColor: theme.colors.primary + '20' }]}>
@@ -152,7 +152,7 @@ export default function CustomerDashboardScreen({ navigation }) {
                 >
                     <View style={styles.heroContent}>
                         <View style={styles.heroStats}>
-                            <Text style={styles.heroLabel}>{t('jobs.status.COMPLETED')} / {t('jobs.total')}</Text>
+                            <Text style={styles.heroLabel}>{t('jobs.status.COMPLETED', 'Tamamlanan')} / {t('jobs.total', 'Toplam İş')}</Text>
                             <Text style={styles.heroValue}>{stats.completedJobs} / {stats.totalJobs}</Text>
                         </View>
                         
@@ -179,15 +179,15 @@ export default function CustomerDashboardScreen({ navigation }) {
                     <View style={styles.heroFooter}>
                         <View style={styles.legendItem}>
                             <View style={[styles.legendDot, { backgroundColor: theme.colors.tertiary }]} />
-                            <Text style={styles.legendText}>{t('jobs.status.PENDING')}</Text>
+                            <Text style={styles.legendText}>{t('jobs.status.PENDING', 'Bekliyor')}</Text>
                         </View>
                         <View style={styles.legendItem}>
                             <View style={[styles.legendDot, { backgroundColor: theme.colors.warning }]} />
-                            <Text style={styles.legendText}>{t('jobs.status.IN_PROGRESS')}</Text>
+                            <Text style={styles.legendText}>{t('jobs.status.IN_PROGRESS', 'Devam Ediyor')}</Text>
                         </View>
                         <View style={styles.legendItem}>
                             <View style={[styles.legendDot, { backgroundColor: theme.colors.success }]} />
-                            <Text style={styles.legendText}>{t('jobs.status.COMPLETED')}</Text>
+                            <Text style={styles.legendText}>{t('jobs.status.COMPLETED', 'Tamamlandı')}</Text>
                         </View>
                     </View>
                 </LinearGradient>
@@ -198,7 +198,7 @@ export default function CustomerDashboardScreen({ navigation }) {
                         <View style={[styles.actionIcon, { backgroundColor: theme.colors.warning + '20' }]}>
                             <MaterialIcons name="sync" size={24} color={theme.colors.warning} />
                         </View>
-                        <Text style={[styles.actionText, { color: theme.colors.text }]}>{t('jobs.status.IN_PROGRESS')}</Text>
+                        <Text style={[styles.actionText, { color: theme.colors.text }]}>{t('jobs.status.IN_PROGRESS', 'Devam Ediyor')}</Text>
                         <Text style={[styles.actionBadge, { color: theme.colors.subText }]}>{stats.inProgressJobs}</Text>
                     </GlassCard>
 
@@ -206,34 +206,35 @@ export default function CustomerDashboardScreen({ navigation }) {
                         <View style={[styles.actionIcon, { backgroundColor: theme.colors.success + '20' }]}>
                             <MaterialIcons name="check-circle" size={24} color={theme.colors.success} />
                         </View>
-                        <Text style={[styles.actionText, { color: theme.colors.text }]}>{t('jobs.status.COMPLETED')}</Text>
+                        <Text style={[styles.actionText, { color: theme.colors.text }]}>{t('jobs.status.COMPLETED', 'Tamamlandı')}</Text>
                         <Text style={[styles.actionBadge, { color: theme.colors.subText }]}>{stats.completedJobs}</Text>
                     </GlassCard>
                 </View>
 
                 {/* Active Jobs Section */}
                 <View style={styles.sectionHeader}>
-                    <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('navigation.jobs')}</Text>
+                    <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('navigation.jobs', 'İşlerim')}</Text>
                     <TouchableOpacity onPress={() => navigation.navigate('Jobs')}>
-                        <Text style={[styles.seeAllText, { color: theme.colors.primary }]}>{t('common.seeAll')}</Text>
+                        <Text style={[styles.seeAllText, { color: theme.colors.primary }]}>{t('common.seeAll', 'Tümünü Gör')}</Text>
                     </TouchableOpacity>
                 </View>
 
                 {activeJobs.length > 0 ? (
-                    <View style={styles.jobsList}>
+                    <View style={styles.jobsGrid}>
                         {activeJobs.map((job) => (
-                            <JobGridItem
-                                key={job.id}
-                                job={job}
-                                onPress={() => navigation.navigate('JobDetail', { jobId: job.id })}
-                                theme={theme}
-                            />
+                            <View key={job.id} style={styles.jobGridContainer}>
+                                <JobGridItem
+                                    job={job}
+                                    onPress={() => navigation.navigate('JobDetail', { jobId: job.id })}
+                                    theme={theme}
+                                />
+                            </View>
                         ))}
                     </View>
                 ) : (
                     <GlassCard theme={theme} style={styles.emptyStateCard}>
                         <MaterialIcons name="work-outline" size={48} color={theme.colors.subText} />
-                        <Text style={[styles.emptyStateTitle, { color: theme.colors.text }]}>{t('common.noData')}</Text>
+                        <Text style={[styles.emptyStateTitle, { color: theme.colors.text }]}>{t('common.noData', 'Veri Bulunamadı')}</Text>
                         <Text style={[styles.emptyStateSub, { color: theme.colors.subText }]}>Mevcut devam eden işiniz bulunmamaktadır.</Text>
                     </GlassCard>
                 )}
@@ -406,8 +407,16 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
     },
-    jobsList: {
-        gap: 12,
+    jobsGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        marginHorizontal: -4,
+    },
+    jobGridContainer: {
+        width: '50%',
+        paddingHorizontal: 4,
+        marginBottom: 8,
     },
     emptyStateCard: {
         padding: 32,
