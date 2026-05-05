@@ -2,8 +2,9 @@
 
 import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { AlertCircle } from 'lucide-react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { AlertCircle, RotateCcw } from 'lucide-react'
 
 export default function Error({
     error,
@@ -17,34 +18,42 @@ export default function Error({
     }, [error])
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-            <Card className="max-w-md w-full">
-                <CardContent className="pt-6 text-center">
+        <div className="min-h-screen flex items-center justify-center bg-muted/40 px-4">
+            <Card className="max-w-md w-full shadow-lg">
+                <CardHeader className="text-center pb-2">
                     <div className="flex justify-center mb-4">
-                        <AlertCircle className="h-24 w-24 text-red-500" />
+                        <div className="rounded-full bg-destructive/10 p-4">
+                            <AlertCircle className="h-10 w-10 text-destructive" />
+                        </div>
                     </div>
-
-                    <h1 className="text-4xl font-bold text-gray-900 mb-2">Hata!</h1>
-                    <h2 className="text-xl font-semibold text-gray-700 mb-4">
+                    <CardTitle className="text-3xl font-bold">Hata!</CardTitle>
+                    <CardDescription className="text-base mt-2">
                         Bir şeyler yanlış gitti
-                    </h2>
+                    </CardDescription>
+                </CardHeader>
 
-                    <p className="text-gray-600 mb-6">
+                <CardContent className="pt-2">
+                    <p className="text-center text-muted-foreground mb-6">
                         Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.
                     </p>
 
                     {process.env.NODE_ENV === 'development' && (
-                        <div className="mb-6 p-4 bg-red-50 rounded-lg text-left">
-                            <p className="text-sm text-red-800 font-mono break-all">
+                        <Alert variant="destructive" className="mb-4 text-left">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertTitle>Hata Detayı</AlertTitle>
+                            <AlertDescription className="font-mono text-xs break-all mt-2">
                                 {error.message}
-                            </p>
-                        </div>
+                            </AlertDescription>
+                        </Alert>
                     )}
+                </CardContent>
 
-                    <Button onClick={reset} className="w-full">
+                <CardFooter>
+                    <Button onClick={reset} className="w-full gap-2" size="lg">
+                        <RotateCcw className="h-4 w-4" />
                         Tekrar Dene
                     </Button>
-                </CardContent>
+                </CardFooter>
             </Card>
         </div>
     )

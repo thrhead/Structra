@@ -1,9 +1,10 @@
 'use client'
 
 import React, { Component, ReactNode } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { AlertCircle } from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { AlertCircle, RotateCcw } from 'lucide-react'
 
 interface Props {
     children: ReactNode
@@ -36,29 +37,41 @@ export class ErrorBoundary extends Component<Props, State> {
             }
 
             return (
-                <Card className="m-4">
-                    <CardContent className="pt-6 text-center">
+                <Card className="m-4 border-destructive/20 shadow-sm">
+                    <CardHeader className="text-center pb-2">
                         <div className="flex justify-center mb-4">
-                            <AlertCircle className="h-12 w-12 text-red-500" />
-                        </div>
-                        <h3 className="text-lg font-semibold mb-2">Bir şeyler yanlış gitti</h3>
-                        <p className="text-muted-foreground mb-4">
-                            Bu bileşen yüklenirken bir hata oluştu.
-                        </p>
-                        {process.env.NODE_ENV === 'development' && this.state.error && (
-                            <div className="mb-4 p-4 bg-red-50 rounded-lg text-left">
-                                <p className="text-sm text-red-800 font-mono break-all">
-                                    {this.state.error.message}
-                                </p>
+                            <div className="rounded-full bg-destructive/10 p-3">
+                                <AlertCircle className="h-8 w-8 text-destructive" />
                             </div>
+                        </div>
+                        <CardTitle className="text-xl">Bir şeyler yanlış gitti</CardTitle>
+                        <CardDescription>
+                            Bu bileşen yüklenirken bir hata oluştu.
+                        </CardDescription>
+                    </CardHeader>
+                    
+                    <CardContent className="pt-2">
+                        {process.env.NODE_ENV === 'development' && this.state.error && (
+                            <Alert variant="destructive" className="mb-2 text-left">
+                                <AlertCircle className="h-4 w-4" />
+                                <AlertTitle>Hata Detayı</AlertTitle>
+                                <AlertDescription className="font-mono text-xs break-all mt-2">
+                                    {this.state.error.message}
+                                </AlertDescription>
+                            </Alert>
                         )}
+                    </CardContent>
+
+                    <CardFooter className="justify-center pt-2">
                         <Button
                             onClick={() => this.setState({ hasError: false })}
                             variant="outline"
+                            className="gap-2 w-full sm:w-auto"
                         >
+                            <RotateCcw className="h-4 w-4" />
                             Tekrar Dene
                         </Button>
-                    </CardContent>
+                    </CardFooter>
                 </Card>
             )
         }
