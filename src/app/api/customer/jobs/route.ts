@@ -7,8 +7,12 @@ import { verifyAuth } from '@/lib/auth-helper'
 export async function GET(req: Request) {
   try {
     const session = await verifyAuth(req)
-    if (!session || session.user.role !== 'CUSTOMER') {
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    if (session.user.role !== 'CUSTOMER') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const { searchParams } = new URL(req.url)

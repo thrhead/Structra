@@ -85,10 +85,21 @@ export default function JobDetailScreen({ route, navigation }) {
         try {
             setLoading(true);
             
-            const userRole = user?.role?.toUpperCase();
-            const isCustomer = userRole === 'CUSTOMER' || route.params?.isCustomer || route.params?.role === 'CUSTOMER';
+            const userRole = user?.role?.toUpperCase() || user?.user?.role?.toUpperCase();
+            const isCustomer = userRole === 'CUSTOMER' || 
+                             route.params?.isCustomer === true || 
+                             route.params?.role === 'CUSTOMER' ||
+                             route.params?.role?.toUpperCase() === 'CUSTOMER';
             
-            console.log(`[JobDetailScreen] Loading job ${jobId} for role: ${userRole} (isCustomer: ${isCustomer})`);
+            LoggerService.info(`[JobDetailScreen] Loading job ${jobId}`, { 
+                role: userRole, 
+                isCustomer, 
+                routeParams: route.params 
+            });
+            
+            if (!userRole && !isCustomer) {
+                LoggerService.warn('[JobDetailScreen] User role is missing and isCustomer is false', { jobId });
+            }
 
             let data;
             if (isCustomer) {

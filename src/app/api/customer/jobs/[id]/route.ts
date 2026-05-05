@@ -8,8 +8,12 @@ export async function GET(
 ) {
   try {
     const session = await verifyAuth(req)
-    if (!session || session.user.role !== 'CUSTOMER') {
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    if (session.user.role !== 'CUSTOMER') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const params = await props.params
