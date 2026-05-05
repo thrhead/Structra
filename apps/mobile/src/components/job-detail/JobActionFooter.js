@@ -14,8 +14,10 @@ const JobActionFooter = ({
     handleAcceptJob, 
     t 
 }) => {
-    const isWorker = !['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase());
-    const isAdminOrManager = ['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase());
+    const role = user?.role?.toUpperCase();
+    const isWorker = ['WORKER', 'TEAM_LEAD'].includes(role);
+    const isAdminOrManager = ['ADMIN', 'MANAGER'].includes(role);
+    const isCustomer = role === 'CUSTOMER';
 
     if (!job) return null;
 
@@ -52,20 +54,22 @@ const JobActionFooter = ({
                 )
             ) : (
                 <View style={{ width: '100%' }}>
-                    <View style={[styles.acceptanceStatusContainer, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
-                        <Text style={[styles.acceptanceStatusLabel, { color: theme.colors.text }]}>Montaj Onay Durumu:</Text>
-                        <Text style={[
-                            styles.acceptanceStatusValue,
-                            job.acceptanceStatus === 'ACCEPTED' ? { color: theme.colors.success } :
-                                (job.status === 'PENDING_APPROVAL') ? { color: theme.colors.warning } :
-                                    job.acceptanceStatus === 'REJECTED' ? { color: theme.colors.error } : { color: theme.colors.subText }
-                        ]}>
-                            {job.acceptanceStatus === 'ACCEPTED' ? t('acceptance.ACCEPTED') :
-                                job.acceptanceStatus === 'REJECTED' ? t('acceptance.REJECTED') :
-                                    job.status === 'PENDING_APPROVAL' ? t('common.pendingApproval') : t('worker.assemblyInProgress')}
-                        </Text>
-                    </View>
-                    {job.acceptanceStatus === 'PENDING' && (job.status === 'COMPLETED' || job.status === 'PENDING_APPROVAL') && (
+                    {(isAdminOrManager || isCustomer) && (
+                        <View style={[styles.acceptanceStatusContainer, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
+                            <Text style={[styles.acceptanceStatusLabel, { color: theme.colors.text }]}>Montaj Onay Durumu:</Text>
+                            <Text style={[
+                                styles.acceptanceStatusValue,
+                                job.acceptanceStatus === 'ACCEPTED' ? { color: theme.colors.success } :
+                                    (job.status === 'PENDING_APPROVAL') ? { color: theme.colors.warning } :
+                                        job.acceptanceStatus === 'REJECTED' ? { color: theme.colors.error } : { color: theme.colors.subText }
+                            ]}>
+                                {job.acceptanceStatus === 'ACCEPTED' ? t('acceptance.ACCEPTED') :
+                                    job.acceptanceStatus === 'REJECTED' ? t('acceptance.REJECTED') :
+                                        job.status === 'PENDING_APPROVAL' ? t('common.pendingApproval') : t('worker.assemblyInProgress')}
+                            </Text>
+                        </View>
+                    )}
+                    {job.acceptanceStatus === 'PENDING' && (job.status === 'COMPLETED' || job.status === 'PENDING_APPROVAL') && (isAdminOrManager || isCustomer) && (
                         <View style={{ flexDirection: 'row', gap: 12 }}>
                             <TouchableOpacity
                                 style={[styles.mainCompleteButton, styles.rejectButton, { flex: 1, backgroundColor: theme.colors.error }]}

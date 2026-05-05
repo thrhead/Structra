@@ -107,9 +107,12 @@ export default function WorkerJobsScreen() {
     const renderItem = useCallback(({ item }) => (
         <JobGridItem
             job={item}
-            onPress={(job) => navigation.navigate('JobDetail', { jobId: job.id })}
+            onPress={(job) => navigation.navigate('JobDetail', { 
+                jobId: job.id, 
+                isCustomer: user?.role?.toUpperCase() === 'CUSTOMER' 
+            })}
         />
-    ), [navigation]);
+    ), [navigation, user?.role]);
 
     if (loading && !refreshing && jobs.length === 0) {
         return (

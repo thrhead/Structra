@@ -222,7 +222,7 @@ const setApiHeaderToken = (token) => {
 export const setAuthToken = async (token) => {
     try {
         if (Platform.OS === 'web') {
-            if (Platform.OS === 'web') { await AsyncStorage.setItem('authToken', token); } else { await SecureStore.setItemAsync('authToken', token); }
+            await AsyncStorage.setItem('authToken', token);
         } else {
             await SecureStore.setItemAsync('authToken', token);
         }

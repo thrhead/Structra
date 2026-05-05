@@ -20,6 +20,11 @@ const jobService = {
         return response.data;
     },
 
+    getCustomerJobById: async (jobId) => {
+        const response = await api.get(`/api/customer/jobs/${jobId}`);
+        return response.data;
+    },
+
     getJobById: async (jobId) => {
         const response = await api.get(`/api/worker/jobs/${jobId}`);
         return response.data;
@@ -71,6 +76,16 @@ const jobService = {
 
     rejectJob: async (jobId, reason) => {
         const response = await api.post(`/api/manager/jobs/${jobId}/reject`, { reason });
+        return response.data;
+    },
+
+    approveCustomerJob: async (jobId) => {
+        const response = await api.post(`/api/customer/jobs/${jobId}/approve`);
+        return response.data;
+    },
+
+    rejectCustomerJob: async (jobId, notes) => {
+        const response = await api.post(`/api/customer/jobs/${jobId}/reject`, { notes });
         return response.data;
     },
 

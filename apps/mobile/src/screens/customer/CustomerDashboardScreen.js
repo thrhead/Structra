@@ -225,7 +225,7 @@ export default function CustomerDashboardScreen({ navigation }) {
                             <View key={job.id} style={styles.jobGridContainer}>
                                 <JobGridItem
                                     job={job}
-                                    onPress={() => navigation.navigate('JobDetail', { jobId: job.id })}
+                                    onPress={() => navigation.navigate('JobDetail', { jobId: job.id, role: 'CUSTOMER', isCustomer: true })}
                                     theme={theme}
                                 />
                             </View>

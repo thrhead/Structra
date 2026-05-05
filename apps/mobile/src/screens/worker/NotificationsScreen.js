@@ -2,12 +2,14 @@ import React from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, RefreshControl, Platform, TouchableOpacity, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
+import { useAuth } from '../../context/AuthContext';
 import { useNotifications } from '../../hooks/useNotifications';
 import NotificationItem from '../../components/worker/NotificationItem';
 
 import CustomSpinner from '../../components/CustomSpinner';
 export default function NotificationsScreen({ navigation }) {
     const { theme, isDark } = useTheme();
+    const { user } = useAuth();
     const { notifications, loading, refreshing, onRefresh, markAsRead, deleteNotification, deleteAllNotifications } = useNotifications();
 
     const handleNotificationPress = React.useCallback(async (notification) => {
@@ -21,7 +23,10 @@ export default function NotificationsScreen({ navigation }) {
             // Job Detail matching
             const jobMatch = /\/jobs\/([a-zA-Z0-9-]+)/.exec(link);
             if (jobMatch && jobMatch[1]) {
-                navigation.navigate('JobDetail', { jobId: jobMatch[1] });
+                navigation.navigate('JobDetail', { 
+                    jobId: jobMatch[1],
+                    isCustomer: user?.role?.toUpperCase() === 'CUSTOMER'
+                });
                 return;
             }
 

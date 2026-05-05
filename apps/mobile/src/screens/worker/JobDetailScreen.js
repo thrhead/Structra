@@ -77,24 +77,45 @@ export default function JobDetailScreen({ route, navigation }) {
     const [selectedSubstepId, setSelectedSubstepId] = useState(null);
 
     const loadJobDetails = React.useCallback(async () => {
+        if (!jobId || !user) {
+            console.log('[JobDetailScreen] Missing jobId or user, skipping load');
+            return;
+        }
+
         try {
             setLoading(true);
-            const data = await jobService.getJobById(jobId);
-            if (data.id) {
-                setJob(data);
-            } else if (data.job) {
-                setJob(data.job);
+            
+            const userRole = user?.role?.toUpperCase();
+            const isCustomer = userRole === 'CUSTOMER' || route.params?.isCustomer || route.params?.role === 'CUSTOMER';
+            
+            console.log(`[JobDetailScreen] Loading job ${jobId} for role: ${userRole} (isCustomer: ${isCustomer})`);
+
+            let data;
+            if (isCustomer) {
+                data = await jobService.getCustomerJobById(jobId);
+            } else {
+                data = await jobService.getJobById(jobId);
+            }
+
+            if (data && (data.id || data.job)) {
+                setJob(data.id ? data : data.job);
             } else {
                 showAlert(t('common.error'), t('alerts.jobNotFound'), [], 'error');
                 navigation.goBack();
             }
         } catch (error) {
             console.error('Error loading job details:', error);
+            
+            // Handle 401 specifically if needed, though interceptor handles logout
+            if (error.status === 401) {
+                console.log('[JobDetailScreen] 401 Unauthorized detected in loadJobDetails');
+            }
+            
             showAlert(t('common.error'), t('alerts.detailsLoadError'), [], 'error');
         } finally {
             setLoading(false);
         }
-    }, [jobId, navigation, showAlert, t]);
+    }, [jobId, navigation, showAlert, t, user, route.params]);
 
     const formatDate = (dateString) => {
         if (!dateString) return null;
@@ -145,6 +166,7 @@ export default function JobDetailScreen({ route, navigation }) {
             const role = user?.role?.toUpperCase();
             if (role === 'ADMIN') navigation.navigate('AdminDashboard');
             else if (role === 'MANAGER') navigation.navigate('ManagerDashboard');
+            else if (role === 'CUSTOMER') navigation.navigate('CustomerDashboard');
             else navigation.navigate('WorkerDashboard');
         }
     };
@@ -514,7 +536,11 @@ export default function JobDetailScreen({ route, navigation }) {
         }
         try {
             setLoading(true);
-            await jobService.rejectJob(jobId, rejectionReason);
+            if (user?.role?.toUpperCase() === 'CUSTOMER') {
+                await jobService.rejectCustomerJob(jobId, rejectionReason);
+            } else {
+                await jobService.rejectJob(jobId, rejectionReason);
+            }
             showAlert(t('common.success'), t('alerts.stepRejectSuccess'), [], 'success');
             setRejectionReason('');
             setRejectionModalVisible(false);
@@ -643,7 +669,11 @@ export default function JobDetailScreen({ route, navigation }) {
                     onPress: async () => {
                         try {
                             setLoading(true);
-                            await jobService.acceptJob(jobId);
+                            if (user?.role?.toUpperCase() === 'CUSTOMER') {
+                                await jobService.approveCustomerJob(jobId);
+                            } else {
+                                await jobService.acceptJob(jobId);
+                            }
                             showAlert(t('common.success'), t('alerts.stepApproveSuccess'), [], 'success');
                             loadJobDetails();
                         } catch (error) {
