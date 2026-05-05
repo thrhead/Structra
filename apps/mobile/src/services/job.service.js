@@ -15,6 +15,11 @@ const jobService = {
         return response.data;
     },
 
+    getCustomerJobs: async () => {
+        const response = await api.get('/api/customer/jobs');
+        return response.data;
+    },
+
     getJobById: async (jobId) => {
         const response = await api.get(`/api/worker/jobs/${jobId}`);
         return response.data;

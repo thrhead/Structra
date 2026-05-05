@@ -25,6 +25,7 @@ import JobAssignmentScreen from './src/screens/manager/JobAssignmentScreen';
 import AdminDashboardScreen from './src/screens/admin/AdminDashboardScreen';
 import UserManagementScreen from './src/screens/admin/UserManagementScreen';
 import CustomerManagementScreen from './src/screens/admin/CustomerManagementScreen';
+import CustomerDashboardScreen from './src/screens/customer/CustomerDashboardScreen';
 import ApprovalsScreen from './src/screens/admin/ApprovalsScreen';
 import CreateJobScreen from './src/screens/admin/CreateJobScreen';
 import EditJobScreen from './src/screens/admin/EditJobScreen';
@@ -66,8 +67,9 @@ function getInitialRoute(user) {
     case 'MANAGER': return 'ManagerDashboard';
     case 'WORKER':
     case 'TEAM_LEAD':
-    case 'CUSTOMER':
       return 'WorkerDashboard';
+    case 'CUSTOMER':
+      return 'CustomerDashboard';
     default: return 'Login';
   }
 }
@@ -149,6 +151,11 @@ function AppNavigator() {
               <Stack.Screen
                 name="WorkerDashboard"
                 component={WorkerDashboardScreen}
+                options={{ title: t('navigation.home'), headerShown: false }}
+              />
+              <Stack.Screen
+                name="CustomerDashboard"
+                component={CustomerDashboardScreen}
                 options={{ title: t('navigation.home'), headerShown: false }}
               />
               <Stack.Screen
