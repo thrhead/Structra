@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/auth'
+import { verifyAuth } from '@/lib/auth-helper'
 
 export async function POST(
   req: Request,
   props: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth()
+    const session = await verifyAuth(req)
     if (!session || session.user.role !== 'CUSTOMER') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -48,9 +48,7 @@ export async function POST(
         where: { id },
         data: {
           status: 'ACCEPTED', // Or whatever status signifies finalized by customer
-          acceptanceStatus: 'APPROVED',
-          acceptedAt: new Date(),
-          acceptedById: session.user.id
+          acceptanceStatus: 'ACCEPTED'
         }
       })
 
@@ -58,11 +56,11 @@ export async function POST(
       await tx.approval.create({
         data: {
           jobId: id,
-          requesterId: job.creatorId, // Original job creator is requesting approval
+          requesterId: job.creatorId,
           approverId: session.user.id,
           status: 'APPROVED',
           type: 'CUSTOMER_FINAL_APPROVAL',
-          notes: notes || 'Müşteri tarafından dijital olarak onaylandı.'
+          notes: notes || 'Müşteri tarafından onaylandı.'
         }
       })
 

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/auth'
+import { verifyAuth } from '@/lib/auth-helper'
 import { hash, compare } from 'bcryptjs'
 import { z } from 'zod'
 
@@ -11,7 +11,7 @@ const passwordSchema = z.object({
 
 export async function POST(req: Request) {
   try {
-    const session = await auth()
+    const session = await verifyAuth(req)
     if (!session || session.user.role !== 'CUSTOMER') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

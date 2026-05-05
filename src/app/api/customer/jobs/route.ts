@@ -2,11 +2,11 @@ export const dynamic = 'force-dynamic'
 
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/auth'
+import { verifyAuth } from '@/lib/auth-helper'
 
 export async function GET(req: Request) {
   try {
-    const session = await auth()
+    const session = await verifyAuth(req)
     if (!session || session.user.role !== 'CUSTOMER') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
