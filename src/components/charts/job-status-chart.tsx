@@ -10,19 +10,25 @@ interface JobStatusChartProps {
 }
 
 const COLORS: Record<string, string> = {
-  PENDING: '#9CA3AF',
-  IN_PROGRESS: '#F59E0B',
-  COMPLETED: '#10B981',
-  ON_HOLD: '#6366F1',
-  CANCELLED: '#EF4444'
+  PENDING: '#f59e0b', // Amber
+  IN_PROGRESS: '#3b82f6', // Blue
+  COMPLETED: '#10b981', // Emerald
+  ACCEPTED: '#059669', // Emerald-600
+  CANCELLED: '#94a3b8', // Slate-400
+  ON_HOLD: '#fb923c', // Orange-400
+  PENDING_APPROVAL: '#6366f1', // Indigo-500
+  WAITING_FOR_CUSTOMER: '#34d399', // Emerald-400
 }
 
 const STATUS_LABELS: Record<string, string> = {
   PENDING: 'Bekliyor',
   IN_PROGRESS: 'Devam Ediyor',
-  COMPLETED: 'Tamamlandı',
+  COMPLETED: 'Müşteri Onayı Bekliyor',
+  ACCEPTED: 'Kabul Edildi',
+  CANCELLED: 'İptal',
   ON_HOLD: 'Beklemede',
-  CANCELLED: 'İptal'
+  PENDING_APPROVAL: 'Yönetici Onayı Bekliyor',
+  WAITING_FOR_CUSTOMER: 'Müşteri Onayı Bekliyor'
 }
 
 export function JobStatusChart({ data }: JobStatusChartProps) {

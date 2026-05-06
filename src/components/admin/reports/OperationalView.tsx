@@ -10,17 +10,25 @@ import { useRouter } from '@/lib/navigation'
 import { Link } from '@/lib/navigation'
 
 const STATUS_LABELS: Record<string, string> = {
-    PENDING: 'Bekleyen',
-    IN_PROGRESS: 'Devam Eden',
-    COMPLETED: 'Tamamlanan',
-    CANCELLED: 'İptal'
+    PENDING: 'Bekliyor',
+    IN_PROGRESS: 'Devam Ediyor',
+    COMPLETED: 'Müşteri Onayı Bekliyor',
+    ACCEPTED: 'Kabul Edildi',
+    CANCELLED: 'İptal',
+    ON_HOLD: 'Beklemede',
+    PENDING_APPROVAL: 'Yönetici Onayı Bekliyor',
+    WAITING_FOR_CUSTOMER: 'Müşteri Onayı Bekliyor'
 }
 
 const STATUS_COLORS: Record<string, string> = {
     PENDING: 'bg-amber-500',
     IN_PROGRESS: 'bg-blue-500',
     COMPLETED: 'bg-emerald-500',
-    CANCELLED: 'bg-slate-400'
+    ACCEPTED: 'bg-emerald-600',
+    CANCELLED: 'bg-slate-400',
+    ON_HOLD: 'bg-orange-400',
+    PENDING_APPROVAL: 'bg-indigo-500',
+    WAITING_FOR_CUSTOMER: 'bg-emerald-400'
 }
 
 function formatDuration(minutes: number): string {
@@ -339,15 +347,20 @@ export default function OperationalView({ data }: { data: any }) {
 
                             {/* Bottleneck Warning */}
                             {inProgressBottlenecks.length > 0 && (
-                                <div className="flex items-start gap-3 p-3 rounded-xl border bg-blue-50/50 dark:bg-blue-950/10 border-blue-100 dark:border-blue-900/30">
-                                    <Timer className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                                    <div>
-                                        <span className="font-semibold text-blue-700 dark:text-blue-300 text-xs">Aktif Gecikme</span>
-                                        <p className="text-[11px] text-blue-600/70 dark:text-blue-400/60 mt-0.5">
-                                            {inProgressBottlenecks.length} devam eden iş tahmini süreyi aştı
-                                        </p>
+                                <Link href="/admin/jobs?status=IN_PROGRESS" className="block">
+                                    <div className="flex items-start gap-3 p-3 rounded-xl border bg-blue-50/50 dark:bg-blue-950/10 border-blue-100 dark:border-blue-900/30 hover:border-blue-300 dark:hover:border-blue-700 transition-all group">
+                                        <Timer className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                                        <div className="flex-1">
+                                            <div className="flex items-center justify-between">
+                                                <span className="font-semibold text-blue-700 dark:text-blue-300 text-xs">Aktif Gecikme</span>
+                                                <ArrowRight className="w-3.5 h-3.5 text-blue-300 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                                            </div>
+                                            <p className="text-[11px] text-blue-600/70 dark:text-blue-400/60 mt-0.5">
+                                                {inProgressBottlenecks.length} devam eden iş tahmini süreyi aştı
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
+                                </Link>
                             )}
                         </div>
                     </CardContent>

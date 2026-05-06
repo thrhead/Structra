@@ -18,19 +18,25 @@ interface ProjectStatusChartProps {
 }
 
 const COLORS: Record<string, string> = {
-    'COMPLETED': '#10b981', // Emerald
-    'IN_PROGRESS': '#3b82f6', // Blue
     'PENDING': '#f59e0b', // Amber
-    'CANCELLED': '#ef4444', // Red
-    'BLOCKED': '#8b5cf6', // Purple
+    'IN_PROGRESS': '#3b82f6', // Blue
+    'COMPLETED': '#10b981', // Emerald
+    'ACCEPTED': '#059669', // Emerald-600
+    'CANCELLED': '#94a3b8', // Slate-400
+    'ON_HOLD': '#fb923c', // Orange-400
+    'PENDING_APPROVAL': '#6366f1', // Indigo-500
+    'WAITING_FOR_CUSTOMER': '#34d399', // Emerald-400
 };
 
 const STATUS_LABELS: Record<string, string> = {
-    'COMPLETED': 'Tamamlandı',
+    'PENDING': 'Bekliyor',
     'IN_PROGRESS': 'Devam Ediyor',
-    'PENDING': 'Beklemede',
+    'COMPLETED': 'Müşteri Onayı Bekliyor',
+    'ACCEPTED': 'Kabul Edildi',
     'CANCELLED': 'İptal',
-    'BLOCKED': 'Engellendi',
+    'ON_HOLD': 'Beklemede',
+    'PENDING_APPROVAL': 'Yönetici Onayı Bekliyor',
+    'WAITING_FOR_CUSTOMER': 'Müşteri Onayı Bekliyor'
 };
 
 export default function ProjectStatusChart({ data }: ProjectStatusChartProps) {
