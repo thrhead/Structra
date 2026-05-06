@@ -38,6 +38,8 @@ import {
   SidebarRail,
   useSidebar
 } from '@/components/ui/sidebar'
+import { useSession } from 'next-auth/react'
+import { NavUser } from '@/components/nav-user'
 import {
   Collapsible,
   CollapsibleContent,
@@ -137,6 +139,13 @@ const sidebarItems = [
 
 export function AdminSidebar() {
   const pathname = usePathname()
+  const { data: session } = useSession()
+
+  const user = {
+    name: session?.user?.name || "Admin",
+    email: session?.user?.email || "admin@montaj.com",
+    avatar: session?.user?.image || "",
+  }
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar shadow-sm">
@@ -213,16 +222,8 @@ export function AdminSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border bg-sidebar p-4">
-        <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold shrink-0">
-            A
-          </div>
-          <div className="flex flex-1 flex-col overflow-hidden group-data-[collapsible=icon]:hidden">
-            <span className="truncate text-sm font-medium text-foreground">Admin</span>
-            <span className="truncate text-xs text-muted-foreground">admin@montaj.com</span>
-          </div>
-        </div>
+      <SidebarFooter>
+        <NavUser user={user} profileUrl="/admin/profile" />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

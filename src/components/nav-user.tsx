@@ -11,7 +11,7 @@ import {
   Settings,
 } from "lucide-react"
 import { signOut } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/lib/navigation"
 
 import {
   Avatar,
@@ -64,23 +64,26 @@ export function NavUser({
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              asChild
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer"
             >
-              <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg bg-indigo-500 text-white text-[10px] font-bold">
-                  {getInitials(user.name)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
-                <span className="truncate text-xs text-slate-500 dark:text-slate-400">{user.email}</span>
-              </div>
-              <ChevronsUpDown className="ml-auto size-4" />
+              <button>
+                <Avatar className="h-8 w-8 rounded-lg">
+                  <AvatarImage src={user.avatar} alt={user.name} />
+                  <AvatarFallback className="rounded-lg bg-indigo-500 text-white text-[10px] font-bold">
+                    {getInitials(user.name)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
+                  <span className="truncate font-medium">{user.name}</span>
+                  <span className="truncate text-xs text-slate-500 dark:text-slate-400">{user.email}</span>
+                </div>
+                <ChevronsUpDown className="ml-auto size-4 group-data-[collapsible=icon]:hidden" />
+              </button>
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-xl p-2"
+            className="w-56 rounded-xl p-2 shadow-lg"
             side={isMobile ? "bottom" : "right"}
             align="end"
             sideOffset={4}
