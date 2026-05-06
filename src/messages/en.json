@@ -188,10 +188,12 @@
     "status": {
       "PENDING": "Pending",
       "IN_PROGRESS": "In Progress",
-      "COMPLETED": "Completed",
+      "COMPLETED": "Waiting for Admin",
+      "ACCEPTED": "Accepted",
       "CANCELLED": "Cancelled",
       "ON_HOLD": "On Hold",
-      "PENDING_APPROVAL": "Pending Approval"
+      "PENDING_APPROVAL": "Waiting for Admin",
+      "WAITING_FOR_CUSTOMER": "Waiting for Customer"
     }
   },
   "Admin": {

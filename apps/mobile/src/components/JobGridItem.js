@@ -14,7 +14,7 @@ const JobGridItem = ({ job, onPress, style }) => {
     const displayProgress = job.progress > 0 
         ? job.progress 
         : (job.steps && job.steps.length > 0 
-            ? Math.round((job.steps.filter(s => s.isCompleted || s.status === 'COMPLETED').length / job.steps.length) * 100) 
+            ? Math.round((job.steps.filter(s => s.isCompleted || s.status === 'COMPLETED' || s.status === 'ACCEPTED').length / job.steps.length) * 100) 
             : 0);
 
     // KESİN ÖLÇÜLER:
@@ -41,11 +41,14 @@ const JobGridItem = ({ job, onPress, style }) => {
         let label = getStatusLabel(job.status, t);
 
         if (job.status === 'IN_PROGRESS' || job.status === 'In Progress') {
+            bgColor = isDark ? 'rgba(234, 179, 8, 0.15)' : 'rgba(234, 179, 8, 0.1)';
+            textColor = '#eab308';
+        } else if (job.status === 'ACCEPTED') {
             bgColor = isDark ? 'rgba(34, 197, 94, 0.15)' : 'rgba(34, 197, 94, 0.1)';
             textColor = '#22c55e';
         } else if (job.status === 'COMPLETED' || job.status === 'Completed') {
-            bgColor = isDark ? 'rgba(156, 163, 175, 0.15)' : 'rgba(156, 163, 175, 0.1)';
-            textColor = isDark ? '#9ca3af' : '#6b7280';
+            bgColor = isDark ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.1)';
+            textColor = theme.colors.primary;
         }
 
         return (
@@ -119,7 +122,7 @@ const JobGridItem = ({ job, onPress, style }) => {
                             styles.progressFill, 
                             { 
                                 width: `${displayProgress}%`, 
-                                backgroundColor: job.status === 'COMPLETED' ? '#22c55e' : theme.colors.primary 
+                                backgroundColor: (job.status === 'COMPLETED' || job.status === 'ACCEPTED') ? '#22c55e' : theme.colors.primary 
                             }
                         ]} 
                     />

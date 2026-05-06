@@ -63,16 +63,17 @@ async function getCustomerDashboardData(userId: string) {
     totalJobs: allJobs.length,
     pendingJobs: allJobs.filter(j => j.status === 'PENDING').length,
     inProgressJobs: allJobs.filter(j => j.status === 'IN_PROGRESS').length,
-    completedJobs: allJobs.filter(j => j.status === 'COMPLETED').length,
+    completedJobs: allJobs.filter(j => j.status === 'COMPLETED' || j.status === 'ACCEPTED').length,
     completionRate: allJobs.length > 0
-      ? Math.round((allJobs.filter(j => j.status === 'COMPLETED').length / allJobs.length) * 100)
+      ? Math.round((allJobs.filter(j => j.status === 'COMPLETED' || j.status === 'ACCEPTED').length / allJobs.length) * 100)
       : 0
   }
 
   const statusDistribution = [
     { status: 'PENDING', count: stats.pendingJobs },
     { status: 'IN_PROGRESS', count: stats.inProgressJobs },
-    { status: 'COMPLETED', count: stats.completedJobs }
+    { status: 'COMPLETED', count: allJobs.filter(j => j.status === 'COMPLETED').length },
+    { status: 'ACCEPTED', count: allJobs.filter(j => j.status === 'ACCEPTED').length }
   ].filter(item => item.count > 0)
 
   const jobsWithProgress = jobs.map(job => {

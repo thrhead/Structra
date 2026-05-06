@@ -26,8 +26,8 @@
     "select": "Seç",
     "noData": "Veri bulunmuyor",
     "confirmDelete": "Silmek istediğinize emin misiniz?",
-    "pendingApproval": "Onay Bekliyor",
-    "pendingapproval": "Onay Bekliyor",
+    "pendingApproval": "Yönetici Onayı Bekliyor",
+    "pendingCustomerApproval": "Müşteri Onayı Bekliyor",
     "approved": "Onaylandı",
     "rejected": "Reddedildi",
     "approve": "Onayla",
@@ -286,16 +286,11 @@
   "status": {
     "PENDING": "Beklemede",
     "IN_PROGRESS": "Devam Ediyor",
-    "COMPLETED": "Tamamlandı",
+    "COMPLETED": "Onay Bekliyor",
+    "ACCEPTED": "Kabul Edildi",
     "CANCELLED": "İptal Edildi",
     "ON_HOLD": "Beklemede",
-    "PENDING_APPROVAL": "Onay Bekliyor",
-    "pending": "Beklemede",
-    "in_progress": "Devam Ediyor",
-    "completed": "Tamamlandı",
-    "cancelled": "İptal Edildi",
-    "on_hold": "Beklemede",
-    "pending_approval": "Onay Bekliyor"
+    "PENDING_APPROVAL": "Onay Bekliyor"
   },
   "acceptance": {
     "PENDING": "Onay Bekliyor",

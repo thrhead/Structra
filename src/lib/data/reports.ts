@@ -229,7 +229,7 @@ export async function getPendingCostsList(startDate: Date, endDate: Date, jobSta
 // 1. Kârlılık Raporu Verisi
 export async function getProfitabilityData(startDate: Date, endDate: Date, customerId?: string) {
     const where: any = {
-        status: 'COMPLETED',
+        status: { in: ['COMPLETED', 'ACCEPTED'] },
         completedDate: { gte: startDate, lte: endDate }
     };
     if (customerId && customerId !== 'all') where.customerId = customerId;
@@ -264,7 +264,7 @@ export async function getDelayAnalysisData(startDate: Date, endDate: Date) {
     const jobs = await prisma.job.findMany({
         where: {
             OR: [
-                { status: 'COMPLETED', completedDate: { gte: startDate, lte: endDate }, startedAt: { not: null } },
+                { status: { in: ['COMPLETED', 'ACCEPTED'] }, completedDate: { gte: startDate, lte: endDate }, startedAt: { not: null } },
                 { status: 'IN_PROGRESS', startedAt: { not: null, gte: startDate } }
             ]
         },
@@ -275,7 +275,7 @@ export async function getDelayAnalysisData(startDate: Date, endDate: Date) {
     });
 
     return jobs.map(job => {
-        const endTime = job.status === 'COMPLETED' ? job.completedDate! : now;
+        const endTime = (job.status === 'COMPLETED' || job.status === 'ACCEPTED') ? job.completedDate! : now;
         const actualDuration = job.startedAt ? (endTime.getTime() - job.startedAt!.getTime()) / (1000 * 60) : 0;
         const estimatedDuration = job.estimatedDuration || 0;
         const delay = estimatedDuration > 0 ? actualDuration - estimatedDuration : 0;
@@ -437,7 +437,7 @@ const _getJobStatusDistribution = unstable_cache(
 const _getTeamPerformance = unstable_cache(
     async (startDate: Date, endDate: Date, jobStatus?: string, jobId?: string) => {
         const where: any = {
-            status: 'COMPLETED',
+            status: { in: ['COMPLETED', 'ACCEPTED'] },
             completedDate: {
                 gte: startDate,
                 lte: endDate
@@ -720,7 +720,7 @@ export async function getTacticalDashboard(startDate: Date, endDate: Date) {
     
     // Budget Variance Analysis
     const budgetVariance = await prisma.job.findMany({
-        where: { status: 'COMPLETED', completedDate: { gte: startDate, lte: endDate } },
+        where: { status: { in: ['COMPLETED', 'ACCEPTED'] }, completedDate: { gte: startDate, lte: endDate } },
         select: {
             title: true,
             budget: true,
@@ -802,7 +802,7 @@ export async function getOperationalDashboard(startDate: Date, endDate: Date) {
 export async function getWorkflowAuditData(startDate: Date, endDate: Date) {
     const jobs = await prisma.job.findMany({
         where: { 
-            status: 'COMPLETED', 
+            status: { in: ['COMPLETED', 'ACCEPTED'] }, 
             completedDate: { gte: startDate, lte: endDate } 
         },
         include: {

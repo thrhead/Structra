@@ -206,7 +206,7 @@ export async function getJobStats() {
       prisma.job.count(),
       prisma.job.count({ where: { status: JOB_STATUS.PENDING } }),
       prisma.job.count({ where: { status: JOB_STATUS.IN_PROGRESS } }),
-      prisma.job.count({ where: { status: JOB_STATUS.COMPLETED } })
+      prisma.job.count({ where: { status: { in: [JOB_STATUS.COMPLETED, JOB_STATUS.ACCEPTED] } } })
     ]);
 
     return { total, pending, inProgress, completed };

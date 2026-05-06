@@ -54,7 +54,7 @@ const jobSchema = z.object({
   customerId: z.string({ error: 'Bu alan zorunludur' }).min(1, 'Müşteri seçilmelidir'),
   teamId: z.string({ error: 'Bu alan zorunludur' }).optional().nullable(),
   jobLeadId: z.string({ error: 'Bu alan zorunludur' }).optional().nullable(),
-  status: z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).optional(),
+  status: z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'ACCEPTED', 'CANCELLED']).optional(),
   acceptanceStatus: z.enum(['PENDING', 'ACCEPTED', 'REJECTED']).optional(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT'], { error: 'Öncelik seçilmelidir' }),
   location: z.string({ error: 'Bu alan zorunludur' }).optional(),
@@ -458,7 +458,8 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
                       <SelectContent>
                         <SelectItem value="PENDING">Beklemede</SelectItem>
                         <SelectItem value="IN_PROGRESS">Devam Ediyor</SelectItem>
-                        <SelectItem value="COMPLETED">Tamamlandı</SelectItem>
+                        <SelectItem value="COMPLETED">Tamamlandı (Onay Bekliyor)</SelectItem>
+                        <SelectItem value="ACCEPTED">Kabul Edildi (Müşteri Onaylı)</SelectItem>
                         <SelectItem value="CANCELLED">İptal Edildi</SelectItem>
                       </SelectContent>
                     </Select>

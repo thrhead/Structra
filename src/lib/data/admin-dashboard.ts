@@ -144,13 +144,13 @@ export async function getAdminDashboardData() {
 
       // 10: totalCompletedJobs (all-time, for completion rate)
       prisma.job.count({
-        where: { status: 'COMPLETED' }
+        where: { status: { in: ['COMPLETED', 'ACCEPTED'] } }
       }).catch(e => { console.error("totalCompletedJobs fetch failed", e); return 0; }),
 
       // 11: completedJobsToday
       prisma.job.count({ 
         where: { 
-          status: 'COMPLETED', 
+          status: { in: ['COMPLETED', 'ACCEPTED'] }, 
           completedDate: { gte: today } 
         } 
       }).catch(e => { console.error("completedJobsToday fetch failed", e); return 0; }),

@@ -26,8 +26,8 @@
     "select": "Select",
     "noData": "No data available",
     "confirmDelete": "Are you sure you want to delete?",
-    "pendingApproval": "Pending Approval",
-    "pendingapproval": "Pending Approval",
+    "pendingApproval": "Waiting for Admin",
+    "pendingCustomerApproval": "Waiting for Customer",
     "approved": "Approved",
     "rejected": "Rejected",
     "approve": "Approve",
@@ -286,16 +286,11 @@
   "status": {
     "PENDING": "Pending",
     "IN_PROGRESS": "In Progress",
-    "COMPLETED": "Completed",
+    "COMPLETED": "Pending Approval",
+    "ACCEPTED": "Accepted",
     "CANCELLED": "Cancelled",
     "ON_HOLD": "On Hold",
-    "PENDING_APPROVAL": "Pending Approval",
-    "pending": "Pending",
-    "in_progress": "In Progress",
-    "completed": "Completed",
-    "cancelled": "Cancelled",
-    "on_hold": "On Hold",
-    "pending_approval": "Pending Approval"
+    "PENDING_APPROVAL": "Pending Approval"
   },
   "acceptance": {
     "PENDING": "Pending Approval",

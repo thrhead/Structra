@@ -188,10 +188,12 @@
     "status": {
       "PENDING": "Bekliyor",
       "IN_PROGRESS": "Devam Ediyor",
-      "COMPLETED": "Tamamlandı",
+      "COMPLETED": "Yönetici Onayı Bekliyor",
+      "ACCEPTED": "Kabul Edildi",
       "CANCELLED": "İptal",
       "ON_HOLD": "Beklemede",
-      "PENDING_APPROVAL": "Onay Bekliyor"
+      "PENDING_APPROVAL": "Yönetici Onayı Bekliyor",
+      "WAITING_FOR_CUSTOMER": "Müşteri Onayı Bekliyor"
     }
   },
   "Admin": {

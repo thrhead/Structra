@@ -34,9 +34,18 @@ const renderStatusBadge = (status, theme, isDark, t) => {
             </View>
         );
     }
-    if (status === 'COMPLETED' || status === 'Completed') {
+    if (status === 'ACCEPTED') {
         const bgColor = isDark ? 'rgba(57, 255, 20, 0.1)' : 'rgba(34, 197, 94, 0.1)';
         const textColor = isDark ? '#39FF14' : '#15803d';
+        return (
+            <View style={[styles.badge, { backgroundColor: bgColor }]}>
+                <Text style={[styles.badgeText, { color: textColor }]}>{label}</Text>
+            </View>
+        );
+    }
+    if (status === 'COMPLETED' || status === 'Completed') {
+        const bgColor = isDark ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.1)';
+        const textColor = theme.colors.primary;
         return (
             <View style={[styles.badge, { backgroundColor: bgColor }]}>
                 <Text style={[styles.badgeText, { color: textColor }]}>{label}</Text>
@@ -78,7 +87,7 @@ const JobListItem = ({ item, onPress }) => {
                     borderColor: theme.colors.cardBorder
                 },
                 item.status === 'IN_PROGRESS' && { borderColor: theme.colors.primary, borderWidth: 1 },
-                item.status === 'COMPLETED' && styles.cardCompleted
+                (item.status === 'COMPLETED' || item.status === 'ACCEPTED') && styles.cardCompleted
             ]}>
                 <View style={styles.cardContent}>
                     <View style={{ flexDirection: 'row', gap: 8, marginBottom: 4 }}>
@@ -94,9 +103,9 @@ const JobListItem = ({ item, onPress }) => {
                         )}
                     </View>
                     <View style={styles.cardHeader}>
-                        <Text style={[styles.cardTitle, { color: theme.colors.text }, item.status === 'COMPLETED' && styles.textStrike]}>{item.title}</Text>
+                        <Text style={[styles.cardTitle, { color: theme.colors.text }, (item.status === 'COMPLETED' || item.status === 'ACCEPTED') && styles.textStrike]}>{item.title}</Text>
                         <View style={styles.headerRight}>
-                            {item.status !== 'COMPLETED' && renderPriorityDot(item.priority, theme)}
+                            {(item.status !== 'COMPLETED' && item.status !== 'ACCEPTED') && renderPriorityDot(item.priority, theme)}
                             {renderStatusBadge(item.status, theme, isDark, t)}
                         </View>
                     </View>

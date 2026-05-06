@@ -4,10 +4,11 @@ export const getStatusColor = (status) => {
     const colors = {
         'PENDING': COLORS.amber500,
         'IN_PROGRESS': COLORS.blue500,
-        'COMPLETED': COLORS.green500,
+        'COMPLETED': COLORS.blue600,
+        'ACCEPTED': COLORS.green500,
         'ON_HOLD': COLORS.slate600,
         'CANCELLED': COLORS.red500,
-        'PENDING_APPROVAL': COLORS.purple500
+        'PENDING_APPROVAL': COLORS.amber600
     };
     return colors[status] || COLORS.slate600;
 };
@@ -17,10 +18,11 @@ export const getStatusLabel = (status, t) => {
     const labels = {
         'PENDING': 'Pending',
         'IN_PROGRESS': 'In Progress',
-        'COMPLETED': 'Completed',
+        'COMPLETED': 'Waiting for Approval',
+        'ACCEPTED': 'Accepted',
         'ON_HOLD': 'On Hold',
         'CANCELLED': 'Cancelled',
-        'PENDING_APPROVAL': 'Pending Approval'
+        'PENDING_APPROVAL': 'Waiting for Admin'
     };
     return labels[status] || status;
 };

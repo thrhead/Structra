@@ -35,17 +35,17 @@ const JobActionFooter = ({
                     <TouchableOpacity
                         style={[
                             styles.mainCompleteButton,
-                            (job.status === 'COMPLETED' || job.status === 'PENDING_APPROVAL' || completing) && styles.disabledButton,
-                            { backgroundColor: (job.status === 'COMPLETED' || job.status === 'PENDING_APPROVAL' || completing) ? theme.colors.border : theme.colors.primary }
+                            (job.status === 'COMPLETED' || job.status === 'ACCEPTED' || job.status === 'PENDING_APPROVAL' || completing) && styles.disabledButton,
+                            { backgroundColor: (job.status === 'COMPLETED' || job.status === 'ACCEPTED' || job.status === 'PENDING_APPROVAL' || completing) ? theme.colors.border : theme.colors.primary }
                         ]}
                         onPress={handleCompleteJob}
-                        disabled={job.status === 'COMPLETED' || job.status === 'PENDING_APPROVAL' || completing}
+                        disabled={job.status === 'COMPLETED' || job.status === 'ACCEPTED' || job.status === 'PENDING_APPROVAL' || completing}
                     >
                         {completing ? (
                             <CustomSpinner color={theme.colors.textInverse} />
                         ) : (
                             <Text style={[styles.mainCompleteButtonText, { color: theme.colors.textInverse }]}>
-                                {job.status === 'COMPLETED' ? t('common.success') :
+                                {(job.status === 'COMPLETED' || job.status === 'ACCEPTED') ? t('common.success') :
                                     job.status === 'PENDING_APPROVAL' ? t('common.pendingApproval') :
                                         t('worker.completeJob')}
                             </Text>
@@ -59,17 +59,22 @@ const JobActionFooter = ({
                             <Text style={[styles.acceptanceStatusLabel, { color: theme.colors.text }]}>Montaj Onay Durumu:</Text>
                             <Text style={[
                                 styles.acceptanceStatusValue,
-                                job.acceptanceStatus === 'ACCEPTED' ? { color: theme.colors.success } :
-                                    (job.status === 'PENDING_APPROVAL') ? { color: theme.colors.warning } :
-                                        job.acceptanceStatus === 'REJECTED' ? { color: theme.colors.error } : { color: theme.colors.subText }
+                                job.status === 'ACCEPTED' ? { color: theme.colors.success } :
+                                    (job.acceptanceStatus === 'ACCEPTED' && job.status === 'COMPLETED') ? { color: theme.colors.primary } :
+                                        (job.status === 'PENDING_APPROVAL' || (job.status === 'COMPLETED' && job.acceptanceStatus === 'PENDING')) ? { color: theme.colors.warning } :
+                                            job.acceptanceStatus === 'REJECTED' ? { color: theme.colors.error } : { color: theme.colors.subText }
                             ]}>
-                                {job.acceptanceStatus === 'ACCEPTED' ? t('acceptance.ACCEPTED') :
-                                    job.acceptanceStatus === 'REJECTED' ? t('acceptance.REJECTED') :
-                                        job.status === 'PENDING_APPROVAL' ? t('common.pendingApproval') : t('worker.assemblyInProgress')}
+                                {job.status === 'ACCEPTED' ? t('acceptance.ACCEPTED') :
+                                    (job.acceptanceStatus === 'ACCEPTED' && job.status === 'COMPLETED') ? t('common.pendingCustomerApproval') :
+                                        job.acceptanceStatus === 'REJECTED' ? t('acceptance.REJECTED') :
+                                            (job.status === 'COMPLETED' || job.status === 'PENDING_APPROVAL') ? t('common.pendingApproval') : t('worker.assemblyInProgress')}
                             </Text>
                         </View>
                     )}
-                    {job.acceptanceStatus === 'PENDING' && (job.status === 'COMPLETED' || job.status === 'PENDING_APPROVAL') && (isAdminOrManager || isCustomer) && (
+                    {(
+                        (isAdminOrManager && job.acceptanceStatus === 'PENDING' && (job.status === 'COMPLETED' || job.status === 'PENDING_APPROVAL')) ||
+                        (isCustomer && job.acceptanceStatus === 'ACCEPTED' && job.status === 'COMPLETED')
+                    ) && (
                         <View style={{ flexDirection: 'row', gap: 12 }}>
                             <TouchableOpacity
                                 style={[styles.mainCompleteButton, styles.rejectButton, { flex: 1, backgroundColor: theme.colors.error }]}
@@ -84,7 +89,7 @@ const JobActionFooter = ({
                                 style={[styles.mainCompleteButton, styles.acceptJobButton, { flex: 1, backgroundColor: theme.colors.success }]}
                                 onPress={handleAcceptJob}
                             >
-                                <Text style={[styles.mainCompleteButtonText, { color: theme.colors.textInverse }]}>Kabul Et</Text>
+                                <Text style={[styles.mainCompleteButtonText, { color: theme.colors.textInverse }]}>Onayla</Text>
                             </TouchableOpacity>
                         </View>
                     )}
