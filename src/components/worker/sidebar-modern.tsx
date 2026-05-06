@@ -23,6 +23,8 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from '@/components/ui/sidebar'
+import { useSession } from 'next-auth/react'
+import { NavUser } from '@/components/nav-user'
 
 const sidebarItems = [
   {
@@ -49,6 +51,13 @@ const sidebarItems = [
 
 export function WorkerSidebar() {
   const pathname = usePathname()
+  const { data: session } = useSession()
+
+  const user = {
+    name: session?.user?.name || "Saha Personeli",
+    email: session?.user?.email || "worker@montaj.com",
+    avatar: session?.user?.image || "",
+  }
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar shadow-sm">
@@ -95,16 +104,8 @@ export function WorkerSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border bg-sidebar p-4">
-        <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold shrink-0">
-            W
-          </div>
-          <div className="flex flex-1 flex-col overflow-hidden group-data-[collapsible=icon]:hidden">
-            <span className="truncate text-sm font-medium text-foreground">Worker</span>
-            <span className="truncate text-xs text-muted-foreground">worker@montaj.com</span>
-          </div>
-        </div>
+      <SidebarFooter>
+        <NavUser user={user} profileUrl="/worker/profile" />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

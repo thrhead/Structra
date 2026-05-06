@@ -17,6 +17,8 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from '@/components/ui/sidebar'
+import { useSession } from 'next-auth/react'
+import { NavUser } from '@/components/nav-user'
 
 const navigation = [
   { name: "İşlerim", href: "/customer", icon: BriefcaseIcon },
@@ -25,6 +27,13 @@ const navigation = [
 
 export function CustomerSidebar() {
   const pathname = usePathname()
+  const { data: session } = useSession()
+
+  const user = {
+    name: session?.user?.name || "Müşteri",
+    email: session?.user?.email || "customer@montaj.com",
+    avatar: session?.user?.image || "",
+  }
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar shadow-sm">
@@ -71,19 +80,8 @@ export function CustomerSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border bg-sidebar p-4">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton 
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-              onClick={() => signOut()}
-              tooltip="Çıkış Yap"
-            >
-              <LogOutIcon className="size-4" />
-              <span>Çıkış Yap</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+      <SidebarFooter>
+        <NavUser user={user} profileUrl="/customer/profile" />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

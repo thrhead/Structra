@@ -36,12 +36,14 @@ import {
 
 export function NavUser({
   user,
+  profileUrl = "/admin/profile",
 }: {
   user: {
     name: string
     email: string
     avatar: string
   }
+  profileUrl?: string
 }) {
   const { isMobile } = useSidebar()
   const router = useRouter()
@@ -100,14 +102,14 @@ export function NavUser({
             <DropdownMenuSeparator className="my-2" />
             <DropdownMenuGroup>
               <DropdownMenuItem 
-                onClick={() => router.push('/admin/profile')}
+                onClick={() => router.push(profileUrl)}
                 className="cursor-pointer gap-2 rounded-lg py-2"
               >
                 <User className="size-4" />
                 Profil Düzenle
               </DropdownMenuItem>
               <DropdownMenuItem 
-                onClick={() => router.push('/admin/profile')}
+                onClick={() => router.push(profileUrl)}
                 className="cursor-pointer gap-2 rounded-lg py-2"
               >
                 <Settings className="size-4" />
