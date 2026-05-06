@@ -347,7 +347,7 @@ export default function OperationalView({ data }: { data: any }) {
 
                             {/* Bottleneck Warning */}
                             {inProgressBottlenecks.length > 0 && (
-                                <Link href="/admin/jobs?status=IN_PROGRESS" className="block">
+                                <Link href="/admin/jobs?status=IN_PROGRESS&highlight=delayed" className="block">
                                     <div className="flex items-start gap-3 p-3 rounded-xl border bg-blue-50/50 dark:bg-blue-950/10 border-blue-100 dark:border-blue-900/30 hover:border-blue-300 dark:hover:border-blue-700 transition-all group">
                                         <Timer className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
                                         <div className="flex-1">

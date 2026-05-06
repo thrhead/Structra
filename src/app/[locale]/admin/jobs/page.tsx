@@ -28,6 +28,7 @@ import { tr, enUS } from "date-fns/locale"
 import { getJobs } from "@/lib/data/jobs"
 import dynamic from 'next/dynamic'
 import { getTranslations } from "next-intl/server"
+import { cn } from "@/lib/utils"
 
 const GlobalJobsTree = dynamic(
   () => import('@/components/admin/global-jobs-tree').then(mod => mod.GlobalJobsTree),
@@ -58,7 +59,8 @@ export default async function JobsPage(props: {
     teams?: string;
     from?: string;
     to?: string;
-    page?: string
+    page?: string;
+    highlight?: string
   }>
 }) {
   const { locale } = await props.params
@@ -224,6 +226,12 @@ export default async function JobsPage(props: {
               </TableHeader>
               <TableBody>
                 {jobs.map((job) => {
+                  const now = new Date();
+                  const isDelayed = job.status === 'IN_PROGRESS' && 
+                                   job.startedAt && 
+                                   job.estimatedDuration && 
+                                   (now.getTime() - new Date(job.startedAt).getTime()) / 60000 > job.estimatedDuration;
+
                   const totalSteps = job.steps?.length || 0;
                   const completedSteps = job.steps?.filter(s => s.isCompleted).length || 0;
                   const progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
@@ -238,22 +246,36 @@ export default async function JobsPage(props: {
                     (job.steps?.some(s => s.subSteps?.some(ss => ss.approvalStatus === 'PENDING')) || false);
 
                   return (
-                    <TableRow key={job.id}>
+                    <TableRow key={job.id} className={cn(
+                      isDelayed && searchParams.highlight === 'delayed' && "bg-rose-50/50 dark:bg-rose-950/20"
+                    )}>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded-xl text-orange-600 dark:text-orange-400">
-                            <BriefcaseIcon className="h-4 w-4" />
+                          <div className={cn(
+                            "p-2 rounded-xl",
+                            isDelayed ? "bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400" : "bg-orange-50 text-orange-600 dark:bg-orange-950/30 dark:text-orange-400"
+                          )}>
+                            {isDelayed ? <AlertTriangle className="h-4 w-4" /> : <BriefcaseIcon className="h-4 w-4" />}
                           </div>
                           <div>
                             <div className="flex items-center gap-2 mb-0.5">
-                              <div className="text-[10px] font-bold text-orange-600 uppercase tracking-wider">
+                              <div className={cn(
+                                "text-[10px] font-bold uppercase tracking-wider",
+                                isDelayed ? "text-rose-600" : "text-orange-600"
+                              )}>
                                 {job.jobNo || 'NO-CODE'}
                               </div>
+                              {isDelayed && (
+                                <Badge variant="destructive" className="h-4 px-1 text-[8px] uppercase tracking-tighter">Gecikmiş</Badge>
+                              )}
                               <div className="text-[10px] font-mono font-bold text-blue-600 bg-blue-50 px-1 rounded">
                                 #{job.id.slice(-6).toUpperCase()}
                               </div>
                             </div>
-                            <Link href={`/admin/jobs/${job.id}`} className="font-medium text-slate-800 dark:text-slate-100 hover:text-indigo-600 dark:hover:text-indigo-400 hover:underline block leading-tight transition-colors">
+                            <Link href={`/admin/jobs/${job.id}`} className={cn(
+                              "font-medium block leading-tight transition-colors hover:underline",
+                              isDelayed ? "text-rose-700 dark:text-rose-300 hover:text-rose-800" : "text-slate-800 dark:text-slate-100 hover:text-indigo-600 dark:hover:text-indigo-400"
+                            )}>
                               {job.title}
                             </Link>
                             {job.location && (
@@ -334,8 +356,8 @@ export default async function JobsPage(props: {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={statusColors[job.status] || "default"}>
-                          {tStatus(job.status)}
+                        <Badge variant={isDelayed ? "destructive" : (statusColors[job.status] || "default")}>
+                          {isDelayed ? "Gecikmiş" : tStatus(job.status)}
                         </Badge>
                       </TableCell>
                       <TableCell>
