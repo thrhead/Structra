@@ -265,9 +265,6 @@ export default async function JobsPage(props: {
                               )}>
                                 {job.jobNo || 'NO-CODE'}
                               </div>
-                              {isDelayed && (
-                                <Badge variant="destructive" className="h-4 px-1 text-[8px] uppercase tracking-tighter">Gecikmiş</Badge>
-                              )}
                               <div className="text-[10px] font-mono font-bold text-blue-600 bg-blue-50 px-1 rounded">
                                 #{job.id.slice(-6).toUpperCase()}
                               </div>
@@ -356,10 +353,11 @@ export default async function JobsPage(props: {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={isDelayed ? "destructive" : (statusColors[job.status] || "default")}>
-                          {isDelayed ? "Gecikmiş" : tStatus(job.status)}
+                        <Badge variant={statusColors[job.status] || "default"}>
+                          {tStatus(job.status)}
                         </Badge>
                       </TableCell>
+
                       <TableCell>
                         <div className="flex items-center gap-1 text-sm text-gray-600">
                           <CalendarIcon className="h-3 w-3" />

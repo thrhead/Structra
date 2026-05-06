@@ -265,7 +265,7 @@ export async function getDelayAnalysisData(startDate: Date, endDate: Date) {
         where: {
             OR: [
                 { status: { in: ['COMPLETED', 'ACCEPTED'] }, completedDate: { gte: startDate, lte: endDate }, startedAt: { not: null } },
-                { status: 'IN_PROGRESS', startedAt: { not: null, gte: startDate } }
+                { status: 'IN_PROGRESS', startedAt: { not: null } }
             ]
         },
         include: {
@@ -789,10 +789,14 @@ export async function getOperationalDashboard(startDate: Date, endDate: Date) {
         .filter(d => d.delay > 0)
         .sort((a, b) => b.delay - a.delay)
         .slice(0, 5);
+    
+    // Total count of in-progress jobs that exceed their estimated duration
+    const inProgressDelayedCount = delayAnalysis.filter(d => d.status === 'IN_PROGRESS' && d.delay > 0).length;
 
     return {
         jobStatusDist,
         topBottlenecks,
+        inProgressDelayedCount,
         pendingApprovals: {
             costs: pendingCosts,
             steps: pendingSteps + pendingSubSteps,

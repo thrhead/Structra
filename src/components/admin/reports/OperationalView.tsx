@@ -48,6 +48,7 @@ export default function OperationalView({ data }: { data: any }) {
     const { 
         jobStatusDist = {}, 
         topBottlenecks = [], 
+        inProgressDelayedCount = 0,
         pendingApprovals = { costs: 0, steps: 0, delayedCosts: 0, delayedSteps: 0, totalDelayed: 0 }, 
         bottleneckScore = 0 
     } = data || {};
@@ -346,7 +347,7 @@ export default function OperationalView({ data }: { data: any }) {
                             )}
 
                             {/* Bottleneck Warning */}
-                            {inProgressBottlenecks.length > 0 && (
+                            {inProgressDelayedCount > 0 && (
                                 <Link href="/admin/jobs?status=IN_PROGRESS&highlight=delayed" className="block">
                                     <div className="flex items-start gap-3 p-3 rounded-xl border bg-blue-50/50 dark:bg-blue-950/10 border-blue-100 dark:border-blue-900/30 hover:border-blue-300 dark:hover:border-blue-700 transition-all group">
                                         <Timer className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
@@ -356,7 +357,7 @@ export default function OperationalView({ data }: { data: any }) {
                                                 <ArrowRight className="w-3.5 h-3.5 text-blue-300 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                                             </div>
                                             <p className="text-[11px] text-blue-600/70 dark:text-blue-400/60 mt-0.5">
-                                                {inProgressBottlenecks.length} devam eden iş tahmini süreyi aştı
+                                                {inProgressDelayedCount} devam eden iş tahmini süreyi aştı
                                             </p>
                                         </div>
                                     </div>
