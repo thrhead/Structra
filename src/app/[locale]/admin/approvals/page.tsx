@@ -7,6 +7,14 @@ export default async function ApprovalsPage() {
   const pendingCosts = await getPendingCosts();
   const { steps, subSteps } = await getPendingJobSteps();
 
+  const now = new Date();
+  const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+
+  const formattedCosts = pendingCosts.map(c => ({
+    ...c,
+    isDelayed: new Date(c.createdAt).getTime() < fortyEightHoursAgo.getTime()
+  }));
+
   // Combine steps and substeps into a unified array for the UI
   const formattedSteps = [
     ...steps.map(s => ({
@@ -15,6 +23,7 @@ export default async function ApprovalsPage() {
       jobNo: s.job?.jobNo || `JOB-${s.job?.id?.substring(0,4)}`,
       jobTitle: s.job?.title,
       customerName: s.job?.customer?.company,
+      isDelayed: s.completedAt ? new Date(s.completedAt).getTime() < fortyEightHoursAgo.getTime() : false
     })),
     ...subSteps.map(ss => ({
       ...ss,
@@ -22,6 +31,7 @@ export default async function ApprovalsPage() {
       jobNo: ss.step?.job?.jobNo || `JOB-${ss.step?.job?.id?.substring(0,4)}`,
       jobTitle: ss.step?.job?.title,
       customerName: ss.step?.job?.customer?.company,
+      isDelayed: ss.completedAt ? new Date(ss.completedAt).getTime() < fortyEightHoursAgo.getTime() : false
     }))
   ].sort((a, b) => new Date(b.completedAt || 0).getTime() - new Date(a.completedAt || 0).getTime());
 
@@ -36,7 +46,7 @@ export default async function ApprovalsPage() {
         </div>
       </div>
 
-      <ApprovalsClient initialCosts={pendingCosts} initialSteps={formattedSteps} />
+      <ApprovalsClient initialCosts={formattedCosts} initialSteps={formattedSteps} />
     </div>
   );
 }

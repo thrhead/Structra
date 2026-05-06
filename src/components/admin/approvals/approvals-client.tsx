@@ -7,9 +7,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2Icon, XCircleIcon, BanknoteIcon, WrenchIcon, AlertCircleIcon, ImageIcon, SearchIcon, CalendarIcon, UserIcon } from "lucide-react";
+import { CheckCircle2Icon, XCircleIcon, BanknoteIcon, WrenchIcon, AlertCircleIcon, ImageIcon, SearchIcon, CalendarIcon, UserIcon, AlertTriangle } from "lucide-react";
 import Image from 'next/image';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
 interface ApprovalsClientProps {
   initialCosts: any[];
@@ -134,18 +135,38 @@ export default function ApprovalsClient({ initialCosts, initialSteps }: Approval
               {costs.map((cost) => (
                 <Card
                   key={cost.id}
-                  className="group rounded-3xl border border-slate-200/60 dark:border-slate-800/50 bg-white dark:bg-slate-900 shadow-sm hover:shadow-xl hover:shadow-indigo-500/8 dark:hover:shadow-indigo-900/20 hover:-translate-y-0.5 transition-all duration-300 ease-out flex flex-col overflow-hidden"
+                  className={cn(
+                    "group rounded-3xl border border-slate-200/60 dark:border-slate-800/50 bg-white dark:bg-slate-900 shadow-sm hover:shadow-xl hover:shadow-indigo-500/8 dark:hover:shadow-indigo-900/20 hover:-translate-y-0.5 transition-all duration-300 ease-out flex flex-col overflow-hidden",
+                    cost.isDelayed && "border-rose-200 dark:border-rose-900/50 shadow-lg shadow-rose-500/5 bg-rose-50/10 dark:bg-rose-900/5"
+                  )}
                 >
+                  {cost.isDelayed && (
+                    <div className="bg-rose-600 dark:bg-rose-700 text-white text-[10px] font-bold py-1.5 px-4 flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <AlertTriangle className="w-3 h-3" />
+                        <span>SLA İHLALİ</span>
+                      </div>
+                      <span className="opacity-80">Gecikme: 48s+</span>
+                    </div>
+                  )}
                   <CardHeader className="pb-3 pt-5 px-5">
                     <div className="flex justify-between items-center mb-2">
-                      <Badge className="border border-amber-200/80 text-amber-700 dark:text-amber-400 bg-amber-50/80 dark:bg-amber-900/20 dark:border-amber-800/40 rounded-full px-2.5 h-6 text-[11px] font-semibold">
-                        Bekliyor
+                      <Badge className={cn(
+                        "border rounded-full px-2.5 h-6 text-[11px] font-semibold",
+                        cost.isDelayed 
+                          ? "border-rose-200 text-rose-700 dark:text-rose-400 bg-rose-100/50 dark:bg-rose-900/30"
+                          : "border-amber-200/80 text-amber-700 dark:text-amber-400 bg-amber-50/80 dark:bg-amber-900/20"
+                      )}>
+                        {cost.isDelayed ? 'Gecikmiş' : 'Bekliyor'}
                       </Badge>
                       <span className="text-[11px] font-mono font-medium text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/50 px-2 py-0.5 rounded-lg">
                         #{cost.job?.jobNo || cost.job?.id?.substring(0, 6)}
                       </span>
                     </div>
-                    <CardTitle className="text-base font-semibold text-slate-800 dark:text-slate-100 leading-snug group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors">
+                    <CardTitle className={cn(
+                      "text-base font-semibold text-slate-800 dark:text-slate-100 leading-snug group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors",
+                      cost.isDelayed && "group-hover:text-rose-700 dark:group-hover:text-rose-400"
+                    )}>
                       {cost.description}
                     </CardTitle>
                     <CardDescription className="text-xs line-clamp-1 mt-0.5 text-slate-400">{cost.job?.title}</CardDescription>
@@ -207,18 +228,40 @@ export default function ApprovalsClient({ initialCosts, initialSteps }: Approval
               {steps.map((step) => (
                 <Card
                   key={step.id}
-                  className="group rounded-3xl border border-slate-200/60 dark:border-slate-800/50 bg-white dark:bg-slate-900 shadow-sm hover:shadow-xl hover:shadow-emerald-500/8 dark:hover:shadow-emerald-900/20 hover:-translate-y-0.5 transition-all duration-300 ease-out flex flex-col overflow-hidden"
+                  className={cn(
+                    "group rounded-3xl border border-slate-200/60 dark:border-slate-800/50 bg-white dark:bg-slate-900 shadow-sm hover:shadow-xl hover:shadow-emerald-500/8 dark:hover:shadow-emerald-900/20 hover:-translate-y-0.5 transition-all duration-300 ease-out flex flex-col overflow-hidden",
+                    step.isDelayed && "border-rose-200 dark:border-rose-900/50 shadow-lg shadow-rose-500/5 bg-rose-50/10 dark:bg-rose-900/5"
+                  )}
                 >
+                  {step.isDelayed && (
+                    <div className="bg-rose-600 dark:bg-rose-700 text-white text-[10px] font-bold py-1.5 px-4 flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <AlertTriangle className="w-3 h-3" />
+                        <span>SLA İHLALİ</span>
+                      </div>
+                      <span className="opacity-80">Gecikme: 48s+</span>
+                    </div>
+                  )}
                   <CardHeader className="pb-3 pt-5 px-5">
                     <div className="flex justify-between items-center mb-2">
-                      <Badge className="border border-amber-200/80 text-amber-700 dark:text-amber-400 bg-amber-50/80 dark:bg-amber-900/20 dark:border-amber-800/40 rounded-full px-2.5 h-6 text-[11px] font-semibold">
-                        Onay Bekliyor
+                      <Badge className={cn(
+                        "border rounded-full px-2.5 h-6 text-[11px] font-semibold",
+                        step.isDelayed 
+                          ? "border-rose-200 text-rose-700 dark:text-rose-400 bg-rose-100/50 dark:bg-rose-900/30"
+                          : "border-amber-200/80 text-amber-700 dark:text-amber-400 bg-amber-50/80 dark:bg-amber-900/20"
+                      )}>
+                        {step.isDelayed ? 'Gecikmiş' : 'Onay Bekliyor'}
                       </Badge>
                       <Badge className="bg-slate-100/80 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 border-0 rounded-lg text-[10px] font-medium h-6 px-2">
                         {step.type === 'STEP' ? 'Adım' : 'Alt Adım'}
                       </Badge>
                     </div>
-                    <CardTitle className="text-base font-semibold text-slate-800 dark:text-slate-100 leading-snug group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">
+                    <CardTitle className={cn(
+                      "text-base font-semibold text-slate-800 dark:text-slate-100 leading-snug transition-colors",
+                      step.isDelayed 
+                        ? "group-hover:text-rose-700 dark:group-hover:text-rose-400"
+                        : "group-hover:text-emerald-700 dark:group-hover:text-emerald-300"
+                    )}>
                       {step.title}
                     </CardTitle>
                     <CardDescription className="text-xs mt-0.5 text-slate-400">

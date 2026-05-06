@@ -767,14 +767,18 @@ export async function getOperationalDashboard(startDate: Date, endDate: Date) {
     
     // Pending Approvals (Urgent)
     const pendingCosts = await prisma.costTracking.count({ where: { status: 'PENDING' } });
-    const pendingSteps = await prisma.jobStep.count({ where: { approvalStatus: 'PENDING' } });
+    const pendingSteps = await prisma.jobStep.count({ where: { approvalStatus: 'PENDING', isCompleted: true } });
+    const pendingSubSteps = await prisma.jobSubStep.count({ where: { approvalStatus: 'PENDING', isCompleted: true } });
     
     // SLA Alerts: Approvals older than 48 hours
     const delayedCosts = await prisma.costTracking.count({ 
         where: { status: 'PENDING', createdAt: { lt: fortyEightHoursAgo } } 
     });
     const delayedSteps = await prisma.jobStep.count({ 
-        where: { approvalStatus: 'PENDING', completedAt: { not: null, lt: fortyEightHoursAgo } } 
+        where: { approvalStatus: 'PENDING', isCompleted: true, completedAt: { not: null, lt: fortyEightHoursAgo } } 
+    });
+    const delayedSubSteps = await prisma.jobSubStep.count({ 
+        where: { approvalStatus: 'PENDING', isCompleted: true, completedAt: { not: null, lt: fortyEightHoursAgo } } 
     });
 
     // Active Jobs Distribution
@@ -791,10 +795,10 @@ export async function getOperationalDashboard(startDate: Date, endDate: Date) {
         topBottlenecks,
         pendingApprovals: {
             costs: pendingCosts,
-            steps: pendingSteps,
+            steps: pendingSteps + pendingSubSteps,
             delayedCosts,
-            delayedSteps,
-            totalDelayed: delayedCosts + delayedSteps
+            delayedSteps: delayedSteps + delayedSubSteps,
+            totalDelayed: delayedCosts + delayedSteps + delayedSubSteps
         },
         bottleneckScore: delayAnalysis.reduce((sum, d) => sum + (d.delay > 0 ? 1 : 0), 0) / (delayAnalysis.length || 1) * 100
     };
@@ -843,7 +847,7 @@ export async function getCostDetailsData(startDate: Date, endDate: Date) {
 ,
         include: {
             job: { select: { title: true, jobNo: true } },
-            user: { select: { name: true } }
+            createdBy: { select: { name: true } }
         },
         orderBy: { date: 'desc' }
     });
@@ -855,7 +859,7 @@ export async function getCostDetailsData(startDate: Date, endDate: Date) {
         category: c.category,
         description: c.description,
         amount: c.amount,
-        createdBy: c.user?.name || 'Sistem'
+        createdBy: c.createdBy?.name || 'Sistem'
     }));
 }
 
