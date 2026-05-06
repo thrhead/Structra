@@ -72,11 +72,13 @@ export async function getAdminDashboardData() {
         select: { amount: true }
       }).catch(e => { console.error("todaysCosts fetch failed", e); return []; }),
 
-      // 2: pendingApprovalsCount (Total pending actions: Approvals + Pending Costs)
+      // 2: pendingApprovalsCount (Total pending actions: Job Approvals + Pending Costs + Pending Steps + Pending SubSteps)
       Promise.all([
         prisma.approval.count({ where: { status: 'PENDING' } }),
-        prisma.costTracking.count({ where: { status: 'PENDING' } })
-      ]).then(([appr, costs]) => appr + costs).catch(e => { console.error("pendingApprovalsCount fetch failed", e); return 0; }),
+        prisma.costTracking.count({ where: { status: 'PENDING' } }),
+        prisma.jobStep.count({ where: { approvalStatus: 'PENDING', isCompleted: true } }),
+        prisma.jobSubStep.count({ where: { approvalStatus: 'PENDING', isCompleted: true } })
+      ]).then(([appr, costs, steps, subSteps]) => appr + costs + steps + subSteps).catch(e => { console.error("pendingApprovalsCount fetch failed", e); return 0; }),
 
       // 3: pendingCostsAgg
       prisma.costTracking.aggregate({
@@ -120,9 +122,9 @@ export async function getAdminDashboardData() {
       // 7: totalJobs
       prisma.job.count().catch(e => { console.error("totalJobs fetch failed", e); return 0; }),
 
-      // 8: activeJobs (PENDING + IN_PROGRESS)
+      // 8: activeJobs (Everything not ACCEPTED or CANCELLED)
       prisma.job.count({ 
-        where: { status: { in: ['PENDING', 'IN_PROGRESS'] } } 
+        where: { status: { in: ['PENDING', 'IN_PROGRESS', 'PENDING_APPROVAL', 'COMPLETED'] } } 
       }).catch(e => { console.error("activeJobs fetch failed", e); return 0; }),
 
       // 9: pendingOnlyJobs (only PENDING — for "Bekleyen İşler" card)
@@ -142,16 +144,16 @@ export async function getAdminDashboardData() {
         }
       }).catch(e => { console.error("unassignedJobs fetch failed", e); return 0; }),
 
-      // 10: totalCompletedJobs (all-time, for completion rate)
+      // 10: totalCompletedJobs (Only Truly Finished: ACCEPTED)
       prisma.job.count({
-        where: { status: { in: ['COMPLETED', 'ACCEPTED'] } }
+        where: { status: 'ACCEPTED' }
       }).catch(e => { console.error("totalCompletedJobs fetch failed", e); return 0; }),
 
-      // 11: completedJobsToday
+      // 11: completedJobsToday (ACCEPTED today)
       prisma.job.count({ 
         where: { 
-          status: { in: ['COMPLETED', 'ACCEPTED'] }, 
-          completedDate: { gte: today } 
+          status: 'ACCEPTED', 
+          acceptedAt: { gte: today } 
         } 
       }).catch(e => { console.error("completedJobsToday fetch failed", e); return 0; }),
 

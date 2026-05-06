@@ -139,7 +139,7 @@ export default function DashboardMiniCharts({
       href: `${basePrefix}/admin/jobs?status=COMPLETED`
     },
     {
-      label: 'Bekleyen Onay',
+      label: 'Onay Bekleyen',
       value: pendingApprovalsCount,
       icon: Clock,
       color: 'text-rose-600 dark:text-rose-400',
@@ -259,7 +259,7 @@ export default function DashboardMiniCharts({
             İş Durumu Dağılımı
           </CardTitle>
           <CardDescription className="text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mt-0.5">
-            Aktif · Bekleyen Onay · Tamamlanan
+            Aktif · Onay Bekleyen · Tamamlanan
           </CardDescription>
         </CardHeader>
         <CardContent className="px-4 pb-4 pt-4">

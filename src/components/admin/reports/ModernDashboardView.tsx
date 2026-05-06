@@ -52,7 +52,7 @@ export default function ModernDashboardView({ data }: ModernDashboardViewProps) 
                             </div>
                             <div>
                                 <div className="text-sm font-black text-rose-700 dark:text-rose-400 uppercase tracking-tight">
-                                    Kritik SLA Uyarısı: Bekleyen Onaylar
+                                    Kritik SLA Uyarısı: Onay Bekleyenler
                                 </div>
                                 <p className="text-xs text-rose-600/70 dark:text-rose-400/60 font-medium mt-0.5">
                                     Sistemde {totalPending} adet onay bekleyen kayıt operasyonel hızı etkiliyor

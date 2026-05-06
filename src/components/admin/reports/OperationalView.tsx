@@ -86,7 +86,7 @@ export default function OperationalView({ data }: { data: any }) {
                     </CardHeader>
                     <CardContent className="px-5 pb-5">
                         <div className={`text-3xl font-bold tabular-nums ${totalDelayed > 0 ? 'text-rose-700 dark:text-rose-300' : 'text-yellow-700 dark:text-yellow-300'}`}>{totalDelayed}</div>
-                        <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">48 saatten fazla bekleyen onay</p>
+                        <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">48 saatten fazla onay bekleyen</p>
                     </CardContent>
                 </Card>
 
@@ -128,7 +128,7 @@ export default function OperationalView({ data }: { data: any }) {
                             </div>
                             <ArrowRight className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mt-3">Bekleyen Onaylar</p>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mt-3">Onay Bekleyenler</p>
                     </CardHeader>
                     <CardContent className="px-5 pb-5">
                         <div className="text-3xl font-bold tabular-nums text-indigo-700 dark:text-indigo-300">{totalPending}</div>
@@ -326,7 +326,7 @@ export default function OperationalView({ data }: { data: any }) {
                                         <Clock className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
                                         <div className="flex-1">
                                             <div className="flex items-center justify-between">
-                                                <span className="font-semibold text-amber-700 dark:text-amber-300 text-xs">Bekleyen Onaylar</span>
+                                                <span className="font-semibold text-amber-700 dark:text-amber-300 text-xs">Onay Bekleyenler</span>
                                                 <ArrowRight className="w-3.5 h-3.5 text-amber-300 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                                             </div>
                                             <p className="text-[11px] text-amber-600/70 dark:text-amber-400/60 mt-0.5">

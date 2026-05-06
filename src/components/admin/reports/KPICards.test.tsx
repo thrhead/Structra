@@ -31,7 +31,7 @@ describe('KPICards', () => {
 
     it('should display pending approvals', () => {
         render(<KPICards stats={mockStats} />)
-        expect(screen.getByText('Bekleyen Onaylar')).toBeInTheDocument()
+        expect(screen.getByText('Onay Bekleyenler')).toBeInTheDocument()
         expect(screen.getByText('5')).toBeInTheDocument()
     })
 })
