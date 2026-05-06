@@ -40,19 +40,28 @@ const sidebarItems = [
     }
 ]
 
-import { useSidebar } from '@/components/ui/sidebar'
+import { useSidebar, SidebarMenu } from '@/components/ui/sidebar'
+import { useSession } from 'next-auth/react'
+import { NavUser } from '@/components/nav-user'
 
 export function ManagerSidebar() {
     const pathname = usePathname()
     const { openMobile, setOpenMobile } = useSidebar()
+    const { data: session } = useSession()
     const handleClose = () => setOpenMobile(false)
+
+    const user = {
+      name: session?.user?.name || "Yönetici",
+      email: session?.user?.email || "manager@montaj.com",
+      avatar: session?.user?.image || "",
+    }
 
     return (
         <>
             {/* Sidebar Container */}
             <div
                 className={cn(
-                    "fixed inset-y-0 left-0 z-40 w-64 bg-white border-r transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:flex lg:flex-col",
+                    "fixed inset-y-0 left-0 z-40 w-64 bg-white border-r transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:flex lg:flex-col group",
                     openMobile ? "translate-x-0" : "-translate-x-full"
                 )}
             >
@@ -85,6 +94,11 @@ export function ManagerSidebar() {
                             )
                         })}
                     </nav>
+                </div>
+
+                {/* User Profile / Footer */}
+                <div className="border-t p-2">
+                    <NavUser user={user} profileUrl="/manager/profile" />
                 </div>
             </div>
 

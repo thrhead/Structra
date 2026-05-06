@@ -11,19 +11,28 @@ const navigation = [
   { name: "Profil", href: "/customer/profile", icon: UserIcon },
 ]
 
-import { useSidebar } from '@/components/ui/sidebar'
+import { useSidebar, SidebarMenu } from '@/components/ui/sidebar'
+import { useSession } from 'next-auth/react'
+import { NavUser } from '@/components/nav-user'
 
 export function CustomerSidebar() {
   const pathname = usePathname()
   const { openMobile, setOpenMobile } = useSidebar()
+  const { data: session } = useSession()
   const handleClose = () => setOpenMobile(false)
+
+  const user = {
+    name: session?.user?.name || "Müşteri",
+    email: session?.user?.email || "customer@montaj.com",
+    avatar: session?.user?.image || "",
+  }
 
   return (
     <>
       {/* Sidebar Container */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-40 w-64 bg-white border-r transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:flex lg:flex-col",
+          "fixed inset-y-0 left-0 z-40 w-64 bg-white border-r transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-auto lg:flex lg:flex-col group",
           openMobile ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -56,15 +65,8 @@ export function CustomerSidebar() {
           })}
         </nav>
 
-        <div className="p-4 border-t">
-          <Button
-            variant="ghost"
-            className="w-full justify-start gap-3 text-red-600 hover:text-red-700 hover:bg-red-50"
-            onClick={() => signOut()}
-          >
-            <LogOutIcon className="h-5 w-5" />
-            Çıkış Yap
-          </Button>
+        <div className="p-2 border-t">
+          <NavUser user={user} profileUrl="/customer/profile" />
         </div>
       </div>
 
