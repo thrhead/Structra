@@ -25,7 +25,7 @@ export async function getAdminDashboardData() {
       weeklyCompletedSteps,
       activeJobsBudgetAgg,
       totalJobs,
-      activeJobs,
+      inProgressJobs,
       pendingOnlyJobs,
       unassignedJobs,
       totalCompletedJobs,
@@ -72,13 +72,13 @@ export async function getAdminDashboardData() {
         select: { amount: true }
       }).catch(e => { console.error("todaysCosts fetch failed", e); return []; }),
 
-      // 2: pendingApprovalsCount (Total pending actions: Job Approvals + Pending Costs + Pending Steps + Pending SubSteps)
+      // 2: pendingApprovalsCount (Total pending actions: Pending Costs + Pending Steps + Pending SubSteps)
+      // Note: Approval model is currently not displayed in ApprovalsPage, so we exclude it from count for consistency.
       Promise.all([
-        prisma.approval.count({ where: { status: 'PENDING' } }),
         prisma.costTracking.count({ where: { status: 'PENDING' } }),
         prisma.jobStep.count({ where: { approvalStatus: 'PENDING', isCompleted: true } }),
         prisma.jobSubStep.count({ where: { approvalStatus: 'PENDING', isCompleted: true } })
-      ]).then(([appr, costs, steps, subSteps]) => appr + costs + steps + subSteps).catch(e => { console.error("pendingApprovalsCount fetch failed", e); return 0; }),
+      ]).then(([costs, steps, subSteps]) => costs + steps + subSteps).catch(e => { console.error("pendingApprovalsCount fetch failed", e); return 0; }),
 
       // 3: pendingCostsAgg
       prisma.costTracking.aggregate({
@@ -122,10 +122,10 @@ export async function getAdminDashboardData() {
       // 7: totalJobs
       prisma.job.count().catch(e => { console.error("totalJobs fetch failed", e); return 0; }),
 
-      // 8: activeJobs (Everything not ACCEPTED or CANCELLED)
+      // 8: inProgressJobs (Strictly IN_PROGRESS to match jobs page filter)
       prisma.job.count({ 
-        where: { status: { in: ['PENDING', 'IN_PROGRESS', 'PENDING_APPROVAL', 'COMPLETED'] } } 
-      }).catch(e => { console.error("activeJobs fetch failed", e); return 0; }),
+        where: { status: 'IN_PROGRESS' } 
+      }).catch(e => { console.error("inProgressJobs fetch failed", e); return 0; }),
 
       // 9: pendingOnlyJobs (only PENDING — for "Bekleyen İşler" card)
       prisma.job.count({
@@ -144,9 +144,9 @@ export async function getAdminDashboardData() {
         }
       }).catch(e => { console.error("unassignedJobs fetch failed", e); return 0; }),
 
-      // 10: totalCompletedJobs (Only Truly Finished: ACCEPTED)
+      // 10: totalCompletedJobs (COMPLETED or ACCEPTED)
       prisma.job.count({
-        where: { status: 'ACCEPTED' }
+        where: { status: { in: ['COMPLETED', 'ACCEPTED'] } }
       }).catch(e => { console.error("totalCompletedJobs fetch failed", e); return 0; }),
 
       // 11: completedJobsToday (ACCEPTED today)
@@ -359,7 +359,7 @@ export async function getAdminDashboardData() {
       totalApprovedCost: approvedCostsAgg._sum?.amount || 0,
       weeklyStats,
       totalJobs,
-      activeJobs,
+      activeJobs: inProgressJobs,
       pendingOnlyJobs,
       unassignedJobs,
       totalCompletedJobs,
@@ -386,7 +386,7 @@ export async function getAdminDashboardData() {
 
     console.log("DASHBOARD DEBUG: Fetch successful", {
       jobs: totalJobs,
-      active: activeJobs,
+      active: inProgressJobs,
       pending: pendingOnlyJobs,
       completed: totalCompletedJobs,
       completionRate,

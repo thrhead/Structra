@@ -57,7 +57,7 @@ function CustomDonutTooltip({ active, payload }: any) {
   return (
     <div className="rounded-xl border border-slate-200/60 dark:border-slate-800/50 bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl shadow-xl p-2.5 text-xs">
       <p className="font-semibold" style={{ color: payload[0].payload.fill }}>{payload[0].name}</p>
-      <p className="text-slate-700 dark:text-slate-200 font-bold">{payload[0].value} iş</p>
+      <p className="text-slate-700 dark:text-slate-200 font-bold">{payload[0].value} adet</p>
     </div>
   )
 }
@@ -86,8 +86,8 @@ export default function DashboardMiniCharts({
   }, [])
 
   const donutData = [
-    { name: 'Aktif (Devam)', value: activeJobs - pendingOnlyJobs },
-    { name: 'Bekleyen', value: pendingOnlyJobs },
+    { name: 'Devam Eden', value: activeJobs },
+    { name: 'Onay Bekleyen', value: pendingApprovalsCount },
     { name: 'Tamamlanan', value: totalCompletedJobs },
   ].filter(d => d.value > 0)
 
@@ -100,8 +100,8 @@ export default function DashboardMiniCharts({
   }
 
   const getStatusUrl = (name: string) => {
-    if (name.includes('Aktif')) return `${basePrefix}/admin/jobs?status=IN_PROGRESS`
-    if (name.includes('Bekleyen')) return `${basePrefix}/admin/approvals`
+    if (name.includes('Devam Eden')) return `${basePrefix}/admin/jobs?status=IN_PROGRESS`
+    if (name.includes('Onay Bekleyen')) return `${basePrefix}/admin/approvals`
     if (name.includes('Tamamlanan')) return `${basePrefix}/admin/jobs?status=COMPLETED`
     return `${basePrefix}/admin/jobs`
   }
@@ -124,7 +124,7 @@ export default function DashboardMiniCharts({
     },
     {
       label: 'Devam Eden',
-      value: activeJobs - pendingOnlyJobs,
+      value: activeJobs,
       icon: Zap,
       color: 'text-amber-600 dark:text-amber-400',
       bg: 'bg-amber-50 dark:bg-amber-950/40',

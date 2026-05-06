@@ -64,7 +64,11 @@ function buildJobWhereClause(filter?: JobFilter): Prisma.JobWhereInput {
     if (Array.isArray(filter.status) && filter.status.length > 0) {
       where.status = { in: filter.status };
     } else if (typeof filter.status === 'string' && filter.status !== 'ALL') {
-      where.status = filter.status;
+      if (filter.status === 'COMPLETED') {
+        where.status = { in: ['COMPLETED', 'ACCEPTED'] };
+      } else {
+        where.status = filter.status;
+      }
     }
   }
 
