@@ -35,21 +35,30 @@ const COLORS = [
 
 const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
+        // Filter out items with a value of 0 to avoid cluttering the tooltip
+        const filteredPayload = payload.filter((item: any) => item.value > 0 || item.name === 'GEÇEN HAFTA');
+
         return (
             <div className="bg-white dark:bg-slate-900 dark:border-slate-800/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200 dark:border-slate-800 p-4 rounded-2xl shadow-2xl min-w-[160px]">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] mb-3 border-b dark:border-slate-800 border-slate-100 dark:border-slate-800 pb-2">{label}</p>
                 <div className="space-y-2">
-                    {payload.map((item: any, i: number) => (
-                        <div key={i} className="flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color || item.payload.fill }} />
-                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">{item.name}</span>
+                    {filteredPayload.length > 0 ? (
+                        filteredPayload.map((item: any, i: number) => (
+                            <div key={i} className="flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color || item.payload.fill }} />
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">{item.name}</span>
+                                </div>
+                                <span className="text-xs font-black text-slate-800 dark:text-slate-100">
+                                    {item.value}
+                                </span>
                             </div>
-                            <span className="text-xs font-black text-slate-800 dark:text-slate-100">
-                                {item.value}
-                            </span>
+                        ))
+                    ) : (
+                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tight text-center py-1">
+                            Veri Yok
                         </div>
-                    ))}
+                    )}
                 </div>
             </div>
         );
@@ -127,6 +136,14 @@ const WeeklyStepsChart = memo(({ data, categories = [] }: WeeklyStepsChartProps)
                                 fill={COLORS[index % COLORS.length]}
                                 radius={[4, 4, 0, 0]}
                                 barSize={32}
+                                cursor="pointer"
+                                onClick={(data: any) => {
+                                    if (data && data.payload) {
+                                        handleBarClick(data.payload);
+                                    } else {
+                                        handleBarClick(data);
+                                    }
+                                }}
                             />
                         ))}
 
