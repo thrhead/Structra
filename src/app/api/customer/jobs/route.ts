@@ -51,6 +51,21 @@ export async function GET(req: Request) {
             order: 'asc'
           }
         },
+        customer: {
+          select: {
+            company: true,
+            user: {
+              select: {
+                name: true
+              }
+            }
+          }
+        },
+        jobLead: {
+          select: {
+            name: true
+          }
+        },
         assignments: {
           include: {
             worker: {
@@ -61,7 +76,12 @@ export async function GET(req: Request) {
             },
             team: {
               select: {
-                name: true
+                name: true,
+                lead: {
+                  select: {
+                    name: true
+                  }
+                }
               }
             }
           }

@@ -31,6 +31,7 @@ const JobGridItem = ({ job, onPress, style }) => {
     const teamLead = 
         job.assignments?.[0]?.team?.lead?.name || 
         job.assignments?.[0]?.worker?.name ||      
+        job.jobLead?.name ||
         job.teamLeadName ||                        
         job.assignee?.name ||                      
         t('common.unassigned');

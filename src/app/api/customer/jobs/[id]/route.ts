@@ -38,7 +38,17 @@ export async function GET(
         customer: {
           select: {
             company: true,
-            address: true
+            address: true,
+            user: {
+              select: {
+                name: true
+              }
+            }
+          }
+        },
+        jobLead: {
+          select: {
+            name: true
           }
         },
         steps: {
