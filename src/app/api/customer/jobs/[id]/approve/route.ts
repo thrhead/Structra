@@ -41,10 +41,6 @@ export async function POST(
       return NextResponse.json({ error: 'Only completed jobs can be approved' }, { status: 400 })
     }
 
-    if (job.acceptanceStatus !== 'ACCEPTED') {
-      return NextResponse.json({ error: 'Job must be approved by admin before customer approval' }, { status: 400 })
-    }
-
     // Start transaction to update job and create approval record
     const updatedJob = await prisma.$transaction(async (tx) => {
       // Update job status

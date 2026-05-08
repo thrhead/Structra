@@ -20,7 +20,8 @@ const SubStepItem = ({
     const isSubstepLocked = subIndex > 0 && !step.subSteps[subIndex - 1].isCompleted;
     const isCompleted = substep.isCompleted;
     const isAdmin = user?.role?.toUpperCase() === 'ADMIN';
-    const isManager = ['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase());
+    const isCustomer = user?.role?.toUpperCase() === 'CUSTOMER';
+    const isManager = ['ADMIN', 'MANAGER', 'CUSTOMER'].includes(user?.role?.toUpperCase());
 
     const getStatusColor = () => {
         if (substep.approvalStatus === 'APPROVED') return theme.colors.success || '#10B981';
@@ -31,7 +32,7 @@ const SubStepItem = ({
     const getStatusText = () => {
         if (substep.approvalStatus === 'APPROVED') return t('common.approved');
         if (substep.approvalStatus === 'REJECTED') return t('common.rejected');
-        return t('common.pendingApproval');
+        return t('common.pendingApproval') || 'ONAY BEKLİYOR';
     };
 
     return (
@@ -50,7 +51,7 @@ const SubStepItem = ({
                         isCompleted && { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary }
                     ]}
                     onPress={() => handleSubstepToggle(step.id, substep.id, isCompleted)}
-                    disabled={isSubstepLocked || isAdmin}
+                    disabled={isSubstepLocked || isAdmin || isCustomer}
                 >
                     {isCompleted && <MaterialIcons name="check" size={16} color="#FFFFFF" />}
                 </TouchableOpacity>
@@ -75,7 +76,7 @@ const SubStepItem = ({
                     </View>
 
                     {/* Camera Action Row - More user friendly */}
-                    {!isSubstepLocked && !isCompleted && !isAdmin && (
+                    {!isSubstepLocked && !isCompleted && !isAdmin && !isCustomer && (
                         <TouchableOpacity
                             activeOpacity={0.7}
                             onPress={() => pickImage(step.id, substep.id, 'camera')}

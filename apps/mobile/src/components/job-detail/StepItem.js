@@ -24,7 +24,8 @@ const StepItem = ({
     const isLocked = index > 0 && !job.steps[index - 1].isCompleted;
     const isCompleted = step.isCompleted;
     const isAdmin = user?.role?.toUpperCase() === 'ADMIN';
-    const isManager = ['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase());
+    const isCustomer = user?.role?.toUpperCase() === 'CUSTOMER';
+    const isManager = ['ADMIN', 'MANAGER', 'CUSTOMER'].includes(user?.role?.toUpperCase());
 
     const getStatusColor = () => {
         if (step.approvalStatus === 'APPROVED') return theme.colors.success || '#10B981';
@@ -54,7 +55,7 @@ const StepItem = ({
                         isCompleted && { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary }
                     ]}
                     onPress={() => handleToggleStep(step.id, isCompleted)}
-                    disabled={isLocked || isAdmin}
+                    disabled={isLocked || isAdmin || isCustomer}
                 >
                     {isCompleted && <MaterialIcons name="check" size={20} color="#FFFFFF" />}
                 </TouchableOpacity>
