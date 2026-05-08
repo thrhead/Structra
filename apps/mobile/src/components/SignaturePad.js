@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, Modal } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, Modal, Platform } from 'react-native';
 import Signature from 'react-native-signature-canvas';
 import { COLORS } from '../constants/theme';
 
@@ -15,11 +15,18 @@ const SignaturePad = ({ visible, onSave, onCancel, theme }) => {
     };
 
     const handleClear = () => {
-        signatureRef.current.clearSignature();
+        if (signatureRef.current) {
+            signatureRef.current.clearSignature();
+        }
     };
 
     const handleConfirm = () => {
-        signatureRef.current.readSignature();
+        if (signatureRef.current) {
+            signatureRef.current.readSignature();
+        } else if (Platform.OS === 'web') {
+            // Provide a dummy 1x1 transparent signature image on web to allow testing
+            onSave("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=");
+        }
     };
 
     const style = `.m-signature-pad--footer {display: none; margin: 0px;}`;
@@ -32,15 +39,23 @@ const SignaturePad = ({ visible, onSave, onCancel, theme }) => {
                     <Text style={[styles.subtitle, { color: theme.colors.subText }]}>Lütfen aşağıdaki alana imzalayın</Text>
                     
                     <View style={styles.signatureBox}>
-                        <Signature
-                            ref={signatureRef}
-                            onOK={handleOK}
-                            onEmpty={handleEmpty}
-                            descriptionText="İmza"
-                            clearText="Temizle"
-                            confirmText="Onayla"
-                            webStyle={style}
-                        />
+                        {Platform.OS === 'web' ? (
+                            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+                                <Text style={{ textAlign: 'center', color: theme.colors.text }}>
+                                    Web platformunda imza alma özelliği desteklenmemektedir. "Onayla" diyerek test imzası ile devam edebilirsiniz.
+                                </Text>
+                            </View>
+                        ) : (
+                            <Signature
+                                ref={signatureRef}
+                                onOK={handleOK}
+                                onEmpty={handleEmpty}
+                                descriptionText="İmza"
+                                clearText="Temizle"
+                                confirmText="Onayla"
+                                webStyle={style}
+                            />
+                        )}
                     </View>
 
                     <View style={styles.buttonRow}>
@@ -54,8 +69,9 @@ const SignaturePad = ({ visible, onSave, onCancel, theme }) => {
                         <TouchableOpacity 
                             style={[styles.button, styles.clearButton, { borderColor: theme.colors.border }]} 
                             onPress={handleClear}
+                            disabled={Platform.OS === 'web'}
                         >
-                            <Text style={[styles.clearButtonText, { color: theme.colors.text }]}>Temizle</Text>
+                            <Text style={[styles.clearButtonText, { color: theme.colors.text, opacity: Platform.OS === 'web' ? 0.5 : 1 }]}>Temizle</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity 
