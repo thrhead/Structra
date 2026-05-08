@@ -73,7 +73,7 @@ const JobActionFooter = ({
                     )}
                     {(
                         (isAdminOrManager && job.acceptanceStatus === 'PENDING' && (job.status === 'COMPLETED' || job.status === 'PENDING_APPROVAL')) ||
-                        (isCustomer && job.status === 'COMPLETED')
+                        (isCustomer && job.acceptanceStatus === 'PENDING' && (job.status === 'COMPLETED' || job.status === 'PENDING_APPROVAL'))
                     ) && (
                         <View style={{ flexDirection: 'row', gap: 12 }}>
                             <TouchableOpacity

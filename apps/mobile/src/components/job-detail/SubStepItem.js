@@ -21,7 +21,7 @@ const SubStepItem = ({
     const isCompleted = substep.isCompleted;
     const isAdmin = user?.role?.toUpperCase() === 'ADMIN';
     const isCustomer = user?.role?.toUpperCase() === 'CUSTOMER';
-    const isManager = ['ADMIN', 'MANAGER', 'CUSTOMER'].includes(user?.role?.toUpperCase());
+    const isManager = ['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase());
 
     const getStatusColor = () => {
         if (substep.approvalStatus === 'APPROVED') return theme.colors.success || '#10B981';
@@ -32,7 +32,7 @@ const SubStepItem = ({
     const getStatusText = () => {
         if (substep.approvalStatus === 'APPROVED') return t('common.approved');
         if (substep.approvalStatus === 'REJECTED') return t('common.rejected');
-        return t('common.pendingApproval') || 'ONAY BEKLİYOR';
+        return t('common.pendingApproval');
     };
 
     return (

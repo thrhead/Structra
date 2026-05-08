@@ -136,11 +136,16 @@ export default function CustomerDashboardScreen({ navigation }) {
                             {user?.name || t('customer.title', 'Müşteri')}
                         </Text>
                     </View>
-                    <View style={[styles.avatar, { backgroundColor: theme.colors.primary + '20' }]}>
-                        <Text style={[styles.avatarText, { color: theme.colors.primary }]}>
-                            {(user?.name || 'C').charAt(0).toUpperCase()}
-                        </Text>
-                    </View>
+                    <TouchableOpacity 
+                        activeOpacity={0.7} 
+                        onPress={() => navigation.navigate('Profile')}
+                    >
+                        <View style={[styles.avatar, { backgroundColor: theme.colors.primary + '20' }]}>
+                            <Text style={[styles.avatarText, { color: theme.colors.primary }]}>
+                                {(user?.name || 'C').charAt(0).toUpperCase()}
+                            </Text>
+                        </View>
+                    </TouchableOpacity>
                 </View>
 
                 {/* Hero Summary Card */}

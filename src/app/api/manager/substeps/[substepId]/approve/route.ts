@@ -8,7 +8,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ sub
     try {
         const session = await verifyAuth(request);
 
-        if (!session || !['ADMIN', 'MANAGER', 'CUSTOMER'].includes(session.user.role)) {
+        if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
@@ -16,31 +16,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ sub
         console.log('Approve Substep Params:', paramsValue);
         const { substepId } = paramsValue;
         console.log('Substep ID:', substepId);
-
-        const existingSubstep = await prisma.jobSubStep.findUnique({
-            where: { id: substepId },
-            include: {
-                step: {
-                    include: {
-                        job: true
-                    }
-                }
-            }
-        });
-
-        if (!existingSubstep) {
-            return NextResponse.json({ error: 'Substep not found' }, { status: 404 });
-        }
-
-        // If the user is a CUSTOMER, they must own the job
-        if (session.user.role === 'CUSTOMER') {
-            const customer = await prisma.customer.findUnique({
-                where: { userId: session.user.id }
-            });
-            if (!customer || existingSubstep.step.job.customerId !== customer.id) {
-                return NextResponse.json({ error: 'Unauthorized: You do not own this job' }, { status: 403 });
-            }
-        }
 
         const substep = await prisma.jobSubStep.update({
             where: { id: substepId },

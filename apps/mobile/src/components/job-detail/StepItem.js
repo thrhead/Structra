@@ -25,7 +25,7 @@ const StepItem = ({
     const isCompleted = step.isCompleted;
     const isAdmin = user?.role?.toUpperCase() === 'ADMIN';
     const isCustomer = user?.role?.toUpperCase() === 'CUSTOMER';
-    const isManager = ['ADMIN', 'MANAGER', 'CUSTOMER'].includes(user?.role?.toUpperCase());
+    const isManager = ['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase());
 
     const getStatusColor = () => {
         if (step.approvalStatus === 'APPROVED') return theme.colors.success || '#10B981';
@@ -116,7 +116,7 @@ const StepItem = ({
             <View style={styles.photoContainer}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                     <Text style={{ fontSize: 13, fontWeight: '600', color: theme.colors.text }}>Genel Fotoğraflar</Text>
-                    {!isAdmin && (
+                    {!isAdmin && !isCustomer && (
                         <TouchableOpacity
                             style={{ padding: 4 }}
                             onPress={() => pickImage(step.id, null)}
