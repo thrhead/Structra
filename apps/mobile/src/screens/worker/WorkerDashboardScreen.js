@@ -102,8 +102,7 @@ export default function WorkerDashboardScreen({ navigation }) {
                     ...job,
                     id: job.id,
                     title: job.title,
-                    location: job.location || job.customer?.company || t('common.noData'),
-                    time: job.scheduledDate ? new Date(job.scheduledDate).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : t('worker.noDescription'),
+                    time: job.scheduledDate ? new Date(job.scheduledDate).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : 'Açıklama yok',
                     status: job.status,
                     progress: progress,
                     priority: job.priority

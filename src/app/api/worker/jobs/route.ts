@@ -57,6 +57,25 @@ export async function GET(req: Request) {
         creator: {
           select: { name: true }
         },
+        jobLead: {
+          select: { name: true }
+        },
+        assignments: {
+          select: {
+            id: true,
+            team: {
+              select: {
+                name: true,
+                lead: {
+                  select: { name: true }
+                }
+              }
+            },
+            worker: {
+              select: { name: true }
+            }
+          }
+        },
         steps: {
           select: {
             id: true,
