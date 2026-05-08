@@ -233,6 +233,11 @@ export default function JobDetailScreen({ route, navigation }) {
     };
 
     const handleSubstepToggle = async (stepId, substepId, currentStatus) => {
+        if (job?.status === 'PENDING') {
+            showAlert(t('common.warning'), t('alerts.startJobFirst', 'İlk önce bu işi başlatmanız gerekmektedir.'), [], 'warning');
+            return;
+        }
+
         const performToggle = async () => {
             try {
                 setLoading(true);
