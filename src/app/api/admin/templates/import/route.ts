@@ -54,9 +54,6 @@ export async function POST(req: Request) {
                         description: rows[0]["Description"] || rows[0]["Açıklama"] || `${name} iş şablonu`
                     }
 
-                    // Upsert mechanism: if exists, we might error or update. Let's error to avoid overwrite confusion provided valid names must be unique
-                    // Schema has unique constraint on name.
-                    // We can try to find first.
                     const existing = await tx.jobTemplate.findUnique({ where: { name } })
                     if (existing) {
                         throw new Error(`'${name}' isminde bir şablon zaten var.`)
@@ -69,7 +66,6 @@ export async function POST(req: Request) {
                         }
                     })
 
-                    // Group steps
                     const stepsMap = new Map<string, any[]>()
                     rows.forEach((row: any) => {
                         const stepTitle = row["Step Title"] || row["Adım Başlığı"]
@@ -88,20 +84,26 @@ export async function POST(req: Request) {
                             }
                         })
 
-                        let subStepOrder = 1
-                        for (const sRow of stepRows) {
-                            const subStepTitle = sRow["SubStep Title"] || sRow["Alt Adım"]
-                            if (!subStepTitle) continue
-
-                            await tx.templateSubStep.create({
-                                data: {
+                        const subStepsData = stepRows
+                            .map((sRow, index) => {
+                                const subStepTitle = sRow["SubStep Title"] || sRow["Alt Adım"]
+                                if (!subStepTitle) return null
+                                return {
                                     stepId: step.id,
                                     title: subStepTitle,
-                                    order: subStepOrder++
+                                    order: index + 1
                                 }
+                            })
+                            .filter((item): item is { stepId: string, title: string, order: number } => item !== null)
+
+                        if (subStepsData.length > 0) {
+                            await tx.templateSubStep.createMany({
+                                data: subStepsData
                             })
                         }
                     }
+                }, {
+                    timeout: 30000 // 30 seconds timeout
                 })
                 successCount++
             } catch (error: any) {

@@ -78,10 +78,6 @@ export async function POST(req: Request) {
 
                     let scheduledDate = new Date()
                     if (rows[0]["Date"] || rows[0]["Tarih"]) {
-                        // Handle Excel date serials or strings if necessary, but assuming simple string/date for now
-                        // xlsx usually handles dates if cell format is date, returning a JS Date object used in json
-                        // but if raw: false is not set (default), it might be different. 
-                        // sheet_to_json default options usually work well for simple cases.
                         const d = rows[0]["Date"] || rows[0]["Tarih"]
                         if (d instanceof Date) scheduledDate = d
                         else scheduledDate = new Date(d)
@@ -123,32 +119,27 @@ export async function POST(req: Request) {
                             }
                         })
 
-                        let subStepOrder = 1
-                        for (const sRow of stepRows) {
-                            const subStepTitle = sRow["SubStep Title"] || sRow["Alt Adım"]
-                            if (!subStepTitle) continue // Skip if no substep defined
-
-                            // Extra fields
-                            // const isMandatory = (sRow["Mandatory"] || sRow["Zorunlu"] || "NO").toUpperCase() === "YES"
-                            // type isn't strictly in schema yet? Wait, let me check schema again.
-                            // Schema has: JobSubStep: id, stepId, title, isCompleted... NO TYPE field in `JobSubStep` in schema.prisma!
-                            // Waiting... the schema `JobSubStep` model:
-                            // model JobSubStep { id, stepId, title, isCompleted... } 
-                            // There is NO `type` (checkbox/photo) or `isMandatory` in the current schema.
-                            // I should stick to the current schema or add fields if the user requested "custom tasks".
-                            // The user said "custom olarak excel ile görevler ve alt görevler".
-                            // I will add them as simple text titles for now as per schema.
-
-                            await tx.jobSubStep.create({
-                                data: {
+                        const subStepsData = stepRows
+                            .map((sRow, index) => {
+                                const subStepTitle = sRow["SubStep Title"] || sRow["Alt Adım"]
+                                if (!subStepTitle) return null
+                                return {
                                     stepId: step.id,
                                     title: subStepTitle,
-                                    order: subStepOrder++,
+                                    order: index + 1,
                                     isCompleted: false
                                 }
                             })
+                            .filter((item): item is { stepId: string, title: string, order: number, isCompleted: boolean } => item !== null)
+
+                        if (subStepsData.length > 0) {
+                            await tx.jobSubStep.createMany({
+                                data: subStepsData
+                            })
                         }
                     }
+                }, {
+                    timeout: 30000 // 30 seconds timeout
                 })
                 successCount++
             } catch (error: any) {
