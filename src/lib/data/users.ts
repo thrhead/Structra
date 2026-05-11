@@ -98,12 +98,24 @@ export async function getUser(id: string) {
 }
 
 export async function getUserReports(id: string) {
-  const [user, assignedJobs, createdCosts] = await Promise.all([
-    prisma.user.findUnique({
-      where: { id },
-      select: { role: true }
-    }),
-    prisma.jobAssignment.findMany({
+  const user = await prisma.user.findUnique({
+    where: { id },
+    include: {
+      customerProfile: true
+    }
+  });
+
+  if (!user) return null;
+
+  // Fetch jobs based on role
+  let jobs: any[] = [];
+  if (user.role === 'CUSTOMER' && user.customerProfile) {
+    jobs = await prisma.job.findMany({
+      where: { customerId: user.customerProfile.id },
+      orderBy: { createdAt: 'desc' }
+    });
+  } else {
+    const assignedJobs = await prisma.jobAssignment.findMany({
       where: {
         OR: [
           { workerId: id },
@@ -113,16 +125,43 @@ export async function getUserReports(id: string) {
       include: {
         job: true
       }
+    });
+    jobs = assignedJobs.map(aj => aj.job);
+  }
+
+  // Fetch Costs
+  const allCosts = await prisma.costTracking.findMany({
+    where: { createdById: id },
+    include: { job: { select: { title: true, jobNo: true } } },
+    orderBy: { date: 'desc' }
+  });
+
+  // Fetch Pending Step Approvals
+  const [pendingSteps, pendingSubSteps] = await Promise.all([
+    prisma.jobStep.findMany({
+      where: { 
+        completedById: id,
+        approvalStatus: 'PENDING',
+        isCompleted: true
+      },
+      include: { job: { select: { title: true, jobNo: true } } }
     }),
-    prisma.costTracking.findMany({
-      where: { createdById: id }
+    prisma.jobSubStep.findMany({
+      where: {
+        step: { job: { assignments: { some: { workerId: id } } } }, // This is a bit complex, might need better completedBy
+        approvalStatus: 'PENDING',
+        isCompleted: true
+      },
+      include: { step: { include: { job: { select: { title: true, jobNo: true } } } } }
     })
   ]);
 
-  if (!user) return null;
+  // General Approvals initiated by user
+  const pendingApprovals = await prisma.approval.findMany({
+    where: { requesterId: id, status: 'PENDING' },
+    include: { job: { select: { title: true, jobNo: true } } }
+  });
 
-  const jobs = assignedJobs.map(aj => aj.job);
-  
   // KPIs
   const activeJobs = jobs.filter(j => ['PENDING', 'IN_PROGRESS'].includes(j.status));
   const completedJobs = jobs.filter(j => j.status === 'COMPLETED');
@@ -136,8 +175,9 @@ export async function getUserReports(id: string) {
     return acc + (job.estimatedDuration || 0);
   }, 0);
 
-  const totalCosts = createdCosts.reduce((acc, cost) => acc + cost.amount, 0);
-  const reimbursedCosts = createdCosts
+  const totalCosts = allCosts.reduce((acc, cost) => acc + cost.amount, 0);
+  const pendingCosts = allCosts.filter(c => c.status === 'PENDING');
+  const reimbursedCosts = allCosts
     .filter(c => c.status === 'APPROVED')
     .reduce((acc, cost) => acc + cost.amount, 0);
 
@@ -147,11 +187,19 @@ export async function getUserReports(id: string) {
       activeProjectCount: activeJobs.length,
       completedProjectCount: completedJobs.length,
       totalExpenditure: totalCosts,
-      reimbursedExpenditure: reimbursedCosts
+      reimbursedExpenditure: reimbursedCosts,
+      pendingApprovalCount: pendingCosts.length + pendingSteps.length + pendingSubSteps.length + pendingApprovals.length
     },
     history: {
       activeTasks: activeJobs,
-      completedTasks: completedJobs
+      completedTasks: completedJobs,
+      costs: allCosts,
+      pendingItems: {
+        costs: pendingCosts,
+        steps: pendingSteps,
+        subSteps: pendingSubSteps,
+        approvals: pendingApprovals
+      }
     }
   };
 }
