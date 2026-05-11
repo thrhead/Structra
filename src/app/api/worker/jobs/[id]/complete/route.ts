@@ -72,6 +72,23 @@ export async function POST(
       }, { status: 400 })
     }
 
+    // MANDATORY PHOTO CHECK FOR JOB COMPLETION
+    // User requested that the main job requires at least 1 general photo to be completed.
+    const photoCount = await prisma.stepPhoto.count({
+      where: {
+        step: {
+          jobId: jobId
+        },
+        subStepId: null // "genel fotoğraf" means photo attached to a step, not a substep
+      }
+    })
+
+    if (photoCount === 0) {
+      return NextResponse.json({
+        error: 'bu iş emrini kapatabilmeniz için öncelikle en az 1 adet genel fotoğraf yüklemeniz gerekmektedir'
+      }, { status: 400 })
+    }
+
     let signatureUrl = null
     if (signature) {
       try {

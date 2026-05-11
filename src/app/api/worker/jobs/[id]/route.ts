@@ -144,6 +144,24 @@ export async function PATCH(
       return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
     }
 
+    // MANDATORY PHOTO CHECK FOR COMPLETED STATUS
+    if (status === 'COMPLETED') {
+        const photoCount = await prisma.stepPhoto.count({
+            where: {
+                step: {
+                    jobId: params.id
+                },
+                subStepId: null
+            }
+        })
+
+        if (photoCount === 0) {
+            return NextResponse.json({
+                error: 'bu iş emrini kapatabilmeniz için öncelikle en az 1 adet genel fotoğraf yüklemeniz gerekmektedir'
+            }, { status: 400 })
+        }
+    }
+
     const job = await prisma.job.update({
       where: { id: params.id },
       data: { status }
